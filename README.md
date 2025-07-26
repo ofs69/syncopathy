@@ -1,6 +1,6 @@
 # syncopathy
 
-An offline bluetooth script player for the handy.
+An offline bluetooth script player for the handy made with flutter.
 
 ## Dev stuff
 ```
