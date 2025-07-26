@@ -2,10 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
-import 'package:provider/provider.dart';
 import 'package:syncopathy/main.dart';
 import 'package:syncopathy/media_manager.dart';
-import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/user_category.dart';
 import 'package:syncopathy/video_item.dart';
 import 'package:syncopathy/model/video_model.dart';

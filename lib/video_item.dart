@@ -28,6 +28,9 @@ class VideoItem extends StatefulWidget {
 class _VideoItemState extends State<VideoItem> {
   void _showContextMenu(BuildContext context, TapUpDetails details) async {
     final categories = await isar.userCategorys.where().findAll();
+    if (categories.isEmpty) {
+      return;
+    }
 
     final result = await showMenu<UserCategory>(
       context: context,
