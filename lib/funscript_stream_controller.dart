@@ -31,9 +31,9 @@ class FunscriptStreamController {
       _currentBuffer.clear();
     }
     _currentBuffer.addAll(batch);
-    print(
-      "BUFFER: ${batch.length} -> ${_currentBuffer.length} ${flush ? "FLUSH" : ""}",
-    );
+    // print(
+    //   "BUFFER: ${batch.length} -> ${_currentBuffer.length} ${flush ? "FLUSH" : ""}",
+    // );
 
     await _device?.bufferBatch(batch, tailActionIndex, flush);
   }
@@ -120,7 +120,8 @@ class FunscriptStreamController {
           var action = _currentFunscript!.actions[lastIndex + i];
           batch.add(action);
         }
-        print("BATCHING $lastIndex -> ${lastIndex + batch.length}");
+        //print("BATCHING $lastIndex -> ${lastIndex + batch.length}");
+
         _bufferBatch(batch, lastIndex + batch.length, flush);
       }
     } else {

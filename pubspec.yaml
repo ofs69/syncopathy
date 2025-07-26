@@ -40,7 +40,7 @@ dependencies:
       url: https://github.com/ofs69/libmpv_dart.git
       ref: main
   window_manager: ^0.5.0
-  universal_ble: ^0.20.2
+  universal_ble: ^0.21.0
   protobuf: ^4.1.0
   file_picker: ^10.2.0
   path: ^1.9.1
@@ -63,10 +63,10 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   protoc_plugin: 22.4.0
   isar_generator: ^3.1.0+1
-  flutter_launcher_icons: "^0.13.1"
+  flutter_launcher_icons: "^0.14.4"
   build_runner: ^2.4.0 # run: dart run build_runner build
 
 # run: dart run flutter_launcher_icons
@@ -78,8 +78,8 @@ flutter_launcher_icons:
   web:
     generate: true
     image_path: "assets/icon/app_icon.png"
-    background_color: "#hexcode"
-    theme_color: "#hexcode"
+    background_color: "#333"
+    theme_color: "#333"
   windows:
     generate: true
     image_path: "assets/icon/app_icon.png"
