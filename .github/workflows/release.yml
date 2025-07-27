@@ -9,7 +9,8 @@ on:
 jobs:
   build:
     runs-on: windows-2025
-
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
