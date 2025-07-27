@@ -32,7 +32,7 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-essentials.7z" -OutFile "ffmpeg.7z"
           7z x ffmpeg.7z -o"ffmpeg_extracted"
-          Get-ChildItem -Path "ffmpeg_extracted" -Recurse -Filter "ffmpeg.exe" | Copy-Item -Destination "build/windows/runner/Release/ffmpeg.exe"
+          Get-ChildItem -Path "ffmpeg_extracted" -Recurse -Filter "ffmpeg.exe" | Copy-Item -Destination "build/windows/runner/Release/"
 
       - name: Zip Release
         run: Compress-Archive -Path build/windows/runner/Release/* -DestinationPath syncopathy-windows-${{ github.ref_name }}.zip
