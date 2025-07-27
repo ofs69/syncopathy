@@ -26,7 +26,7 @@ jobs:
         run: dart run libmpv_dart:setup --platform windows 
 
       - name: Build Windows release
-        run: flutter build windows --release
+        run: flutter build windows --release --verbose
 
       - name: Zip Release
         run: Compress-Archive -Path build/windows/runner/Release/* -DestinationPath syncopathy-windows-${{ github.ref_name }}.zip
