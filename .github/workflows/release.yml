@@ -29,16 +29,11 @@ jobs:
         run: flutter build windows --release
 
       - name: Download FFmpeg
-        run: Invoke-WebRequest -Uri https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-essentials.7z -OutFile ffmpeg-git-essentials.7z
-
-      - name: Extract FFmpeg
-        run: 7z e ffmpeg-git-essentials.7z "ffmpeg-*-essentials_build/bin/ffmpeg.exe"
-
-      - name: tree
-        run: tree
-
-      - name: Move FFmpeg to Release folder
-        run: Move-Item -Path ffmpeg.exe -Destination build/windows/runner/Release/ffmpeg.exe
+        run: |
+          Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-essentials.7z" -OutFile "ffmpeg.7z"
+          7z x ffmpeg.7z -o"ffmpeg_extracted"
+          $ffmpegFolder = Get-ChildItem -Path "ffmpeg_extracted" | Where-Object {$_.PSIsContainer -and $_.Name -like "ffmpeg-*-git-essentials*"}
+          Copy-Item -Path "$($ffmpegFolder.FullName)/bin/ffmpeg.exe" -Destination "build/windows/runner/Release/"
 
       - name: Zip Release
         run: Compress-Archive -Path build/windows/runner/Release/* -DestinationPath syncopathy-windows-${{ github.ref_name }}.zip
