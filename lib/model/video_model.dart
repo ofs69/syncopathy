@@ -18,7 +18,7 @@ class Video {
   FunscriptMetadata? funscriptMetadata;
   DateTime dateFirstFound = DateTime.now();
 
-  final category = IsarLink<UserCategory>();
+  final categories = IsarLinks<UserCategory>();
 
   Video({
     required this.title,

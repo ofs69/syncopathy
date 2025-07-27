@@ -119,10 +119,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
       if (_selectedCategory != null) {
         if (_selectedCategory == _uncategorized) {
-          if (video.category.value != null) {
+          if (video.categories.isNotEmpty) {
             return false;
           }
-        } else if (video.category.value?.id != _selectedCategory?.id) {
+        } else if (!video.categories.any((c) => c.id == _selectedCategory!.id)) {
           return false;
         }
       }

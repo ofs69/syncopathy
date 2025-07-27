@@ -71,11 +71,11 @@ const VideoSchema = CollectionSchema(
   idName: r'id',
   indexes: {},
   links: {
-    r'category': LinkSchema(
-      id: 9206504110855399602,
-      name: r'category',
+    r'categories': LinkSchema(
+      id: 3364589698365908318,
+      name: r'categories',
       target: r'UserCategory',
-      single: true,
+      single: false,
     )
   },
   embeddedSchemas: {
@@ -195,13 +195,13 @@ Id _videoGetId(Video object) {
 }
 
 List<IsarLinkBase<dynamic>> _videoGetLinks(Video object) {
-  return [object.category];
+  return [object.categories];
 }
 
 void _videoAttach(IsarCollection<dynamic> col, Id id, Video object) {
   object.id = id;
-  object.category
-      .attach(col, col.isar.collection<UserCategory>(), r'category', id);
+  object.categories
+      .attach(col, col.isar.collection<UserCategory>(), r'categories', id);
 }
 
 extension VideoQueryWhereSort on QueryBuilder<Video, Video, QWhere> {
@@ -1013,16 +1013,59 @@ extension VideoQueryObject on QueryBuilder<Video, Video, QFilterCondition> {
 }
 
 extension VideoQueryLinks on QueryBuilder<Video, Video, QFilterCondition> {
-  QueryBuilder<Video, Video, QAfterFilterCondition> category(
+  QueryBuilder<Video, Video, QAfterFilterCondition> categories(
       FilterQuery<UserCategory> q) {
     return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'category');
+      return query.link(q, r'categories');
     });
   }
 
-  QueryBuilder<Video, Video, QAfterFilterCondition> categoryIsNull() {
+  QueryBuilder<Video, Video, QAfterFilterCondition> categoriesLengthEqualTo(
+      int length) {
     return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'category', 0, true, 0, true);
+      return query.linkLength(r'categories', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<Video, Video, QAfterFilterCondition> categoriesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'categories', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Video, Video, QAfterFilterCondition> categoriesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'categories', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<Video, Video, QAfterFilterCondition> categoriesLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'categories', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<Video, Video, QAfterFilterCondition> categoriesLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'categories', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<Video, Video, QAfterFilterCondition> categoriesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+          r'categories', lower, includeLower, upper, includeUpper);
     });
   }
 }

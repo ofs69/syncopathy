@@ -43,7 +43,7 @@ class _VideoItemState extends State<VideoItem> {
       items: categories.map((category) {
         return PopupMenuItem<UserCategory>(
           value: category,
-          child: widget.video.category.value?.id == category.id
+          child: widget.video.categories.any((c) => c.id == category.id)
               ? Text("Remove: ${category.name}")
               : Text(category.name),
         );
@@ -51,7 +51,7 @@ class _VideoItemState extends State<VideoItem> {
     );
 
     if (result != null) {
-      bool removeCategory = widget.video.category.value?.id == result.id;
+      bool removeCategory = widget.video.categories.any((c) => c.id == result.id);
       widget.onCategoryChanged(widget.video, result, removeCategory);
     }
   }

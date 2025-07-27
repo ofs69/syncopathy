@@ -144,18 +144,17 @@ class MediaManager {
   }
 
   Future<void> setVideoCategory(Video video, UserCategory? category) async {
-    video.category.value = category;
+    if (category == null) return;
+    video.categories.add(category);
     await isar.writeTxn(() async {
-      await isar.videos.put(video);
-      await video.category.save();
+      await video.categories.save();
     });
   }
 
   Future<void> removeVideoCategory(Video video, UserCategory category) async {
-    video.category.value = null;
+    video.categories.remove(category);
     await isar.writeTxn(() async {
-      await isar.videos.put(video);
-      await video.category.save();
+      await video.categories.save();
     });
   }
 }
