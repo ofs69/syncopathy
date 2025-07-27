@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2022
+    runs-on: windows-2025
 
     steps:
       - name: Checkout code
@@ -18,11 +18,6 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-
-      - uses: ChristopheLav/windows-sdk-install@v1
-        with:
-          version-sdk: 26100
-          features: 'OptionId.UWPCPP,OptionId.DesktopCPParm64'
 
       - name: Install dependencies
         run: flutter pub get
