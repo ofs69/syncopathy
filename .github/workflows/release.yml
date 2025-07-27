@@ -34,6 +34,9 @@ jobs:
       - name: Extract FFmpeg
         run: 7z e ffmpeg-git-essentials.7z "ffmpeg-*-essentials_build/bin/ffmpeg.exe"
 
+      - name: tree
+        run: tree
+
       - name: Move FFmpeg to Release folder
         run: Move-Item -Path ffmpeg.exe -Destination build/windows/runner/Release/ffmpeg.exe
 
