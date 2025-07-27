@@ -47,8 +47,13 @@ const SettingsEntitySchema = CollectionSchema(
       name: r'remapFullRange',
       type: IsarType.bool,
     ),
-    r'slewMaxRateOfChange': PropertySchema(
+    r'skipToAction': PropertySchema(
       id: 6,
+      name: r'skipToAction',
+      type: IsarType.bool,
+    ),
+    r'slewMaxRateOfChange': PropertySchema(
+      id: 7,
       name: r'slewMaxRateOfChange',
       type: IsarType.double,
     )
@@ -95,7 +100,8 @@ void _settingsEntitySerialize(
   writer.writeLong(offsets[3], object.offsetMs);
   writer.writeDouble(offsets[4], object.rdpEpsilon);
   writer.writeBool(offsets[5], object.remapFullRange);
-  writer.writeDouble(offsets[6], object.slewMaxRateOfChange);
+  writer.writeBool(offsets[6], object.skipToAction);
+  writer.writeDouble(offsets[7], object.slewMaxRateOfChange);
 }
 
 SettingsEntity _settingsEntityDeserialize(
@@ -112,7 +118,8 @@ SettingsEntity _settingsEntityDeserialize(
   object.offsetMs = reader.readLong(offsets[3]);
   object.rdpEpsilon = reader.readDoubleOrNull(offsets[4]);
   object.remapFullRange = reader.readBool(offsets[5]);
-  object.slewMaxRateOfChange = reader.readDoubleOrNull(offsets[6]);
+  object.skipToAction = reader.readBool(offsets[6]);
+  object.slewMaxRateOfChange = reader.readDoubleOrNull(offsets[7]);
   return object;
 }
 
@@ -136,6 +143,8 @@ P _settingsEntityDeserializeProp<P>(
     case 5:
       return (reader.readBool(offset)) as P;
     case 6:
+      return (reader.readBool(offset)) as P;
+    case 7:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -781,6 +790,16 @@ extension SettingsEntityQueryFilter
   }
 
   QueryBuilder<SettingsEntity, SettingsEntity, QAfterFilterCondition>
+      skipToActionEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'skipToAction',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterFilterCondition>
       slewMaxRateOfChangeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -939,6 +958,20 @@ extension SettingsEntityQuerySortBy
   }
 
   QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      sortBySkipToAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'skipToAction', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      sortBySkipToActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'skipToAction', Sort.desc);
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
       sortBySlewMaxRateOfChange() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'slewMaxRateOfChange', Sort.asc);
@@ -1033,6 +1066,20 @@ extension SettingsEntityQuerySortThenBy
   }
 
   QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      thenBySkipToAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'skipToAction', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      thenBySkipToActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'skipToAction', Sort.desc);
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
       thenBySlewMaxRateOfChange() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'slewMaxRateOfChange', Sort.asc);
@@ -1089,6 +1136,13 @@ extension SettingsEntityQueryWhereDistinct
   }
 
   QueryBuilder<SettingsEntity, SettingsEntity, QDistinct>
+      distinctBySkipToAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'skipToAction');
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QDistinct>
       distinctBySlewMaxRateOfChange() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'slewMaxRateOfChange');
@@ -1139,6 +1193,12 @@ extension SettingsEntityQueryProperty
       remapFullRangeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'remapFullRange');
+    });
+  }
+
+  QueryBuilder<SettingsEntity, bool, QQueryOperations> skipToActionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'skipToAction');
     });
   }
 

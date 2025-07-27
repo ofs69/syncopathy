@@ -52,6 +52,18 @@ class SyncopathyModel extends ChangeNotifier {
     paused.addListener(_handlePausedChanged);
     positionNoOffset.addListener(_handlePositionChanged);
     settings.addListener(applySettings);
+
+    _mpv.duration.addListener(_handleDurationChange);
+  }
+
+  void _handleDurationChange() {
+    if (settings.skipToAction) {
+      final startTime = FunscriptAlgorithms.findFirstStroke(
+        funscript.value!.actions,
+      );
+      final percentPos = (startTime / 1000.0) / duration.value;
+      _mpv.seekTo(percentPos.clamp(0.0, 1.0));
+    }
   }
 
   Future<void> initialize() async {

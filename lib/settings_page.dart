@@ -19,6 +19,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   late double _currentRdpEpsilon;
   late bool _rdpEpsilonEnabled;
+  late bool _skipToAction;
   late double _currentSlewMaxRateOfChange;
   late bool _slewMaxRateOfChangeEnabled;
   late bool _remapFullRange;
@@ -54,6 +55,7 @@ class _SettingsPageState extends State<SettingsPage> {
     _currentSlewMaxRateOfChange = _model.settings.slewMaxRateOfChange ?? 400.0;
     _slewMaxRateOfChangeEnabled = _model.settings.slewMaxRateOfChange != null;
     _remapFullRange = _model.settings.remapFullRange;
+    _skipToAction = _model.settings.skipToAction;
   }
 
   Future<void> _addPath() async {
@@ -197,6 +199,28 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 32),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Checkbox(
+                        value: _skipToAction,
+                        onChanged: (value) {
+                          setState(() {
+                            _skipToAction = value ?? false;
+                          });
+                        },
+                      ),
+                      Tooltip(
+                        message:
+                            "Skips to the part where the funscript begins.",
+                        child: Text(
+                          'Skip to action: ${_skipToAction ? 'Enabled' : 'Disabled'}',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildSliderColumn(
@@ -239,12 +263,14 @@ class _SettingsPageState extends State<SettingsPage> {
                           ? _currentSlewMaxRateOfChange
                           : null;
                       final remapFullRange = _remapFullRange;
+                      final skipToAction = _skipToAction;
 
                       _model.settings.setMinMax(currentMin, currentMax);
                       _model.settings.setOffsetMs(currentOffset);
                       _model.settings.setRdpEpsilon(currentRdpEpsilon);
                       _model.settings.setSlewMaxRateOfChange(currentSlewRate);
                       _model.settings.setRemapFullRange(remapFullRange);
+                      _model.settings.setSkipToAction(skipToAction);
                       setState(() {});
                     },
                     child: const Text('Save Settings and Apply'),

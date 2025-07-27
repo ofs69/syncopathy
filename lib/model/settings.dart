@@ -16,6 +16,7 @@ class SettingsEntity {
   double? slewMaxRateOfChange = 400;
   double? rdpEpsilon = 15;
   bool remapFullRange = true;
+  bool skipToAction = true;
 }
 
 class Settings extends ChangeNotifier {
@@ -28,13 +29,13 @@ class Settings extends ChangeNotifier {
   double? get slewMaxRateOfChange => _entity.slewMaxRateOfChange;
   double? get rdpEpsilon => _entity.rdpEpsilon;
   bool get remapFullRange => _entity.remapFullRange;
-
+  bool get skipToAction => _entity.skipToAction;
 
   Settings();
 
   Future<void> load() async {
     _entity = await isar.settingsEntitys.get(0) ?? SettingsEntity();
-    // by default isar lists are not growable... 
+    // by default isar lists are not growable...
     // this fixes an issue where only one path could be added
     _entity.mediaPaths = _entity.mediaPaths.toList();
     await _save();
@@ -93,6 +94,12 @@ class Settings extends ChangeNotifier {
 
   Future<void> setRemapFullRange(bool value) async {
     _entity.remapFullRange = value;
+    await _save();
+    notifyListeners();
+  }
+
+  Future<void> setSkipToAction(bool value) async {
+    _entity.skipToAction = value;
     await _save();
     notifyListeners();
   }

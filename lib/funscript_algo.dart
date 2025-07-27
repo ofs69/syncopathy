@@ -158,7 +158,7 @@ class FunscriptAlgorithms {
     }
 
     {
-      // this padding is needed for the handy to function. 
+      // this padding is needed for the handy to function.
       // maybe there's a better solution
       // the code inserts reduntant points at a fixed interval
 
@@ -233,5 +233,21 @@ class FunscriptAlgorithms {
       // 3. Create a new FunscriptAction with the remapped position.
       return FunscriptAction(at: action.at, pos: newPos);
     }).toList();
+  }
+
+  static int findFirstStroke(List<FunscriptAction> actions) {
+    if (actions.length <= 2) {
+      return 0;
+    }
+
+    for (int i = 1; i < actions.length; i++) {
+      final from = actions[i - 1];
+      final to = actions[i];
+
+      if (from.pos != to.pos) {
+        return from.at;
+      }
+    }
+    return 0;
   }
 }
