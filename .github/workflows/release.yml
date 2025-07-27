@@ -34,10 +34,10 @@ jobs:
           7z x ffmpeg.7z -o"ffmpeg_extracted"
           dir
           tree
-          Get-ChildItem -Path "ffmpeg_extracted" -Recurse -Filter "ffmpeg.exe" | Copy-Item -Destination "build/windows/runner/Release/"
+          Get-ChildItem -Path "ffmpeg_extracted" -Recurse -Filter "ffmpeg.exe" | Copy-Item -Destination "build/windows/x64/runner/Release/"
 
       - name: Zip Release
-        run: Compress-Archive -Path build/windows/runner/Release/* -DestinationPath syncopathy-windows-${{ github.ref_name }}.zip
+        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath syncopathy-windows-${{ github.ref_name }}.zip
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
