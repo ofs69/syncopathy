@@ -32,10 +32,10 @@ jobs:
         run: Invoke-WebRequest -Uri https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-essentials.7z -OutFile ffmpeg-git-essentials.7z
 
       - name: Extract FFmpeg
-        run: 7z x ffmpeg-git-essentials.7z -oFFmpeg_extracted
+        run: 7z e ffmpeg-git-essentials.7z "ffmpeg-*-essentials_build/bin/ffmpeg.exe"
 
       - name: Move FFmpeg to Release folder
-        run: Move-Item -Path FFmpeg_extracted/ffmpeg-git-essentials/bin/ffmpeg.exe -Destination build/windows/runner/Release/ffmpeg.exe
+        run: Move-Item -Path ffmpeg.exe -Destination build/windows/runner/Release/ffmpeg.exe
 
       - name: Zip Release
         run: Compress-Archive -Path build/windows/runner/Release/* -DestinationPath syncopathy-windows-${{ github.ref_name }}.zip
