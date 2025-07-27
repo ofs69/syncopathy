@@ -86,13 +86,18 @@ class HandyBle extends FunscriptDevice {
           }
         }
       } else if (_isConnected.value) {
-        _isConnected.value = false;
-        _device = null;
-        _tx = null;
-        _rx = null;
-        _isConnected.value = false;
+        await _disconnected();
       }
     });
+  }
+
+  Future<void> _disconnected() async {
+    _rxSubscription?.cancel();
+    _isConnected.value = false;
+    _device = null;
+    _tx = null;
+    _rx = null;
+    _isConnected.value = false;
   }
 
   void startScan(double minPos, double maxPos) async {
@@ -117,15 +122,12 @@ class HandyBle extends FunscriptDevice {
       }
     }
 
-    _device = null;
-    _tx = null;
-    _rx = null;
-    _isConnected.value = false;
+    await _disconnected();
 
     UniversalBle.startScan(
       scanFilter: ScanFilter(
         withServices: ["77834d26-40f7-11ee-be56-0242ac120002"],
-      )
+      ),
     );
   }
 
@@ -150,6 +152,7 @@ class HandyBle extends FunscriptDevice {
         service: "77834d26-40f7-11ee-be56-0242ac120002",
       );
       if (_tx != null && _rx != null) {
+        _pendingRequests.clear();
         _rxSubscription = _rx!.onValueReceived.listen(_rpcMessageReceived);
         await _rx!.notifications.subscribe();
         _isConnected.value = true;
@@ -242,6 +245,14 @@ class HandyBle extends FunscriptDevice {
     await stopPlayback();
   }
 
+  Future<void> _txWrite(Uint8List buffer) async {
+    if (_tx == null) return;
+    return await _tx!.write(buffer).catchError((error) {
+      _addError(error.toString());
+      _disconnected();
+    });
+  }
+
   void _rpcMessageReceived(Uint8List value) {
     var message = RpcMessage.fromBuffer(value.toList());
     if (message.type == MessageType.MESSAGE_TYPE_RESPONSE) {
@@ -249,7 +260,7 @@ class HandyBle extends FunscriptDevice {
         var error = message.response.error;
         _errorController.sink.add(error.toString());
       } else {
-        _pendingRequests[message.response.id]!.complete(message);
+        _pendingRequests[message.response.id]?.complete(message);
 
         _addNotification(
           message.response.toString().replaceAll(RegExp(r'\s+'), ' '),
@@ -286,7 +297,7 @@ class HandyBle extends FunscriptDevice {
       }
     });
 
-    _tx!.write(message.writeToBuffer());
+    _txWrite(message.writeToBuffer());
     await response;
   }
 
@@ -312,7 +323,7 @@ class HandyBle extends FunscriptDevice {
       }
     });
 
-    _tx!.write(message.writeToBuffer());
+    _txWrite(message.writeToBuffer());
     await response;
   }
 
@@ -342,7 +353,7 @@ class HandyBle extends FunscriptDevice {
         return state;
       }
     });
-    _tx!.write(message.writeToBuffer());
+    _txWrite(message.writeToBuffer());
 
     var state = (await response)!;
     var _ = state.maxPoints;
@@ -378,7 +389,7 @@ class HandyBle extends FunscriptDevice {
       }
     });
 
-    _tx!.write(message.writeToBuffer());
+    _txWrite(message.writeToBuffer());
     await response;
   }
 
@@ -407,7 +418,7 @@ class HandyBle extends FunscriptDevice {
           var _ = response.responseHspCurrentTimeSet;
         }
       });
-      _tx!.write(message.writeToBuffer());
+      _txWrite(message.writeToBuffer());
       await response;
     }
 
@@ -450,7 +461,7 @@ class HandyBle extends FunscriptDevice {
         var _ = response.responseHspStop;
       }
     });
-    _tx!.write(message.writeToBuffer());
+    _txWrite(message.writeToBuffer());
     await response;
   }
 
@@ -473,7 +484,7 @@ class HandyBle extends FunscriptDevice {
         var _ = response.responseHspStop;
       }
     });
-    _tx!.write(message.writeToBuffer());
+    _txWrite(message.writeToBuffer());
     await response;
   }
 
@@ -498,7 +509,7 @@ class HandyBle extends FunscriptDevice {
           return clock;
         }
       });
-      _tx!.write(message.writeToBuffer());
+      _txWrite(message.writeToBuffer());
       clock = (await response)!;
       await _createStream();
     }
@@ -527,7 +538,7 @@ class HandyBle extends FunscriptDevice {
         return clock;
       }
     });
-    _tx!.write(message.writeToBuffer());
+    _txWrite(message.writeToBuffer());
 
     var _ = await response;
 
