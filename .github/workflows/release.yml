@@ -26,13 +26,13 @@ jobs:
         run: dart run libmpv_dart:setup --platform windows 
 
       - name: Build Windows release
-        run: flutter build windows --release --verbose
+        run: flutter build windows --release
 
       - name: Download FFmpeg
         run: Invoke-WebRequest -Uri https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-essentials.7z -OutFile ffmpeg-git-essentials.7z
 
       - name: Extract FFmpeg
-        run: 7z x ffmpeg-git-essentials.7z -oFFmpeg_extracted ffmpeg-git-essentials/bin/ffmpeg.exe
+        run: 7z x ffmpeg-git-essentials.7z -oFFmpeg_extracted
 
       - name: Move FFmpeg to Release folder
         run: Move-Item -Path FFmpeg_extracted/ffmpeg-git-essentials/bin/ffmpeg.exe -Destination build/windows/runner/Release/ffmpeg.exe
