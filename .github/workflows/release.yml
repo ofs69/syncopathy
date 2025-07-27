@@ -19,6 +19,11 @@ jobs:
         with:
           channel: 'stable'
 
+      - uses: ChristopheLav/windows-sdk-install@v1
+        with:
+          version-sdk: 26100
+          features: 'OptionId.UWPCPP,OptionId.DesktopCPParm64'
+
       - name: Install dependencies
         run: flutter pub get
 
