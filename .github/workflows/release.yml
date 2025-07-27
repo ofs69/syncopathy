@@ -43,20 +43,6 @@ jobs:
           name: windows-build
           path: syncopathy-windows-${{ github.ref_name }}.zip
 
-      - name: Create Release
-        id: create_release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: |
-            Release of version ${{ github.ref }}
-          draft: false
-          prerelease: false
-
       - name: Upload Release Asset
         id: upload-release-asset
         if: startsWith(github.ref, 'refs/tags/')
