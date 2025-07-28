@@ -11,7 +11,7 @@ protoc --dart_out=lib/generated -Iprotos protos\messages.proto
 protoc --dart_out=lib/generated -Iprotos protos\notifications.proto
 
 // fetch the dlls for mpv
-// on linux you have to install it via your package manager sudo apt install libmpv-dart
+// on linux you have to install it via your package manager sudo apt install libmpv-dev
 dart run libmpv_dart:setup --platform windows 
 ```
 I forked this library because I needed some changes
