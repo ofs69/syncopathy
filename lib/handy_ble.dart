@@ -12,6 +12,7 @@ import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/generated/handy_rpc.pb.dart';
 import 'package:syncopathy/generated/messages.pb.dart';
 import 'package:universal_ble/universal_ble.dart';
+import "package:async_locks/async_locks.dart";
 
 class HandyBle extends FunscriptDevice {
   BleDevice? _device;
@@ -50,6 +51,8 @@ class HandyBle extends FunscriptDevice {
   final Throttler _syncTimeThrottler = Throttler(milliseconds: 2000);
 
   bool _isPaused = true;
+
+  static final _connectSemaphore = Semaphore(1);
 
   HandyBle(this._errorController, this._notificationController) {
     _startConnectionCheckTimer();
@@ -137,6 +140,9 @@ class HandyBle extends FunscriptDevice {
     RX characteristics: 77835410-40f7-11ee-be56-0242ac120002
   */
   void _handleScanResults(BleDevice device) async {
+    await _connectSemaphore.acquire();
+    if (isConnected.value) return;
+
     try {
       await device.connect();
       _device = device;
@@ -167,6 +173,8 @@ class HandyBle extends FunscriptDevice {
       _isScanning.value = false;
       await _device?.disconnect();
       _errorController.sink.add(e.toString());
+    } finally {
+      _connectSemaphore.release();
     }
   }
 
