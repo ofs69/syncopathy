@@ -88,13 +88,22 @@ class Funscript {
     actions.sort();
     actions.removeWhere((action) => action.at < 0);
 
+    // remove duplicate timestamps
+    final uniqueActions = <FunscriptAction>[];
+    final seenTimestamps = <int>{};
+    for (final action in actions) {
+      if (seenTimestamps.add(action.at)) {
+        uniqueActions.add(action);
+      }
+    }
+
     final metadataMap = json['metadata'] as Map<String, dynamic>?;
 
     return Funscript(
       version: json['version'] as String? ?? "1.0",
       inverted: json['inverted'] as bool? ?? false,
       range: json['range'] as int? ?? 90,
-      actions: actions,
+      actions: uniqueActions,
       metadata: metadataMap != null
           ? FunscriptMetadata.fromJson(metadataMap)
           : null,

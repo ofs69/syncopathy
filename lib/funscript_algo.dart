@@ -117,21 +117,23 @@ class FunscriptAlgorithms {
       return 0.0;
     }
 
-    double totalDistance = 0;
+    double speedTotal = 0.0;
+    int count = 0;
     for (int i = 1; i < actions.length; i++) {
-      totalDistance += (actions[i].pos - actions[i - 1].pos).abs();
+      final from = actions[i - 1];
+      final to = actions[i];
+      final diff = (to.pos - from.pos).toDouble().abs();
+      if (diff > 0.0) {
+        final speed = diff / (to.at - from.at);
+        speedTotal += speed;
+        count++;
+      }
     }
-
-    final int durationMs = actions.last.at - actions.first.at;
-    if (durationMs <= 0) {
+    if (count == 0) {
       return 0.0;
     }
-
-    // speed in pos/ms
-    final double speedPerMs = totalDistance / durationMs;
-
-    // speed in pos/s
-    return speedPerMs * 1000;
+    var speed = (speedTotal / count) * 1000.0;
+    return speed;
   }
 
   static List<FunscriptAction> processForHandy(
