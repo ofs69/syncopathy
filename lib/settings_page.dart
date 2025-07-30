@@ -80,202 +80,204 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             Expanded(
               flex: 2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Tooltip(
-                    message:
-                        "Adjusts the timing of the script. A positive value makes actions happen earlier, a negative value makes them happen later.\nChange is applied immediately.",
-                    child: Text(
-                      'Offset: ${_currentOffsetMs.round()} ms',
-                      style: Theme.of(context).textTheme.titleLarge,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Tooltip(
+                      message:
+                          "Adjusts the timing of the script. A positive value makes actions happen earlier, a negative value makes them happen later.\nChange is applied immediately.",
+                      child: Text(
+                        'Offset: ${_currentOffsetMs.round()} ms',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                     ),
-                  ),
-                  Slider(
-                    value: _currentOffsetMs,
-                    min: -200,
-                    max: 200,
-                    divisions: 400,
-                    label: _currentOffsetMs.round().toString(),
-                    onChanged: (value) {
-                      setState(() {
-                        _currentOffsetMs = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Checkbox(
-                        value: _rdpEpsilonEnabled,
-                        onChanged: (value) {
-                          setState(() {
-                            _rdpEpsilonEnabled = value ?? false;
-                          });
-                        },
-                      ),
-                      Tooltip(
-                        message:
-                            "Reduces the number of points in the funscript. Higher values mean more simplification. This is the Ramer-Douglas-Peucker algorithm's epsilon value.\nChanges are applied when loading a funscript.",
-                        child: Text(
-                          'Funscript Simplification (RDP Epsilon): ${_rdpEpsilonEnabled ? _currentRdpEpsilon.toStringAsFixed(2) : 'Disabled'}',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Slider(
-                    value: _currentRdpEpsilon,
-                    min: 0.5,
-                    max: 50,
-                    divisions: 50,
-                    label: _currentRdpEpsilon.toStringAsFixed(2),
-                    onChanged: _rdpEpsilonEnabled
-                        ? (value) {
+                    Slider(
+                      value: _currentOffsetMs,
+                      min: -200,
+                      max: 200,
+                      divisions: 400,
+                      label: _currentOffsetMs.round().toString(),
+                      onChanged: (value) {
+                        setState(() {
+                          _currentOffsetMs = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          value: _rdpEpsilonEnabled,
+                          onChanged: (value) {
                             setState(() {
-                              _currentRdpEpsilon = value.roundToDouble();
+                              _rdpEpsilonEnabled = value ?? false;
                             });
-                          }
-                        : null,
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Checkbox(
-                        value: _slewMaxRateOfChangeEnabled,
-                        onChanged: (value) {
-                          setState(() {
-                            _slewMaxRateOfChangeEnabled = value ?? false;
-                          });
-                        },
-                      ),
-                      Tooltip(
-                        message:
-                            "Modify the funscript limiting the rate of change, preventing jerky movements. Measured in percent per second.\nChanges are applied when loading a funscript.",
-                        child: Text(
-                          'Slew Rate Limit: ${_slewMaxRateOfChangeEnabled ? _currentSlewMaxRateOfChange.round() : 'Disabled'}',
-                          style: Theme.of(context).textTheme.titleLarge,
+                          },
                         ),
-                      ),
-                    ],
-                  ),
-                  Slider(
-                    value: _currentSlewMaxRateOfChange,
-                    min: 100,
-                    max: 1000,
-                    divisions: 1000,
-                    label: _currentSlewMaxRateOfChange.round().toString(),
-                    onChanged: _slewMaxRateOfChangeEnabled
-                        ? (value) {
+                        Tooltip(
+                          message:
+                              "Reduces the number of points in the funscript. Higher values mean more simplification. This is the Ramer-Douglas-Peucker algorithm's epsilon value.\nChanges are applied when loading a funscript.",
+                          child: Text(
+                            'Funscript Simplification (RDP Epsilon): ${_rdpEpsilonEnabled ? _currentRdpEpsilon.toStringAsFixed(2) : 'Disabled'}',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Slider(
+                      value: _currentRdpEpsilon,
+                      min: 0.5,
+                      max: 50,
+                      divisions: 50,
+                      label: _currentRdpEpsilon.toStringAsFixed(2),
+                      onChanged: _rdpEpsilonEnabled
+                          ? (value) {
+                              setState(() {
+                                _currentRdpEpsilon = value.roundToDouble();
+                              });
+                            }
+                          : null,
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          value: _slewMaxRateOfChangeEnabled,
+                          onChanged: (value) {
                             setState(() {
-                              _currentSlewMaxRateOfChange = value;
+                              _slewMaxRateOfChangeEnabled = value ?? false;
                             });
-                          }
-                        : null,
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Checkbox(
-                        value: _remapFullRange,
-                        onChanged: (value) {
-                          setState(() {
-                            _remapFullRange = value ?? true;
-                          });
-                        },
-                      ),
-                      Tooltip(
-                        message:
-                            "Remaps the funscript actions to use the full 0-100 range. Useful for scripts that don't use the full range.\nThe Handy will still remap into the range specified below.\nChanges are applied when loading a funscript.",
-                        child: Text(
-                          'Remap to Full Range',
-                          style: Theme.of(context).textTheme.titleLarge,
+                          },
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Checkbox(
-                        value: _skipToAction,
-                        onChanged: (value) {
-                          setState(() {
-                            _skipToAction = value ?? false;
-                          });
-                        },
-                      ),
-                      Tooltip(
-                        message:
-                            "Skips to the part where the funscript begins.",
-                        child: Text(
-                          'Skip to action: ${_skipToAction ? 'Enabled' : 'Disabled'}',
-                          style: Theme.of(context).textTheme.titleLarge,
+                        Tooltip(
+                          message:
+                              "Modify the funscript limiting the rate of change, preventing jerky movements. Measured in percent per second.\nChanges are applied when loading a funscript.",
+                          child: Text(
+                            'Slew Rate Limit: ${_slewMaxRateOfChangeEnabled ? _currentSlewMaxRateOfChange.round() : 'Disabled'}',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildSliderColumn(
-                        label: 'Min',
-                        tooltip:
-                            "The minimum stroke length as a percentage of the device's full range.\nChange is applied when connected and apply button is pressed.",
-                        value: _currentMin,
-                        onChanged: (value) {
-                          setState(() {
-                            _currentMin = value;
-                            _currentMax = max(_currentMin, _currentMax);
-                          });
-                        },
-                      ),
-                      _buildSliderColumn(
-                        label: 'Max',
-                        tooltip:
-                            "The maximum stroke length as a percentage of the device's full range.\nChange is applied when connected and apply button is pressed.",
-                        value: _currentMax,
-                        onChanged: (value) {
-                          setState(() {
-                            _currentMax = value;
-                            _currentMin = min(_currentMin, _currentMax);
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final currentMin = _currentMin.round();
-                      final currentMax = _currentMax.round();
-
-                      final currentOffset = _currentOffsetMs.round();
-                      final currentRdpEpsilon = _rdpEpsilonEnabled
-                          ? _currentRdpEpsilon
-                          : null;
-                      final currentSlewRate = _slewMaxRateOfChangeEnabled
-                          ? _currentSlewMaxRateOfChange
-                          : null;
-                      final remapFullRange = _remapFullRange;
-                      final skipToAction = _skipToAction;
-
-                      _model.settings.setMinMax(currentMin, currentMax);
-                      _model.settings.setOffsetMs(currentOffset);
-                      _model.settings.setRdpEpsilon(currentRdpEpsilon);
-                      _model.settings.setSlewMaxRateOfChange(currentSlewRate);
-                      _model.settings.setRemapFullRange(remapFullRange);
-                      _model.settings.setSkipToAction(skipToAction);
-                      setState(() {});
-                    },
-                    child: const Text('Save Settings and Apply'),
-                  ),
-                ],
+                      ],
+                    ),
+                    Slider(
+                      value: _currentSlewMaxRateOfChange,
+                      min: 100,
+                      max: 1000,
+                      divisions: 1000,
+                      label: _currentSlewMaxRateOfChange.round().toString(),
+                      onChanged: _slewMaxRateOfChangeEnabled
+                          ? (value) {
+                              setState(() {
+                                _currentSlewMaxRateOfChange = value;
+                              });
+                            }
+                          : null,
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          value: _remapFullRange,
+                          onChanged: (value) {
+                            setState(() {
+                              _remapFullRange = value ?? true;
+                            });
+                          },
+                        ),
+                        Tooltip(
+                          message:
+                              "Remaps the funscript actions to use the full 0-100 range. Useful for scripts that don't use the full range.\nThe Handy will still remap into the range specified below.\nChanges are applied when loading a funscript.",
+                          child: Text(
+                            'Remap to Full Range',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          value: _skipToAction,
+                          onChanged: (value) {
+                            setState(() {
+                              _skipToAction = value ?? false;
+                            });
+                          },
+                        ),
+                        Tooltip(
+                          message:
+                              "Skips to the part where the funscript begins.",
+                          child: Text(
+                            'Skip to action: ${_skipToAction ? 'Enabled' : 'Disabled'}',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildSliderColumn(
+                          label: 'Min',
+                          tooltip:
+                              "The minimum stroke length as a percentage of the device's full range.\nChange is applied when connected and apply button is pressed.",
+                          value: _currentMin,
+                          onChanged: (value) {
+                            setState(() {
+                              _currentMin = value;
+                              _currentMax = max(_currentMin, _currentMax);
+                            });
+                          },
+                        ),
+                        _buildSliderColumn(
+                          label: 'Max',
+                          tooltip:
+                              "The maximum stroke length as a percentage of the device's full range.\nChange is applied when connected and apply button is pressed.",
+                          value: _currentMax,
+                          onChanged: (value) {
+                            setState(() {
+                              _currentMax = value;
+                              _currentMin = min(_currentMin, _currentMax);
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final currentMin = _currentMin.round();
+                        final currentMax = _currentMax.round();
+                
+                        final currentOffset = _currentOffsetMs.round();
+                        final currentRdpEpsilon = _rdpEpsilonEnabled
+                            ? _currentRdpEpsilon
+                            : null;
+                        final currentSlewRate = _slewMaxRateOfChangeEnabled
+                            ? _currentSlewMaxRateOfChange
+                            : null;
+                        final remapFullRange = _remapFullRange;
+                        final skipToAction = _skipToAction;
+                
+                        _model.settings.setMinMax(currentMin, currentMax);
+                        _model.settings.setOffsetMs(currentOffset);
+                        _model.settings.setRdpEpsilon(currentRdpEpsilon);
+                        _model.settings.setSlewMaxRateOfChange(currentSlewRate);
+                        _model.settings.setRemapFullRange(remapFullRange);
+                        _model.settings.setSkipToAction(skipToAction);
+                        setState(() {});
+                      },
+                      child: const Text('Save Settings and Apply'),
+                    ),
+                  ],
+                ),
               ),
             ),
             Expanded(
