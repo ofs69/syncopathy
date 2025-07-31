@@ -58,11 +58,16 @@ class MediaManager {
                   funscript.actions,
                 );
 
+                final averageDepth = FunscriptAlgorithms.averageDepth(
+                  funscript.actions,
+                );
+
                 var video = Video(
                   title: title,
                   videoPath: videoPath,
                   funscriptPath: funscriptPath,
                   averageSpeed: averageSpeed,
+                  averageDepth: averageDepth,
                   funscriptMetadata: funscript.metadata,
                 );
 
@@ -101,6 +106,7 @@ class MediaManager {
         } else {
           // update existing
           dbVideo.averageSpeed = video.averageSpeed;
+          dbVideo.averageDepth = video.averageDepth;
           dbVideo.funscriptMetadata = video.funscriptMetadata;
           await isar.videos.put(dbVideo);
         }

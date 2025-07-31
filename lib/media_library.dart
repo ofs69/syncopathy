@@ -15,6 +15,8 @@ enum SortOption {
   titleDesc('Title Z-A'),
   speedAsc('Speed (Slowest)'),
   speedDesc('Speed (Fastest)'),
+  depthAsc('Depth (Shallowest)'),
+  depthDesc('Depth (Deepest)'),
   lastModifiedDesc('Recently Changed');
 
   const SortOption(this.label);
@@ -151,6 +153,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
           return a.averageSpeed.compareTo(b.averageSpeed);
         case SortOption.speedDesc:
           return b.averageSpeed.compareTo(a.averageSpeed);
+        case SortOption.depthAsc:
+          return a.averageDepth.compareTo(b.averageDepth);
+        case SortOption.depthDesc:
+          return b.averageDepth.compareTo(a.averageDepth);
         case SortOption.lastModifiedDesc:
           return b.dateFirstFound.compareTo(a.dateFirstFound);
         case SortOption.none:

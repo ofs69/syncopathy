@@ -17,49 +17,54 @@ const VideoSchema = CollectionSchema(
   name: r'Video',
   id: 113594071489080673,
   properties: {
-    r'averageSpeed': PropertySchema(
+    r'averageDepth': PropertySchema(
       id: 0,
+      name: r'averageDepth',
+      type: IsarType.double,
+    ),
+    r'averageSpeed': PropertySchema(
+      id: 1,
       name: r'averageSpeed',
       type: IsarType.double,
     ),
     r'dateFirstFound': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'dateFirstFound',
       type: IsarType.dateTime,
     ),
     r'funscriptMetadata': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'funscriptMetadata',
       type: IsarType.object,
       target: r'FunscriptMetadata',
     ),
     r'funscriptPath': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'funscriptPath',
       type: IsarType.string,
     ),
     r'isDislike': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isDislike',
       type: IsarType.bool,
     ),
     r'isFavorite': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isFavorite',
       type: IsarType.bool,
     ),
     r'title': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'title',
       type: IsarType.string,
     ),
     r'videoHash': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'videoHash',
       type: IsarType.string,
     ),
     r'videoPath': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'videoPath',
       type: IsarType.string,
     )
@@ -116,20 +121,21 @@ void _videoSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDouble(offsets[0], object.averageSpeed);
-  writer.writeDateTime(offsets[1], object.dateFirstFound);
+  writer.writeDouble(offsets[0], object.averageDepth);
+  writer.writeDouble(offsets[1], object.averageSpeed);
+  writer.writeDateTime(offsets[2], object.dateFirstFound);
   writer.writeObject<FunscriptMetadata>(
-    offsets[2],
+    offsets[3],
     allOffsets,
     FunscriptMetadataSchema.serialize,
     object.funscriptMetadata,
   );
-  writer.writeString(offsets[3], object.funscriptPath);
-  writer.writeBool(offsets[4], object.isDislike);
-  writer.writeBool(offsets[5], object.isFavorite);
-  writer.writeString(offsets[6], object.title);
-  writer.writeString(offsets[7], object.videoHash);
-  writer.writeString(offsets[8], object.videoPath);
+  writer.writeString(offsets[4], object.funscriptPath);
+  writer.writeBool(offsets[5], object.isDislike);
+  writer.writeBool(offsets[6], object.isFavorite);
+  writer.writeString(offsets[7], object.title);
+  writer.writeString(offsets[8], object.videoHash);
+  writer.writeString(offsets[9], object.videoPath);
 }
 
 Video _videoDeserialize(
@@ -139,20 +145,21 @@ Video _videoDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Video(
-    averageSpeed: reader.readDouble(offsets[0]),
+    averageDepth: reader.readDouble(offsets[0]),
+    averageSpeed: reader.readDouble(offsets[1]),
     funscriptMetadata: reader.readObjectOrNull<FunscriptMetadata>(
-      offsets[2],
+      offsets[3],
       FunscriptMetadataSchema.deserialize,
       allOffsets,
     ),
-    funscriptPath: reader.readString(offsets[3]),
-    title: reader.readString(offsets[6]),
-    videoPath: reader.readString(offsets[8]),
+    funscriptPath: reader.readString(offsets[4]),
+    title: reader.readString(offsets[7]),
+    videoPath: reader.readString(offsets[9]),
   );
-  object.dateFirstFound = reader.readDateTime(offsets[1]);
+  object.dateFirstFound = reader.readDateTime(offsets[2]);
   object.id = id;
-  object.isDislike = reader.readBool(offsets[4]);
-  object.isFavorite = reader.readBool(offsets[5]);
+  object.isDislike = reader.readBool(offsets[5]);
+  object.isFavorite = reader.readBool(offsets[6]);
   return object;
 }
 
@@ -166,24 +173,26 @@ P _videoDeserializeProp<P>(
     case 0:
       return (reader.readDouble(offset)) as P;
     case 1:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 2:
+      return (reader.readDateTime(offset)) as P;
+    case 3:
       return (reader.readObjectOrNull<FunscriptMetadata>(
         offset,
         FunscriptMetadataSchema.deserialize,
         allOffsets,
       )) as P;
-    case 3:
-      return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 5:
       return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 7:
       return (reader.readString(offset)) as P;
     case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -280,6 +289,68 @@ extension VideoQueryWhere on QueryBuilder<Video, Video, QWhereClause> {
 }
 
 extension VideoQueryFilter on QueryBuilder<Video, Video, QFilterCondition> {
+  QueryBuilder<Video, Video, QAfterFilterCondition> averageDepthEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'averageDepth',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Video, Video, QAfterFilterCondition> averageDepthGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'averageDepth',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Video, Video, QAfterFilterCondition> averageDepthLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'averageDepth',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Video, Video, QAfterFilterCondition> averageDepthBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'averageDepth',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
   QueryBuilder<Video, Video, QAfterFilterCondition> averageSpeedEqualTo(
     double value, {
     double epsilon = Query.epsilon,
@@ -1071,6 +1142,18 @@ extension VideoQueryLinks on QueryBuilder<Video, Video, QFilterCondition> {
 }
 
 extension VideoQuerySortBy on QueryBuilder<Video, Video, QSortBy> {
+  QueryBuilder<Video, Video, QAfterSortBy> sortByAverageDepth() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'averageDepth', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Video, Video, QAfterSortBy> sortByAverageDepthDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'averageDepth', Sort.desc);
+    });
+  }
+
   QueryBuilder<Video, Video, QAfterSortBy> sortByAverageSpeed() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'averageSpeed', Sort.asc);
@@ -1169,6 +1252,18 @@ extension VideoQuerySortBy on QueryBuilder<Video, Video, QSortBy> {
 }
 
 extension VideoQuerySortThenBy on QueryBuilder<Video, Video, QSortThenBy> {
+  QueryBuilder<Video, Video, QAfterSortBy> thenByAverageDepth() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'averageDepth', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Video, Video, QAfterSortBy> thenByAverageDepthDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'averageDepth', Sort.desc);
+    });
+  }
+
   QueryBuilder<Video, Video, QAfterSortBy> thenByAverageSpeed() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'averageSpeed', Sort.asc);
@@ -1279,6 +1374,12 @@ extension VideoQuerySortThenBy on QueryBuilder<Video, Video, QSortThenBy> {
 }
 
 extension VideoQueryWhereDistinct on QueryBuilder<Video, Video, QDistinct> {
+  QueryBuilder<Video, Video, QDistinct> distinctByAverageDepth() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'averageDepth');
+    });
+  }
+
   QueryBuilder<Video, Video, QDistinct> distinctByAverageSpeed() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'averageSpeed');
@@ -1337,6 +1438,12 @@ extension VideoQueryProperty on QueryBuilder<Video, Video, QQueryProperty> {
   QueryBuilder<Video, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Video, double, QQueryOperations> averageDepthProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'averageDepth');
     });
   }
 

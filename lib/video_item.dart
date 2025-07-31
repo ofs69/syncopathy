@@ -121,26 +121,52 @@ class _VideoItemState extends State<VideoItem> {
                   Positioned(
                     top: 8.0,
                     right: 8.0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0,
-                        vertical: 4.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: BorderRadius.circular(4.0),
-                      ),
-                      child: Tooltip(
-                        message: "Average Speed",
-                        child: Text(
-                          '${widget.video.averageSpeed.round()}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0,
+                            vertical: 4.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          child: Tooltip(
+                            message: "Average Speed",
+                            child: Text(
+                              '${widget.video.averageSpeed.round()}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 4.0),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0,
+                            vertical: 4.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          child: Tooltip(
+                            message: "Average Depth",
+                            child: Text(
+                              '${widget.video.averageDepth.round()}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Positioned(

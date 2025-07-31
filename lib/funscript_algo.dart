@@ -123,7 +123,7 @@ class FunscriptAlgorithms {
       final from = actions[i - 1];
       final to = actions[i];
       final diff = (to.pos - from.pos).toDouble().abs();
-      if (diff > 0.0) {
+      if (diff >= 10.0) {
         final speed = diff / (to.at - from.at);
         speedTotal += speed;
         count++;
@@ -134,6 +134,29 @@ class FunscriptAlgorithms {
     }
     var speed = (speedTotal / count) * 1000.0;
     return speed;
+  }
+
+  static double averageDepth(List<FunscriptAction> actions) {
+    if (actions.length < 2) {
+      return 0.0;
+    }
+
+    double depthTotal = 0.0;
+    int count = 0;
+    for (int i = 1; i < actions.length; i++) {
+      final from = actions[i - 1];
+      final to = actions[i];
+      final diff = (to.pos - from.pos).toDouble().abs();
+      if (diff >= 10.0) {
+        depthTotal += diff;
+        count++;
+      }
+    }
+    if (count == 0) {
+      return 0.0;
+    }
+    var depthAverage = depthTotal / count;
+    return depthAverage;
   }
 
   static List<FunscriptAction> processForHandy(
