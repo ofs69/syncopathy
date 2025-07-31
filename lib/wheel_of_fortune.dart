@@ -29,6 +29,11 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
   void initState() {
     super.initState();
     _selectedIndex = _random.nextInt(widget.videos.length);
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted) {
+        _spinWheel();
+      }
+    });
   }
 
   @override
