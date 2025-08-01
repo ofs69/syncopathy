@@ -13,7 +13,8 @@ class Video {
   final String videoPath;
   final String funscriptPath;
   double averageSpeed;
-  double averageDepth;
+  double averageMin;
+  double averageMax;
   bool isFavorite = false;
   bool isDislike = false;
   FunscriptMetadata? funscriptMetadata;
@@ -26,7 +27,8 @@ class Video {
     required this.videoPath,
     required this.funscriptPath,
     required this.averageSpeed,
-    required this.averageDepth,
+    required this.averageMin,
+    required this.averageMax,
     this.funscriptMetadata,
   });
 

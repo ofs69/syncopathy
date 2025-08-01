@@ -136,27 +136,62 @@ class FunscriptAlgorithms {
     return speed;
   }
 
-  static double averageDepth(List<FunscriptAction> actions) {
+  static double averageMin(List<FunscriptAction> actions) {
     if (actions.length < 2) {
-      return 0.0;
+      if (actions.isEmpty) return 0.0;
+      return actions.map((a) => a.pos).reduce(min).toDouble();
     }
 
-    double depthTotal = 0.0;
-    int count = 0;
+    final mins = <double>[];
+    int lastDir = 0;
     for (int i = 1; i < actions.length; i++) {
-      final from = actions[i - 1];
-      final to = actions[i];
-      final diff = (to.pos - from.pos).toDouble().abs();
-      if (diff >= 10.0) {
-        depthTotal += diff;
-        count++;
+      final dir = (actions[i].pos - actions[i - 1].pos).sign;
+      if (dir == 0) continue;
+
+      if (dir == 1 && lastDir <= 0) {
+        mins.add(actions[i - 1].pos.toDouble());
       }
+      lastDir = dir;
     }
-    if (count == 0) {
-      return 0.0;
+
+    if (lastDir == -1) {
+      mins.add(actions.last.pos.toDouble());
     }
-    var depthAverage = depthTotal / count;
-    return depthAverage;
+
+    if (mins.isEmpty) {
+      return actions.map((a) => a.pos).reduce(min).toDouble();
+    }
+
+    return mins.reduce((a, b) => a + b) / mins.length;
+  }
+
+  static double averageMax(List<FunscriptAction> actions) {
+    if (actions.length < 2) {
+      if (actions.isEmpty) return 0.0;
+      return actions.map((a) => a.pos).reduce(max).toDouble();
+    }
+
+    final maxes = <double>[];
+    int lastDir = 0;
+    for (int i = 1; i < actions.length; i++) {
+      final dir = (actions[i].pos - actions[i - 1].pos).sign;
+      if (dir == 0) continue;
+
+      if (dir == -1 && lastDir >= 0) {
+        maxes.add(actions[i - 1].pos.toDouble());
+      }
+      lastDir = dir;
+    }
+
+    if (lastDir == 1) {
+      maxes.add(actions.last.pos.toDouble());
+    }
+
+    if (maxes.isEmpty) {
+      return actions.map((a) => a.pos).reduce(max).toDouble();
+    }
+
+    return maxes.reduce((a, b) => a + b) / maxes.length;
   }
 
   static List<FunscriptAction> processForHandy(

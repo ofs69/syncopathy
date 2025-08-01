@@ -155,9 +155,9 @@ class _VideoItemState extends State<VideoItem> {
                             borderRadius: BorderRadius.circular(4.0),
                           ),
                           child: Tooltip(
-                            message: "Average Depth",
+                            message: "Average Min / Max",
                             child: Text(
-                              '${widget.video.averageDepth.round()}',
+                              '${widget.video.averageMin.round()}-${widget.video.averageMax.round()}',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,

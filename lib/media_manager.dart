@@ -58,7 +58,10 @@ class MediaManager {
                   funscript.actions,
                 );
 
-                final averageDepth = FunscriptAlgorithms.averageDepth(
+                final averageMin = FunscriptAlgorithms.averageMin(
+                  funscript.actions,
+                );
+                final averageMax = FunscriptAlgorithms.averageMax(
                   funscript.actions,
                 );
 
@@ -67,7 +70,8 @@ class MediaManager {
                   videoPath: videoPath,
                   funscriptPath: funscriptPath,
                   averageSpeed: averageSpeed,
-                  averageDepth: averageDepth,
+                  averageMin: averageMin,
+                  averageMax: averageMax,
                   funscriptMetadata: funscript.metadata,
                 );
 
@@ -106,7 +110,8 @@ class MediaManager {
         } else {
           // update existing
           dbVideo.averageSpeed = video.averageSpeed;
-          dbVideo.averageDepth = video.averageDepth;
+          dbVideo.averageMin = video.averageMin;
+          dbVideo.averageMax = video.averageMax;
           dbVideo.funscriptMetadata = video.funscriptMetadata;
           await isar.videos.put(dbVideo);
         }

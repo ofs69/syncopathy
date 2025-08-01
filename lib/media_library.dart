@@ -154,9 +154,13 @@ class _MediaLibraryState extends State<MediaLibrary> {
         case SortOption.speedDesc:
           return b.averageSpeed.compareTo(a.averageSpeed);
         case SortOption.depthAsc:
-          return a.averageDepth.compareTo(b.averageDepth);
+          final depthA = a.averageMax - a.averageMin;
+          final depthB = b.averageMax - b.averageMin;
+          return depthA.compareTo(depthB);
         case SortOption.depthDesc:
-          return b.averageDepth.compareTo(a.averageDepth);
+          final depthA = a.averageMax - a.averageMin;
+          final depthB = b.averageMax - b.averageMin;
+          return depthB.compareTo(depthA);
         case SortOption.lastModifiedDesc:
           return b.dateFirstFound.compareTo(a.dateFirstFound);
         case SortOption.none:
