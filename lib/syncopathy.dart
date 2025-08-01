@@ -105,12 +105,21 @@ class ConnectionButton extends StatelessWidget {
       valueListenable: model.isScanning,
       builder: (context, scanning, child) {
         if (scanning) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.all(8.0),
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  "Scanning for device...",
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ],
             ),
           );
         }

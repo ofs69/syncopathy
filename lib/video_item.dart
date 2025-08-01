@@ -85,8 +85,7 @@ class _VideoItemState extends State<VideoItem> {
             onTapDown: (_) => setState(() => _isTapped = true),
             onTapUp: (_) => setState(() => _isTapped = false),
             onTapCancel: () => setState(() => _isTapped = false),
-            onTap: () => widget.onVideoTapped(widget.video)
-            ,
+            onTap: () => widget.onVideoTapped(widget.video),
             onSecondaryTapUp: (details) => _showContextMenu(context, details),
             child: AnimatedScale(
               scale: _isTapped ? 0.95 : (_isHovering ? 1.03 : 1.0),
