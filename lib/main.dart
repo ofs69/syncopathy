@@ -36,8 +36,10 @@ void main() async {
     await windowManager.focus();
   });
 
-  var model = SyncopathyModel();
-  await model.initialize();
+  var settings = Settings();
+  await settings.load();
+  var model = SyncopathyModel(settings);
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => model,

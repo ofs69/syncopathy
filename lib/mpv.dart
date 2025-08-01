@@ -10,7 +10,7 @@ class MpvVideoplayer {
   ValueNotifier<double> get playbackSpeed => player.speed;
   ValueNotifier<String> get path => player.path;
 
-  MpvVideoplayer() {
+  MpvVideoplayer({required bool videoOutput}) {
     player = Player(
       {
         'config': 'yes',
@@ -24,7 +24,7 @@ class MpvVideoplayer {
         'idle': 'yes',
         'force-window': 'yes',
       },
-      videoOutput: false,
+      videoOutput: videoOutput,
       initialize: true,
     );
 

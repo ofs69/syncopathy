@@ -11,28 +11,28 @@ import 'package:syncopathy/model/settings.dart';
 import 'package:syncopathy/model/user_category.dart';
 
 class SyncopathyModel extends ChangeNotifier {
-  final MpvVideoplayer _mpv = MpvVideoplayer();
+  late final MpvVideoplayer mpvPlayer;
   final _errorController = StreamController<String>.broadcast();
   final _notificationController = StreamController<String>.broadcast();
 
   late final HandyBle _handyBle;
-  late final Settings settings;
+  final Settings settings;
 
   FunscriptDevice? get device => _handyBle;
 
   ValueNotifier<UserCategory?> selectedCategory = ValueNotifier(null);
 
-  ValueNotifier<bool> get paused => _mpv.paused;
-  ValueNotifier<double> get positionNoOffset => _mpv.position;
-  ValueNotifier<double> get duration => _mpv.duration;
-  ValueNotifier<double> get playbackSpeed => _mpv.playbackSpeed;
+  ValueNotifier<bool> get paused => mpvPlayer.paused;
+  ValueNotifier<double> get positionNoOffset => mpvPlayer.position;
+  ValueNotifier<double> get duration => mpvPlayer.duration;
+  ValueNotifier<double> get playbackSpeed => mpvPlayer.playbackSpeed;
 
   ValueNotifier<bool> get isConnected => _handyBle.isConnected;
   ValueNotifier<bool> get isScanning => _handyBle.isScanning;
   Stream<String> get onError => _errorController.stream;
   Stream<String> get onNotification => _notificationController.stream;
 
-  ValueNotifier<String> get path => _mpv.path;
+  ValueNotifier<String> get path => mpvPlayer.path;
   ValueNotifier<Funscript?> funscript = ValueNotifier(null);
   String? _lastAttemptedLoadPath;
   int get positionMs =>
@@ -40,8 +40,9 @@ class SyncopathyModel extends ChangeNotifier {
 
   late final FunscriptStreamController _funscriptStreamController;
 
-  SyncopathyModel() {
-    settings = Settings();
+  SyncopathyModel(this.settings) {
+    mpvPlayer = MpvVideoplayer(videoOutput: settings.embeddedVideoPlayer);
+    mpvPlayer.duration.addListener(_handleDurationChange);
 
     _handyBle = HandyBle(_errorController, _notificationController);
     _funscriptStreamController = FunscriptStreamController(_handyBle);
@@ -52,8 +53,6 @@ class SyncopathyModel extends ChangeNotifier {
     paused.addListener(_handlePausedChanged);
     positionNoOffset.addListener(_handlePositionChanged);
     settings.addListener(applySettings);
-
-    _mpv.duration.addListener(_handleDurationChange);
   }
 
   void _handleDurationChange() {
@@ -62,12 +61,8 @@ class SyncopathyModel extends ChangeNotifier {
         funscript.value!.actions,
       );
       final percentPos = (startTime / 1000.0) / duration.value;
-      _mpv.seekTo(percentPos.clamp(0.0, 1.0));
+      mpvPlayer.seekTo(percentPos.clamp(0.0, 1.0));
     }
-  }
-
-  Future<void> initialize() async {
-    await settings.load();
   }
 
   void selectCategory(UserCategory? category) {
@@ -86,7 +81,7 @@ class SyncopathyModel extends ChangeNotifier {
     path.removeListener(_tryToLoadFunscript);
     _handyBle.dispose();
     settings.removeListener(applySettings);
-    _mpv.dispose();
+    mpvPlayer.dispose();
     super.dispose();
   }
 
@@ -147,15 +142,15 @@ class SyncopathyModel extends ChangeNotifier {
         closeVideo();
         await _loadAndProcessFunscript(script);
 
-        _mpv.loadFile(filePath);
+        mpvPlayer.loadFile(filePath);
         return;
       } catch (e) {
         _addError(e.toString());
       }
     }
     funscript.value = null;
-    _mpv.closeFile();
-    _mpv.path.value = "";
+    mpvPlayer.closeFile();
+    mpvPlayer.path.value = "";
   }
 
   Future<void> _loadAndProcessFunscript(String script) async {
@@ -197,17 +192,17 @@ class SyncopathyModel extends ChangeNotifier {
 
   void seekTo(double time) {
     final posPercent = time / duration.value;
-    _mpv.seekTo(posPercent.clamp(0.0, 1.0));
+    mpvPlayer.seekTo(posPercent.clamp(0.0, 1.0));
   }
 
   // These methods assume your MpvVideoplayer class has corresponding
   // `togglePause()` and `setSpeed(double)` methods.
   void togglePause() {
-    _mpv.togglePause();
+    mpvPlayer.togglePause();
   }
 
   void setPlaybackSpeed(double speed) {
-    _mpv.setSpeed(speed.clamp(0.5, 2.0));
+    mpvPlayer.setSpeed(speed.clamp(0.5, 2.0));
   }
 
   void applySettings() {
@@ -218,11 +213,11 @@ class SyncopathyModel extends ChangeNotifier {
   }
 
   void closeVideo() {
-    _mpv.pause();
+    mpvPlayer.pause();
     _funscriptStreamController.stopPlayback();
     _funscriptStreamController.unloadFunscript();
-    _mpv.closeFile();
-    _mpv.path.value = "";
+    mpvPlayer.closeFile();
+    mpvPlayer.path.value = "";
   }
 
   void openVideoAndScript(String videoPath, String funscriptPath) async {
@@ -230,7 +225,7 @@ class SyncopathyModel extends ChangeNotifier {
       closeVideo();
       _lastAttemptedLoadPath = videoPath;
       await _loadAndProcessFunscript(funscriptPath);
-      _mpv.loadFile(videoPath);
+      mpvPlayer.loadFile(videoPath);
       return;
     } catch (e) {
       _addError(e.toString());
