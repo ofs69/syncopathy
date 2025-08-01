@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import "package:async_locks/async_locks.dart";
 import 'package:path_provider/path_provider.dart';
+import 'package:syncopathy/logging.dart';
 
 class VideoThumbnail extends StatefulWidget {
   final String videoPath;
@@ -88,13 +89,13 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
             });
           }
         } else {
-          debugPrint('ffmpeg error for ${widget.videoPath}: ${result.stderr}');
+          Logger.error('ffmpeg error for ${widget.videoPath}: ${result.stderr}');
         }
       } finally {
         _ffmpegSemaphore.release();
       }
     } catch (e) {
-      debugPrint('Error generating thumbnail for ${widget.videoPath}: $e');
+      Logger.error('Error generating thumbnail for ${widget.videoPath}: $e');
     } finally {
       if (mounted) {
         setState(() {

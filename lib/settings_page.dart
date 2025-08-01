@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -93,7 +92,7 @@ class _SettingsPageState extends State<SettingsPage> {
     _model.settings.setSlewMaxRateOfChange(currentSlewRate);
     _model.settings.setRemapFullRange(remapFullRange);
     _model.settings.setSkipToAction(skipToAction);
-    print('Settings saved.');
+    Logger.info('Settings saved.');
   }
 
   @override

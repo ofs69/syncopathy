@@ -3,6 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:path/path.dart' as p;
+import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/main.dart';
@@ -30,12 +31,13 @@ class MediaManager {
 
     final videoExtensions = {'.mp4', '.mkv', '.avi', '.mov', '.wmv', '.webm'};
     final List<File> videoFiles = [];
-    final Map<String, List<String>> funscriptMap = {}; // basename -> funscriptPath
+    final Map<String, List<String>> funscriptMap =
+        {}; // basename -> funscriptPath
 
     for (final path in _paths) {
       final dir = Directory(path);
       if (!await dir.exists()) {
-        debugPrint('Directory not found, skipping: $path');
+        Logger.warning('Directory not found, skipping: $path');
         continue;
       }
 
@@ -49,7 +51,11 @@ class MediaManager {
             videoFiles.add(entity);
           } else if (extension == '.funscript') {
             final basename = p.basenameWithoutExtension(entity.path);
-            funscriptMap.update(basename, (value) => [...value, entity.path], ifAbsent: () => [entity.path]);
+            funscriptMap.update(
+              basename,
+              (value) => [...value, entity.path],
+              ifAbsent: () => [entity.path],
+            );
           }
         }
       }
@@ -62,8 +68,14 @@ class MediaManager {
 
       if (funscriptPaths != null && funscriptPaths.isNotEmpty) {
         if (funscriptPaths.length > 1) {
-          final funscripts = await Future.wait(funscriptPaths.map((path) => Funscript.fromFile(path).catchError((e) => null, test: (e) => true)));
-          final validFunscripts = funscripts.whereNotNull().toList();
+          final funscripts = await Future.wait(
+            funscriptPaths.map(
+              (path) => Funscript.fromFile(
+                path,
+              ).catchError((e) => null, test: (e) => true),
+            ),
+          );
+          final validFunscripts = funscripts.nonNulls.toList();
 
           if (validFunscripts.length > 1) {
             final firstActions = validFunscripts.first.actions;
@@ -76,15 +88,21 @@ class MediaManager {
             }
 
             if (!allActionsSame) {
-              debugPrint('Multiple funscripts found for video with different actions: $videoPath\nFunscripts: ${funscriptPaths.join(', ')}');
+              Logger.warning(
+                'Multiple funscripts found for video with different actions: $videoPath Funscripts: ${funscriptPaths.join(', ')}',
+              );
             } else {
-              debugPrint('Multiple funscripts found for video with identical actions: $videoPath\nFunscripts: ${funscriptPaths.join(', ')}');
+              Logger.info(
+                'Multiple funscripts found for video with identical actions: $videoPath Funscripts: ${funscriptPaths.join(', ')}',
+              );
             }
           }
         }
         final funscriptPath = funscriptPaths.first;
         if (p.dirname(videoPath) != p.dirname(funscriptPath)) {
-          debugPrint('Video and funscript not in same directory: \nVideo: $videoPath\nFunscript: $funscriptPath');
+          Logger.warning(
+            'Video and funscript not in same directory: Video: $videoPath Funscript: $funscriptPath',
+          );
         }
         final title = videoBasename;
         final funscript = await Funscript.fromFile(
@@ -96,12 +114,8 @@ class MediaManager {
             funscript.actions,
           );
 
-          final averageMin = FunscriptAlgorithms.averageMin(
-            funscript.actions,
-          );
-          final averageMax = FunscriptAlgorithms.averageMax(
-            funscript.actions,
-          );
+          final averageMin = FunscriptAlgorithms.averageMin(funscript.actions);
+          final averageMax = FunscriptAlgorithms.averageMax(funscript.actions);
 
           var video = Video(
             title: title,

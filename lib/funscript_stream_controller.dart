@@ -1,4 +1,5 @@
 import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/logging.dart';
 
 abstract class FunscriptDevice {
   Future<void> bufferBatch(
@@ -31,9 +32,9 @@ class FunscriptStreamController {
       _currentBuffer.clear();
     }
     _currentBuffer.addAll(batch);
-    // print(
-    //   "BUFFER: ${batch.length} -> ${_currentBuffer.length} ${flush ? "FLUSH" : ""}",
-    // );
+    Logger.debug(
+      "BUFFER: ${batch.length} -> ${_currentBuffer.length} ${flush ? "FLUSH" : ""}",
+    );
 
     await _device?.bufferBatch(batch, tailActionIndex, flush);
   }
@@ -120,7 +121,7 @@ class FunscriptStreamController {
           var action = _currentFunscript!.actions[lastIndex + i];
           batch.add(action);
         }
-        //print("BATCHING $lastIndex -> ${lastIndex + batch.length}");
+        Logger.debug("BATCHING $lastIndex -> ${lastIndex + batch.length}");
 
         _bufferBatch(batch, lastIndex + batch.length, flush);
       }
