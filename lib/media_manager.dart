@@ -28,8 +28,10 @@ class MediaManager {
     _allVideos.clear();
     videoCountNotifier.value = 0;
 
-    // recursively search all provided paths for funscripts with videos
     final videoExtensions = {'.mp4', '.mkv', '.avi', '.mov', '.wmv', '.webm'};
+    final List<File> videoFiles = [];
+    final Map<String, List<String>> funscriptMap = {}; // basename -> funscriptPath
+
     for (final path in _paths) {
       final dir = Directory(path);
       if (!await dir.exists()) {
@@ -44,42 +46,75 @@ class MediaManager {
         if (entity is File) {
           final extension = p.extension(entity.path).toLowerCase();
           if (videoExtensions.contains(extension)) {
-            final videoPath = entity.path;
-            final funscriptPath = '${p.withoutExtension(videoPath)}.funscript';
+            videoFiles.add(entity);
+          } else if (extension == '.funscript') {
+            final basename = p.basenameWithoutExtension(entity.path);
+            funscriptMap.update(basename, (value) => [...value, entity.path], ifAbsent: () => [entity.path]);
+          }
+        }
+      }
+    }
 
-            if (await File(funscriptPath).exists()) {
-              final title = p.basenameWithoutExtension(videoPath);
-              final funscript = await Funscript.fromFile(
-                funscriptPath,
-              ).catchError((e) => null, test: (e) => true);
+    for (final videoFile in videoFiles) {
+      final videoPath = videoFile.path;
+      final videoBasename = p.basenameWithoutExtension(videoPath);
+      final funscriptPaths = funscriptMap[videoBasename];
 
-              if (funscript != null) {
-                final averageSpeed = FunscriptAlgorithms.averageSpeed(
-                  funscript.actions,
-                );
+      if (funscriptPaths != null && funscriptPaths.isNotEmpty) {
+        if (funscriptPaths.length > 1) {
+          final funscripts = await Future.wait(funscriptPaths.map((path) => Funscript.fromFile(path).catchError((e) => null, test: (e) => true)));
+          final validFunscripts = funscripts.whereNotNull().toList();
 
-                final averageMin = FunscriptAlgorithms.averageMin(
-                  funscript.actions,
-                );
-                final averageMax = FunscriptAlgorithms.averageMax(
-                  funscript.actions,
-                );
-
-                var video = Video(
-                  title: title,
-                  videoPath: videoPath,
-                  funscriptPath: funscriptPath,
-                  averageSpeed: averageSpeed,
-                  averageMin: averageMin,
-                  averageMax: averageMax,
-                  funscriptMetadata: funscript.metadata,
-                );
-
-                _allVideos.add(video);
-                videoCountNotifier.value = _allVideos.length;
+          if (validFunscripts.length > 1) {
+            final firstActions = validFunscripts.first.actions;
+            bool allActionsSame = true;
+            for (int i = 1; i < validFunscripts.length; i++) {
+              if (!listEquals(firstActions, validFunscripts[i].actions)) {
+                allActionsSame = false;
+                break;
               }
             }
+
+            if (!allActionsSame) {
+              debugPrint('Multiple funscripts found for video with different actions: $videoPath\nFunscripts: ${funscriptPaths.join(', ')}');
+            } else {
+              debugPrint('Multiple funscripts found for video with identical actions: $videoPath\nFunscripts: ${funscriptPaths.join(', ')}');
+            }
           }
+        }
+        final funscriptPath = funscriptPaths.first;
+        if (p.dirname(videoPath) != p.dirname(funscriptPath)) {
+          debugPrint('Video and funscript not in same directory: \nVideo: $videoPath\nFunscript: $funscriptPath');
+        }
+        final title = videoBasename;
+        final funscript = await Funscript.fromFile(
+          funscriptPath,
+        ).catchError((e) => null, test: (e) => true);
+
+        if (funscript != null) {
+          final averageSpeed = FunscriptAlgorithms.averageSpeed(
+            funscript.actions,
+          );
+
+          final averageMin = FunscriptAlgorithms.averageMin(
+            funscript.actions,
+          );
+          final averageMax = FunscriptAlgorithms.averageMax(
+            funscript.actions,
+          );
+
+          var video = Video(
+            title: title,
+            videoPath: videoPath,
+            funscriptPath: funscriptPath,
+            averageSpeed: averageSpeed,
+            averageMin: averageMin,
+            averageMax: averageMax,
+            funscriptMetadata: funscript.metadata,
+          );
+
+          _allVideos.add(video);
+          videoCountNotifier.value = _allVideos.length;
         }
       }
     }
