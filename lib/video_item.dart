@@ -26,6 +26,9 @@ class VideoItem extends StatefulWidget {
 }
 
 class _VideoItemState extends State<VideoItem> {
+  bool _isHovering = false;
+  bool _isTapped = false;
+
   void _showContextMenu(BuildContext context, TapUpDetails details) async {
     final categories = await isar.userCategorys.where().findAll();
     if (categories.isEmpty) {
@@ -51,7 +54,9 @@ class _VideoItemState extends State<VideoItem> {
     );
 
     if (result != null) {
-      bool removeCategory = widget.video.categories.any((c) => c.id == result.id);
+      bool removeCategory = widget.video.categories.any(
+        (c) => c.id == result.id,
+      );
       widget.onCategoryChanged(widget.video, result, removeCategory);
     }
   }
@@ -73,158 +78,168 @@ class _VideoItemState extends State<VideoItem> {
           borderSide = BorderSide.none;
         }
 
-        return Card(
-          clipBehavior: Clip.antiAlias,
-          elevation: 2.0,
-          shape: RoundedRectangleBorder(
-            side: borderSide,
-            borderRadius: BorderRadius.circular(8.0),
-          ),
+        return MouseRegion(
+          onEnter: (_) => setState(() => _isHovering = true),
+          onExit: (_) => setState(() => _isHovering = false),
           child: GestureDetector(
+            onTapDown: (_) => setState(() => _isTapped = true),
+            onTapUp: (_) => setState(() => _isTapped = false),
+            onTapCancel: () => setState(() => _isTapped = false),
+            onTap: () => widget.onVideoTapped(widget.video)
+            ,
             onSecondaryTapUp: (details) => _showContextMenu(context, details),
-            child: InkWell(
-              onTap: () => widget.onVideoTapped(widget.video),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  VideoThumbnail(
-                    videoPath: widget.video.videoPath,
-                    videoHash: widget.video.videoHash,
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Colors.black],
+            child: AnimatedScale(
+              scale: _isTapped ? 0.95 : (_isHovering ? 1.03 : 1.0),
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
+              child: Card(
+                clipBehavior: Clip.antiAlias,
+                elevation: 2.0,
+                shape: RoundedRectangleBorder(
+                  side: borderSide,
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    VideoThumbnail(
+                      videoPath: widget.video.videoPath,
+                      videoHash: widget.video.videoHash,
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, Colors.black],
+                          ),
                         ),
-                      ),
-                      padding: const EdgeInsets.all(8.0),
-                      child: Tooltip(
-                        message: getVideoTooltip(widget.video),
-                        child: Text(
-                          widget.video.title,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleSmall?.copyWith(color: Colors.white),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
+                        padding: const EdgeInsets.all(8.0),
+                        child: Tooltip(
+                          message: getVideoTooltip(widget.video),
+                          child: Text(
+                            widget.video.title,
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(color: Colors.white),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: 8.0,
-                    right: 8.0,
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0,
-                            vertical: 4.0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(4.0),
-                          ),
-                          child: Tooltip(
-                            message: "Average Speed",
-                            child: Text(
-                              '${widget.video.averageSpeed.round()}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                    Positioned(
+                      top: 8.0,
+                      right: 8.0,
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                              vertical: 4.0,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(4.0),
+                            ),
+                            child: Tooltip(
+                              message: "Average Speed",
+                              child: Text(
+                                '${widget.video.averageSpeed.round()}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 4.0),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0,
-                            vertical: 4.0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(4.0),
-                          ),
-                          child: Tooltip(
-                            message: "Average Min / Max",
-                            child: Text(
-                              '${widget.video.averageMin.round()}-${widget.video.averageMax.round()}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                          const SizedBox(height: 4.0),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                              vertical: 4.0,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(4.0),
+                            ),
+                            child: Tooltip(
+                              message: "Average Min / Max",
+                              child: Text(
+                                '${widget.video.averageMin.round()}-${widget.video.averageMax.round()}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    child: Column(
-                      children: [
-                        IconButton(
-                          padding: EdgeInsets.all(padding),
-                          constraints: const BoxConstraints(),
-                          onPressed: () {
-                            setState(() {
-                              widget.video.isFavorite =
-                                  !widget.video.isFavorite;
-                              // If we just favorited it, it can't be disliked.
-                              if (widget.video.isFavorite) {
-                                widget.video.isDislike = false;
-                              }
-                            });
-                            widget.onFavoriteChanged(widget.video);
-                          },
-                          icon: Icon(
-                            widget.video.isFavorite
-                                ? Icons.star
-                                : Icons.star_border,
-                            shadows: const [
-                              Shadow(blurRadius: 3, color: Colors.black87),
-                            ],
-                          ),
-                          color: Colors.yellow.shade600,
-                          iconSize: iconSize,
-                        ),
-                        if (!widget.video.isFavorite)
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      child: Column(
+                        children: [
                           IconButton(
                             padding: EdgeInsets.all(padding),
                             constraints: const BoxConstraints(),
                             onPressed: () {
                               setState(() {
-                                widget.video.isDislike =
-                                    !widget.video.isDislike;
+                                widget.video.isFavorite =
+                                    !widget.video.isFavorite;
+                                // If we just favorited it, it can't be disliked.
+                                if (widget.video.isFavorite) {
+                                  widget.video.isDislike = false;
+                                }
                               });
-                              widget.onDislikeChanged(widget.video);
+                              widget.onFavoriteChanged(widget.video);
                             },
                             icon: Icon(
-                              widget.video.isDislike
-                                  ? Icons.thumb_down
-                                  : Icons.thumb_down_outlined,
+                              widget.video.isFavorite
+                                  ? Icons.star
+                                  : Icons.star_border,
                               shadows: const [
                                 Shadow(blurRadius: 3, color: Colors.black87),
                               ],
                             ),
-                            color: Colors.blue.shade300,
+                            color: Colors.yellow.shade600,
                             iconSize: iconSize,
                           ),
-                      ],
+                          if (!widget.video.isFavorite)
+                            IconButton(
+                              padding: EdgeInsets.all(padding),
+                              constraints: const BoxConstraints(),
+                              onPressed: () {
+                                setState(() {
+                                  widget.video.isDislike =
+                                      !widget.video.isDislike;
+                                });
+                                widget.onDislikeChanged(widget.video);
+                              },
+                              icon: Icon(
+                                widget.video.isDislike
+                                    ? Icons.thumb_down
+                                    : Icons.thumb_down_outlined,
+                                shadows: const [
+                                  Shadow(blurRadius: 3, color: Colors.black87),
+                                ],
+                              ),
+                              color: Colors.blue.shade300,
+                              iconSize: iconSize,
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

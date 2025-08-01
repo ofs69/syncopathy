@@ -124,7 +124,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
           if (video.categories.isNotEmpty) {
             return false;
           }
-        } else if (!video.categories.any((c) => c.id == _selectedCategory!.id)) {
+        } else if (!video.categories.any(
+          (c) => c.id == _selectedCategory!.id,
+        )) {
           return false;
         }
       }
@@ -655,39 +657,53 @@ class _MediaLibraryState extends State<MediaLibrary> {
                           ),
                   )
                 else
-                  GridView.builder(
-                    padding: const EdgeInsets.all(8.0),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: videosPerRow,
-                      crossAxisSpacing: 8.0,
-                      mainAxisSpacing: 8.0,
-                      childAspectRatio:
-                          16 / 9, // Standard 16:9 video aspect ratio
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 500),
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
+                        },
+                    child: GridView.builder(
+                      key: ValueKey(_filteredVideos.length),
+                      padding: const EdgeInsets.all(8.0),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: videosPerRow,
+                        crossAxisSpacing: 8.0,
+                        mainAxisSpacing: 8.0,
+                        childAspectRatio:
+                            16 / 9, // Standard 16:9 video aspect ratio
+                      ),
+                      itemCount: _filteredVideos.length,
+                      itemBuilder: (context, index) {
+                        final video = _filteredVideos[index];
+                        return VideoItem(
+                          video: video,
+                          onVideoTapped: widget.onVideoTapped,
+                          onFavoriteChanged: (video) {
+                            _mediaManager.saveFavorite(video);
+                            _updateDisplayedVideos();
+                          },
+                          onDislikeChanged: (video) {
+                            _mediaManager.saveDislike(video);
+                            _updateDisplayedVideos();
+                          },
+                          onCategoryChanged: (video, category, removeCategory) {
+                            if (removeCategory) {
+                              _mediaManager.removeVideoCategory(
+                                video,
+                                category,
+                              );
+                            } else {
+                              _mediaManager.setVideoCategory(video, category);
+                            }
+                            _updateDisplayedVideos();
+                          },
+                        );
+                      },
                     ),
-                    itemCount: _filteredVideos.length,
-                    itemBuilder: (context, index) {
-                      final video = _filteredVideos[index];
-                      return VideoItem(
-                        video: video,
-                        onVideoTapped: widget.onVideoTapped,
-                        onFavoriteChanged: (video) {
-                          _mediaManager.saveFavorite(video);
-                          _updateDisplayedVideos();
-                        },
-                        onDislikeChanged: (video) {
-                          _mediaManager.saveDislike(video);
-                          _updateDisplayedVideos();
-                        },
-                        onCategoryChanged: (video, category, removeCategory) {
-                          if (removeCategory) {
-                            _mediaManager.removeVideoCategory(video, category);
-                          } else {
-                            _mediaManager.setVideoCategory(video, category);
-                          }
-                          _updateDisplayedVideos();
-                        },
-                      );
-                    },
                   ),
               ],
             ),
