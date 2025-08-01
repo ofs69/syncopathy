@@ -17,43 +17,48 @@ const SettingsEntitySchema = CollectionSchema(
   name: r'SettingsEntity',
   id: -7271317039764597112,
   properties: {
-    r'max': PropertySchema(
+    r'embeddedVideoPlayer': PropertySchema(
       id: 0,
+      name: r'embeddedVideoPlayer',
+      type: IsarType.bool,
+    ),
+    r'max': PropertySchema(
+      id: 1,
       name: r'max',
       type: IsarType.long,
     ),
     r'mediaPaths': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'mediaPaths',
       type: IsarType.stringList,
     ),
     r'min': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'min',
       type: IsarType.long,
     ),
     r'offsetMs': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'offsetMs',
       type: IsarType.long,
     ),
     r'rdpEpsilon': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'rdpEpsilon',
       type: IsarType.double,
     ),
     r'remapFullRange': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'remapFullRange',
       type: IsarType.bool,
     ),
     r'skipToAction': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'skipToAction',
       type: IsarType.bool,
     ),
     r'slewMaxRateOfChange': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'slewMaxRateOfChange',
       type: IsarType.double,
     )
@@ -94,14 +99,15 @@ void _settingsEntitySerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.max);
-  writer.writeStringList(offsets[1], object.mediaPaths);
-  writer.writeLong(offsets[2], object.min);
-  writer.writeLong(offsets[3], object.offsetMs);
-  writer.writeDouble(offsets[4], object.rdpEpsilon);
-  writer.writeBool(offsets[5], object.remapFullRange);
-  writer.writeBool(offsets[6], object.skipToAction);
-  writer.writeDouble(offsets[7], object.slewMaxRateOfChange);
+  writer.writeBool(offsets[0], object.embeddedVideoPlayer);
+  writer.writeLong(offsets[1], object.max);
+  writer.writeStringList(offsets[2], object.mediaPaths);
+  writer.writeLong(offsets[3], object.min);
+  writer.writeLong(offsets[4], object.offsetMs);
+  writer.writeDouble(offsets[5], object.rdpEpsilon);
+  writer.writeBool(offsets[6], object.remapFullRange);
+  writer.writeBool(offsets[7], object.skipToAction);
+  writer.writeDouble(offsets[8], object.slewMaxRateOfChange);
 }
 
 SettingsEntity _settingsEntityDeserialize(
@@ -111,15 +117,16 @@ SettingsEntity _settingsEntityDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = SettingsEntity();
+  object.embeddedVideoPlayer = reader.readBool(offsets[0]);
   object.id = id;
-  object.max = reader.readLong(offsets[0]);
-  object.mediaPaths = reader.readStringList(offsets[1]) ?? [];
-  object.min = reader.readLong(offsets[2]);
-  object.offsetMs = reader.readLong(offsets[3]);
-  object.rdpEpsilon = reader.readDoubleOrNull(offsets[4]);
-  object.remapFullRange = reader.readBool(offsets[5]);
-  object.skipToAction = reader.readBool(offsets[6]);
-  object.slewMaxRateOfChange = reader.readDoubleOrNull(offsets[7]);
+  object.max = reader.readLong(offsets[1]);
+  object.mediaPaths = reader.readStringList(offsets[2]) ?? [];
+  object.min = reader.readLong(offsets[3]);
+  object.offsetMs = reader.readLong(offsets[4]);
+  object.rdpEpsilon = reader.readDoubleOrNull(offsets[5]);
+  object.remapFullRange = reader.readBool(offsets[6]);
+  object.skipToAction = reader.readBool(offsets[7]);
+  object.slewMaxRateOfChange = reader.readDoubleOrNull(offsets[8]);
   return object;
 }
 
@@ -131,20 +138,22 @@ P _settingsEntityDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 1:
-      return (reader.readStringList(offset) ?? []) as P;
-    case 2:
       return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readStringList(offset) ?? []) as P;
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 5:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 6:
       return (reader.readBool(offset)) as P;
     case 7:
+      return (reader.readBool(offset)) as P;
+    case 8:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -247,6 +256,16 @@ extension SettingsEntityQueryWhere
 
 extension SettingsEntityQueryFilter
     on QueryBuilder<SettingsEntity, SettingsEntity, QFilterCondition> {
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterFilterCondition>
+      embeddedVideoPlayerEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'embeddedVideoPlayer',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<SettingsEntity, SettingsEntity, QAfterFilterCondition> idEqualTo(
       Id value) {
     return QueryBuilder.apply(this, (query) {
@@ -892,6 +911,20 @@ extension SettingsEntityQueryLinks
 
 extension SettingsEntityQuerySortBy
     on QueryBuilder<SettingsEntity, SettingsEntity, QSortBy> {
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      sortByEmbeddedVideoPlayer() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'embeddedVideoPlayer', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      sortByEmbeddedVideoPlayerDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'embeddedVideoPlayer', Sort.desc);
+    });
+  }
+
   QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy> sortByMax() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'max', Sort.asc);
@@ -988,6 +1021,20 @@ extension SettingsEntityQuerySortBy
 
 extension SettingsEntityQuerySortThenBy
     on QueryBuilder<SettingsEntity, SettingsEntity, QSortThenBy> {
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      thenByEmbeddedVideoPlayer() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'embeddedVideoPlayer', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      thenByEmbeddedVideoPlayerDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'embeddedVideoPlayer', Sort.desc);
+    });
+  }
+
   QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -1096,6 +1143,13 @@ extension SettingsEntityQuerySortThenBy
 
 extension SettingsEntityQueryWhereDistinct
     on QueryBuilder<SettingsEntity, SettingsEntity, QDistinct> {
+  QueryBuilder<SettingsEntity, SettingsEntity, QDistinct>
+      distinctByEmbeddedVideoPlayer() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'embeddedVideoPlayer');
+    });
+  }
+
   QueryBuilder<SettingsEntity, SettingsEntity, QDistinct> distinctByMax() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'max');
@@ -1155,6 +1209,13 @@ extension SettingsEntityQueryProperty
   QueryBuilder<SettingsEntity, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<SettingsEntity, bool, QQueryOperations>
+      embeddedVideoPlayerProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'embeddedVideoPlayer');
     });
   }
 

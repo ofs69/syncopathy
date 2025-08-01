@@ -25,6 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
   late double _currentSlewMaxRateOfChange;
   late bool _slewMaxRateOfChangeEnabled;
   late bool _remapFullRange;
+  late bool _embeddedVideoPlayer;
 
   late final SyncopathyModel _model;
   final _debouncer = Debouncer(milliseconds: 500);
@@ -59,6 +60,7 @@ class _SettingsPageState extends State<SettingsPage> {
     _slewMaxRateOfChangeEnabled = _model.settings.slewMaxRateOfChange != null;
     _remapFullRange = _model.settings.remapFullRange;
     _skipToAction = _model.settings.skipToAction;
+    _embeddedVideoPlayer = _model.settings.embeddedVideoPlayer;
   }
 
   Future<void> _addPath() async {
@@ -85,6 +87,7 @@ class _SettingsPageState extends State<SettingsPage> {
         : null;
     final remapFullRange = _remapFullRange;
     final skipToAction = _skipToAction;
+    final embeddedVideoPlayer = _embeddedVideoPlayer;
 
     _model.settings.setMinMax(currentMin, currentMax);
     _model.settings.setOffsetMs(currentOffset);
@@ -92,6 +95,7 @@ class _SettingsPageState extends State<SettingsPage> {
     _model.settings.setSlewMaxRateOfChange(currentSlewRate);
     _model.settings.setRemapFullRange(remapFullRange);
     _model.settings.setSkipToAction(skipToAction);
+    _model.settings.setEmbeddedVideoPlayer(embeddedVideoPlayer);
     Logger.info('Settings saved.');
   }
 
@@ -158,6 +162,12 @@ class _SettingsPageState extends State<SettingsPage> {
           title: 'Timing',
           children: [_buildOffsetSettings(context)],
         ),
+        const SizedBox(height: 16),
+        _buildSettingsCard(
+          context,
+          title: 'Video Player',
+          children: [_buildEmbeddedVideoPlayerSettings(context)],
+        ),
       ],
     );
   }
@@ -211,6 +221,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 context,
                 title: 'Timing',
                 children: [_buildOffsetSettings(context)],
+              ),
+              const SizedBox(height: 16),
+              _buildSettingsCard(
+                context,
+                title: 'Video Player',
+                children: [_buildEmbeddedVideoPlayerSettings(context)],
               ),
             ],
           ),
@@ -399,6 +415,24 @@ class _SettingsPageState extends State<SettingsPage> {
         });
       },
       secondary: const Icon(Icons.skip_next),
+    );
+  }
+
+  Widget _buildEmbeddedVideoPlayerSettings(BuildContext context) {
+    return SwitchListTile(
+      title: const Text('Use Embedded Video Player'),
+      subtitle: const Text(
+        'Enables an embedded video player (requires restart, Windows only).',
+      ),
+      value: _embeddedVideoPlayer,
+      onChanged: (value) {
+        setState(() {
+          _embeddedVideoPlayer = value;
+          _saveSettings();
+        });
+      },
+      secondary: const Icon(Icons.video_collection),
+      isThreeLine: true,
     );
   }
 

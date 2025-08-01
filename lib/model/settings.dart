@@ -17,6 +17,7 @@ class SettingsEntity {
   double? rdpEpsilon = 15;
   bool remapFullRange = true;
   bool skipToAction = true;
+  bool embeddedVideoPlayer = false;
 }
 
 class Settings extends ChangeNotifier {
@@ -30,6 +31,7 @@ class Settings extends ChangeNotifier {
   double? get rdpEpsilon => _entity.rdpEpsilon;
   bool get remapFullRange => _entity.remapFullRange;
   bool get skipToAction => _entity.skipToAction;
+  bool get embeddedVideoPlayer => _entity.embeddedVideoPlayer;
 
   Settings();
 
@@ -100,6 +102,12 @@ class Settings extends ChangeNotifier {
 
   Future<void> setSkipToAction(bool value) async {
     _entity.skipToAction = value;
+    await _save();
+    notifyListeners();
+  }
+
+  Future<void> setEmbeddedVideoPlayer(bool value) async {
+    _entity.embeddedVideoPlayer = value;
     await _save();
     notifyListeners();
   }
