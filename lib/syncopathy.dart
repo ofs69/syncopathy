@@ -159,21 +159,39 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (Widget child, Animation<double> animation) {
-            return SizeTransition(
-              sizeFactor: animation,
-              axis: Axis.horizontal,
-              child: FadeTransition(opacity: animation, child: child),
-            );
-          },
-          child: Text(
-            _currentVideoTitle.isNotEmpty
-                ? "${widget.title} - $_currentVideoTitle"
-                : widget.title,
-            key: ValueKey<String>(_currentVideoTitle),
-          ),
+        title: Row(
+          children: [
+            Text(widget.title),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                final inAnimation = Tween<Offset>(
+                  begin: const Offset(1.0, 0.0), // New child comes from right
+                  end: Offset.zero,
+                ).animate(animation);
+
+                final outAnimation = Tween<Offset>(
+                  begin: Offset.zero,
+                  end: const Offset(-1.0, 0.0), // Old child goes to left
+                ).animate(animation);
+
+                return SlideTransition(
+                  position: animation.status == AnimationStatus.reverse
+                      ? outAnimation
+                      : inAnimation,
+                  child: FadeTransition(opacity: animation, child: child),
+                );
+              },
+              child: Text(
+                _currentVideoTitle.isNotEmpty
+                    ? " - $_currentVideoTitle"
+                    : "", // Handle empty case
+                key: ValueKey<String>(
+                  _currentVideoTitle,
+                ), // Key based on changing content
+              ),
+            ),
+          ],
         ),
         actions: [
           if (_isCheckingForUpdates)
