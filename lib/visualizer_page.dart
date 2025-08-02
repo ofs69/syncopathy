@@ -14,8 +14,11 @@ class VisualizerPage extends StatefulWidget {
   State<VisualizerPage> createState() => _VisualizerPageState();
 }
 
-class _VisualizerPageState extends State<VisualizerPage> {
+class _VisualizerPageState extends State<VisualizerPage> with AutomaticKeepAliveClientMixin {
   bool _isFullscreen = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   void _toggleFullscreen() {
     setState(() {
@@ -31,6 +34,7 @@ class _VisualizerPageState extends State<VisualizerPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Call super.build(context)
     final model = context.watch<SyncopathyModel>();
 
     enterFullscreen() => Navigator.push(

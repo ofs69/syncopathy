@@ -14,7 +14,9 @@ class SettingsPage extends StatefulWidget {
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   late double _currentMin;
   late double _currentMax;
   late double _currentOffsetMs;
@@ -101,6 +103,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Call super.build(context)
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {

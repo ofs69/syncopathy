@@ -43,10 +43,36 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   String? _latestVersion;
   bool _isCheckingForUpdates = false;
   bool _isUpToDate = false;
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _selectedIndex);
+    final model = context.read<SyncopathyModel>();
+    model.mpvPlayer.path.addListener(_handleVideoPathChange);
+  }
+
+  @override
+  void dispose() {
+    final model = context.read<SyncopathyModel>();
+    model.mpvPlayer.path.removeListener(_handleVideoPathChange);
+    super.dispose();
+  }
+
+  void _handleVideoPathChange() {
+    final model = context.read<SyncopathyModel>();
+    if (model.mpvPlayer.path.value.isNotEmpty &&
+        model.settings.embeddedVideoPlayer) {
+      setState(() {
+        _selectedIndex = 1; // Navigate to Visualizer tab
+      });
+      _pageController.animateToPage(
+        1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.ease,
+      );
+    }
   }
 
   Future<void> _checkForUpdates() async {
@@ -166,12 +192,27 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
               setState(() {
                 _selectedIndex = index;
               });
+              _pageController.animateToPage(
+                index,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.ease,
+              );
             },
             labelType: NavigationRailLabelType.all,
             destinations: _destinations,
           ),
           const VerticalDivider(thickness: 1, width: 1),
-          Expanded(child: PageContent(selectedIndex: _selectedIndex)),
+          Expanded(
+            child: PageContent(
+              selectedIndex: _selectedIndex,
+              onPageChanged: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+              pageController: _pageController,
+            ),
+          ),
         ],
       ),
     );
@@ -230,9 +271,16 @@ class ConnectionButton extends StatelessWidget {
 }
 
 class PageContent extends StatefulWidget {
-  const PageContent({super.key, required this.selectedIndex});
+  const PageContent({
+    super.key,
+    required this.selectedIndex,
+    required this.onPageChanged,
+    required this.pageController,
+  });
 
   final int selectedIndex;
+  final ValueChanged<int> onPageChanged;
+  final PageController pageController;
 
   @override
   State<PageContent> createState() => _PageContentState();
@@ -258,12 +306,13 @@ class _PageContentState extends State<PageContent> {
               children: [
                 Expanded(
                   flex: 4,
-                  child: IndexedStack(
-                    index: widget.selectedIndex,
-                    children: <Widget>[
-                      const MediaPage(),
-                      const VisualizerPage(),
-                      const SettingsPage(),
+                  child: PageView(
+                    controller: widget.pageController,
+                    onPageChanged: widget.onPageChanged,
+                    children: const <Widget>[
+                      MediaPage(),
+                      VisualizerPage(),
+                      SettingsPage(),
                     ],
                   ),
                 ),

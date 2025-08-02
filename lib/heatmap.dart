@@ -78,10 +78,9 @@ class Heatmap extends StatelessWidget {
                   ValueListenableBuilder<double>(
                     valueListenable: videoPosition,
                     builder: (context, position, child) {
-                      final double positionRatio =
-                          position / totalDuration.value;
-                      final double progressWidth =
-                          constraints.maxWidth * positionRatio;
+                      final double progressWidth = totalDuration.value > 0
+                          ? constraints.maxWidth * (position / totalDuration.value)
+                          : 0.0;
                       return Positioned(
                         top: 0,
                         left: 0,

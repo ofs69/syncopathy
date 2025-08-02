@@ -11,7 +11,10 @@ class MediaPage extends StatefulWidget {
   State<MediaPage> createState() => _MediaPageState();
 }
 
-class _MediaPageState extends State<MediaPage> {
+class _MediaPageState extends State<MediaPage> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   Future<void> _openVideoFile() async {
     final model = context.read<SyncopathyModel>();
 
@@ -29,6 +32,7 @@ class _MediaPageState extends State<MediaPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Call super.build(context)
     final model = context.read<SyncopathyModel>();
 
     return Padding(
