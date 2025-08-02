@@ -7,6 +7,7 @@ import 'package:syncopathy/settings_page.dart';
 import 'package:syncopathy/update_checker.dart';
 import 'package:syncopathy/visualizer_page.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path/path.dart' as p;
 
 class Syncopathy extends StatelessWidget {
   const Syncopathy({super.key});
@@ -44,6 +45,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   bool _isCheckingForUpdates = false;
   bool _isUpToDate = false;
   late PageController _pageController;
+  String _currentVideoTitle = '';
 
   @override
   void initState() {
@@ -51,13 +53,26 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     _pageController = PageController(initialPage: _selectedIndex);
     final model = context.read<SyncopathyModel>();
     model.mpvPlayer.path.addListener(_handleVideoPathChange);
+    model.mpvPlayer.path.addListener(_updateVideoTitle);
+    _updateVideoTitle(); // Initial update
   }
 
   @override
   void dispose() {
     final model = context.read<SyncopathyModel>();
     model.mpvPlayer.path.removeListener(_handleVideoPathChange);
+    model.mpvPlayer.path.removeListener(_updateVideoTitle);
     super.dispose();
+  }
+
+  void _updateVideoTitle() {
+    final model = context.read<SyncopathyModel>();
+    final path = model.mpvPlayer.path.value;
+    setState(() {
+      _currentVideoTitle = path.isNotEmpty
+          ? p.basenameWithoutExtension(path)
+          : '';
+    });
   }
 
   void _handleVideoPathChange() {
@@ -144,7 +159,22 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return SizeTransition(
+              sizeFactor: animation,
+              axis: Axis.horizontal,
+              child: FadeTransition(opacity: animation, child: child),
+            );
+          },
+          child: Text(
+            _currentVideoTitle.isNotEmpty
+                ? "${widget.title} - $_currentVideoTitle"
+                : widget.title,
+            key: ValueKey<String>(_currentVideoTitle),
+          ),
+        ),
         actions: [
           if (_isCheckingForUpdates)
             const Padding(
