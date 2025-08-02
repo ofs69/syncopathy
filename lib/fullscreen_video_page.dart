@@ -109,19 +109,8 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                   duration: const Duration(milliseconds: 300),
                   child: IgnorePointer(
                     ignoring: !_showControls,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [
-                            Colors.black,
-                            Colors.black,
-                            Colors.transparent,
-                          ],
-                          stops: [0.0, 0.1, 1.0],
-                        ),
-                      ),
+                    child: Hero(
+                      tag: 'videoControls',
                       child: VideoControls(
                         isFullscreen: true,
                         onFullscreenToggle: () => Navigator.pop(context),

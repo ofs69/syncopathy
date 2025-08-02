@@ -83,9 +83,12 @@ class _VisualizerPageState extends State<VisualizerPage> with AutomaticKeepAlive
                   videoPosition: model.positionNoOffset,
                 ),
               ),
-              VideoControls(
-                isFullscreen: _isFullscreen,
-                onFullscreenToggle: enterFullscreen,
+              Hero(
+                tag: 'videoControls',
+                child: VideoControls(
+                  isFullscreen: _isFullscreen,
+                  onFullscreenToggle: enterFullscreen,
+                ),
               ),
             ],
           ),
