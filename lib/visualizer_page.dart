@@ -14,7 +14,8 @@ class VisualizerPage extends StatefulWidget {
   State<VisualizerPage> createState() => _VisualizerPageState();
 }
 
-class _VisualizerPageState extends State<VisualizerPage> with AutomaticKeepAliveClientMixin {
+class _VisualizerPageState extends State<VisualizerPage>
+    with AutomaticKeepAliveClientMixin {
   bool _isFullscreen = false;
 
   @override
@@ -78,9 +79,15 @@ class _VisualizerPageState extends State<VisualizerPage> with AutomaticKeepAlive
               ),
               Expanded(
                 flex: 1,
-                child: InteractiveScrollingGraph(
-                  funscript: funscript,
-                  videoPosition: model.positionNoOffset,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  child: InteractiveScrollingGraph(
+                    funscript: funscript,
+                    videoPosition: model.positionNoOffset,
+                  ),
                 ),
               ),
               Hero(

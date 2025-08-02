@@ -56,8 +56,6 @@ class _InteractiveScrollingGraphState extends State<InteractiveScrollingGraph> {
         ),
         Column(
           children: [
-            const SizedBox(height: 16),
-            Icon(Icons.zoom_out),
             Expanded(
               child: ValueListenableBuilder<Duration>(
                 valueListenable: _viewDuration,
@@ -78,7 +76,6 @@ class _InteractiveScrollingGraphState extends State<InteractiveScrollingGraph> {
                 },
               ),
             ),
-            Icon(Icons.zoom_in),
           ],
         ),
       ],
@@ -150,8 +147,8 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
         _speeds = speeds;
         _maxSpeed = speeds.isEmpty
             ? 1.0
-            : (List<double>.from(speeds)..sort())[
-                (speeds.length * 0.98).floor()];
+            : (List<double>.from(speeds)
+                ..sort())[(speeds.length * 0.98).floor()];
       });
     }
   }
