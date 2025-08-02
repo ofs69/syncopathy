@@ -109,6 +109,7 @@ class FunscriptStreamController {
           : _currentFunscript!.actions.indexOf(_currentBuffer.last) + 1;
       if (lastIndex == -1) {
         lastIndex = 0;
+        return;
       }
 
       if (lastIndex < _currentFunscript!.actions.length) {
