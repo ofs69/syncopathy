@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   libmpv_dart
   screen_retriever_windows
   universal_ble
+  url_launcher_windows
   window_manager
 )
 

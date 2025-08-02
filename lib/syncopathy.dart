@@ -4,7 +4,9 @@ import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_page.dart';
 import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/settings_page.dart';
+import 'package:syncopathy/update_checker.dart';
 import 'package:syncopathy/visualizer_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Syncopathy extends StatelessWidget {
   const Syncopathy({super.key});
@@ -38,6 +40,57 @@ class SyncopathyHomePage extends StatefulWidget {
 
 class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   int _selectedIndex = 0;
+  String? _latestVersion;
+  bool _isCheckingForUpdates = false;
+  bool _isUpToDate = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> _checkForUpdates() async {
+    setState(() {
+      _isCheckingForUpdates = true;
+      _isUpToDate = false;
+    });
+    final version = await UpdateChecker.checkForUpdates();
+    if (mounted) {
+      setState(() {
+        _latestVersion = version;
+        _isCheckingForUpdates = false;
+        if (version == null) {
+          _isUpToDate = true;
+        }
+      });
+      if (version != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('New version $version available!')),
+        );
+      } else {
+        // Optionally, show a temporary green checkmark or a subtle animation
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            setState(() {
+              _isUpToDate = false;
+            });
+          }
+        });
+      }
+    }
+  }
+
+  Future<void> _openReleasePage() async {
+    final url = Uri.parse('https://github.com/ofs69/syncopathy/releases');
+    if (!await launchUrl(url)) {
+      Logger.error('Could not launch $url');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open the release page.')),
+        );
+      }
+    }
+  }
 
   List<NavigationRailDestination> get _destinations {
     final destinations = <NavigationRailDestination>[
@@ -66,12 +119,42 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
-        actions: const [
-          Center(
-            child: Padding(
-              padding: EdgeInsets.only(right: 20.0),
-              child: Row(children: [ConnectionButton()]),
+        actions: [
+          if (_isCheckingForUpdates)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (_isUpToDate)
+            const Tooltip(
+              message: 'You are on the latest version!',
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Icon(Icons.check_circle, color: Colors.green),
+              ),
+            )
+          else if (_latestVersion != null)
+            Tooltip(
+              message: 'New version available: $_latestVersion',
+              child: IconButton(
+                icon: const Icon(Icons.update, color: Colors.amber),
+                onPressed: _openReleasePage,
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.update_sharp),
+              onPressed: _checkForUpdates,
+              tooltip: 'Check for Updates',
             ),
+          const SizedBox(width: 20),
+          const Padding(
+            padding: EdgeInsets.only(right: 20.0),
+            child: ConnectionButton(),
           ),
         ],
       ),
@@ -106,15 +189,15 @@ class ConnectionButton extends StatelessWidget {
       builder: (context, scanning, child) {
         if (scanning) {
           return Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
                   "Scanning for device...",
                   style: Theme.of(context).textTheme.labelLarge,

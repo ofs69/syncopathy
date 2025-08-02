@@ -8,6 +8,7 @@ import 'package:syncopathy/model/settings.dart';
 import 'package:syncopathy/model/user_category.dart';
 import 'package:syncopathy/syncopathy.dart';
 import 'package:syncopathy/model/video_model.dart';
+
 import 'package:window_manager/window_manager.dart';
 
 late Isar isar; // Global Isar instance
@@ -47,3 +48,4 @@ void main() async {
     ),
   );
 }
+
