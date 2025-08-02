@@ -74,6 +74,25 @@ class Heatmap extends StatelessWidget {
                       );
                     },
                   ),
+                  // Progress bar (solid bar on top)
+                  ValueListenableBuilder<double>(
+                    valueListenable: videoPosition,
+                    builder: (context, position, child) {
+                      final double positionRatio =
+                          position / totalDuration.value;
+                      final double progressWidth =
+                          constraints.maxWidth * positionRatio;
+                      return Positioned(
+                        top: 0,
+                        left: 0,
+                        child: Container(
+                          width: progressWidth,
+                          height: 2.0, // Height of the progress bar
+                          color: Colors.red, // Color of the progress bar
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -213,6 +232,18 @@ class IndicatorPainter extends CustomPainter {
       Offset(indicatorX, 0),
       Offset(indicatorX, size.height),
       indicatorBorderPaint,
+    );
+
+    final progressBorderPaint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke;
+    canvas.drawRect(Rect.fromLTWH(0, 0, indicatorX, 3.0), progressBorderPaint);
+
+    final progressFillPaint = Paint()..color = Colors.red;
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, indicatorX, 3.0), // Solid bar on top with height 3.0
+      progressFillPaint,
     );
 
     canvas.drawLine(

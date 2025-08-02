@@ -116,8 +116,10 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                           end: Alignment.topCenter,
                           colors: [
                             Colors.black,
+                            Colors.black,
                             Colors.transparent,
                           ],
+                          stops: [0.0, 0.1, 1.0],
                         ),
                       ),
                       child: VideoControls(
