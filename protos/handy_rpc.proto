@@ -1,4 +1,4 @@
-// Auto-generated on 2025-06-12 08:44:03
+// Auto-generated on 2025-08-01 10:24:23
 syntax = "proto3";
 package hdy_rpc;
 import "notifications.proto";
@@ -154,6 +154,7 @@ message Response {
         ResponseSliderStrokeGet response_slider_stroke_get = 840;
         ResponseSliderStrokeSet response_slider_stroke_set = 841;
         ResponseSliderStateGet response_slider_state_get = 842;
+        ResponseSliderCalibrate response_slider_calibrate = 843; //Added in FW4.0.15
         //HSP - 860
         ResponseHspSetup response_hsp_setup = 860;
         ResponseHspAdd response_hsp_add = 861;

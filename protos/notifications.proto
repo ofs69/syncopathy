@@ -1,4 +1,4 @@
-// Auto-generated on 2025-06-12 08:44:03
+// Auto-generated on 2025-08-01 10:24:23
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";

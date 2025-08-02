@@ -39,22 +39,33 @@ class HampState extends $pb.GeneratedMessage {
 
   HampState._();
 
-  factory HampState.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory HampState.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory HampState.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory HampState.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'HampState', package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'), createEmptyInstance: create)
-    ..e<HampPlayState>(1, _omitFieldNames ? '' : 'playState', $pb.PbFieldType.OE, defaultOrMaker: HampPlayState.HAMP_STATE_STOPPED, valueOf: HampPlayState.valueOf, enumValues: HampPlayState.values)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'HampState',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..e<HampPlayState>(
+        1, _omitFieldNames ? '' : 'playState', $pb.PbFieldType.OE,
+        defaultOrMaker: HampPlayState.HAMP_STATE_STOPPED,
+        valueOf: HampPlayState.valueOf,
+        enumValues: HampPlayState.values)
     ..a<$core.double>(2, _omitFieldNames ? '' : 'velocity', $pb.PbFieldType.OF)
     ..aOB(3, _omitFieldNames ? '' : 'direction')
     ..a<$core.double>(4, _omitFieldNames ? '' : 'min', $pb.PbFieldType.OF)
     ..a<$core.double>(5, _omitFieldNames ? '' : 'max', $pb.PbFieldType.OF)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   HampState clone() => HampState()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  HampState copyWith(void Function(HampState) updates) => super.copyWith((message) => updates(message as HampState)) as HampState;
+  HampState copyWith(void Function(HampState) updates) =>
+      super.copyWith((message) => updates(message as HampState)) as HampState;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -65,7 +76,8 @@ class HampState extends $pb.GeneratedMessage {
   HampState createEmptyInstance() => create();
   static $pb.PbList<HampState> createRepeated() => $pb.PbList<HampState>();
   @$core.pragma('dart2js:noInline')
-  static HampState getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<HampState>(create);
+  static HampState getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<HampState>(create);
   static HampState? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -139,25 +151,38 @@ class HrppPattern extends $pb.GeneratedMessage {
 
   HrppPattern._();
 
-  factory HrppPattern.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory HrppPattern.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory HrppPattern.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory HrppPattern.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'HrppPattern', package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'HrppPattern',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'id', $pb.PbFieldType.OU3)
     ..aOS(2, _omitFieldNames ? '' : 'name')
     ..a<$core.int>(3, _omitFieldNames ? '' : 'version', $pb.PbFieldType.OU3)
     ..aOB(4, _omitFieldNames ? '' : 'customPattern')
     ..a<$core.int>(5, _omitFieldNames ? '' : 'slot', $pb.PbFieldType.OU3)
-    ..e<HrppPatternType>(6, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE, defaultOrMaker: HrppPatternType.HRPP_NOT_SET, valueOf: HrppPatternType.valueOf, enumValues: HrppPatternType.values)
-    ..a<$core.int>(7, _omitFieldNames ? '' : 'pauseRandomMin', $pb.PbFieldType.OU3)
-    ..a<$core.int>(8, _omitFieldNames ? '' : 'pauseRandomMax', $pb.PbFieldType.OU3)
-    ..hasRequiredFields = false
-  ;
+    ..e<HrppPatternType>(6, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE,
+        defaultOrMaker: HrppPatternType.HRPP_NOT_SET,
+        valueOf: HrppPatternType.valueOf,
+        enumValues: HrppPatternType.values)
+    ..a<$core.int>(
+        7, _omitFieldNames ? '' : 'pauseRandomMin', $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        8, _omitFieldNames ? '' : 'pauseRandomMax', $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   HrppPattern clone() => HrppPattern()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  HrppPattern copyWith(void Function(HrppPattern) updates) => super.copyWith((message) => updates(message as HrppPattern)) as HrppPattern;
+  HrppPattern copyWith(void Function(HrppPattern) updates) =>
+      super.copyWith((message) => updates(message as HrppPattern))
+          as HrppPattern;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -168,7 +193,8 @@ class HrppPattern extends $pb.GeneratedMessage {
   HrppPattern createEmptyInstance() => create();
   static $pb.PbList<HrppPattern> createRepeated() => $pb.PbList<HrppPattern>();
   @$core.pragma('dart2js:noInline')
-  static HrppPattern getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<HrppPattern>(create);
+  static HrppPattern getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<HrppPattern>(create);
   static HrppPattern? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -265,23 +291,34 @@ class HrppState extends $pb.GeneratedMessage {
 
   HrppState._();
 
-  factory HrppState.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory HrppState.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory HrppState.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory HrppState.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'HrppState', package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'), createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'currentPatternNr', $pb.PbFieldType.OU3)
-    ..aOM<HrppPattern>(2, _omitFieldNames ? '' : 'currentPattern', subBuilder: HrppPattern.create)
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'nrOfPatterns', $pb.PbFieldType.OU3)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'HrppState',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..a<$core.int>(
+        1, _omitFieldNames ? '' : 'currentPatternNr', $pb.PbFieldType.OU3)
+    ..aOM<HrppPattern>(2, _omitFieldNames ? '' : 'currentPattern',
+        subBuilder: HrppPattern.create)
+    ..a<$core.int>(
+        3, _omitFieldNames ? '' : 'nrOfPatterns', $pb.PbFieldType.OU3)
     ..aOB(4, _omitFieldNames ? '' : 'enabled')
     ..a<$core.double>(5, _omitFieldNames ? '' : 'amplitude', $pb.PbFieldType.OF)
-    ..a<$core.double>(6, _omitFieldNames ? '' : 'playbackSpeed', $pb.PbFieldType.OF)
-    ..hasRequiredFields = false
-  ;
+    ..a<$core.double>(
+        6, _omitFieldNames ? '' : 'playbackSpeed', $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   HrppState clone() => HrppState()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  HrppState copyWith(void Function(HrppState) updates) => super.copyWith((message) => updates(message as HrppState)) as HrppState;
+  HrppState copyWith(void Function(HrppState) updates) =>
+      super.copyWith((message) => updates(message as HrppState)) as HrppState;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -292,7 +329,8 @@ class HrppState extends $pb.GeneratedMessage {
   HrppState createEmptyInstance() => create();
   static $pb.PbList<HrppState> createRepeated() => $pb.PbList<HrppState>();
   @$core.pragma('dart2js:noInline')
-  static HrppState getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<HrppState>(create);
+  static HrppState getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<HrppState>(create);
   static HrppState? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -379,38 +417,55 @@ class HspState extends $pb.GeneratedMessage {
     if (firstPointTime != null) result.firstPointTime = firstPointTime;
     if (lastPointTime != null) result.lastPointTime = lastPointTime;
     if (streamId != null) result.streamId = streamId;
-    if (tailPointStreamIndex != null) result.tailPointStreamIndex = tailPointStreamIndex;
-    if (tailPointStreamIndexThreshold != null) result.tailPointStreamIndexThreshold = tailPointStreamIndexThreshold;
+    if (tailPointStreamIndex != null)
+      result.tailPointStreamIndex = tailPointStreamIndex;
+    if (tailPointStreamIndexThreshold != null)
+      result.tailPointStreamIndexThreshold = tailPointStreamIndexThreshold;
     if (pauseOnStarving != null) result.pauseOnStarving = pauseOnStarving;
     return result;
   }
 
   HspState._();
 
-  factory HspState.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory HspState.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory HspState.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory HspState.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'HspState', package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'), createEmptyInstance: create)
-    ..e<HspPlayState>(1, _omitFieldNames ? '' : 'playState', $pb.PbFieldType.OE, defaultOrMaker: HspPlayState.HSP_STATE_NOT_INITIALIZED, valueOf: HspPlayState.valueOf, enumValues: HspPlayState.values)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'HspState',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..e<HspPlayState>(1, _omitFieldNames ? '' : 'playState', $pb.PbFieldType.OE,
+        defaultOrMaker: HspPlayState.HSP_STATE_NOT_INITIALIZED,
+        valueOf: HspPlayState.valueOf,
+        enumValues: HspPlayState.values)
     ..a<$core.int>(2, _omitFieldNames ? '' : 'points', $pb.PbFieldType.OU3)
     ..a<$core.int>(3, _omitFieldNames ? '' : 'maxPoints', $pb.PbFieldType.OU3)
     ..a<$core.int>(4, _omitFieldNames ? '' : 'currentPoint', $pb.PbFieldType.O3)
     ..a<$core.int>(5, _omitFieldNames ? '' : 'currentTime', $pb.PbFieldType.O3)
     ..aOB(6, _omitFieldNames ? '' : 'loop')
-    ..a<$core.double>(7, _omitFieldNames ? '' : 'playbackRate', $pb.PbFieldType.OF)
-    ..a<$core.int>(8, _omitFieldNames ? '' : 'firstPointTime', $pb.PbFieldType.OU3)
-    ..a<$core.int>(9, _omitFieldNames ? '' : 'lastPointTime', $pb.PbFieldType.OU3)
+    ..a<$core.double>(
+        7, _omitFieldNames ? '' : 'playbackRate', $pb.PbFieldType.OF)
+    ..a<$core.int>(
+        8, _omitFieldNames ? '' : 'firstPointTime', $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        9, _omitFieldNames ? '' : 'lastPointTime', $pb.PbFieldType.OU3)
     ..a<$core.int>(10, _omitFieldNames ? '' : 'streamId', $pb.PbFieldType.OU3)
-    ..a<$core.int>(11, _omitFieldNames ? '' : 'tailPointStreamIndex', $pb.PbFieldType.O3)
-    ..a<$core.int>(12, _omitFieldNames ? '' : 'tailPointStreamIndexThreshold', $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        11, _omitFieldNames ? '' : 'tailPointStreamIndex', $pb.PbFieldType.O3)
+    ..a<$core.int>(12, _omitFieldNames ? '' : 'tailPointStreamIndexThreshold',
+        $pb.PbFieldType.OU3)
     ..aOB(13, _omitFieldNames ? '' : 'pauseOnStarving')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   HspState clone() => HspState()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  HspState copyWith(void Function(HspState) updates) => super.copyWith((message) => updates(message as HspState)) as HspState;
+  HspState copyWith(void Function(HspState) updates) =>
+      super.copyWith((message) => updates(message as HspState)) as HspState;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -421,7 +476,8 @@ class HspState extends $pb.GeneratedMessage {
   HspState createEmptyInstance() => create();
   static $pb.PbList<HspState> createRepeated() => $pb.PbList<HspState>();
   @$core.pragma('dart2js:noInline')
-  static HspState getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<HspState>(create);
+  static HspState getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<HspState>(create);
   static HspState? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -526,7 +582,8 @@ class HspState extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   $core.int get tailPointStreamIndexThreshold => $_getIZ(11);
   @$pb.TagNumber(12)
-  set tailPointStreamIndexThreshold($core.int value) => $_setUnsignedInt32(11, value);
+  set tailPointStreamIndexThreshold($core.int value) =>
+      $_setUnsignedInt32(11, value);
   @$pb.TagNumber(12)
   $core.bool hasTailPointStreamIndexThreshold() => $_has(11);
   @$pb.TagNumber(12)
@@ -559,21 +616,28 @@ class HvpState extends $pb.GeneratedMessage {
 
   HvpState._();
 
-  factory HvpState.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory HvpState.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory HvpState.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory HvpState.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'HvpState', package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'HvpState',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'enabled')
     ..a<$core.double>(2, _omitFieldNames ? '' : 'amplitude', $pb.PbFieldType.OF)
     ..a<$core.int>(3, _omitFieldNames ? '' : 'frequency', $pb.PbFieldType.OU3)
     ..a<$core.double>(4, _omitFieldNames ? '' : 'position', $pb.PbFieldType.OF)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   HvpState clone() => HvpState()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  HvpState copyWith(void Function(HvpState) updates) => super.copyWith((message) => updates(message as HvpState)) as HvpState;
+  HvpState copyWith(void Function(HvpState) updates) =>
+      super.copyWith((message) => updates(message as HvpState)) as HvpState;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -584,7 +648,8 @@ class HvpState extends $pb.GeneratedMessage {
   HvpState createEmptyInstance() => create();
   static $pb.PbList<HvpState> createRepeated() => $pb.PbList<HvpState>();
   @$core.pragma('dart2js:noInline')
-  static HvpState getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<HvpState>(create);
+  static HvpState getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<HvpState>(create);
   static HvpState? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -637,19 +702,26 @@ class Point extends $pb.GeneratedMessage {
 
   Point._();
 
-  factory Point.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory Point.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory Point.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Point.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Point', package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Point',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 't', $pb.PbFieldType.OU3)
     ..a<$core.int>(2, _omitFieldNames ? '' : 'x', $pb.PbFieldType.OU3)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Point clone() => Point()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Point copyWith(void Function(Point) updates) => super.copyWith((message) => updates(message as Point)) as Point;
+  Point copyWith(void Function(Point) updates) =>
+      super.copyWith((message) => updates(message as Point)) as Point;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -660,7 +732,8 @@ class Point extends $pb.GeneratedMessage {
   Point createEmptyInstance() => create();
   static $pb.PbList<Point> createRepeated() => $pb.PbList<Point>();
   @$core.pragma('dart2js:noInline')
-  static Point getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Point>(create);
+  static Point getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Point>(create);
   static Point? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -727,23 +800,33 @@ class ApInfo extends $pb.GeneratedMessage {
 
   ApInfo._();
 
-  factory ApInfo.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory ApInfo.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory ApInfo.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ApInfo.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ApInfo', package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ApInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'ssid')
     ..aOS(2, _omitFieldNames ? '' : 'bssid')
     ..a<$core.int>(3, _omitFieldNames ? '' : 'channel', $pb.PbFieldType.OU3)
-    ..e<AuthModes>(4, _omitFieldNames ? '' : 'authmode', $pb.PbFieldType.OE, defaultOrMaker: AuthModes.AUTH_OPEN, valueOf: AuthModes.valueOf, enumValues: AuthModes.values)
+    ..e<AuthModes>(4, _omitFieldNames ? '' : 'authmode', $pb.PbFieldType.OE,
+        defaultOrMaker: AuthModes.AUTH_OPEN,
+        valueOf: AuthModes.valueOf,
+        enumValues: AuthModes.values)
     ..a<$core.int>(5, _omitFieldNames ? '' : 'rssi', $pb.PbFieldType.O3)
     ..aOS(6, _omitFieldNames ? '' : 'ip')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ApInfo clone() => ApInfo()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ApInfo copyWith(void Function(ApInfo) updates) => super.copyWith((message) => updates(message as ApInfo)) as ApInfo;
+  ApInfo copyWith(void Function(ApInfo) updates) =>
+      super.copyWith((message) => updates(message as ApInfo)) as ApInfo;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -754,7 +837,8 @@ class ApInfo extends $pb.GeneratedMessage {
   ApInfo createEmptyInstance() => create();
   static $pb.PbList<ApInfo> createRepeated() => $pb.PbList<ApInfo>();
   @$core.pragma('dart2js:noInline')
-  static ApInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ApInfo>(create);
+  static ApInfo getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ApInfo>(create);
   static ApInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -822,6 +906,8 @@ class BatteryState extends $pb.GeneratedMessage {
     $core.double? batteryVoltage,
     $core.int? usbAdcValue,
     $core.int? batteryAdcValue,
+    $core.double? batteryTemperature,
+    $core.int? batteryTemperatureAdcValue,
   }) {
     final result = create();
     if (level != null) result.level = level;
@@ -831,29 +917,48 @@ class BatteryState extends $pb.GeneratedMessage {
     if (batteryVoltage != null) result.batteryVoltage = batteryVoltage;
     if (usbAdcValue != null) result.usbAdcValue = usbAdcValue;
     if (batteryAdcValue != null) result.batteryAdcValue = batteryAdcValue;
+    if (batteryTemperature != null)
+      result.batteryTemperature = batteryTemperature;
+    if (batteryTemperatureAdcValue != null)
+      result.batteryTemperatureAdcValue = batteryTemperatureAdcValue;
     return result;
   }
 
   BatteryState._();
 
-  factory BatteryState.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory BatteryState.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory BatteryState.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory BatteryState.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BatteryState', package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BatteryState',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'level', $pb.PbFieldType.OU3)
     ..aOB(2, _omitFieldNames ? '' : 'chargerConnected')
     ..aOB(3, _omitFieldNames ? '' : 'chargingComplete')
-    ..a<$core.double>(4, _omitFieldNames ? '' : 'usbVoltage', $pb.PbFieldType.OF)
-    ..a<$core.double>(5, _omitFieldNames ? '' : 'batteryVoltage', $pb.PbFieldType.OF)
+    ..a<$core.double>(
+        4, _omitFieldNames ? '' : 'usbVoltage', $pb.PbFieldType.OF)
+    ..a<$core.double>(
+        5, _omitFieldNames ? '' : 'batteryVoltage', $pb.PbFieldType.OF)
     ..a<$core.int>(6, _omitFieldNames ? '' : 'usbAdcValue', $pb.PbFieldType.OU3)
-    ..a<$core.int>(7, _omitFieldNames ? '' : 'batteryAdcValue', $pb.PbFieldType.OU3)
-    ..hasRequiredFields = false
-  ;
+    ..a<$core.int>(
+        7, _omitFieldNames ? '' : 'batteryAdcValue', $pb.PbFieldType.OU3)
+    ..a<$core.double>(
+        8, _omitFieldNames ? '' : 'batteryTemperature', $pb.PbFieldType.OF)
+    ..a<$core.int>(9, _omitFieldNames ? '' : 'batteryTemperatureAdcValue',
+        $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   BatteryState clone() => BatteryState()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  BatteryState copyWith(void Function(BatteryState) updates) => super.copyWith((message) => updates(message as BatteryState)) as BatteryState;
+  BatteryState copyWith(void Function(BatteryState) updates) =>
+      super.copyWith((message) => updates(message as BatteryState))
+          as BatteryState;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -862,9 +967,11 @@ class BatteryState extends $pb.GeneratedMessage {
   static BatteryState create() => BatteryState._();
   @$core.override
   BatteryState createEmptyInstance() => create();
-  static $pb.PbList<BatteryState> createRepeated() => $pb.PbList<BatteryState>();
+  static $pb.PbList<BatteryState> createRepeated() =>
+      $pb.PbList<BatteryState>();
   @$core.pragma('dart2js:noInline')
-  static BatteryState getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BatteryState>(create);
+  static BatteryState getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BatteryState>(create);
   static BatteryState? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -929,8 +1036,28 @@ class BatteryState extends $pb.GeneratedMessage {
   $core.bool hasBatteryAdcValue() => $_has(6);
   @$pb.TagNumber(7)
   void clearBatteryAdcValue() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.double get batteryTemperature => $_getN(7);
+  @$pb.TagNumber(8)
+  set batteryTemperature($core.double value) => $_setFloat(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasBatteryTemperature() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearBatteryTemperature() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.int get batteryTemperatureAdcValue => $_getIZ(8);
+  @$pb.TagNumber(9)
+  set batteryTemperatureAdcValue($core.int value) =>
+      $_setUnsignedInt32(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasBatteryTemperatureAdcValue() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearBatteryTemperatureAdcValue() => $_clearField(9);
 }
 
-
-const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const $core.bool _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const $core.bool _omitFieldNames =
+    $core.bool.fromEnvironment('protobuf.omit_field_names');
+const $core.bool _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

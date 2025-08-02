@@ -430,7 +430,14 @@ final $typed_data.Uint8List transportationDescriptor = $convert.base64Decode(
 const HampState$json = {
   '1': 'HampState',
   '2': [
-    {'1': 'play_state', '3': 1, '4': 1, '5': 14, '6': '.hdy_rpc.HampPlayState', '10': 'playState'},
+    {
+      '1': 'play_state',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.HampPlayState',
+      '10': 'playState'
+    },
     {'1': 'velocity', '3': 2, '4': 1, '5': 2, '10': 'velocity'},
     {'1': 'direction', '3': 3, '4': 1, '5': 8, '10': 'direction'},
     {'1': 'min', '3': 4, '4': 1, '5': 2, '10': 'min'},
@@ -453,7 +460,14 @@ const HrppPattern$json = {
     {'1': 'version', '3': 3, '4': 1, '5': 13, '10': 'version'},
     {'1': 'custom_pattern', '3': 4, '4': 1, '5': 8, '10': 'customPattern'},
     {'1': 'slot', '3': 5, '4': 1, '5': 13, '10': 'slot'},
-    {'1': 'type', '3': 6, '4': 1, '5': 14, '6': '.hdy_rpc.HrppPatternType', '10': 'type'},
+    {
+      '1': 'type',
+      '3': 6,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.HrppPatternType',
+      '10': 'type'
+    },
     {'1': 'pause_random_min', '3': 7, '4': 1, '5': 13, '10': 'pauseRandomMin'},
     {'1': 'pause_random_max', '3': 8, '4': 1, '5': 13, '10': 'pauseRandomMax'},
   ],
@@ -471,8 +485,21 @@ final $typed_data.Uint8List hrppPatternDescriptor = $convert.base64Decode(
 const HrppState$json = {
   '1': 'HrppState',
   '2': [
-    {'1': 'current_pattern_nr', '3': 1, '4': 1, '5': 13, '10': 'currentPatternNr'},
-    {'1': 'current_pattern', '3': 2, '4': 1, '5': 11, '6': '.hdy_rpc.HrppPattern', '10': 'currentPattern'},
+    {
+      '1': 'current_pattern_nr',
+      '3': 1,
+      '4': 1,
+      '5': 13,
+      '10': 'currentPatternNr'
+    },
+    {
+      '1': 'current_pattern',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HrppPattern',
+      '10': 'currentPattern'
+    },
     {'1': 'nr_of_patterns', '3': 3, '4': 1, '5': 13, '10': 'nrOfPatterns'},
     {'1': 'enabled', '3': 4, '4': 1, '5': 8, '10': 'enabled'},
     {'1': 'amplitude', '3': 5, '4': 1, '5': 2, '10': 'amplitude'},
@@ -492,7 +519,14 @@ final $typed_data.Uint8List hrppStateDescriptor = $convert.base64Decode(
 const HspState$json = {
   '1': 'HspState',
   '2': [
-    {'1': 'play_state', '3': 1, '4': 1, '5': 14, '6': '.hdy_rpc.HspPlayState', '10': 'playState'},
+    {
+      '1': 'play_state',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.HspPlayState',
+      '10': 'playState'
+    },
     {'1': 'points', '3': 2, '4': 1, '5': 13, '10': 'points'},
     {'1': 'max_points', '3': 3, '4': 1, '5': 13, '10': 'maxPoints'},
     {'1': 'current_point', '3': 4, '4': 1, '5': 5, '10': 'currentPoint'},
@@ -502,9 +536,27 @@ const HspState$json = {
     {'1': 'first_point_time', '3': 8, '4': 1, '5': 13, '10': 'firstPointTime'},
     {'1': 'last_point_time', '3': 9, '4': 1, '5': 13, '10': 'lastPointTime'},
     {'1': 'stream_id', '3': 10, '4': 1, '5': 13, '10': 'streamId'},
-    {'1': 'tail_point_stream_index', '3': 11, '4': 1, '5': 5, '10': 'tailPointStreamIndex'},
-    {'1': 'tail_point_stream_index_threshold', '3': 12, '4': 1, '5': 13, '10': 'tailPointStreamIndexThreshold'},
-    {'1': 'pause_on_starving', '3': 13, '4': 1, '5': 8, '10': 'pauseOnStarving'},
+    {
+      '1': 'tail_point_stream_index',
+      '3': 11,
+      '4': 1,
+      '5': 5,
+      '10': 'tailPointStreamIndex'
+    },
+    {
+      '1': 'tail_point_stream_index_threshold',
+      '3': 12,
+      '4': 1,
+      '5': 13,
+      '10': 'tailPointStreamIndexThreshold'
+    },
+    {
+      '1': 'pause_on_starving',
+      '3': 13,
+      '4': 1,
+      '5': 8,
+      '10': 'pauseOnStarving'
+    },
   ],
 };
 
@@ -548,8 +600,8 @@ const Point$json = {
 };
 
 /// Descriptor for `Point`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List pointDescriptor = $convert.base64Decode(
-    'CgVQb2ludBIMCgF0GAEgASgNUgF0EgwKAXgYAiABKA1SAXg=');
+final $typed_data.Uint8List pointDescriptor =
+    $convert.base64Decode('CgVQb2ludBIMCgF0GAEgASgNUgF0EgwKAXgYAiABKA1SAXg=');
 
 @$core.Deprecated('Use apInfoDescriptor instead')
 const ApInfo$json = {
@@ -558,7 +610,14 @@ const ApInfo$json = {
     {'1': 'ssid', '3': 1, '4': 1, '5': 9, '10': 'ssid'},
     {'1': 'bssid', '3': 2, '4': 1, '5': 9, '10': 'bssid'},
     {'1': 'channel', '3': 3, '4': 1, '5': 13, '10': 'channel'},
-    {'1': 'authmode', '3': 4, '4': 1, '5': 14, '6': '.hdy_rpc.AuthModes', '10': 'authmode'},
+    {
+      '1': 'authmode',
+      '3': 4,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.AuthModes',
+      '10': 'authmode'
+    },
     {'1': 'rssi', '3': 5, '4': 1, '5': 5, '10': 'rssi'},
     {'1': 'ip', '3': 6, '4': 1, '5': 9, '10': 'ip'},
   ],
@@ -575,12 +634,44 @@ const BatteryState$json = {
   '1': 'BatteryState',
   '2': [
     {'1': 'level', '3': 1, '4': 1, '5': 13, '10': 'level'},
-    {'1': 'charger_connected', '3': 2, '4': 1, '5': 8, '10': 'chargerConnected'},
-    {'1': 'charging_complete', '3': 3, '4': 1, '5': 8, '10': 'chargingComplete'},
+    {
+      '1': 'charger_connected',
+      '3': 2,
+      '4': 1,
+      '5': 8,
+      '10': 'chargerConnected'
+    },
+    {
+      '1': 'charging_complete',
+      '3': 3,
+      '4': 1,
+      '5': 8,
+      '10': 'chargingComplete'
+    },
     {'1': 'usb_voltage', '3': 4, '4': 1, '5': 2, '10': 'usbVoltage'},
     {'1': 'battery_voltage', '3': 5, '4': 1, '5': 2, '10': 'batteryVoltage'},
     {'1': 'usb_adc_value', '3': 6, '4': 1, '5': 13, '10': 'usbAdcValue'},
-    {'1': 'battery_adc_value', '3': 7, '4': 1, '5': 13, '10': 'batteryAdcValue'},
+    {
+      '1': 'battery_adc_value',
+      '3': 7,
+      '4': 1,
+      '5': 13,
+      '10': 'batteryAdcValue'
+    },
+    {
+      '1': 'battery_temperature',
+      '3': 8,
+      '4': 1,
+      '5': 2,
+      '10': 'batteryTemperature'
+    },
+    {
+      '1': 'battery_temperature_adc_value',
+      '3': 9,
+      '4': 1,
+      '5': 13,
+      '10': 'batteryTemperatureAdcValue'
+    },
   ],
 };
 
@@ -591,5 +682,6 @@ final $typed_data.Uint8List batteryStateDescriptor = $convert.base64Decode(
     'aGFyZ2luZ0NvbXBsZXRlEh8KC3VzYl92b2x0YWdlGAQgASgCUgp1c2JWb2x0YWdlEicKD2JhdH'
     'Rlcnlfdm9sdGFnZRgFIAEoAlIOYmF0dGVyeVZvbHRhZ2USIgoNdXNiX2FkY192YWx1ZRgGIAEo'
     'DVILdXNiQWRjVmFsdWUSKgoRYmF0dGVyeV9hZGNfdmFsdWUYByABKA1SD2JhdHRlcnlBZGNWYW'
-    'x1ZQ==');
-
+    'x1ZRIvChNiYXR0ZXJ5X3RlbXBlcmF0dXJlGAggASgCUhJiYXR0ZXJ5VGVtcGVyYXR1cmUSQQod'
+    'YmF0dGVyeV90ZW1wZXJhdHVyZV9hZGNfdmFsdWUYCSABKA1SGmJhdHRlcnlUZW1wZXJhdHVyZU'
+    'FkY1ZhbHVl');

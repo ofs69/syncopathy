@@ -1,4 +1,4 @@
-// Auto-generated on 2025-06-12 08:44:03
+// Auto-generated on 2025-08-01 10:24:23
 syntax = "proto3";
 package hdy_rpc;
 //NB! The codes are not in order, but in groups
@@ -309,4 +309,6 @@ message BatteryState{
     float battery_voltage = 5; //in V
     uint32 usb_adc_value = 6; //0-4095
     uint32 battery_adc_value = 7; //0-4095
+    float battery_temperature = 8; //in C //Added in FW 4.0.16
+    uint32 battery_temperature_adc_value = 9; //0-4095 //Added in FW 4.0.16
 }

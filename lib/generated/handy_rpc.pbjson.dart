@@ -36,31 +36,231 @@ final $typed_data.Uint8List messageTypeDescriptor = $convert.base64Decode(
 const Notification$json = {
   '1': 'Notification',
   '2': [
-    {'1': 'notification_wifi_scan_complete', '3': 600, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationWifiScanComplete', '9': 0, '10': 'notificationWifiScanComplete'},
-    {'1': 'notification_wifi_status_changed', '3': 601, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationWifiStatusChanged', '9': 0, '10': 'notificationWifiStatusChanged'},
-    {'1': 'notification_ble_status_changed', '3': 602, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationBleStatusChanged', '9': 0, '10': 'notificationBleStatusChanged'},
-    {'1': 'notification_ota_complete', '3': 603, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationOtaComplete', '9': 0, '10': 'notificationOtaComplete'},
-    {'1': 'notification_mode_changed', '3': 700, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationModeChanged', '9': 0, '10': 'notificationModeChanged'},
-    {'1': 'notification_stroke_changed', '3': 701, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationStrokeChanged', '9': 0, '10': 'notificationStrokeChanged'},
-    {'1': 'notification_button_event', '3': 703, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationButtonEvent', '9': 0, '10': 'notificationButtonEvent'},
-    {'1': 'notification_battery_changed', '3': 705, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationBatteryChanged', '9': 0, '10': 'notificationBatteryChanged'},
-    {'1': 'notification_error', '3': 706, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationError', '9': 0, '10': 'notificationError'},
-    {'1': 'notification_hamp_changed', '3': 720, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationHampChanged', '9': 0, '10': 'notificationHampChanged'},
-    {'1': 'notification_hdsp_changed', '3': 740, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationHdspChanged', '9': 0, '10': 'notificationHdspChanged'},
-    {'1': 'notification_hsp_threshold_reached', '3': 860, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationHspThresholdReached', '9': 0, '10': 'notificationHspThresholdReached'},
-    {'1': 'notification_hsp_state_changed', '3': 861, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationHspStateChanged', '9': 0, '10': 'notificationHspStateChanged'},
-    {'1': 'notification_hsp_looping', '3': 862, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationHspLooping', '9': 0, '10': 'notificationHspLooping'},
-    {'1': 'notification_hsp_starving', '3': 863, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationHspStarving', '9': 0, '10': 'notificationHspStarving'},
-    {'1': 'notification_hsp_resumed_on_non_starving', '3': 864, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationHspResumedOnNonStarving', '9': 0, '10': 'notificationHspResumedOnNonStarving'},
-    {'1': 'notification_hsp_paused_on_starving', '3': 865, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationHspPausedOnStarving', '9': 0, '10': 'notificationHspPausedOnStarving'},
-    {'1': 'notification_hvp_changed', '3': 900, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationHvpChanged', '9': 0, '10': 'notificationHvpChanged'},
-    {'1': 'notification_hrpp_changed', '3': 920, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationHrppChanged', '9': 0, '10': 'notificationHrppChanged'},
-    {'1': 'notification_temp_high', '3': 1000, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationTempHigh', '9': 0, '10': 'notificationTempHigh'},
-    {'1': 'notification_temp_ok', '3': 1001, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationTempOk', '9': 0, '10': 'notificationTempOk'},
-    {'1': 'notification_slider_blocked', '3': 1002, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationSliderBlocked', '9': 0, '10': 'notificationSliderBlocked'},
-    {'1': 'notification_slider_unblocked', '3': 1003, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationSliderUnblocked', '9': 0, '10': 'notificationSliderUnblocked'},
-    {'1': 'notification_low_memory_error', '3': 1004, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationLowMemoryError', '9': 0, '10': 'notificationLowMemoryError'},
-    {'1': 'notification_low_memory_warning', '3': 1005, '4': 1, '5': 11, '6': '.hdy_rpc.NotificationLowMemoryWarning', '9': 0, '10': 'notificationLowMemoryWarning'},
+    {
+      '1': 'notification_wifi_scan_complete',
+      '3': 600,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationWifiScanComplete',
+      '9': 0,
+      '10': 'notificationWifiScanComplete'
+    },
+    {
+      '1': 'notification_wifi_status_changed',
+      '3': 601,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationWifiStatusChanged',
+      '9': 0,
+      '10': 'notificationWifiStatusChanged'
+    },
+    {
+      '1': 'notification_ble_status_changed',
+      '3': 602,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationBleStatusChanged',
+      '9': 0,
+      '10': 'notificationBleStatusChanged'
+    },
+    {
+      '1': 'notification_ota_complete',
+      '3': 603,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationOtaComplete',
+      '9': 0,
+      '10': 'notificationOtaComplete'
+    },
+    {
+      '1': 'notification_mode_changed',
+      '3': 700,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationModeChanged',
+      '9': 0,
+      '10': 'notificationModeChanged'
+    },
+    {
+      '1': 'notification_stroke_changed',
+      '3': 701,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationStrokeChanged',
+      '9': 0,
+      '10': 'notificationStrokeChanged'
+    },
+    {
+      '1': 'notification_button_event',
+      '3': 703,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationButtonEvent',
+      '9': 0,
+      '10': 'notificationButtonEvent'
+    },
+    {
+      '1': 'notification_battery_changed',
+      '3': 705,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationBatteryChanged',
+      '9': 0,
+      '10': 'notificationBatteryChanged'
+    },
+    {
+      '1': 'notification_error',
+      '3': 706,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationError',
+      '9': 0,
+      '10': 'notificationError'
+    },
+    {
+      '1': 'notification_hamp_changed',
+      '3': 720,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationHampChanged',
+      '9': 0,
+      '10': 'notificationHampChanged'
+    },
+    {
+      '1': 'notification_hdsp_changed',
+      '3': 740,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationHdspChanged',
+      '9': 0,
+      '10': 'notificationHdspChanged'
+    },
+    {
+      '1': 'notification_hsp_threshold_reached',
+      '3': 860,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationHspThresholdReached',
+      '9': 0,
+      '10': 'notificationHspThresholdReached'
+    },
+    {
+      '1': 'notification_hsp_state_changed',
+      '3': 861,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationHspStateChanged',
+      '9': 0,
+      '10': 'notificationHspStateChanged'
+    },
+    {
+      '1': 'notification_hsp_looping',
+      '3': 862,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationHspLooping',
+      '9': 0,
+      '10': 'notificationHspLooping'
+    },
+    {
+      '1': 'notification_hsp_starving',
+      '3': 863,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationHspStarving',
+      '9': 0,
+      '10': 'notificationHspStarving'
+    },
+    {
+      '1': 'notification_hsp_resumed_on_non_starving',
+      '3': 864,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationHspResumedOnNonStarving',
+      '9': 0,
+      '10': 'notificationHspResumedOnNonStarving'
+    },
+    {
+      '1': 'notification_hsp_paused_on_starving',
+      '3': 865,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationHspPausedOnStarving',
+      '9': 0,
+      '10': 'notificationHspPausedOnStarving'
+    },
+    {
+      '1': 'notification_hvp_changed',
+      '3': 900,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationHvpChanged',
+      '9': 0,
+      '10': 'notificationHvpChanged'
+    },
+    {
+      '1': 'notification_hrpp_changed',
+      '3': 920,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationHrppChanged',
+      '9': 0,
+      '10': 'notificationHrppChanged'
+    },
+    {
+      '1': 'notification_temp_high',
+      '3': 1000,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationTempHigh',
+      '9': 0,
+      '10': 'notificationTempHigh'
+    },
+    {
+      '1': 'notification_temp_ok',
+      '3': 1001,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationTempOk',
+      '9': 0,
+      '10': 'notificationTempOk'
+    },
+    {
+      '1': 'notification_slider_blocked',
+      '3': 1002,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationSliderBlocked',
+      '9': 0,
+      '10': 'notificationSliderBlocked'
+    },
+    {
+      '1': 'notification_slider_unblocked',
+      '3': 1003,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationSliderUnblocked',
+      '9': 0,
+      '10': 'notificationSliderUnblocked'
+    },
+    {
+      '1': 'notification_low_memory_error',
+      '3': 1004,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationLowMemoryError',
+      '9': 0,
+      '10': 'notificationLowMemoryError'
+    },
+    {
+      '1': 'notification_low_memory_warning',
+      '3': 1005,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationLowMemoryWarning',
+      '9': 0,
+      '10': 'notificationLowMemoryWarning'
+    },
     {'1': 'id', '3': 2, '4': 1, '5': 13, '10': 'id'},
   ],
   '8': [
@@ -123,63 +323,519 @@ final $typed_data.Uint8List notificationDescriptor = $convert.base64Decode(
 const Request$json = {
   '1': 'Request',
   '2': [
-    {'1': 'request_connection_key_get', '3': 606, '4': 1, '5': 11, '6': '.hdy_rpc.RequestConnectionKeyGet', '9': 0, '10': 'requestConnectionKeyGet'},
-    {'1': 'request_wifi_status_get', '3': 620, '4': 1, '5': 11, '6': '.hdy_rpc.RequestWifiStatusGet', '9': 0, '10': 'requestWifiStatusGet'},
-    {'1': 'request_wifi_set', '3': 621, '4': 1, '5': 11, '6': '.hdy_rpc.RequestWifiSet', '9': 0, '10': 'requestWifiSet'},
-    {'1': 'request_wifi_scan_start', '3': 623, '4': 1, '5': 11, '6': '.hdy_rpc.RequestWifiScanStart', '9': 0, '10': 'requestWifiScanStart'},
-    {'1': 'request_wifi_scan_results_get', '3': 624, '4': 1, '5': 11, '6': '.hdy_rpc.RequestWifiScanResultsGet', '9': 0, '10': 'requestWifiScanResultsGet'},
-    {'1': 'request_wifi_scan_stop', '3': 625, '4': 1, '5': 11, '6': '.hdy_rpc.RequestWifiScanStop', '9': 0, '10': 'requestWifiScanStop'},
-    {'1': 'request_mode_get', '3': 700, '4': 1, '5': 11, '6': '.hdy_rpc.RequestModeGet', '9': 0, '10': 'requestModeGet'},
-    {'1': 'request_mode_set', '3': 701, '4': 1, '5': 11, '6': '.hdy_rpc.RequestModeSet', '9': 0, '10': 'requestModeSet'},
-    {'1': 'request_reboot', '3': 707, '4': 1, '5': 11, '6': '.hdy_rpc.RequestReboot', '9': 0, '10': 'requestReboot'},
-    {'1': 'request_button_press', '3': 708, '4': 1, '5': 11, '6': '.hdy_rpc.RequestButtonPress', '9': 0, '10': 'requestButtonPress'},
-    {'1': 'request_clock_offset_set', '3': 709, '4': 1, '5': 11, '6': '.hdy_rpc.RequestClockOffsetSet', '9': 0, '10': 'requestClockOffsetSet'},
-    {'1': 'request_battery_get', '3': 710, '4': 1, '5': 11, '6': '.hdy_rpc.RequestBatteryGet', '9': 0, '10': 'requestBatteryGet'},
-    {'1': 'request_clock_offset_get', '3': 712, '4': 1, '5': 11, '6': '.hdy_rpc.RequestClockOffsetGet', '9': 0, '10': 'requestClockOffsetGet'},
-    {'1': 'request_capabilities_get', '3': 713, '4': 1, '5': 11, '6': '.hdy_rpc.RequestCapabilitiesGet', '9': 0, '10': 'requestCapabilitiesGet'},
-    {'1': 'request_session_ids_get', '3': 714, '4': 1, '5': 11, '6': '.hdy_rpc.RequestSessionIdsGet', '9': 0, '10': 'requestSessionIdsGet'},
-    {'1': 'request_stop_current_mode', '3': 715, '4': 1, '5': 11, '6': '.hdy_rpc.RequestStopCurrentMode', '9': 0, '10': 'requestStopCurrentMode'},
-    {'1': 'request_connection_mode_set', '3': 716, '4': 1, '5': 11, '6': '.hdy_rpc.RequestConnectionModeSet', '9': 0, '10': 'requestConnectionModeSet'},
-    {'1': 'request_connection_mode_get', '3': 717, '4': 1, '5': 11, '6': '.hdy_rpc.RequestConnectionModeGet', '9': 0, '10': 'requestConnectionModeGet'},
-    {'1': 'request_hamp_start', '3': 720, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHampStart', '9': 0, '10': 'requestHampStart'},
-    {'1': 'request_hamp_stop', '3': 721, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHampStop', '9': 0, '10': 'requestHampStop'},
-    {'1': 'request_hamp_velocity_set', '3': 723, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHampVelocitySet', '9': 0, '10': 'requestHampVelocitySet'},
-    {'1': 'request_hamp_state_get', '3': 724, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHampStateGet', '9': 0, '10': 'requestHampStateGet'},
-    {'1': 'request_hamp_zone_set', '3': 725, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHampZoneSet', '9': 0, '10': 'requestHampZoneSet'},
-    {'1': 'request_hdsp_xa_va_set', '3': 740, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHdspXaVaSet', '9': 0, '10': 'requestHdspXaVaSet'},
-    {'1': 'request_hdsp_xp_va_set', '3': 741, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHdspXpVaSet', '9': 0, '10': 'requestHdspXpVaSet'},
-    {'1': 'request_hdsp_xp_vp_set', '3': 742, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHdspXpVpSet', '9': 0, '10': 'requestHdspXpVpSet'},
-    {'1': 'request_hdsp_xa_t_set', '3': 743, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHdspXaTSet', '9': 0, '10': 'requestHdspXaTSet'},
-    {'1': 'request_hdsp_xp_t_set', '3': 744, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHdspXpTSet', '9': 0, '10': 'requestHdspXpTSet'},
-    {'1': 'request_hdsp_xa_vp_set', '3': 745, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHdspXaVpSet', '9': 0, '10': 'requestHdspXaVpSet'},
-    {'1': 'request_hdsp_stop', '3': 746, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHdspStop', '9': 0, '10': 'requestHdspStop'},
-    {'1': 'request_slider_stroke_get', '3': 840, '4': 1, '5': 11, '6': '.hdy_rpc.RequestSliderStrokeGet', '9': 0, '10': 'requestSliderStrokeGet'},
-    {'1': 'request_slider_stroke_set', '3': 841, '4': 1, '5': 11, '6': '.hdy_rpc.RequestSliderStrokeSet', '9': 0, '10': 'requestSliderStrokeSet'},
-    {'1': 'request_slider_state_get', '3': 842, '4': 1, '5': 11, '6': '.hdy_rpc.RequestSliderStateGet', '9': 0, '10': 'requestSliderStateGet'},
-    {'1': 'request_slider_calibrate', '3': 843, '4': 1, '5': 11, '6': '.hdy_rpc.RequestSliderCalibrate', '9': 0, '10': 'requestSliderCalibrate'},
-    {'1': 'request_hsp_setup', '3': 860, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHspSetup', '9': 0, '10': 'requestHspSetup'},
-    {'1': 'request_hsp_add', '3': 861, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHspAdd', '9': 0, '10': 'requestHspAdd'},
-    {'1': 'request_hsp_flush', '3': 862, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHspFlush', '9': 0, '10': 'requestHspFlush'},
-    {'1': 'request_hsp_play', '3': 863, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHspPlay', '9': 0, '10': 'requestHspPlay'},
-    {'1': 'request_hsp_stop', '3': 864, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHspStop', '9': 0, '10': 'requestHspStop'},
-    {'1': 'request_hsp_pause', '3': 865, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHspPause', '9': 0, '10': 'requestHspPause'},
-    {'1': 'request_hsp_resume', '3': 866, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHspResume', '9': 0, '10': 'requestHspResume'},
-    {'1': 'request_hsp_state_get', '3': 867, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHspStateGet', '9': 0, '10': 'requestHspStateGet'},
-    {'1': 'request_hsp_current_time_set', '3': 868, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHspCurrentTimeSet', '9': 0, '10': 'requestHspCurrentTimeSet'},
-    {'1': 'request_hsp_threshold_set', '3': 869, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHspThresholdSet', '9': 0, '10': 'requestHspThresholdSet'},
-    {'1': 'request_hsp_pause_on_starving_set', '3': 870, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHspPauseOnStarvingSet', '9': 0, '10': 'requestHspPauseOnStarvingSet'},
-    {'1': 'request_led_override', '3': 880, '4': 1, '5': 11, '6': '.hdy_rpc.RequestLedOverride', '9': 0, '10': 'requestLedOverride'},
-    {'1': 'request_hvp_set', '3': 900, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHvpSet', '9': 0, '10': 'requestHvpSet'},
-    {'1': 'request_hvp_stop', '3': 901, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHvpStop', '9': 0, '10': 'requestHvpStop'},
-    {'1': 'request_hvp_start', '3': 902, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHvpStart', '9': 0, '10': 'requestHvpStart'},
-    {'1': 'request_hvp_state_get', '3': 903, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHvpStateGet', '9': 0, '10': 'requestHvpStateGet'},
-    {'1': 'request_hrpp_start', '3': 920, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHrppStart', '9': 0, '10': 'requestHrppStart'},
-    {'1': 'request_hrpp_stop', '3': 921, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHrppStop', '9': 0, '10': 'requestHrppStop'},
-    {'1': 'request_hrpp_amplitude_set', '3': 922, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHrppAmplitudeSet', '9': 0, '10': 'requestHrppAmplitudeSet'},
-    {'1': 'request_hrpp_playback_speed_set', '3': 923, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHrppPlaybackSpeedSet', '9': 0, '10': 'requestHrppPlaybackSpeedSet'},
-    {'1': 'request_hrpp_pattern_set', '3': 924, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHrppPatternSet', '9': 0, '10': 'requestHrppPatternSet'},
-    {'1': 'request_hrpp_state_get', '3': 925, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHrppStateGet', '9': 0, '10': 'requestHrppStateGet'},
-    {'1': 'request_hrpp_patterns_get', '3': 926, '4': 1, '5': 11, '6': '.hdy_rpc.RequestHrppPatternsGet', '9': 0, '10': 'requestHrppPatternsGet'},
+    {
+      '1': 'request_connection_key_get',
+      '3': 606,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestConnectionKeyGet',
+      '9': 0,
+      '10': 'requestConnectionKeyGet'
+    },
+    {
+      '1': 'request_wifi_status_get',
+      '3': 620,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestWifiStatusGet',
+      '9': 0,
+      '10': 'requestWifiStatusGet'
+    },
+    {
+      '1': 'request_wifi_set',
+      '3': 621,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestWifiSet',
+      '9': 0,
+      '10': 'requestWifiSet'
+    },
+    {
+      '1': 'request_wifi_scan_start',
+      '3': 623,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestWifiScanStart',
+      '9': 0,
+      '10': 'requestWifiScanStart'
+    },
+    {
+      '1': 'request_wifi_scan_results_get',
+      '3': 624,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestWifiScanResultsGet',
+      '9': 0,
+      '10': 'requestWifiScanResultsGet'
+    },
+    {
+      '1': 'request_wifi_scan_stop',
+      '3': 625,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestWifiScanStop',
+      '9': 0,
+      '10': 'requestWifiScanStop'
+    },
+    {
+      '1': 'request_mode_get',
+      '3': 700,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestModeGet',
+      '9': 0,
+      '10': 'requestModeGet'
+    },
+    {
+      '1': 'request_mode_set',
+      '3': 701,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestModeSet',
+      '9': 0,
+      '10': 'requestModeSet'
+    },
+    {
+      '1': 'request_reboot',
+      '3': 707,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestReboot',
+      '9': 0,
+      '10': 'requestReboot'
+    },
+    {
+      '1': 'request_button_press',
+      '3': 708,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestButtonPress',
+      '9': 0,
+      '10': 'requestButtonPress'
+    },
+    {
+      '1': 'request_clock_offset_set',
+      '3': 709,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestClockOffsetSet',
+      '9': 0,
+      '10': 'requestClockOffsetSet'
+    },
+    {
+      '1': 'request_battery_get',
+      '3': 710,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestBatteryGet',
+      '9': 0,
+      '10': 'requestBatteryGet'
+    },
+    {
+      '1': 'request_clock_offset_get',
+      '3': 712,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestClockOffsetGet',
+      '9': 0,
+      '10': 'requestClockOffsetGet'
+    },
+    {
+      '1': 'request_capabilities_get',
+      '3': 713,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestCapabilitiesGet',
+      '9': 0,
+      '10': 'requestCapabilitiesGet'
+    },
+    {
+      '1': 'request_session_ids_get',
+      '3': 714,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestSessionIdsGet',
+      '9': 0,
+      '10': 'requestSessionIdsGet'
+    },
+    {
+      '1': 'request_stop_current_mode',
+      '3': 715,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestStopCurrentMode',
+      '9': 0,
+      '10': 'requestStopCurrentMode'
+    },
+    {
+      '1': 'request_connection_mode_set',
+      '3': 716,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestConnectionModeSet',
+      '9': 0,
+      '10': 'requestConnectionModeSet'
+    },
+    {
+      '1': 'request_connection_mode_get',
+      '3': 717,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestConnectionModeGet',
+      '9': 0,
+      '10': 'requestConnectionModeGet'
+    },
+    {
+      '1': 'request_hamp_start',
+      '3': 720,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHampStart',
+      '9': 0,
+      '10': 'requestHampStart'
+    },
+    {
+      '1': 'request_hamp_stop',
+      '3': 721,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHampStop',
+      '9': 0,
+      '10': 'requestHampStop'
+    },
+    {
+      '1': 'request_hamp_velocity_set',
+      '3': 723,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHampVelocitySet',
+      '9': 0,
+      '10': 'requestHampVelocitySet'
+    },
+    {
+      '1': 'request_hamp_state_get',
+      '3': 724,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHampStateGet',
+      '9': 0,
+      '10': 'requestHampStateGet'
+    },
+    {
+      '1': 'request_hamp_zone_set',
+      '3': 725,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHampZoneSet',
+      '9': 0,
+      '10': 'requestHampZoneSet'
+    },
+    {
+      '1': 'request_hdsp_xa_va_set',
+      '3': 740,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHdspXaVaSet',
+      '9': 0,
+      '10': 'requestHdspXaVaSet'
+    },
+    {
+      '1': 'request_hdsp_xp_va_set',
+      '3': 741,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHdspXpVaSet',
+      '9': 0,
+      '10': 'requestHdspXpVaSet'
+    },
+    {
+      '1': 'request_hdsp_xp_vp_set',
+      '3': 742,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHdspXpVpSet',
+      '9': 0,
+      '10': 'requestHdspXpVpSet'
+    },
+    {
+      '1': 'request_hdsp_xa_t_set',
+      '3': 743,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHdspXaTSet',
+      '9': 0,
+      '10': 'requestHdspXaTSet'
+    },
+    {
+      '1': 'request_hdsp_xp_t_set',
+      '3': 744,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHdspXpTSet',
+      '9': 0,
+      '10': 'requestHdspXpTSet'
+    },
+    {
+      '1': 'request_hdsp_xa_vp_set',
+      '3': 745,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHdspXaVpSet',
+      '9': 0,
+      '10': 'requestHdspXaVpSet'
+    },
+    {
+      '1': 'request_hdsp_stop',
+      '3': 746,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHdspStop',
+      '9': 0,
+      '10': 'requestHdspStop'
+    },
+    {
+      '1': 'request_slider_stroke_get',
+      '3': 840,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestSliderStrokeGet',
+      '9': 0,
+      '10': 'requestSliderStrokeGet'
+    },
+    {
+      '1': 'request_slider_stroke_set',
+      '3': 841,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestSliderStrokeSet',
+      '9': 0,
+      '10': 'requestSliderStrokeSet'
+    },
+    {
+      '1': 'request_slider_state_get',
+      '3': 842,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestSliderStateGet',
+      '9': 0,
+      '10': 'requestSliderStateGet'
+    },
+    {
+      '1': 'request_slider_calibrate',
+      '3': 843,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestSliderCalibrate',
+      '9': 0,
+      '10': 'requestSliderCalibrate'
+    },
+    {
+      '1': 'request_hsp_setup',
+      '3': 860,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHspSetup',
+      '9': 0,
+      '10': 'requestHspSetup'
+    },
+    {
+      '1': 'request_hsp_add',
+      '3': 861,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHspAdd',
+      '9': 0,
+      '10': 'requestHspAdd'
+    },
+    {
+      '1': 'request_hsp_flush',
+      '3': 862,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHspFlush',
+      '9': 0,
+      '10': 'requestHspFlush'
+    },
+    {
+      '1': 'request_hsp_play',
+      '3': 863,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHspPlay',
+      '9': 0,
+      '10': 'requestHspPlay'
+    },
+    {
+      '1': 'request_hsp_stop',
+      '3': 864,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHspStop',
+      '9': 0,
+      '10': 'requestHspStop'
+    },
+    {
+      '1': 'request_hsp_pause',
+      '3': 865,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHspPause',
+      '9': 0,
+      '10': 'requestHspPause'
+    },
+    {
+      '1': 'request_hsp_resume',
+      '3': 866,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHspResume',
+      '9': 0,
+      '10': 'requestHspResume'
+    },
+    {
+      '1': 'request_hsp_state_get',
+      '3': 867,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHspStateGet',
+      '9': 0,
+      '10': 'requestHspStateGet'
+    },
+    {
+      '1': 'request_hsp_current_time_set',
+      '3': 868,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHspCurrentTimeSet',
+      '9': 0,
+      '10': 'requestHspCurrentTimeSet'
+    },
+    {
+      '1': 'request_hsp_threshold_set',
+      '3': 869,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHspThresholdSet',
+      '9': 0,
+      '10': 'requestHspThresholdSet'
+    },
+    {
+      '1': 'request_hsp_pause_on_starving_set',
+      '3': 870,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHspPauseOnStarvingSet',
+      '9': 0,
+      '10': 'requestHspPauseOnStarvingSet'
+    },
+    {
+      '1': 'request_led_override',
+      '3': 880,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestLedOverride',
+      '9': 0,
+      '10': 'requestLedOverride'
+    },
+    {
+      '1': 'request_hvp_set',
+      '3': 900,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHvpSet',
+      '9': 0,
+      '10': 'requestHvpSet'
+    },
+    {
+      '1': 'request_hvp_stop',
+      '3': 901,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHvpStop',
+      '9': 0,
+      '10': 'requestHvpStop'
+    },
+    {
+      '1': 'request_hvp_start',
+      '3': 902,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHvpStart',
+      '9': 0,
+      '10': 'requestHvpStart'
+    },
+    {
+      '1': 'request_hvp_state_get',
+      '3': 903,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHvpStateGet',
+      '9': 0,
+      '10': 'requestHvpStateGet'
+    },
+    {
+      '1': 'request_hrpp_start',
+      '3': 920,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHrppStart',
+      '9': 0,
+      '10': 'requestHrppStart'
+    },
+    {
+      '1': 'request_hrpp_stop',
+      '3': 921,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHrppStop',
+      '9': 0,
+      '10': 'requestHrppStop'
+    },
+    {
+      '1': 'request_hrpp_amplitude_set',
+      '3': 922,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHrppAmplitudeSet',
+      '9': 0,
+      '10': 'requestHrppAmplitudeSet'
+    },
+    {
+      '1': 'request_hrpp_playback_speed_set',
+      '3': 923,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHrppPlaybackSpeedSet',
+      '9': 0,
+      '10': 'requestHrppPlaybackSpeedSet'
+    },
+    {
+      '1': 'request_hrpp_pattern_set',
+      '3': 924,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHrppPatternSet',
+      '9': 0,
+      '10': 'requestHrppPatternSet'
+    },
+    {
+      '1': 'request_hrpp_state_get',
+      '3': 925,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHrppStateGet',
+      '9': 0,
+      '10': 'requestHrppStateGet'
+    },
+    {
+      '1': 'request_hrpp_patterns_get',
+      '3': 926,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.RequestHrppPatternsGet',
+      '9': 0,
+      '10': 'requestHrppPatternsGet'
+    },
     {'1': 'id', '3': 2, '4': 1, '5': 13, '10': 'id'},
   ],
   '8': [
@@ -282,7 +938,14 @@ final $typed_data.Uint8List requestDescriptor = $convert.base64Decode(
 const Requests$json = {
   '1': 'Requests',
   '2': [
-    {'1': 'requests', '3': 1, '4': 3, '5': 11, '6': '.hdy_rpc.Request', '10': 'requests'},
+    {
+      '1': 'requests',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.hdy_rpc.Request',
+      '10': 'requests'
+    },
   ],
 };
 
@@ -296,49 +959,400 @@ const Response$json = {
   '1': 'Response',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 13, '10': 'id'},
-    {'1': 'response_connection_key_get', '3': 606, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseConnectionKeyGet', '9': 0, '10': 'responseConnectionKeyGet'},
-    {'1': 'response_wifi_status_get', '3': 620, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseWifiStatusGet', '9': 0, '10': 'responseWifiStatusGet'},
-    {'1': 'response_wifi_scan_results_get', '3': 624, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseWifiScanResultsGet', '9': 0, '10': 'responseWifiScanResultsGet'},
-    {'1': 'response_mode_get', '3': 700, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseModeGet', '9': 0, '10': 'responseModeGet'},
-    {'1': 'response_mode_set', '3': 701, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseModeSet', '9': 0, '10': 'responseModeSet'},
-    {'1': 'response_clock_offset_set', '3': 709, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseClockOffsetSet', '9': 0, '10': 'responseClockOffsetSet'},
-    {'1': 'response_battery_get', '3': 710, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseBatteryGet', '9': 0, '10': 'responseBatteryGet'},
-    {'1': 'response_clock_offset_get', '3': 712, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseClockOffsetGet', '9': 0, '10': 'responseClockOffsetGet'},
-    {'1': 'response_capabilities_get', '3': 713, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseCapabilitiesGet', '9': 0, '10': 'responseCapabilitiesGet'},
-    {'1': 'response_session_ids_get', '3': 714, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseSessionIdsGet', '9': 0, '10': 'responseSessionIdsGet'},
-    {'1': 'response_connection_mode_get', '3': 717, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseConnectionModeGet', '9': 0, '10': 'responseConnectionModeGet'},
-    {'1': 'response_hamp_start', '3': 720, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHampStart', '9': 0, '10': 'responseHampStart'},
-    {'1': 'response_hamp_stop', '3': 721, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHampStop', '9': 0, '10': 'responseHampStop'},
-    {'1': 'response_hamp_velocity_set', '3': 723, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHampVelocitySet', '9': 0, '10': 'responseHampVelocitySet'},
-    {'1': 'response_hamp_state_get', '3': 724, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHampStateGet', '9': 0, '10': 'responseHampStateGet'},
-    {'1': 'response_hamp_zone_set', '3': 725, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHampZoneSet', '9': 0, '10': 'responseHampZoneSet'},
-    {'1': 'response_slider_stroke_get', '3': 840, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseSliderStrokeGet', '9': 0, '10': 'responseSliderStrokeGet'},
-    {'1': 'response_slider_stroke_set', '3': 841, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseSliderStrokeSet', '9': 0, '10': 'responseSliderStrokeSet'},
-    {'1': 'response_slider_state_get', '3': 842, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseSliderStateGet', '9': 0, '10': 'responseSliderStateGet'},
-    {'1': 'response_hsp_setup', '3': 860, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHspSetup', '9': 0, '10': 'responseHspSetup'},
-    {'1': 'response_hsp_add', '3': 861, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHspAdd', '9': 0, '10': 'responseHspAdd'},
-    {'1': 'response_hsp_flush', '3': 862, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHspFlush', '9': 0, '10': 'responseHspFlush'},
-    {'1': 'response_hsp_play', '3': 863, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHspPlay', '9': 0, '10': 'responseHspPlay'},
-    {'1': 'response_hsp_stop', '3': 864, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHspStop', '9': 0, '10': 'responseHspStop'},
-    {'1': 'response_hsp_pause', '3': 865, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHspPause', '9': 0, '10': 'responseHspPause'},
-    {'1': 'response_hsp_resume', '3': 866, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHspResume', '9': 0, '10': 'responseHspResume'},
-    {'1': 'response_hsp_state_get', '3': 867, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHspStateGet', '9': 0, '10': 'responseHspStateGet'},
-    {'1': 'response_hsp_current_time_set', '3': 868, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHspCurrentTimeSet', '9': 0, '10': 'responseHspCurrentTimeSet'},
-    {'1': 'response_hsp_threshold_set', '3': 869, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHspThresholdSet', '9': 0, '10': 'responseHspThresholdSet'},
-    {'1': 'response_hsp_pause_on_starving_set', '3': 870, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHspPauseOnStarvingSet', '9': 0, '10': 'responseHspPauseOnStarvingSet'},
-    {'1': 'response_hvp_set', '3': 900, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHvpSet', '9': 0, '10': 'responseHvpSet'},
-    {'1': 'response_hvp_stop', '3': 901, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHvpStop', '9': 0, '10': 'responseHvpStop'},
-    {'1': 'response_hvp_start', '3': 902, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHvpStart', '9': 0, '10': 'responseHvpStart'},
-    {'1': 'response_hvp_state_get', '3': 903, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHvpStateGet', '9': 0, '10': 'responseHvpStateGet'},
-    {'1': 'response_hrpp_start', '3': 920, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHrppStart', '9': 0, '10': 'responseHrppStart'},
-    {'1': 'response_hrpp_stop', '3': 921, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHrppStop', '9': 0, '10': 'responseHrppStop'},
-    {'1': 'response_hrpp_amplitude_set', '3': 922, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHrppAmplitudeSet', '9': 0, '10': 'responseHrppAmplitudeSet'},
-    {'1': 'response_hrpp_playback_speed_set', '3': 923, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHrppPlaybackSpeedSet', '9': 0, '10': 'responseHrppPlaybackSpeedSet'},
-    {'1': 'response_hrpp_pattern_set', '3': 924, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHrppPatternSet', '9': 0, '10': 'responseHrppPatternSet'},
-    {'1': 'response_hrpp_state_get', '3': 925, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHrppStateGet', '9': 0, '10': 'responseHrppStateGet'},
-    {'1': 'response_hrpp_patterns_get', '3': 926, '4': 1, '5': 11, '6': '.hdy_rpc.ResponseHrppPatternsGet', '9': 0, '10': 'responseHrppPatternsGet'},
-    {'1': 'error', '3': 2, '4': 1, '5': 11, '6': '.hdy_rpc.Error', '10': 'error'},
-    {'1': 'transport', '3': 3, '4': 1, '5': 14, '6': '.hdy_rpc.Transportation', '10': 'transport'},
+    {
+      '1': 'response_connection_key_get',
+      '3': 606,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseConnectionKeyGet',
+      '9': 0,
+      '10': 'responseConnectionKeyGet'
+    },
+    {
+      '1': 'response_wifi_status_get',
+      '3': 620,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseWifiStatusGet',
+      '9': 0,
+      '10': 'responseWifiStatusGet'
+    },
+    {
+      '1': 'response_wifi_scan_results_get',
+      '3': 624,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseWifiScanResultsGet',
+      '9': 0,
+      '10': 'responseWifiScanResultsGet'
+    },
+    {
+      '1': 'response_mode_get',
+      '3': 700,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseModeGet',
+      '9': 0,
+      '10': 'responseModeGet'
+    },
+    {
+      '1': 'response_mode_set',
+      '3': 701,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseModeSet',
+      '9': 0,
+      '10': 'responseModeSet'
+    },
+    {
+      '1': 'response_clock_offset_set',
+      '3': 709,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseClockOffsetSet',
+      '9': 0,
+      '10': 'responseClockOffsetSet'
+    },
+    {
+      '1': 'response_battery_get',
+      '3': 710,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseBatteryGet',
+      '9': 0,
+      '10': 'responseBatteryGet'
+    },
+    {
+      '1': 'response_clock_offset_get',
+      '3': 712,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseClockOffsetGet',
+      '9': 0,
+      '10': 'responseClockOffsetGet'
+    },
+    {
+      '1': 'response_capabilities_get',
+      '3': 713,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseCapabilitiesGet',
+      '9': 0,
+      '10': 'responseCapabilitiesGet'
+    },
+    {
+      '1': 'response_session_ids_get',
+      '3': 714,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseSessionIdsGet',
+      '9': 0,
+      '10': 'responseSessionIdsGet'
+    },
+    {
+      '1': 'response_connection_mode_get',
+      '3': 717,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseConnectionModeGet',
+      '9': 0,
+      '10': 'responseConnectionModeGet'
+    },
+    {
+      '1': 'response_hamp_start',
+      '3': 720,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHampStart',
+      '9': 0,
+      '10': 'responseHampStart'
+    },
+    {
+      '1': 'response_hamp_stop',
+      '3': 721,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHampStop',
+      '9': 0,
+      '10': 'responseHampStop'
+    },
+    {
+      '1': 'response_hamp_velocity_set',
+      '3': 723,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHampVelocitySet',
+      '9': 0,
+      '10': 'responseHampVelocitySet'
+    },
+    {
+      '1': 'response_hamp_state_get',
+      '3': 724,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHampStateGet',
+      '9': 0,
+      '10': 'responseHampStateGet'
+    },
+    {
+      '1': 'response_hamp_zone_set',
+      '3': 725,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHampZoneSet',
+      '9': 0,
+      '10': 'responseHampZoneSet'
+    },
+    {
+      '1': 'response_slider_stroke_get',
+      '3': 840,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseSliderStrokeGet',
+      '9': 0,
+      '10': 'responseSliderStrokeGet'
+    },
+    {
+      '1': 'response_slider_stroke_set',
+      '3': 841,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseSliderStrokeSet',
+      '9': 0,
+      '10': 'responseSliderStrokeSet'
+    },
+    {
+      '1': 'response_slider_state_get',
+      '3': 842,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseSliderStateGet',
+      '9': 0,
+      '10': 'responseSliderStateGet'
+    },
+    {
+      '1': 'response_slider_calibrate',
+      '3': 843,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseSliderCalibrate',
+      '9': 0,
+      '10': 'responseSliderCalibrate'
+    },
+    {
+      '1': 'response_hsp_setup',
+      '3': 860,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHspSetup',
+      '9': 0,
+      '10': 'responseHspSetup'
+    },
+    {
+      '1': 'response_hsp_add',
+      '3': 861,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHspAdd',
+      '9': 0,
+      '10': 'responseHspAdd'
+    },
+    {
+      '1': 'response_hsp_flush',
+      '3': 862,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHspFlush',
+      '9': 0,
+      '10': 'responseHspFlush'
+    },
+    {
+      '1': 'response_hsp_play',
+      '3': 863,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHspPlay',
+      '9': 0,
+      '10': 'responseHspPlay'
+    },
+    {
+      '1': 'response_hsp_stop',
+      '3': 864,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHspStop',
+      '9': 0,
+      '10': 'responseHspStop'
+    },
+    {
+      '1': 'response_hsp_pause',
+      '3': 865,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHspPause',
+      '9': 0,
+      '10': 'responseHspPause'
+    },
+    {
+      '1': 'response_hsp_resume',
+      '3': 866,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHspResume',
+      '9': 0,
+      '10': 'responseHspResume'
+    },
+    {
+      '1': 'response_hsp_state_get',
+      '3': 867,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHspStateGet',
+      '9': 0,
+      '10': 'responseHspStateGet'
+    },
+    {
+      '1': 'response_hsp_current_time_set',
+      '3': 868,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHspCurrentTimeSet',
+      '9': 0,
+      '10': 'responseHspCurrentTimeSet'
+    },
+    {
+      '1': 'response_hsp_threshold_set',
+      '3': 869,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHspThresholdSet',
+      '9': 0,
+      '10': 'responseHspThresholdSet'
+    },
+    {
+      '1': 'response_hsp_pause_on_starving_set',
+      '3': 870,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHspPauseOnStarvingSet',
+      '9': 0,
+      '10': 'responseHspPauseOnStarvingSet'
+    },
+    {
+      '1': 'response_hvp_set',
+      '3': 900,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHvpSet',
+      '9': 0,
+      '10': 'responseHvpSet'
+    },
+    {
+      '1': 'response_hvp_stop',
+      '3': 901,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHvpStop',
+      '9': 0,
+      '10': 'responseHvpStop'
+    },
+    {
+      '1': 'response_hvp_start',
+      '3': 902,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHvpStart',
+      '9': 0,
+      '10': 'responseHvpStart'
+    },
+    {
+      '1': 'response_hvp_state_get',
+      '3': 903,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHvpStateGet',
+      '9': 0,
+      '10': 'responseHvpStateGet'
+    },
+    {
+      '1': 'response_hrpp_start',
+      '3': 920,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHrppStart',
+      '9': 0,
+      '10': 'responseHrppStart'
+    },
+    {
+      '1': 'response_hrpp_stop',
+      '3': 921,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHrppStop',
+      '9': 0,
+      '10': 'responseHrppStop'
+    },
+    {
+      '1': 'response_hrpp_amplitude_set',
+      '3': 922,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHrppAmplitudeSet',
+      '9': 0,
+      '10': 'responseHrppAmplitudeSet'
+    },
+    {
+      '1': 'response_hrpp_playback_speed_set',
+      '3': 923,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHrppPlaybackSpeedSet',
+      '9': 0,
+      '10': 'responseHrppPlaybackSpeedSet'
+    },
+    {
+      '1': 'response_hrpp_pattern_set',
+      '3': 924,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHrppPatternSet',
+      '9': 0,
+      '10': 'responseHrppPatternSet'
+    },
+    {
+      '1': 'response_hrpp_state_get',
+      '3': 925,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHrppStateGet',
+      '9': 0,
+      '10': 'responseHrppStateGet'
+    },
+    {
+      '1': 'response_hrpp_patterns_get',
+      '3': 926,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ResponseHrppPatternsGet',
+      '9': 0,
+      '10': 'responseHrppPatternsGet'
+    },
+    {
+      '1': 'error',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.Error',
+      '10': 'error'
+    },
+    {
+      '1': 'transport',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.Transportation',
+      '10': 'transport'
+    },
   ],
   '8': [
     {'1': 'result'},
@@ -378,43 +1392,45 @@ final $typed_data.Uint8List responseDescriptor = $convert.base64Decode(
     'clN0cm9rZUdldBJgChpyZXNwb25zZV9zbGlkZXJfc3Ryb2tlX3NldBjJBiABKAsyIC5oZHlfcn'
     'BjLlJlc3BvbnNlU2xpZGVyU3Ryb2tlU2V0SABSF3Jlc3BvbnNlU2xpZGVyU3Ryb2tlU2V0El0K'
     'GXJlc3BvbnNlX3NsaWRlcl9zdGF0ZV9nZXQYygYgASgLMh8uaGR5X3JwYy5SZXNwb25zZVNsaW'
-    'RlclN0YXRlR2V0SABSFnJlc3BvbnNlU2xpZGVyU3RhdGVHZXQSSgoScmVzcG9uc2VfaHNwX3Nl'
-    'dHVwGNwGIAEoCzIZLmhkeV9ycGMuUmVzcG9uc2VIc3BTZXR1cEgAUhByZXNwb25zZUhzcFNldH'
-    'VwEkQKEHJlc3BvbnNlX2hzcF9hZGQY3QYgASgLMhcuaGR5X3JwYy5SZXNwb25zZUhzcEFkZEgA'
-    'Ug5yZXNwb25zZUhzcEFkZBJKChJyZXNwb25zZV9oc3BfZmx1c2gY3gYgASgLMhkuaGR5X3JwYy'
-    '5SZXNwb25zZUhzcEZsdXNoSABSEHJlc3BvbnNlSHNwRmx1c2gSRwoRcmVzcG9uc2VfaHNwX3Bs'
-    'YXkY3wYgASgLMhguaGR5X3JwYy5SZXNwb25zZUhzcFBsYXlIAFIPcmVzcG9uc2VIc3BQbGF5Ek'
-    'cKEXJlc3BvbnNlX2hzcF9zdG9wGOAGIAEoCzIYLmhkeV9ycGMuUmVzcG9uc2VIc3BTdG9wSABS'
-    'D3Jlc3BvbnNlSHNwU3RvcBJKChJyZXNwb25zZV9oc3BfcGF1c2UY4QYgASgLMhkuaGR5X3JwYy'
-    '5SZXNwb25zZUhzcFBhdXNlSABSEHJlc3BvbnNlSHNwUGF1c2USTQoTcmVzcG9uc2VfaHNwX3Jl'
-    'c3VtZRjiBiABKAsyGi5oZHlfcnBjLlJlc3BvbnNlSHNwUmVzdW1lSABSEXJlc3BvbnNlSHNwUm'
-    'VzdW1lElQKFnJlc3BvbnNlX2hzcF9zdGF0ZV9nZXQY4wYgASgLMhwuaGR5X3JwYy5SZXNwb25z'
-    'ZUhzcFN0YXRlR2V0SABSE3Jlc3BvbnNlSHNwU3RhdGVHZXQSZwodcmVzcG9uc2VfaHNwX2N1cn'
-    'JlbnRfdGltZV9zZXQY5AYgASgLMiIuaGR5X3JwYy5SZXNwb25zZUhzcEN1cnJlbnRUaW1lU2V0'
-    'SABSGXJlc3BvbnNlSHNwQ3VycmVudFRpbWVTZXQSYAoacmVzcG9uc2VfaHNwX3RocmVzaG9sZF'
-    '9zZXQY5QYgASgLMiAuaGR5X3JwYy5SZXNwb25zZUhzcFRocmVzaG9sZFNldEgAUhdyZXNwb25z'
-    'ZUhzcFRocmVzaG9sZFNldBJ0CiJyZXNwb25zZV9oc3BfcGF1c2Vfb25fc3RhcnZpbmdfc2V0GO'
-    'YGIAEoCzImLmhkeV9ycGMuUmVzcG9uc2VIc3BQYXVzZU9uU3RhcnZpbmdTZXRIAFIdcmVzcG9u'
-    'c2VIc3BQYXVzZU9uU3RhcnZpbmdTZXQSRAoQcmVzcG9uc2VfaHZwX3NldBiEByABKAsyFy5oZH'
-    'lfcnBjLlJlc3BvbnNlSHZwU2V0SABSDnJlc3BvbnNlSHZwU2V0EkcKEXJlc3BvbnNlX2h2cF9z'
-    'dG9wGIUHIAEoCzIYLmhkeV9ycGMuUmVzcG9uc2VIdnBTdG9wSABSD3Jlc3BvbnNlSHZwU3RvcB'
-    'JKChJyZXNwb25zZV9odnBfc3RhcnQYhgcgASgLMhkuaGR5X3JwYy5SZXNwb25zZUh2cFN0YXJ0'
-    'SABSEHJlc3BvbnNlSHZwU3RhcnQSVAoWcmVzcG9uc2VfaHZwX3N0YXRlX2dldBiHByABKAsyHC'
-    '5oZHlfcnBjLlJlc3BvbnNlSHZwU3RhdGVHZXRIAFITcmVzcG9uc2VIdnBTdGF0ZUdldBJNChNy'
-    'ZXNwb25zZV9ocnBwX3N0YXJ0GJgHIAEoCzIaLmhkeV9ycGMuUmVzcG9uc2VIcnBwU3RhcnRIAF'
-    'IRcmVzcG9uc2VIcnBwU3RhcnQSSgoScmVzcG9uc2VfaHJwcF9zdG9wGJkHIAEoCzIZLmhkeV9y'
-    'cGMuUmVzcG9uc2VIcnBwU3RvcEgAUhByZXNwb25zZUhycHBTdG9wEmMKG3Jlc3BvbnNlX2hycH'
-    'BfYW1wbGl0dWRlX3NldBiaByABKAsyIS5oZHlfcnBjLlJlc3BvbnNlSHJwcEFtcGxpdHVkZVNl'
-    'dEgAUhhyZXNwb25zZUhycHBBbXBsaXR1ZGVTZXQScAogcmVzcG9uc2VfaHJwcF9wbGF5YmFja1'
-    '9zcGVlZF9zZXQYmwcgASgLMiUuaGR5X3JwYy5SZXNwb25zZUhycHBQbGF5YmFja1NwZWVkU2V0'
-    'SABSHHJlc3BvbnNlSHJwcFBsYXliYWNrU3BlZWRTZXQSXQoZcmVzcG9uc2VfaHJwcF9wYXR0ZX'
-    'JuX3NldBicByABKAsyHy5oZHlfcnBjLlJlc3BvbnNlSHJwcFBhdHRlcm5TZXRIAFIWcmVzcG9u'
-    'c2VIcnBwUGF0dGVyblNldBJXChdyZXNwb25zZV9ocnBwX3N0YXRlX2dldBidByABKAsyHS5oZH'
-    'lfcnBjLlJlc3BvbnNlSHJwcFN0YXRlR2V0SABSFHJlc3BvbnNlSHJwcFN0YXRlR2V0EmAKGnJl'
-    'c3BvbnNlX2hycHBfcGF0dGVybnNfZ2V0GJ4HIAEoCzIgLmhkeV9ycGMuUmVzcG9uc2VIcnBwUG'
-    'F0dGVybnNHZXRIAFIXcmVzcG9uc2VIcnBwUGF0dGVybnNHZXQSJAoFZXJyb3IYAiABKAsyDi5o'
-    'ZHlfcnBjLkVycm9yUgVlcnJvchI1Cgl0cmFuc3BvcnQYAyABKA4yFy5oZHlfcnBjLlRyYW5zcG'
-    '9ydGF0aW9uUgl0cmFuc3BvcnRCCAoGcmVzdWx0');
+    'RlclN0YXRlR2V0SABSFnJlc3BvbnNlU2xpZGVyU3RhdGVHZXQSXwoZcmVzcG9uc2Vfc2xpZGVy'
+    'X2NhbGlicmF0ZRjLBiABKAsyIC5oZHlfcnBjLlJlc3BvbnNlU2xpZGVyQ2FsaWJyYXRlSABSF3'
+    'Jlc3BvbnNlU2xpZGVyQ2FsaWJyYXRlEkoKEnJlc3BvbnNlX2hzcF9zZXR1cBjcBiABKAsyGS5o'
+    'ZHlfcnBjLlJlc3BvbnNlSHNwU2V0dXBIAFIQcmVzcG9uc2VIc3BTZXR1cBJEChByZXNwb25zZV'
+    '9oc3BfYWRkGN0GIAEoCzIXLmhkeV9ycGMuUmVzcG9uc2VIc3BBZGRIAFIOcmVzcG9uc2VIc3BB'
+    'ZGQSSgoScmVzcG9uc2VfaHNwX2ZsdXNoGN4GIAEoCzIZLmhkeV9ycGMuUmVzcG9uc2VIc3BGbH'
+    'VzaEgAUhByZXNwb25zZUhzcEZsdXNoEkcKEXJlc3BvbnNlX2hzcF9wbGF5GN8GIAEoCzIYLmhk'
+    'eV9ycGMuUmVzcG9uc2VIc3BQbGF5SABSD3Jlc3BvbnNlSHNwUGxheRJHChFyZXNwb25zZV9oc3'
+    'Bfc3RvcBjgBiABKAsyGC5oZHlfcnBjLlJlc3BvbnNlSHNwU3RvcEgAUg9yZXNwb25zZUhzcFN0'
+    'b3ASSgoScmVzcG9uc2VfaHNwX3BhdXNlGOEGIAEoCzIZLmhkeV9ycGMuUmVzcG9uc2VIc3BQYX'
+    'VzZUgAUhByZXNwb25zZUhzcFBhdXNlEk0KE3Jlc3BvbnNlX2hzcF9yZXN1bWUY4gYgASgLMhou'
+    'aGR5X3JwYy5SZXNwb25zZUhzcFJlc3VtZUgAUhFyZXNwb25zZUhzcFJlc3VtZRJUChZyZXNwb2'
+    '5zZV9oc3Bfc3RhdGVfZ2V0GOMGIAEoCzIcLmhkeV9ycGMuUmVzcG9uc2VIc3BTdGF0ZUdldEgA'
+    'UhNyZXNwb25zZUhzcFN0YXRlR2V0EmcKHXJlc3BvbnNlX2hzcF9jdXJyZW50X3RpbWVfc2V0GO'
+    'QGIAEoCzIiLmhkeV9ycGMuUmVzcG9uc2VIc3BDdXJyZW50VGltZVNldEgAUhlyZXNwb25zZUhz'
+    'cEN1cnJlbnRUaW1lU2V0EmAKGnJlc3BvbnNlX2hzcF90aHJlc2hvbGRfc2V0GOUGIAEoCzIgLm'
+    'hkeV9ycGMuUmVzcG9uc2VIc3BUaHJlc2hvbGRTZXRIAFIXcmVzcG9uc2VIc3BUaHJlc2hvbGRT'
+    'ZXQSdAoicmVzcG9uc2VfaHNwX3BhdXNlX29uX3N0YXJ2aW5nX3NldBjmBiABKAsyJi5oZHlfcn'
+    'BjLlJlc3BvbnNlSHNwUGF1c2VPblN0YXJ2aW5nU2V0SABSHXJlc3BvbnNlSHNwUGF1c2VPblN0'
+    'YXJ2aW5nU2V0EkQKEHJlc3BvbnNlX2h2cF9zZXQYhAcgASgLMhcuaGR5X3JwYy5SZXNwb25zZU'
+    'h2cFNldEgAUg5yZXNwb25zZUh2cFNldBJHChFyZXNwb25zZV9odnBfc3RvcBiFByABKAsyGC5o'
+    'ZHlfcnBjLlJlc3BvbnNlSHZwU3RvcEgAUg9yZXNwb25zZUh2cFN0b3ASSgoScmVzcG9uc2VfaH'
+    'ZwX3N0YXJ0GIYHIAEoCzIZLmhkeV9ycGMuUmVzcG9uc2VIdnBTdGFydEgAUhByZXNwb25zZUh2'
+    'cFN0YXJ0ElQKFnJlc3BvbnNlX2h2cF9zdGF0ZV9nZXQYhwcgASgLMhwuaGR5X3JwYy5SZXNwb2'
+    '5zZUh2cFN0YXRlR2V0SABSE3Jlc3BvbnNlSHZwU3RhdGVHZXQSTQoTcmVzcG9uc2VfaHJwcF9z'
+    'dGFydBiYByABKAsyGi5oZHlfcnBjLlJlc3BvbnNlSHJwcFN0YXJ0SABSEXJlc3BvbnNlSHJwcF'
+    'N0YXJ0EkoKEnJlc3BvbnNlX2hycHBfc3RvcBiZByABKAsyGS5oZHlfcnBjLlJlc3BvbnNlSHJw'
+    'cFN0b3BIAFIQcmVzcG9uc2VIcnBwU3RvcBJjChtyZXNwb25zZV9ocnBwX2FtcGxpdHVkZV9zZX'
+    'QYmgcgASgLMiEuaGR5X3JwYy5SZXNwb25zZUhycHBBbXBsaXR1ZGVTZXRIAFIYcmVzcG9uc2VI'
+    'cnBwQW1wbGl0dWRlU2V0EnAKIHJlc3BvbnNlX2hycHBfcGxheWJhY2tfc3BlZWRfc2V0GJsHIA'
+    'EoCzIlLmhkeV9ycGMuUmVzcG9uc2VIcnBwUGxheWJhY2tTcGVlZFNldEgAUhxyZXNwb25zZUhy'
+    'cHBQbGF5YmFja1NwZWVkU2V0El0KGXJlc3BvbnNlX2hycHBfcGF0dGVybl9zZXQYnAcgASgLMh'
+    '8uaGR5X3JwYy5SZXNwb25zZUhycHBQYXR0ZXJuU2V0SABSFnJlc3BvbnNlSHJwcFBhdHRlcm5T'
+    'ZXQSVwoXcmVzcG9uc2VfaHJwcF9zdGF0ZV9nZXQYnQcgASgLMh0uaGR5X3JwYy5SZXNwb25zZU'
+    'hycHBTdGF0ZUdldEgAUhRyZXNwb25zZUhycHBTdGF0ZUdldBJgChpyZXNwb25zZV9ocnBwX3Bh'
+    'dHRlcm5zX2dldBieByABKAsyIC5oZHlfcnBjLlJlc3BvbnNlSHJwcFBhdHRlcm5zR2V0SABSF3'
+    'Jlc3BvbnNlSHJwcFBhdHRlcm5zR2V0EiQKBWVycm9yGAIgASgLMg4uaGR5X3JwYy5FcnJvclIF'
+    'ZXJyb3ISNQoJdHJhbnNwb3J0GAMgASgOMhcuaGR5X3JwYy5UcmFuc3BvcnRhdGlvblIJdHJhbn'
+    'Nwb3J0QggKBnJlc3VsdA==');
 
 @$core.Deprecated('Use errorDescriptor instead')
 const Error$json = {
@@ -435,11 +1451,50 @@ final $typed_data.Uint8List errorDescriptor = $convert.base64Decode(
 const RpcMessage$json = {
   '1': 'RpcMessage',
   '2': [
-    {'1': 'type', '3': 1, '4': 1, '5': 14, '6': '.hdy_rpc.MessageType', '10': 'type'},
-    {'1': 'request', '3': 2, '4': 1, '5': 11, '6': '.hdy_rpc.Request', '9': 0, '10': 'request'},
-    {'1': 'requests', '3': 3, '4': 1, '5': 11, '6': '.hdy_rpc.Requests', '9': 0, '10': 'requests'},
-    {'1': 'response', '3': 4, '4': 1, '5': 11, '6': '.hdy_rpc.Response', '9': 0, '10': 'response'},
-    {'1': 'notification', '3': 5, '4': 1, '5': 11, '6': '.hdy_rpc.Notification', '9': 0, '10': 'notification'},
+    {
+      '1': 'type',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.MessageType',
+      '10': 'type'
+    },
+    {
+      '1': 'request',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.Request',
+      '9': 0,
+      '10': 'request'
+    },
+    {
+      '1': 'requests',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.Requests',
+      '9': 0,
+      '10': 'requests'
+    },
+    {
+      '1': 'response',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.Response',
+      '9': 0,
+      '10': 'response'
+    },
+    {
+      '1': 'notification',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.Notification',
+      '9': 0,
+      '10': 'notification'
+    },
   ],
   '8': [
     {'1': 'message'},
@@ -453,4 +1508,3 @@ final $typed_data.Uint8List rpcMessageDescriptor = $convert.base64Decode(
     'cxgDIAEoCzIRLmhkeV9ycGMuUmVxdWVzdHNIAFIIcmVxdWVzdHMSLwoIcmVzcG9uc2UYBCABKA'
     'syES5oZHlfcnBjLlJlc3BvbnNlSABSCHJlc3BvbnNlEjsKDG5vdGlmaWNhdGlvbhgFIAEoCzIV'
     'LmhkeV9ycGMuTm90aWZpY2F0aW9uSABSDG5vdGlmaWNhdGlvbkIJCgdtZXNzYWdl');
-

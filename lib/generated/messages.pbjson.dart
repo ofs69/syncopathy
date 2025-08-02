@@ -20,8 +20,8 @@ const RequestConnectionKeyGet$json = {
 };
 
 /// Descriptor for `RequestConnectionKeyGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestConnectionKeyGetDescriptor = $convert.base64Decode(
-    'ChdSZXF1ZXN0Q29ubmVjdGlvbktleUdldA==');
+final $typed_data.Uint8List requestConnectionKeyGetDescriptor =
+    $convert.base64Decode('ChdSZXF1ZXN0Q29ubmVjdGlvbktleUdldA==');
 
 @$core.Deprecated('Use responseConnectionKeyGetDescriptor instead')
 const ResponseConnectionKeyGet$json = {
@@ -32,8 +32,9 @@ const ResponseConnectionKeyGet$json = {
 };
 
 /// Descriptor for `ResponseConnectionKeyGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseConnectionKeyGetDescriptor = $convert.base64Decode(
-    'ChhSZXNwb25zZUNvbm5lY3Rpb25LZXlHZXQSEAoDa2V5GAEgASgJUgNrZXk=');
+final $typed_data.Uint8List responseConnectionKeyGetDescriptor =
+    $convert.base64Decode(
+        'ChhSZXNwb25zZUNvbm5lY3Rpb25LZXlHZXQSEAoDa2V5GAEgASgJUgNrZXk=');
 
 @$core.Deprecated('Use requestWifiStatusGetDescriptor instead')
 const RequestWifiStatusGet$json = {
@@ -41,16 +42,37 @@ const RequestWifiStatusGet$json = {
 };
 
 /// Descriptor for `RequestWifiStatusGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestWifiStatusGetDescriptor = $convert.base64Decode(
-    'ChRSZXF1ZXN0V2lmaVN0YXR1c0dldA==');
+final $typed_data.Uint8List requestWifiStatusGetDescriptor =
+    $convert.base64Decode('ChRSZXF1ZXN0V2lmaVN0YXR1c0dldA==');
 
 @$core.Deprecated('Use responseWifiStatusGetDescriptor instead')
 const ResponseWifiStatusGet$json = {
   '1': 'ResponseWifiStatusGet',
   '2': [
-    {'1': 'ap_info', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.ApInfo', '10': 'apInfo'},
-    {'1': 'state', '3': 2, '4': 1, '5': 14, '6': '.hdy_rpc.WifiState', '10': 'state'},
-    {'1': 'failed_reason', '3': 3, '4': 1, '5': 14, '6': '.hdy_rpc.WifiFailedReason', '10': 'failedReason'},
+    {
+      '1': 'ap_info',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ApInfo',
+      '10': 'apInfo'
+    },
+    {
+      '1': 'state',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.WifiState',
+      '10': 'state'
+    },
+    {
+      '1': 'failed_reason',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.WifiFailedReason',
+      '10': 'failedReason'
+    },
     {'1': 'socket_connected', '3': 4, '4': 1, '5': 8, '10': 'socketConnected'},
     {'1': 'ssid', '3': 5, '4': 1, '5': 9, '10': 'ssid'},
   ],
@@ -87,9 +109,27 @@ const RequestWifiScanStart$json = {
     {'1': 'passive', '3': 2, '4': 1, '5': 8, '10': 'passive'},
     {'1': 'channel', '3': 3, '4': 1, '5': 13, '10': 'channel'},
     {'1': 'show_hidden', '3': 4, '4': 1, '5': 8, '10': 'showHidden'},
-    {'1': 'passive_scan_time', '3': 5, '4': 1, '5': 13, '10': 'passiveScanTime'},
-    {'1': 'active_scan_time_min', '3': 6, '4': 1, '5': 13, '10': 'activeScanTimeMin'},
-    {'1': 'active_scan_time_max', '3': 7, '4': 1, '5': 13, '10': 'activeScanTimeMax'},
+    {
+      '1': 'passive_scan_time',
+      '3': 5,
+      '4': 1,
+      '5': 13,
+      '10': 'passiveScanTime'
+    },
+    {
+      '1': 'active_scan_time_min',
+      '3': 6,
+      '4': 1,
+      '5': 13,
+      '10': 'activeScanTimeMin'
+    },
+    {
+      '1': 'active_scan_time_max',
+      '3': 7,
+      '4': 1,
+      '5': 13,
+      '10': 'activeScanTimeMax'
+    },
   ],
 };
 
@@ -112,23 +152,32 @@ const RequestWifiScanResultsGet$json = {
 };
 
 /// Descriptor for `RequestWifiScanResultsGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestWifiScanResultsGetDescriptor = $convert.base64Decode(
-    'ChlSZXF1ZXN0V2lmaVNjYW5SZXN1bHRzR2V0Eh8KC21heF9yZXN1bHRzGAEgASgNUgptYXhSZX'
-    'N1bHRzEiEKDG9mZnNldF9pbmRleBgCIAEoDVILb2Zmc2V0SW5kZXg=');
+final $typed_data.Uint8List requestWifiScanResultsGetDescriptor =
+    $convert.base64Decode(
+        'ChlSZXF1ZXN0V2lmaVNjYW5SZXN1bHRzR2V0Eh8KC21heF9yZXN1bHRzGAEgASgNUgptYXhSZX'
+        'N1bHRzEiEKDG9mZnNldF9pbmRleBgCIAEoDVILb2Zmc2V0SW5kZXg=');
 
 @$core.Deprecated('Use responseWifiScanResultsGetDescriptor instead')
 const ResponseWifiScanResultsGet$json = {
   '1': 'ResponseWifiScanResultsGet',
   '2': [
-    {'1': 'ap_info', '3': 1, '4': 3, '5': 11, '6': '.hdy_rpc.ApInfo', '10': 'apInfo'},
+    {
+      '1': 'ap_info',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.hdy_rpc.ApInfo',
+      '10': 'apInfo'
+    },
     {'1': 'total_results', '3': 2, '4': 1, '5': 13, '10': 'totalResults'},
   ],
 };
 
 /// Descriptor for `ResponseWifiScanResultsGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseWifiScanResultsGetDescriptor = $convert.base64Decode(
-    'ChpSZXNwb25zZVdpZmlTY2FuUmVzdWx0c0dldBIoCgdhcF9pbmZvGAEgAygLMg8uaGR5X3JwYy'
-    '5BcEluZm9SBmFwSW5mbxIjCg10b3RhbF9yZXN1bHRzGAIgASgNUgx0b3RhbFJlc3VsdHM=');
+final $typed_data.Uint8List responseWifiScanResultsGetDescriptor =
+    $convert.base64Decode(
+        'ChpSZXNwb25zZVdpZmlTY2FuUmVzdWx0c0dldBIoCgdhcF9pbmZvGAEgAygLMg8uaGR5X3JwYy'
+        '5BcEluZm9SBmFwSW5mbxIjCg10b3RhbF9yZXN1bHRzGAIgASgNUgx0b3RhbFJlc3VsdHM=');
 
 @$core.Deprecated('Use requestWifiScanStopDescriptor instead')
 const RequestWifiScanStop$json = {
@@ -136,8 +185,8 @@ const RequestWifiScanStop$json = {
 };
 
 /// Descriptor for `RequestWifiScanStop`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestWifiScanStopDescriptor = $convert.base64Decode(
-    'ChNSZXF1ZXN0V2lmaVNjYW5TdG9w');
+final $typed_data.Uint8List requestWifiScanStopDescriptor =
+    $convert.base64Decode('ChNSZXF1ZXN0V2lmaVNjYW5TdG9w');
 
 @$core.Deprecated('Use requestModeGetDescriptor instead')
 const RequestModeGet$json = {
@@ -145,8 +194,8 @@ const RequestModeGet$json = {
 };
 
 /// Descriptor for `RequestModeGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestModeGetDescriptor = $convert.base64Decode(
-    'Cg5SZXF1ZXN0TW9kZUdldA==');
+final $typed_data.Uint8List requestModeGetDescriptor =
+    $convert.base64Decode('Cg5SZXF1ZXN0TW9kZUdldA==');
 
 @$core.Deprecated('Use responseModeGetDescriptor instead')
 const ResponseModeGet$json = {
@@ -192,7 +241,14 @@ final $typed_data.Uint8List responseModeSetDescriptor = $convert.base64Decode(
 const RequestReboot$json = {
   '1': 'RequestReboot',
   '2': [
-    {'1': 'connection_mode', '3': 3, '4': 1, '5': 14, '6': '.hdy_rpc.ConnectionMode', '10': 'connectionMode'},
+    {
+      '1': 'connection_mode',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.ConnectionMode',
+      '10': 'connectionMode'
+    },
   ],
 };
 
@@ -206,7 +262,14 @@ const RequestButtonPress$json = {
   '1': 'RequestButtonPress',
   '2': [
     {'1': 'button', '3': 1, '4': 1, '5': 13, '10': 'button'},
-    {'1': 'event', '3': 2, '4': 1, '5': 14, '6': '.hdy_rpc.ButtonEvent', '10': 'event'},
+    {
+      '1': 'event',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.ButtonEvent',
+      '10': 'event'
+    },
   ],
 };
 
@@ -240,9 +303,10 @@ const ResponseClockOffsetSet$json = {
 };
 
 /// Descriptor for `ResponseClockOffsetSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseClockOffsetSetDescriptor = $convert.base64Decode(
-    'ChZSZXNwb25zZUNsb2NrT2Zmc2V0U2V0EhIKBHRpbWUYASABKA1SBHRpbWUSIQoMY2xvY2tfb2'
-    'Zmc2V0GAIgASgSUgtjbG9ja09mZnNldBIQCgNydGQYAyABKAVSA3J0ZA==');
+final $typed_data.Uint8List responseClockOffsetSetDescriptor =
+    $convert.base64Decode(
+        'ChZSZXNwb25zZUNsb2NrT2Zmc2V0U2V0EhIKBHRpbWUYASABKA1SBHRpbWUSIQoMY2xvY2tfb2'
+        'Zmc2V0GAIgASgSUgtjbG9ja09mZnNldBIQCgNydGQYAyABKAVSA3J0ZA==');
 
 @$core.Deprecated('Use requestBatteryGetDescriptor instead')
 const RequestBatteryGet$json = {
@@ -250,14 +314,21 @@ const RequestBatteryGet$json = {
 };
 
 /// Descriptor for `RequestBatteryGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestBatteryGetDescriptor = $convert.base64Decode(
-    'ChFSZXF1ZXN0QmF0dGVyeUdldA==');
+final $typed_data.Uint8List requestBatteryGetDescriptor =
+    $convert.base64Decode('ChFSZXF1ZXN0QmF0dGVyeUdldA==');
 
 @$core.Deprecated('Use responseBatteryGetDescriptor instead')
 const ResponseBatteryGet$json = {
   '1': 'ResponseBatteryGet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.BatteryState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.BatteryState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -272,8 +343,8 @@ const RequestClockOffsetGet$json = {
 };
 
 /// Descriptor for `RequestClockOffsetGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestClockOffsetGetDescriptor = $convert.base64Decode(
-    'ChVSZXF1ZXN0Q2xvY2tPZmZzZXRHZXQ=');
+final $typed_data.Uint8List requestClockOffsetGetDescriptor =
+    $convert.base64Decode('ChVSZXF1ZXN0Q2xvY2tPZmZzZXRHZXQ=');
 
 @$core.Deprecated('Use responseClockOffsetGetDescriptor instead')
 const ResponseClockOffsetGet$json = {
@@ -286,9 +357,10 @@ const ResponseClockOffsetGet$json = {
 };
 
 /// Descriptor for `ResponseClockOffsetGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseClockOffsetGetDescriptor = $convert.base64Decode(
-    'ChZSZXNwb25zZUNsb2NrT2Zmc2V0R2V0EhIKBHRpbWUYASABKA1SBHRpbWUSIQoMY2xvY2tfb2'
-    'Zmc2V0GAIgASgSUgtjbG9ja09mZnNldBIQCgNydGQYAyABKAVSA3J0ZA==');
+final $typed_data.Uint8List responseClockOffsetGetDescriptor =
+    $convert.base64Decode(
+        'ChZSZXNwb25zZUNsb2NrT2Zmc2V0R2V0EhIKBHRpbWUYASABKA1SBHRpbWUSIQoMY2xvY2tfb2'
+        'Zmc2V0GAIgASgSUgtjbG9ja09mZnNldBIQCgNydGQYAyABKAVSA3J0ZA==');
 
 @$core.Deprecated('Use requestCapabilitiesGetDescriptor instead')
 const RequestCapabilitiesGet$json = {
@@ -296,8 +368,8 @@ const RequestCapabilitiesGet$json = {
 };
 
 /// Descriptor for `RequestCapabilitiesGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestCapabilitiesGetDescriptor = $convert.base64Decode(
-    'ChZSZXF1ZXN0Q2FwYWJpbGl0aWVzR2V0');
+final $typed_data.Uint8List requestCapabilitiesGetDescriptor =
+    $convert.base64Decode('ChZSZXF1ZXN0Q2FwYWJpbGl0aWVzR2V0');
 
 @$core.Deprecated('Use responseCapabilitiesGetDescriptor instead')
 const ResponseCapabilitiesGet$json = {
@@ -312,10 +384,22 @@ const ResponseCapabilitiesGet$json = {
     {'1': 'rgb_led_indicator', '3': 7, '4': 1, '5': 8, '10': 'rgbLedIndicator'},
     {'1': 'led_matrix', '3': 8, '4': 1, '5': 8, '10': 'ledMatrix'},
     {'1': 'led_matrix_leds_x', '3': 9, '4': 1, '5': 13, '10': 'ledMatrixLedsX'},
-    {'1': 'led_matrix_leds_y', '3': 10, '4': 1, '5': 13, '10': 'ledMatrixLedsY'},
+    {
+      '1': 'led_matrix_leds_y',
+      '3': 10,
+      '4': 1,
+      '5': 13,
+      '10': 'ledMatrixLedsY'
+    },
     {'1': 'rgb_ring', '3': 11, '4': 1, '5': 8, '10': 'rgbRing'},
     {'1': 'rgb_ring_leds', '3': 12, '4': 1, '5': 13, '10': 'rgbRingLeds'},
-    {'1': 'battery_capacity', '3': 13, '4': 1, '5': 13, '10': 'batteryCapacity'},
+    {
+      '1': 'battery_capacity',
+      '3': 13,
+      '4': 1,
+      '5': 13,
+      '10': 'batteryCapacity'
+    },
   ],
 };
 
@@ -337,15 +421,21 @@ const RequestSessionIdsGet$json = {
 };
 
 /// Descriptor for `RequestSessionIdsGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestSessionIdsGetDescriptor = $convert.base64Decode(
-    'ChRSZXF1ZXN0U2Vzc2lvbklkc0dldA==');
+final $typed_data.Uint8List requestSessionIdsGetDescriptor =
+    $convert.base64Decode('ChRSZXF1ZXN0U2Vzc2lvbklkc0dldA==');
 
 @$core.Deprecated('Use responseSessionIdsGetDescriptor instead')
 const ResponseSessionIdsGet$json = {
   '1': 'ResponseSessionIdsGet',
   '2': [
     {'1': 'boot_session_id', '3': 1, '4': 1, '5': 13, '10': 'bootSessionId'},
-    {'1': 'socket_session_id', '3': 2, '4': 1, '5': 13, '10': 'socketSessionId'},
+    {
+      '1': 'socket_session_id',
+      '3': 2,
+      '4': 1,
+      '5': 13,
+      '10': 'socketSessionId'
+    },
     {'1': 'mode_session_id', '3': 3, '4': 1, '5': 13, '10': 'modeSessionId'},
   ],
 };
@@ -362,21 +452,29 @@ const RequestStopCurrentMode$json = {
 };
 
 /// Descriptor for `RequestStopCurrentMode`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestStopCurrentModeDescriptor = $convert.base64Decode(
-    'ChZSZXF1ZXN0U3RvcEN1cnJlbnRNb2Rl');
+final $typed_data.Uint8List requestStopCurrentModeDescriptor =
+    $convert.base64Decode('ChZSZXF1ZXN0U3RvcEN1cnJlbnRNb2Rl');
 
 @$core.Deprecated('Use requestConnectionModeSetDescriptor instead')
 const RequestConnectionModeSet$json = {
   '1': 'RequestConnectionModeSet',
   '2': [
-    {'1': 'mode', '3': 1, '4': 1, '5': 14, '6': '.hdy_rpc.ConnectionMode', '10': 'mode'},
+    {
+      '1': 'mode',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.ConnectionMode',
+      '10': 'mode'
+    },
   ],
 };
 
 /// Descriptor for `RequestConnectionModeSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestConnectionModeSetDescriptor = $convert.base64Decode(
-    'ChhSZXF1ZXN0Q29ubmVjdGlvbk1vZGVTZXQSKwoEbW9kZRgBIAEoDjIXLmhkeV9ycGMuQ29ubm'
-    'VjdGlvbk1vZGVSBG1vZGU=');
+final $typed_data.Uint8List requestConnectionModeSetDescriptor =
+    $convert.base64Decode(
+        'ChhSZXF1ZXN0Q29ubmVjdGlvbk1vZGVTZXQSKwoEbW9kZRgBIAEoDjIXLmhkeV9ycGMuQ29ubm'
+        'VjdGlvbk1vZGVSBG1vZGU=');
 
 @$core.Deprecated('Use requestConnectionModeGetDescriptor instead')
 const RequestConnectionModeGet$json = {
@@ -384,21 +482,29 @@ const RequestConnectionModeGet$json = {
 };
 
 /// Descriptor for `RequestConnectionModeGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestConnectionModeGetDescriptor = $convert.base64Decode(
-    'ChhSZXF1ZXN0Q29ubmVjdGlvbk1vZGVHZXQ=');
+final $typed_data.Uint8List requestConnectionModeGetDescriptor =
+    $convert.base64Decode('ChhSZXF1ZXN0Q29ubmVjdGlvbk1vZGVHZXQ=');
 
 @$core.Deprecated('Use responseConnectionModeGetDescriptor instead')
 const ResponseConnectionModeGet$json = {
   '1': 'ResponseConnectionModeGet',
   '2': [
-    {'1': 'mode', '3': 1, '4': 1, '5': 14, '6': '.hdy_rpc.ConnectionMode', '10': 'mode'},
+    {
+      '1': 'mode',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.ConnectionMode',
+      '10': 'mode'
+    },
   ],
 };
 
 /// Descriptor for `ResponseConnectionModeGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseConnectionModeGetDescriptor = $convert.base64Decode(
-    'ChlSZXNwb25zZUNvbm5lY3Rpb25Nb2RlR2V0EisKBG1vZGUYASABKA4yFy5oZHlfcnBjLkNvbm'
-    '5lY3Rpb25Nb2RlUgRtb2Rl');
+final $typed_data.Uint8List responseConnectionModeGetDescriptor =
+    $convert.base64Decode(
+        'ChlSZXNwb25zZUNvbm5lY3Rpb25Nb2RlR2V0EisKBG1vZGUYASABKA4yFy5oZHlfcnBjLkNvbm'
+        '5lY3Rpb25Nb2RlUgRtb2Rl');
 
 @$core.Deprecated('Use requestHampStartDescriptor instead')
 const RequestHampStart$json = {
@@ -406,14 +512,21 @@ const RequestHampStart$json = {
 };
 
 /// Descriptor for `RequestHampStart`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHampStartDescriptor = $convert.base64Decode(
-    'ChBSZXF1ZXN0SGFtcFN0YXJ0');
+final $typed_data.Uint8List requestHampStartDescriptor =
+    $convert.base64Decode('ChBSZXF1ZXN0SGFtcFN0YXJ0');
 
 @$core.Deprecated('Use responseHampStartDescriptor instead')
 const ResponseHampStart$json = {
   '1': 'ResponseHampStart',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HampState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HampState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -428,14 +541,21 @@ const RequestHampStop$json = {
 };
 
 /// Descriptor for `RequestHampStop`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHampStopDescriptor = $convert.base64Decode(
-    'Cg9SZXF1ZXN0SGFtcFN0b3A=');
+final $typed_data.Uint8List requestHampStopDescriptor =
+    $convert.base64Decode('Cg9SZXF1ZXN0SGFtcFN0b3A=');
 
 @$core.Deprecated('Use responseHampStopDescriptor instead')
 const ResponseHampStop$json = {
   '1': 'ResponseHampStop',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HampState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HampState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -453,21 +573,30 @@ const RequestHampVelocitySet$json = {
 };
 
 /// Descriptor for `RequestHampVelocitySet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHampVelocitySetDescriptor = $convert.base64Decode(
-    'ChZSZXF1ZXN0SGFtcFZlbG9jaXR5U2V0EhoKCHZlbG9jaXR5GAEgASgCUgh2ZWxvY2l0eQ==');
+final $typed_data.Uint8List requestHampVelocitySetDescriptor =
+    $convert.base64Decode(
+        'ChZSZXF1ZXN0SGFtcFZlbG9jaXR5U2V0EhoKCHZlbG9jaXR5GAEgASgCUgh2ZWxvY2l0eQ==');
 
 @$core.Deprecated('Use responseHampVelocitySetDescriptor instead')
 const ResponseHampVelocitySet$json = {
   '1': 'ResponseHampVelocitySet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HampState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HampState',
+      '10': 'state'
+    },
   ],
 };
 
 /// Descriptor for `ResponseHampVelocitySet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseHampVelocitySetDescriptor = $convert.base64Decode(
-    'ChdSZXNwb25zZUhhbXBWZWxvY2l0eVNldBIoCgVzdGF0ZRgBIAEoCzISLmhkeV9ycGMuSGFtcF'
-    'N0YXRlUgVzdGF0ZQ==');
+final $typed_data.Uint8List responseHampVelocitySetDescriptor =
+    $convert.base64Decode(
+        'ChdSZXNwb25zZUhhbXBWZWxvY2l0eVNldBIoCgVzdGF0ZRgBIAEoCzISLmhkeV9ycGMuSGFtcF'
+        'N0YXRlUgVzdGF0ZQ==');
 
 @$core.Deprecated('Use requestHampStateGetDescriptor instead')
 const RequestHampStateGet$json = {
@@ -475,14 +604,21 @@ const RequestHampStateGet$json = {
 };
 
 /// Descriptor for `RequestHampStateGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHampStateGetDescriptor = $convert.base64Decode(
-    'ChNSZXF1ZXN0SGFtcFN0YXRlR2V0');
+final $typed_data.Uint8List requestHampStateGetDescriptor =
+    $convert.base64Decode('ChNSZXF1ZXN0SGFtcFN0YXRlR2V0');
 
 @$core.Deprecated('Use responseHampStateGetDescriptor instead')
 const ResponseHampStateGet$json = {
   '1': 'ResponseHampStateGet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HampState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HampState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -509,7 +645,14 @@ final $typed_data.Uint8List requestHampZoneSetDescriptor = $convert.base64Decode
 const ResponseHampZoneSet$json = {
   '1': 'ResponseHampZoneSet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HampState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HampState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -614,8 +757,8 @@ const RequestHdspStop$json = {
 };
 
 /// Descriptor for `RequestHdspStop`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHdspStopDescriptor = $convert.base64Decode(
-    'Cg9SZXF1ZXN0SGRzcFN0b3A=');
+final $typed_data.Uint8List requestHdspStopDescriptor =
+    $convert.base64Decode('Cg9SZXF1ZXN0SGRzcFN0b3A=');
 
 @$core.Deprecated('Use requestSliderStrokeGetDescriptor instead')
 const RequestSliderStrokeGet$json = {
@@ -623,8 +766,8 @@ const RequestSliderStrokeGet$json = {
 };
 
 /// Descriptor for `RequestSliderStrokeGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestSliderStrokeGetDescriptor = $convert.base64Decode(
-    'ChZSZXF1ZXN0U2xpZGVyU3Ryb2tlR2V0');
+final $typed_data.Uint8List requestSliderStrokeGetDescriptor =
+    $convert.base64Decode('ChZSZXF1ZXN0U2xpZGVyU3Ryb2tlR2V0');
 
 @$core.Deprecated('Use responseSliderStrokeGetDescriptor instead')
 const ResponseSliderStrokeGet$json = {
@@ -653,9 +796,10 @@ const RequestSliderStrokeSet$json = {
 };
 
 /// Descriptor for `RequestSliderStrokeSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestSliderStrokeSetDescriptor = $convert.base64Decode(
-    'ChZSZXF1ZXN0U2xpZGVyU3Ryb2tlU2V0EhAKA21pbhgBIAEoAlIDbWluEhAKA21heBgCIAEoAl'
-    'IDbWF4');
+final $typed_data.Uint8List requestSliderStrokeSetDescriptor =
+    $convert.base64Decode(
+        'ChZSZXF1ZXN0U2xpZGVyU3Ryb2tlU2V0EhAKA21pbhgBIAEoAlIDbWluEhAKA21heBgCIAEoAl'
+        'IDbWF4');
 
 @$core.Deprecated('Use responseSliderStrokeSetDescriptor instead')
 const ResponseSliderStrokeSet$json = {
@@ -680,19 +824,32 @@ const RequestSliderStateGet$json = {
 };
 
 /// Descriptor for `RequestSliderStateGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestSliderStateGetDescriptor = $convert.base64Decode(
-    'ChVSZXF1ZXN0U2xpZGVyU3RhdGVHZXQ=');
+final $typed_data.Uint8List requestSliderStateGetDescriptor =
+    $convert.base64Decode('ChVSZXF1ZXN0U2xpZGVyU3RhdGVHZXQ=');
 
 @$core.Deprecated('Use responseSliderStateGetDescriptor instead')
 const ResponseSliderStateGet$json = {
   '1': 'ResponseSliderStateGet',
   '2': [
     {'1': 'position', '3': 1, '4': 1, '5': 2, '10': 'position'},
-    {'1': 'position_absolute', '3': 2, '4': 1, '5': 2, '10': 'positionAbsolute'},
+    {
+      '1': 'position_absolute',
+      '3': 2,
+      '4': 1,
+      '5': 2,
+      '10': 'positionAbsolute'
+    },
     {'1': 'motor_temp', '3': 3, '4': 1, '5': 2, '10': 'motorTemp'},
     {'1': 'speed_absolute', '3': 4, '4': 1, '5': 2, '10': 'speedAbsolute'},
     {'1': 'dir', '3': 5, '4': 1, '5': 8, '10': 'dir'},
     {'1': 'motor_position', '3': 6, '4': 1, '5': 13, '10': 'motorPosition'},
+    {
+      '1': 'motor_temp_adc_value',
+      '3': 7,
+      '4': 1,
+      '5': 13,
+      '10': 'motorTempAdcValue'
+    },
   ],
 };
 
@@ -702,16 +859,34 @@ final $typed_data.Uint8List responseSliderStateGetDescriptor = $convert.base64De
     'Fwb3NpdGlvbl9hYnNvbHV0ZRgCIAEoAlIQcG9zaXRpb25BYnNvbHV0ZRIdCgptb3Rvcl90ZW1w'
     'GAMgASgCUgltb3RvclRlbXASJQoOc3BlZWRfYWJzb2x1dGUYBCABKAJSDXNwZWVkQWJzb2x1dG'
     'USEAoDZGlyGAUgASgIUgNkaXISJQoObW90b3JfcG9zaXRpb24YBiABKA1SDW1vdG9yUG9zaXRp'
-    'b24=');
+    'b24SLwoUbW90b3JfdGVtcF9hZGNfdmFsdWUYByABKA1SEW1vdG9yVGVtcEFkY1ZhbHVl');
 
 @$core.Deprecated('Use requestSliderCalibrateDescriptor instead')
 const RequestSliderCalibrate$json = {
   '1': 'RequestSliderCalibrate',
+  '2': [
+    {'1': 'go_to_start', '3': 1, '4': 1, '5': 8, '10': 'goToStart'},
+  ],
 };
 
 /// Descriptor for `RequestSliderCalibrate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestSliderCalibrateDescriptor = $convert.base64Decode(
-    'ChZSZXF1ZXN0U2xpZGVyQ2FsaWJyYXRl');
+final $typed_data.Uint8List requestSliderCalibrateDescriptor =
+    $convert.base64Decode(
+        'ChZSZXF1ZXN0U2xpZGVyQ2FsaWJyYXRlEh4KC2dvX3RvX3N0YXJ0GAEgASgIUglnb1RvU3Rhcn'
+        'Q=');
+
+@$core.Deprecated('Use responseSliderCalibrateDescriptor instead')
+const ResponseSliderCalibrate$json = {
+  '1': 'ResponseSliderCalibrate',
+  '2': [
+    {'1': 'success', '3': 1, '4': 1, '5': 8, '10': 'success'},
+  ],
+};
+
+/// Descriptor for `ResponseSliderCalibrate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseSliderCalibrateDescriptor =
+    $convert.base64Decode(
+        'ChdSZXNwb25zZVNsaWRlckNhbGlicmF0ZRIYCgdzdWNjZXNzGAEgASgIUgdzdWNjZXNz');
 
 @$core.Deprecated('Use requestHspSetupDescriptor instead')
 const RequestHspSetup$json = {
@@ -729,7 +904,14 @@ final $typed_data.Uint8List requestHspSetupDescriptor = $convert.base64Decode(
 const ResponseHspSetup$json = {
   '1': 'ResponseHspSetup',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HspState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HspState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -742,10 +924,29 @@ final $typed_data.Uint8List responseHspSetupDescriptor = $convert.base64Decode(
 const RequestHspAdd$json = {
   '1': 'RequestHspAdd',
   '2': [
-    {'1': 'points', '3': 1, '4': 3, '5': 11, '6': '.hdy_rpc.Point', '10': 'points'},
+    {
+      '1': 'points',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.hdy_rpc.Point',
+      '10': 'points'
+    },
     {'1': 'flush', '3': 2, '4': 1, '5': 8, '10': 'flush'},
-    {'1': 'tail_point_stream_index', '3': 3, '4': 1, '5': 13, '10': 'tailPointStreamIndex'},
-    {'1': 'tail_point_threshold', '3': 5, '4': 1, '5': 13, '10': 'tailPointThreshold'},
+    {
+      '1': 'tail_point_stream_index',
+      '3': 3,
+      '4': 1,
+      '5': 13,
+      '10': 'tailPointStreamIndex'
+    },
+    {
+      '1': 'tail_point_threshold',
+      '3': 5,
+      '4': 1,
+      '5': 13,
+      '10': 'tailPointThreshold'
+    },
   ],
 };
 
@@ -760,7 +961,14 @@ final $typed_data.Uint8List requestHspAddDescriptor = $convert.base64Decode(
 const ResponseHspAdd$json = {
   '1': 'ResponseHspAdd',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HspState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HspState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -775,14 +983,21 @@ const RequestHspFlush$json = {
 };
 
 /// Descriptor for `RequestHspFlush`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHspFlushDescriptor = $convert.base64Decode(
-    'Cg9SZXF1ZXN0SHNwRmx1c2g=');
+final $typed_data.Uint8List requestHspFlushDescriptor =
+    $convert.base64Decode('Cg9SZXF1ZXN0SHNwRmx1c2g=');
 
 @$core.Deprecated('Use responseHspFlushDescriptor instead')
 const ResponseHspFlush$json = {
   '1': 'ResponseHspFlush',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HspState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HspState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -814,7 +1029,14 @@ final $typed_data.Uint8List requestHspPlayDescriptor = $convert.base64Decode(
 const ResponseHspPlay$json = {
   '1': 'ResponseHspPlay',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HspState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HspState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -829,14 +1051,21 @@ const RequestHspStop$json = {
 };
 
 /// Descriptor for `RequestHspStop`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHspStopDescriptor = $convert.base64Decode(
-    'Cg5SZXF1ZXN0SHNwU3RvcA==');
+final $typed_data.Uint8List requestHspStopDescriptor =
+    $convert.base64Decode('Cg5SZXF1ZXN0SHNwU3RvcA==');
 
 @$core.Deprecated('Use responseHspStopDescriptor instead')
 const ResponseHspStop$json = {
   '1': 'ResponseHspStop',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HspState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HspState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -851,14 +1080,21 @@ const RequestHspPause$json = {
 };
 
 /// Descriptor for `RequestHspPause`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHspPauseDescriptor = $convert.base64Decode(
-    'Cg9SZXF1ZXN0SHNwUGF1c2U=');
+final $typed_data.Uint8List requestHspPauseDescriptor =
+    $convert.base64Decode('Cg9SZXF1ZXN0SHNwUGF1c2U=');
 
 @$core.Deprecated('Use responseHspPauseDescriptor instead')
 const ResponseHspPause$json = {
   '1': 'ResponseHspPause',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HspState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HspState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -883,7 +1119,14 @@ final $typed_data.Uint8List requestHspResumeDescriptor = $convert.base64Decode(
 const ResponseHspResume$json = {
   '1': 'ResponseHspResume',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HspState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HspState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -898,14 +1141,21 @@ const RequestHspStateGet$json = {
 };
 
 /// Descriptor for `RequestHspStateGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHspStateGetDescriptor = $convert.base64Decode(
-    'ChJSZXF1ZXN0SHNwU3RhdGVHZXQ=');
+final $typed_data.Uint8List requestHspStateGetDescriptor =
+    $convert.base64Decode('ChJSZXF1ZXN0SHNwU3RhdGVHZXQ=');
 
 @$core.Deprecated('Use responseHspStateGetDescriptor instead')
 const ResponseHspStateGet$json = {
   '1': 'ResponseHspStateGet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HspState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HspState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -934,40 +1184,63 @@ final $typed_data.Uint8List requestHspCurrentTimeSetDescriptor = $convert.base64
 const ResponseHspCurrentTimeSet$json = {
   '1': 'ResponseHspCurrentTimeSet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HspState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HspState',
+      '10': 'state'
+    },
   ],
 };
 
 /// Descriptor for `ResponseHspCurrentTimeSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseHspCurrentTimeSetDescriptor = $convert.base64Decode(
-    'ChlSZXNwb25zZUhzcEN1cnJlbnRUaW1lU2V0EicKBXN0YXRlGAEgASgLMhEuaGR5X3JwYy5Ic3'
-    'BTdGF0ZVIFc3RhdGU=');
+final $typed_data.Uint8List responseHspCurrentTimeSetDescriptor =
+    $convert.base64Decode(
+        'ChlSZXNwb25zZUhzcEN1cnJlbnRUaW1lU2V0EicKBXN0YXRlGAEgASgLMhEuaGR5X3JwYy5Ic3'
+        'BTdGF0ZVIFc3RhdGU=');
 
 @$core.Deprecated('Use requestHspThresholdSetDescriptor instead')
 const RequestHspThresholdSet$json = {
   '1': 'RequestHspThresholdSet',
   '2': [
-    {'1': 'tail_point_threshold', '3': 1, '4': 1, '5': 13, '10': 'tailPointThreshold'},
+    {
+      '1': 'tail_point_threshold',
+      '3': 1,
+      '4': 1,
+      '5': 13,
+      '10': 'tailPointThreshold'
+    },
   ],
 };
 
 /// Descriptor for `RequestHspThresholdSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHspThresholdSetDescriptor = $convert.base64Decode(
-    'ChZSZXF1ZXN0SHNwVGhyZXNob2xkU2V0EjAKFHRhaWxfcG9pbnRfdGhyZXNob2xkGAEgASgNUh'
-    'J0YWlsUG9pbnRUaHJlc2hvbGQ=');
+final $typed_data.Uint8List requestHspThresholdSetDescriptor =
+    $convert.base64Decode(
+        'ChZSZXF1ZXN0SHNwVGhyZXNob2xkU2V0EjAKFHRhaWxfcG9pbnRfdGhyZXNob2xkGAEgASgNUh'
+        'J0YWlsUG9pbnRUaHJlc2hvbGQ=');
 
 @$core.Deprecated('Use responseHspThresholdSetDescriptor instead')
 const ResponseHspThresholdSet$json = {
   '1': 'ResponseHspThresholdSet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HspState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HspState',
+      '10': 'state'
+    },
   ],
 };
 
 /// Descriptor for `ResponseHspThresholdSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseHspThresholdSetDescriptor = $convert.base64Decode(
-    'ChdSZXNwb25zZUhzcFRocmVzaG9sZFNldBInCgVzdGF0ZRgBIAEoCzIRLmhkeV9ycGMuSHNwU3'
-    'RhdGVSBXN0YXRl');
+final $typed_data.Uint8List responseHspThresholdSetDescriptor =
+    $convert.base64Decode(
+        'ChdSZXNwb25zZUhzcFRocmVzaG9sZFNldBInCgVzdGF0ZRgBIAEoCzIRLmhkeV9ycGMuSHNwU3'
+        'RhdGVSBXN0YXRl');
 
 @$core.Deprecated('Use requestHspPauseOnStarvingSetDescriptor instead')
 const RequestHspPauseOnStarvingSet$json = {
@@ -978,22 +1251,31 @@ const RequestHspPauseOnStarvingSet$json = {
 };
 
 /// Descriptor for `RequestHspPauseOnStarvingSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHspPauseOnStarvingSetDescriptor = $convert.base64Decode(
-    'ChxSZXF1ZXN0SHNwUGF1c2VPblN0YXJ2aW5nU2V0EioKEXBhdXNlX29uX3N0YXJ2aW5nGAEgAS'
-    'gIUg9wYXVzZU9uU3RhcnZpbmc=');
+final $typed_data.Uint8List requestHspPauseOnStarvingSetDescriptor =
+    $convert.base64Decode(
+        'ChxSZXF1ZXN0SHNwUGF1c2VPblN0YXJ2aW5nU2V0EioKEXBhdXNlX29uX3N0YXJ2aW5nGAEgAS'
+        'gIUg9wYXVzZU9uU3RhcnZpbmc=');
 
 @$core.Deprecated('Use responseHspPauseOnStarvingSetDescriptor instead')
 const ResponseHspPauseOnStarvingSet$json = {
   '1': 'ResponseHspPauseOnStarvingSet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HspState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HspState',
+      '10': 'state'
+    },
   ],
 };
 
 /// Descriptor for `ResponseHspPauseOnStarvingSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseHspPauseOnStarvingSetDescriptor = $convert.base64Decode(
-    'Ch1SZXNwb25zZUhzcFBhdXNlT25TdGFydmluZ1NldBInCgVzdGF0ZRgBIAEoCzIRLmhkeV9ycG'
-    'MuSHNwU3RhdGVSBXN0YXRl');
+final $typed_data.Uint8List responseHspPauseOnStarvingSetDescriptor =
+    $convert.base64Decode(
+        'Ch1SZXNwb25zZUhzcFBhdXNlT25TdGFydmluZ1NldBInCgVzdGF0ZRgBIAEoCzIRLmhkeV9ycG'
+        'MuSHNwU3RhdGVSBXN0YXRl');
 
 @$core.Deprecated('Use requestLedOverrideDescriptor instead')
 const RequestLedOverride$json = {
@@ -1032,7 +1314,14 @@ final $typed_data.Uint8List requestHvpSetDescriptor = $convert.base64Decode(
 const ResponseHvpSet$json = {
   '1': 'ResponseHvpSet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HvpState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HvpState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -1047,14 +1336,21 @@ const RequestHvpStop$json = {
 };
 
 /// Descriptor for `RequestHvpStop`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHvpStopDescriptor = $convert.base64Decode(
-    'Cg5SZXF1ZXN0SHZwU3RvcA==');
+final $typed_data.Uint8List requestHvpStopDescriptor =
+    $convert.base64Decode('Cg5SZXF1ZXN0SHZwU3RvcA==');
 
 @$core.Deprecated('Use responseHvpStopDescriptor instead')
 const ResponseHvpStop$json = {
   '1': 'ResponseHvpStop',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HvpState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HvpState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -1069,14 +1365,21 @@ const RequestHvpStart$json = {
 };
 
 /// Descriptor for `RequestHvpStart`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHvpStartDescriptor = $convert.base64Decode(
-    'Cg9SZXF1ZXN0SHZwU3RhcnQ=');
+final $typed_data.Uint8List requestHvpStartDescriptor =
+    $convert.base64Decode('Cg9SZXF1ZXN0SHZwU3RhcnQ=');
 
 @$core.Deprecated('Use responseHvpStartDescriptor instead')
 const ResponseHvpStart$json = {
   '1': 'ResponseHvpStart',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HvpState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HvpState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -1091,14 +1394,21 @@ const RequestHvpStateGet$json = {
 };
 
 /// Descriptor for `RequestHvpStateGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHvpStateGetDescriptor = $convert.base64Decode(
-    'ChJSZXF1ZXN0SHZwU3RhdGVHZXQ=');
+final $typed_data.Uint8List requestHvpStateGetDescriptor =
+    $convert.base64Decode('ChJSZXF1ZXN0SHZwU3RhdGVHZXQ=');
 
 @$core.Deprecated('Use responseHvpStateGetDescriptor instead')
 const ResponseHvpStateGet$json = {
   '1': 'ResponseHvpStateGet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HvpState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HvpState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -1113,14 +1423,21 @@ const RequestHrppStart$json = {
 };
 
 /// Descriptor for `RequestHrppStart`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHrppStartDescriptor = $convert.base64Decode(
-    'ChBSZXF1ZXN0SHJwcFN0YXJ0');
+final $typed_data.Uint8List requestHrppStartDescriptor =
+    $convert.base64Decode('ChBSZXF1ZXN0SHJwcFN0YXJ0');
 
 @$core.Deprecated('Use responseHrppStartDescriptor instead')
 const ResponseHrppStart$json = {
   '1': 'ResponseHrppStart',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HrppState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HrppState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -1135,14 +1452,21 @@ const RequestHrppStop$json = {
 };
 
 /// Descriptor for `RequestHrppStop`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHrppStopDescriptor = $convert.base64Decode(
-    'Cg9SZXF1ZXN0SHJwcFN0b3A=');
+final $typed_data.Uint8List requestHrppStopDescriptor =
+    $convert.base64Decode('Cg9SZXF1ZXN0SHJwcFN0b3A=');
 
 @$core.Deprecated('Use responseHrppStopDescriptor instead')
 const ResponseHrppStop$json = {
   '1': 'ResponseHrppStop',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HrppState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HrppState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -1160,22 +1484,31 @@ const RequestHrppAmplitudeSet$json = {
 };
 
 /// Descriptor for `RequestHrppAmplitudeSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHrppAmplitudeSetDescriptor = $convert.base64Decode(
-    'ChdSZXF1ZXN0SHJwcEFtcGxpdHVkZVNldBIcCglhbXBsaXR1ZGUYASABKAJSCWFtcGxpdHVkZQ'
-    '==');
+final $typed_data.Uint8List requestHrppAmplitudeSetDescriptor =
+    $convert.base64Decode(
+        'ChdSZXF1ZXN0SHJwcEFtcGxpdHVkZVNldBIcCglhbXBsaXR1ZGUYASABKAJSCWFtcGxpdHVkZQ'
+        '==');
 
 @$core.Deprecated('Use responseHrppAmplitudeSetDescriptor instead')
 const ResponseHrppAmplitudeSet$json = {
   '1': 'ResponseHrppAmplitudeSet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HrppState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HrppState',
+      '10': 'state'
+    },
   ],
 };
 
 /// Descriptor for `ResponseHrppAmplitudeSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseHrppAmplitudeSetDescriptor = $convert.base64Decode(
-    'ChhSZXNwb25zZUhycHBBbXBsaXR1ZGVTZXQSKAoFc3RhdGUYASABKAsyEi5oZHlfcnBjLkhycH'
-    'BTdGF0ZVIFc3RhdGU=');
+final $typed_data.Uint8List responseHrppAmplitudeSetDescriptor =
+    $convert.base64Decode(
+        'ChhSZXNwb25zZUhycHBBbXBsaXR1ZGVTZXQSKAoFc3RhdGUYASABKAsyEi5oZHlfcnBjLkhycH'
+        'BTdGF0ZVIFc3RhdGU=');
 
 @$core.Deprecated('Use requestHrppPlaybackSpeedSetDescriptor instead')
 const RequestHrppPlaybackSpeedSet$json = {
@@ -1186,21 +1519,30 @@ const RequestHrppPlaybackSpeedSet$json = {
 };
 
 /// Descriptor for `RequestHrppPlaybackSpeedSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHrppPlaybackSpeedSetDescriptor = $convert.base64Decode(
-    'ChtSZXF1ZXN0SHJwcFBsYXliYWNrU3BlZWRTZXQSFAoFc3BlZWQYASABKAJSBXNwZWVk');
+final $typed_data.Uint8List requestHrppPlaybackSpeedSetDescriptor =
+    $convert.base64Decode(
+        'ChtSZXF1ZXN0SHJwcFBsYXliYWNrU3BlZWRTZXQSFAoFc3BlZWQYASABKAJSBXNwZWVk');
 
 @$core.Deprecated('Use responseHrppPlaybackSpeedSetDescriptor instead')
 const ResponseHrppPlaybackSpeedSet$json = {
   '1': 'ResponseHrppPlaybackSpeedSet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HrppState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HrppState',
+      '10': 'state'
+    },
   ],
 };
 
 /// Descriptor for `ResponseHrppPlaybackSpeedSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseHrppPlaybackSpeedSetDescriptor = $convert.base64Decode(
-    'ChxSZXNwb25zZUhycHBQbGF5YmFja1NwZWVkU2V0EigKBXN0YXRlGAEgASgLMhIuaGR5X3JwYy'
-    '5IcnBwU3RhdGVSBXN0YXRl');
+final $typed_data.Uint8List responseHrppPlaybackSpeedSetDescriptor =
+    $convert.base64Decode(
+        'ChxSZXNwb25zZUhycHBQbGF5YmFja1NwZWVkU2V0EigKBXN0YXRlGAEgASgLMhIuaGR5X3JwYy'
+        '5IcnBwU3RhdGVSBXN0YXRl');
 
 @$core.Deprecated('Use requestHrppPatternSetDescriptor instead')
 const RequestHrppPatternSet$json = {
@@ -1218,14 +1560,22 @@ final $typed_data.Uint8List requestHrppPatternSetDescriptor = $convert.base64Dec
 const ResponseHrppPatternSet$json = {
   '1': 'ResponseHrppPatternSet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HrppState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HrppState',
+      '10': 'state'
+    },
   ],
 };
 
 /// Descriptor for `ResponseHrppPatternSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseHrppPatternSetDescriptor = $convert.base64Decode(
-    'ChZSZXNwb25zZUhycHBQYXR0ZXJuU2V0EigKBXN0YXRlGAEgASgLMhIuaGR5X3JwYy5IcnBwU3'
-    'RhdGVSBXN0YXRl');
+final $typed_data.Uint8List responseHrppPatternSetDescriptor =
+    $convert.base64Decode(
+        'ChZSZXNwb25zZUhycHBQYXR0ZXJuU2V0EigKBXN0YXRlGAEgASgLMhIuaGR5X3JwYy5IcnBwU3'
+        'RhdGVSBXN0YXRl');
 
 @$core.Deprecated('Use requestHrppStateGetDescriptor instead')
 const RequestHrppStateGet$json = {
@@ -1233,14 +1583,21 @@ const RequestHrppStateGet$json = {
 };
 
 /// Descriptor for `RequestHrppStateGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHrppStateGetDescriptor = $convert.base64Decode(
-    'ChNSZXF1ZXN0SHJwcFN0YXRlR2V0');
+final $typed_data.Uint8List requestHrppStateGetDescriptor =
+    $convert.base64Decode('ChNSZXF1ZXN0SHJwcFN0YXRlR2V0');
 
 @$core.Deprecated('Use responseHrppStateGetDescriptor instead')
 const ResponseHrppStateGet$json = {
   '1': 'ResponseHrppStateGet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HrppState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HrppState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -1255,15 +1612,29 @@ const RequestHrppPatternsGet$json = {
 };
 
 /// Descriptor for `RequestHrppPatternsGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHrppPatternsGetDescriptor = $convert.base64Decode(
-    'ChZSZXF1ZXN0SHJwcFBhdHRlcm5zR2V0');
+final $typed_data.Uint8List requestHrppPatternsGetDescriptor =
+    $convert.base64Decode('ChZSZXF1ZXN0SHJwcFBhdHRlcm5zR2V0');
 
 @$core.Deprecated('Use responseHrppPatternsGetDescriptor instead')
 const ResponseHrppPatternsGet$json = {
   '1': 'ResponseHrppPatternsGet',
   '2': [
-    {'1': 'state', '3': 1, '4': 1, '5': 11, '6': '.hdy_rpc.HrppState', '10': 'state'},
-    {'1': 'patterns', '3': 2, '4': 3, '5': 11, '6': '.hdy_rpc.HrppPattern', '10': 'patterns'},
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HrppState',
+      '10': 'state'
+    },
+    {
+      '1': 'patterns',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.hdy_rpc.HrppPattern',
+      '10': 'patterns'
+    },
   ],
 };
 
@@ -1272,4 +1643,3 @@ final $typed_data.Uint8List responseHrppPatternsGetDescriptor = $convert.base64D
     'ChdSZXNwb25zZUhycHBQYXR0ZXJuc0dldBIoCgVzdGF0ZRgBIAEoCzISLmhkeV9ycGMuSHJwcF'
     'N0YXRlUgVzdGF0ZRIwCghwYXR0ZXJucxgCIAMoCzIULmhkeV9ycGMuSHJwcFBhdHRlcm5SCHBh'
     'dHRlcm5z');
-

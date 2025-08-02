@@ -15,13 +15,18 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class MessageType extends $pb.ProtobufEnum {
-  static const MessageType MESSAGE_TYPE_UNKNOWN = MessageType._(0, _omitEnumNames ? '' : 'MESSAGE_TYPE_UNKNOWN');
-  static const MessageType MESSAGE_TYPE_REQUEST = MessageType._(1, _omitEnumNames ? '' : 'MESSAGE_TYPE_REQUEST');
-  static const MessageType MESSAGE_TYPE_REQUESTS = MessageType._(2, _omitEnumNames ? '' : 'MESSAGE_TYPE_REQUESTS');
-  static const MessageType MESSAGE_TYPE_RESPONSE = MessageType._(3, _omitEnumNames ? '' : 'MESSAGE_TYPE_RESPONSE');
-  static const MessageType MESSAGE_TYPE_NOTIFICATION = MessageType._(4, _omitEnumNames ? '' : 'MESSAGE_TYPE_NOTIFICATION');
+  static const MessageType MESSAGE_TYPE_UNKNOWN =
+      MessageType._(0, _omitEnumNames ? '' : 'MESSAGE_TYPE_UNKNOWN');
+  static const MessageType MESSAGE_TYPE_REQUEST =
+      MessageType._(1, _omitEnumNames ? '' : 'MESSAGE_TYPE_REQUEST');
+  static const MessageType MESSAGE_TYPE_REQUESTS =
+      MessageType._(2, _omitEnumNames ? '' : 'MESSAGE_TYPE_REQUESTS');
+  static const MessageType MESSAGE_TYPE_RESPONSE =
+      MessageType._(3, _omitEnumNames ? '' : 'MESSAGE_TYPE_RESPONSE');
+  static const MessageType MESSAGE_TYPE_NOTIFICATION =
+      MessageType._(4, _omitEnumNames ? '' : 'MESSAGE_TYPE_NOTIFICATION');
 
-  static const $core.List<MessageType> values = <MessageType> [
+  static const $core.List<MessageType> values = <MessageType>[
     MESSAGE_TYPE_UNKNOWN,
     MESSAGE_TYPE_REQUEST,
     MESSAGE_TYPE_REQUESTS,
@@ -29,11 +34,13 @@ class MessageType extends $pb.ProtobufEnum {
     MESSAGE_TYPE_NOTIFICATION,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 4);
-  static MessageType? valueOf($core.int value) =>  value < 0 || value >= _byValue.length ? null : _byValue[value];
+  static final $core.List<MessageType?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 4);
+  static MessageType? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);
 }
 
-
-const $core.bool _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');
+const $core.bool _omitEnumNames =
+    $core.bool.fromEnvironment('protobuf.omit_enum_names');

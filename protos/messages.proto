@@ -1,4 +1,4 @@
-// Auto-generated on 2025-06-12 08:44:03
+// Auto-generated on 2025-08-01 10:24:23
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
@@ -258,10 +258,15 @@ message ResponseSliderStateGet{
     float speed_absolute = 4;       //[mm/s]
     bool dir = 5;                   //true = forward, false = backward
     uint32 motor_position = 6;      //hall patter signal [0-2]. In Handy H01, change results in 1/12 rotation
+    uint32 motor_temp_adc_value = 7; //0-4095. ADC value of the motor temperature sensor - Added in FW4.0.16
 }
 //843 - Moves the slider to the absolute position and reset encoder
 //Added in FW4.0.15
 message RequestSliderCalibrate{
+    bool go_to_start = 1; //If true, the slider will move to the start position (END_BUFFER ~5mm) after calibration
+}
+message ResponseSliderCalibrate{
+    bool success = 1; //If the calibration was successful
 }
 ///////////////////////// HSP /////////////////////////
 //860
