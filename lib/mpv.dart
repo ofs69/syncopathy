@@ -9,6 +9,7 @@ class MpvVideoplayer {
   ValueNotifier<double> get duration => player.duration;
   ValueNotifier<double> get playbackSpeed => player.speed;
   ValueNotifier<String> get path => player.path;
+  ValueNotifier<double> get volume => player.volume;
 
   MpvVideoplayer({required bool videoOutput}) {
     player = Player(
@@ -75,5 +76,9 @@ class MpvVideoplayer {
 
   void setSpeed(double speed) {
     player.command(["set", "speed", speed.toStringAsPrecision(3)]);
+  }
+
+  void setVolume(double volume) {
+    player.setPropertyDouble('volume', volume.clamp(0, 100));
   }
 }

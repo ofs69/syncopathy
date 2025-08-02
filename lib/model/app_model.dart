@@ -26,6 +26,7 @@ class SyncopathyModel extends ChangeNotifier {
   ValueNotifier<double> get positionNoOffset => mpvPlayer.position;
   ValueNotifier<double> get duration => mpvPlayer.duration;
   ValueNotifier<double> get playbackSpeed => mpvPlayer.playbackSpeed;
+  ValueNotifier<double> get volume => mpvPlayer.volume;
 
   ValueNotifier<bool> get isConnected => _handyBle.isConnected;
   ValueNotifier<bool> get isScanning => _handyBle.isScanning;
@@ -205,6 +206,10 @@ class SyncopathyModel extends ChangeNotifier {
     mpvPlayer.setSpeed(speed.clamp(0.5, 2.0));
   }
 
+  void setVolume(double volume) {
+    mpvPlayer.setVolume(volume);
+  }
+
   void applySettings() {
     _handyBle.setSettings(
       (settings.min.toDouble() / 100.0).clamp(0.0, 1.0),
@@ -231,4 +236,6 @@ class SyncopathyModel extends ChangeNotifier {
       _addError(e.toString());
     }
   }
+
+  
 }

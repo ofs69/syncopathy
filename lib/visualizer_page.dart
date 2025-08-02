@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/model/app_model.dart';
-import 'package:syncopathy/heatmap.dart';
 import 'package:syncopathy/scrolling_graph.dart';
 import 'package:syncopathy/video_controls.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
@@ -16,6 +15,14 @@ class VisualizerPage extends StatefulWidget {
 }
 
 class _VisualizerPageState extends State<VisualizerPage> {
+  bool _isFullscreen = false;
+
+  void _toggleFullscreen() {
+    setState(() {
+      _isFullscreen = !_isFullscreen;
+    });
+  }
+
   @override
   void dispose() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -25,7 +32,16 @@ class _VisualizerPageState extends State<VisualizerPage> {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<SyncopathyModel>();
-    final settings = model.settings;
+
+    enterFullscreen() => Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FullscreenVideoPage(
+          player: model.mpvPlayer.player,
+          videoParamsNotifier: model.mpvPlayer.player.videoParams,
+        ),
+      ),
+    ).then((_) => _toggleFullscreen());
 
     return ValueListenableBuilder(
       valueListenable: model.funscript,
@@ -37,21 +53,10 @@ class _VisualizerPageState extends State<VisualizerPage> {
           body: Column(
             children: [
               Expanded(
-                flex: 12,
-                child: settings.embeddedVideoPlayer
+                flex: 6,
+                child: model.settings.embeddedVideoPlayer
                     ? GestureDetector(
-                        onDoubleTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => FullscreenVideoPage(
-                                player: model.mpvPlayer.player,
-                                videoParamsNotifier:
-                                    model.mpvPlayer.player.videoParams,
-                              ),
-                            ),
-                          );
-                        },
+                        onDoubleTap: enterFullscreen,
                         child: Hero(
                           tag: 'videoPlayer',
                           child: CustomMpvVideoWidget(
@@ -68,29 +73,15 @@ class _VisualizerPageState extends State<VisualizerPage> {
                       ),
               ),
               Expanded(
-                flex: 2,
+                flex: 1,
                 child: InteractiveScrollingGraph(
                   funscript: funscript,
                   videoPosition: model.positionNoOffset,
                 ),
               ),
-              Expanded(
-                flex: 2,
-                child: Column(
-                  children: [
-                    Expanded(flex: 1, child: VideoControls()),
-                    SizedBox(
-                      height: 50,
-                      child: Heatmap(
-                        funscript: funscript,
-                        videoPosition: model.positionNoOffset,
-                        totalDuration: model.duration,
-                        onClick: (seekTo) =>
-                            model.seekTo(seekTo.inMilliseconds / 1000.0),
-                      ),
-                    ),
-                  ],
-                ),
+              VideoControls(
+                isFullscreen: _isFullscreen,
+                onFullscreenToggle: enterFullscreen,
               ),
             ],
           ),

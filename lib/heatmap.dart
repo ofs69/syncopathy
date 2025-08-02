@@ -40,36 +40,42 @@ class Heatmap extends StatelessWidget {
             }
           },
           child: ClipRect(
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Heatmap painter (only rebuilds when duration/funscript changes)
-                ValueListenableBuilder<double>(
-                  valueListenable: totalDuration,
-                  builder: (context, duration, child) {
-                    return CustomPaint(
-                      painter: HeatmapPainter(
-                        funscript: funscript,
-                        totalDuration: _totalDuration,
-                      ),
-                    );
-                  },
-                ),
-                // Indicator painter (only rebuilds when position changes)
-                ValueListenableBuilder<double>(
-                  valueListenable: videoPosition,
-                  builder: (context, position, child) {
-                    return CustomPaint(
-                      painter: IndicatorPainter(
-                        videoPosition: Duration(
-                          milliseconds: (position * 1000).round(),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                border: Border.all(color: Colors.grey),
+              ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Heatmap painter (only rebuilds when duration/funscript changes)
+                  ValueListenableBuilder<double>(
+                    valueListenable: totalDuration,
+                    builder: (context, duration, child) {
+                      return CustomPaint(
+                        painter: HeatmapPainter(
+                          funscript: funscript,
+                          totalDuration: _totalDuration,
                         ),
-                        totalDuration: _totalDuration,
-                      ),
-                    );
-                  },
-                ),
-              ],
+                      );
+                    },
+                  ),
+                  // Indicator painter (only rebuilds when position changes)
+                  ValueListenableBuilder<double>(
+                    valueListenable: videoPosition,
+                    builder: (context, position, child) {
+                      return CustomPaint(
+                        painter: IndicatorPainter(
+                          videoPosition: Duration(
+                            milliseconds: (position * 1000).round(),
+                          ),
+                          totalDuration: _totalDuration,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         );
