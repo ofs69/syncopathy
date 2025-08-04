@@ -235,78 +235,105 @@ class _MediaLibraryState extends State<MediaLibrary> {
     );
   }
 
-  Future<void> _showFilterDialog({
-    required String title,
-    required List<String> items,
-    required String? selectedItem,
-    required Function(String?) onItemSelected,
-  }) async {
-    final selected = await showModalBottomSheet<String?>(
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        final searchController = TextEditingController();
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            final filteredItems = items
-                .where(
-                  (item) => item.toLowerCase().contains(
-                    searchController.text.toLowerCase(),
-                  ),
-                )
-                .toList();
+  Future<void> _showFunscriptMetadataFilterDialog() async {
+    String? currentAuthor = _selectedAuthor;
+    String? currentTag = _selectedTag;
+    String? currentPerformer = _selectedPerformer;
 
-            return DraggableScrollableSheet(
-              expand: false,
-              builder:
-                  (BuildContext context, ScrollController scrollController) {
-                    return Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: TextField(
-                            controller: searchController,
-                            onChanged: (value) => setState(() {}),
-                            decoration: InputDecoration(
-                              labelText: 'Search $title',
-                              prefixIcon: const Icon(Icons.search),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: ListView.builder(
-                            controller: scrollController,
-                            itemCount: filteredItems.length + 1,
-                            itemBuilder: (context, index) {
-                              if (index == 0) {
-                                return ListTile(
-                                  title: Text('All ${title}s'),
-                                  onTap: () => Navigator.of(context).pop(null),
-                                );
-                              }
-                              final item = filteredItems[index - 1];
-                              return ListTile(
-                                title: Text(item),
-                                onTap: () => Navigator.of(context).pop(item),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    );
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Filter Funscript Metadata'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildFilterDropdown(
+                      title: 'Author',
+                      items: _allAuthors,
+                      selectedItem: currentAuthor,
+                      onItemSelected: (selected) {
+                        setState(() {
+                          currentAuthor = selected;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFilterDropdown(
+                      title: 'Tag',
+                      items: _allTags,
+                      selectedItem: currentTag,
+                      onItemSelected: (selected) {
+                        setState(() {
+                          currentTag = selected;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFilterDropdown(
+                      title: 'Performer',
+                      items: _allPerformers,
+                      selectedItem: currentPerformer,
+                      onItemSelected: (selected) {
+                        setState(() {
+                          currentPerformer = selected;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
                   },
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedAuthor = currentAuthor;
+                      _selectedTag = currentTag;
+                      _selectedPerformer = currentPerformer;
+                    });
+                    _updateDisplayedVideos();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Apply'),
+                ),
+              ],
             );
           },
         );
       },
     );
+  }
 
-    if (selected != selectedItem) {
-      onItemSelected(selected);
-    }
+  Widget _buildFilterDropdown({
+    required String title,
+    required List<String> items,
+    required String? selectedItem,
+    required Function(String?) onItemSelected,
+  }) {
+    return DropdownButtonFormField<String?>(
+      decoration: InputDecoration(
+        labelText: title,
+        border: const OutlineInputBorder(),
+      ),
+      value: selectedItem,
+      hint: Text('Select $title'),
+      onChanged: onItemSelected,
+      items: [
+        const DropdownMenuItem<String?>(value: null, child: Text('All')),
+        ...items.map((item) {
+          return DropdownMenuItem<String>(value: item, child: Text(item));
+        }),
+      ],
+    );
   }
 
   Future<void> _showCategoryDialog() async {
@@ -538,45 +565,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
           const SizedBox(width: 16),
           // Filter Buttons
           ActionChip(
-            avatar: const Icon(Icons.person_outline),
-            label: Text(_selectedAuthor ?? 'Author'),
-            onPressed: () => _showFilterDialog(
-              title: 'Authors',
-              items: _allAuthors,
-              selectedItem: _selectedAuthor,
-              onItemSelected: (selected) {
-                setState(() => _selectedAuthor = selected);
-                _updateDisplayedVideos();
-              },
-            ),
-          ),
-          const SizedBox(width: 16),
-          ActionChip(
-            avatar: const Icon(Icons.tag),
-            label: Text(_selectedTag ?? 'Tag'),
-            onPressed: () => _showFilterDialog(
-              title: 'Tags',
-              items: _allTags,
-              selectedItem: _selectedTag,
-              onItemSelected: (selected) {
-                setState(() => _selectedTag = selected);
-                _updateDisplayedVideos();
-              },
-            ),
-          ),
-          const SizedBox(width: 16),
-          ActionChip(
-            avatar: const Icon(Icons.person_search),
-            label: Text(_selectedPerformer ?? 'Performer'),
-            onPressed: () => _showFilterDialog(
-              title: 'Performers',
-              items: _allPerformers,
-              selectedItem: _selectedPerformer,
-              onItemSelected: (selected) {
-                setState(() => _selectedPerformer = selected);
-                _updateDisplayedVideos();
-              },
-            ),
+            avatar: const Icon(Icons.filter_list),
+            label: const Text('Funscript Metadata'),
+            onPressed: _showFunscriptMetadataFilterDialog,
           ),
           const SizedBox(width: 16),
           ActionChip(
