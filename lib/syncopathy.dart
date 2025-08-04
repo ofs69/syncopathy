@@ -7,9 +7,9 @@ import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 
 import 'package:syncopathy/settings_page.dart';
-import 'package:syncopathy/update_checker.dart';
+import 'package:syncopathy/update_checker_widget.dart';
 import 'package:syncopathy/video_player_page.dart';
-import 'package:url_launcher/url_launcher.dart';
+
 import 'package:path/path.dart' as p;
 import 'package:syncopathy/shortcut_handler.dart';
 
@@ -45,9 +45,7 @@ class SyncopathyHomePage extends StatefulWidget {
 
 class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   int _selectedIndex = 0;
-  String? _latestVersion;
-  bool _isCheckingForUpdates = false;
-  bool _isUpToDate = false;
+
   late PageController _pageController;
   String _currentVideoTitle = '';
 
@@ -97,49 +95,6 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.ease,
       );
-    }
-  }
-
-  Future<void> _checkForUpdates() async {
-    setState(() {
-      _isCheckingForUpdates = true;
-      _isUpToDate = false;
-    });
-    final version = await UpdateChecker.checkForUpdates();
-    if (mounted) {
-      setState(() {
-        _latestVersion = version;
-        _isCheckingForUpdates = false;
-        if (version == null) {
-          _isUpToDate = true;
-        }
-      });
-      if (version != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('New version $version available!')),
-        );
-      } else {
-        // Optionally, show a temporary green checkmark or a subtle animation
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            setState(() {
-              _isUpToDate = false;
-            });
-          }
-        });
-      }
-    }
-  }
-
-  Future<void> _openReleasePage() async {
-    final url = Uri.parse('https://github.com/ofs69/syncopathy/releases');
-    if (!await launchUrl(url)) {
-      Logger.error('Could not launch $url');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open the release page.')),
-        );
-      }
     }
   }
 
@@ -212,55 +167,11 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
             ],
           ),
           actions: [
-            if (_isCheckingForUpdates)
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (_isUpToDate)
-              const Tooltip(
-                message: 'You are on the latest version!',
-                child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Icon(Icons.check_circle, color: Colors.green),
-                ),
-              )
-            else if (_latestVersion != null)
-              Tooltip(
-                message: 'New version available: $_latestVersion',
-                child: IconButton(
-                  icon: const Icon(Icons.update, color: Colors.amber),
-                  onPressed: _openReleasePage,
-                ),
-              )
-            else
-              IconButton(
-                icon: const Icon(Icons.update_sharp),
-                onPressed: _checkForUpdates,
-                tooltip: 'Check for Updates',
-              ),
+            const UpdateCheckerWidget(),
             const SizedBox(width: 20),
             const Padding(
               padding: EdgeInsets.only(right: 20.0),
               child: ConnectionButton(),
-            ),
-            IconButton(
-              icon: const Icon(Icons.help_outline),
-              onPressed: () {
-                _pageController.animateToPage(
-                  3, // Index of the RebindShortcutsPage
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.ease,
-                );
-                setState(() {
-                  _selectedIndex = 3;
-                });
-              },
-              tooltip: 'Help',
             ),
           ],
         ),
