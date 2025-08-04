@@ -1,6 +1,5 @@
 import 'dart:math';
 
-
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:syncopathy/main.dart';
@@ -22,6 +21,14 @@ enum SortOption {
   final String label;
 }
 
+enum VisibilityFilter {
+  showAll('Show All'),
+  hideFavorites('Hide Favorites'),
+  hideDisliked('Hide Disliked');
+
+  const VisibilityFilter(this.label);
+  final String label;
+}
 
 class MediaLibrary extends StatefulWidget {
   final void Function(Video) onVideoTapped;
@@ -51,6 +58,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
   UserCategory? _selectedCategory;
   bool _isLoading = false;
   int videosPerRow = 6;
+  VisibilityFilter _currentVisibilityFilter = VisibilityFilter.showAll;
 
   @override
   void initState() {
@@ -129,6 +137,16 @@ class _MediaLibraryState extends State<MediaLibrary> {
         )) {
           return false;
         }
+      }
+
+      if (_currentVisibilityFilter == VisibilityFilter.hideFavorites &&
+          video.isFavorite) {
+        return false;
+      }
+
+      if (_currentVisibilityFilter == VisibilityFilter.hideDisliked &&
+          video.isDislike) {
+        return false;
       }
 
       return video.title.toLowerCase().contains(query);
@@ -506,7 +524,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
             }).toList(),
           ),
           IconButton(
-            icon: Icon(_isSortAscending ? Icons.arrow_upward : Icons.arrow_downward),
+            icon: Icon(
+              _isSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+            ),
             onPressed: () {
               setState(() {
                 _isSortAscending = !_isSortAscending;
@@ -565,6 +585,25 @@ class _MediaLibraryState extends State<MediaLibrary> {
             onPressed: _showCategoryDialog,
           ),
           const SizedBox(width: 16),
+          DropdownButton<VisibilityFilter>(
+            value: _currentVisibilityFilter,
+            icon: const Icon(Icons.visibility),
+            underline: const SizedBox.shrink(),
+            onChanged: (VisibilityFilter? newValue) {
+              if (newValue != null) {
+                setState(() {
+                  _currentVisibilityFilter = newValue;
+                });
+                _updateDisplayedVideos();
+              }
+            },
+            items: VisibilityFilter.values.map((VisibilityFilter option) {
+              return DropdownMenuItem<VisibilityFilter>(
+                value: option,
+                child: Text(option.label),
+              );
+            }).toList(),
+          ),
 
           // Videos Per Row Dropdown)
           Tooltip(
@@ -648,11 +687,11 @@ class _MediaLibraryState extends State<MediaLibrary> {
                 if (!_isLoading && _filteredVideos.isEmpty)
                   Center(
                     child: Text(
-                            _searchController.text.isEmpty
-                                ? 'No videos found in configured paths.'
-                                : 'No videos found for "${_searchController.text}".',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
+                      _searchController.text.isEmpty
+                          ? 'No videos found in configured paths.'
+                          : 'No videos found for "${_searchController.text}".',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   )
                 else
                   AnimatedSwitcher(
