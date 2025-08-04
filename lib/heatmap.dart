@@ -3,12 +3,12 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:syncopathy/model/funscript.dart';
 
-class Heatmap extends StatelessWidget {
+class Heatmap extends StatefulWidget {
   final Funscript funscript;
   final ValueNotifier<double> totalDuration;
   final ValueNotifier<double> videoPosition;
 
-  Duration get _totalDuration =>
+  Duration get totalDurationGetter =>
       Duration(milliseconds: (totalDuration.value * 1000).round());
 
   final void Function(Duration)? onClick;
@@ -22,78 +22,113 @@ class Heatmap extends StatelessWidget {
   });
 
   @override
+  State<Heatmap> createState() => _HeatmapState();
+}
+
+class _HeatmapState extends State<Heatmap> {
+  final ValueNotifier<double?> _hoverPosition = ValueNotifier<double?>(null);
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return GestureDetector(
-          onTapDown: (details) {
-            if (onClick != null &&
-                _totalDuration.inMilliseconds > 0 &&
+        return MouseRegion(
+          onHover: (event) {
+            if (widget.totalDurationGetter.inMilliseconds > 0 &&
                 constraints.maxWidth > 0) {
-              final dx = details.localPosition.dx.clamp(
+              _hoverPosition.value = event.localPosition.dx.clamp(
                 0,
                 constraints.maxWidth,
               );
-              final clickedMs =
-                  (dx / constraints.maxWidth) * _totalDuration.inMilliseconds;
-              onClick!(Duration(milliseconds: clickedMs.round()));
             }
           },
-          child: ClipRect(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                border: Border.all(color: Colors.grey),
-              ),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Heatmap painter (only rebuilds when duration/funscript changes)
-                  ValueListenableBuilder<double>(
-                    valueListenable: totalDuration,
-                    builder: (context, duration, child) {
-                      return CustomPaint(
-                        painter: HeatmapPainter(
-                          funscript: funscript,
-                          totalDuration: _totalDuration,
-                        ),
-                      );
-                    },
-                  ),
-                  // Indicator painter (only rebuilds when position changes)
-                  ValueListenableBuilder<double>(
-                    valueListenable: videoPosition,
-                    builder: (context, position, child) {
-                      return CustomPaint(
-                        painter: IndicatorPainter(
-                          videoPosition: Duration(
-                            milliseconds: (position * 1000).round(),
+          onExit: (event) {
+            _hoverPosition.value = null;
+          },
+          child: GestureDetector(
+            onTapDown: (details) {
+              if (widget.onClick != null &&
+                  widget.totalDuration.value > 0 &&
+                  constraints.maxWidth > 0) {
+                final dx = details.localPosition.dx.clamp(
+                  0,
+                  constraints.maxWidth,
+                );
+                final clickedMs =
+                    (dx / constraints.maxWidth) *
+                    widget.totalDurationGetter.inMilliseconds;
+                widget.onClick!(Duration(milliseconds: clickedMs.round()));
+              }
+            },
+            child: ClipRect(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  border: Border.all(color: Colors.grey),
+                ),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Heatmap painter (only rebuilds when duration/funscript changes)
+                    ValueListenableBuilder<double>(
+                      valueListenable: widget.totalDuration,
+                      builder: (context, duration, child) {
+                        return CustomPaint(
+                          painter: HeatmapPainter(
+                            funscript: widget.funscript,
+                            totalDuration: widget.totalDurationGetter,
                           ),
-                          totalDuration: _totalDuration,
-                        ),
-                      );
-                    },
-                  ),
-                  // Progress bar (solid bar on top)
-                  ValueListenableBuilder<double>(
-                    valueListenable: videoPosition,
-                    builder: (context, position, child) {
-                      final double progressWidth = totalDuration.value > 0
-                          ? constraints.maxWidth *
-                                (position / totalDuration.value)
-                          : 0.0;
-                      return Positioned(
-                        top: 0,
-                        left: 0,
-                        child: Container(
-                          width: progressWidth,
-                          height: 2.0, // Height of the progress bar
-                          color: Colors.red, // Color of the progress bar
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                        );
+                      },
+                    ),
+                    // Indicator painter (only rebuilds when position changes)
+                    ValueListenableBuilder<double>(
+                      valueListenable: widget.videoPosition,
+                      builder: (context, position, child) {
+                        return CustomPaint(
+                          painter: IndicatorPainter(
+                            videoPosition: Duration(
+                              milliseconds: (position * 1000).round(),
+                            ),
+                            totalDuration: widget.totalDurationGetter,
+                          ),
+                        );
+                      },
+                    ),
+                    // Hover indicator
+                    ValueListenableBuilder<double?>(
+                      valueListenable: _hoverPosition,
+                      builder: (context, hoverX, child) {
+                        if (hoverX == null) {
+                          return Container();
+                        }
+                        return CustomPaint(
+                          painter: HoverIndicatorPainter(hoverX: hoverX),
+                        );
+                      },
+                    ),
+                    // Progress bar (solid bar on top)
+                    ValueListenableBuilder<double>(
+                      valueListenable: widget.videoPosition,
+                      builder: (context, position, child) {
+                        final double progressWidth =
+                            widget.totalDuration.value > 0
+                            ? constraints.maxWidth *
+                                  (position / widget.totalDuration.value)
+                            : 0.0;
+                        return Positioned(
+                          top: 0,
+                          left: 0,
+                          child: Container(
+                            width: progressWidth,
+                            height: 2.0, // Height of the progress bar
+                            color: Colors.red, // Color of the progress bar
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -257,5 +292,25 @@ class IndicatorPainter extends CustomPainter {
   bool shouldRepaint(covariant IndicatorPainter oldDelegate) {
     return oldDelegate.videoPosition != videoPosition ||
         oldDelegate.totalDuration != totalDuration;
+  }
+}
+
+class HoverIndicatorPainter extends CustomPainter {
+  final double hoverX;
+
+  HoverIndicatorPainter({required this.hoverX});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final hoverPaint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 2.0;
+
+    canvas.drawLine(Offset(hoverX, 0), Offset(hoverX, size.height), hoverPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant HoverIndicatorPainter oldDelegate) {
+    return oldDelegate.hoverX != hoverX;
   }
 }
