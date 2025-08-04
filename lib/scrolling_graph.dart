@@ -201,7 +201,7 @@ class GraphPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // --- 1. Define Paints ---
     final gridPaint = Paint()
-      ..color = theme.colorScheme.onSurface.withOpacity(0.1)
+      ..color = theme.colorScheme.onSurface.withAlpha(25)
       ..strokeWidth = 1.0;
 
     final linePaint = Paint()

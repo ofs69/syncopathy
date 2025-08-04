@@ -42,7 +42,7 @@ class Heatmap extends StatelessWidget {
           child: ClipRect(
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 border: Border.all(color: Colors.grey),
               ),
               child: Stack(

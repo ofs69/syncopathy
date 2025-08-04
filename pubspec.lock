@@ -261,10 +261,10 @@ packages:
     dependency: "direct main"
     description:
       name: file_picker
-      sha256: ef9908739bdd9c476353d6adff72e88fd00c625f5b959ae23f7567bd5137db0a
+      sha256: "13ba4e627ef24503a465d1d61b32596ce10eb6b8903678d362a528f9939b4aa8"
       url: "https://pub.dev"
     source: hosted
-    version: "10.2.0"
+    version: "10.2.1"
   fixnum:
     dependency: "direct main"
     description:
@@ -469,7 +469,7 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "230e4bace2a58ee8bc552dbaa74ef5ca7ab85886"
+      resolved-ref: ec2de6ed107e016b0efce8f9b1a897ec1c1e71be
       url: "https://github.com/ofs69/libmpv_dart.git"
     source: git
     version: "0.0.3"

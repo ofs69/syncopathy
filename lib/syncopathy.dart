@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_page.dart';
 import 'package:syncopathy/model/app_model.dart';
+import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/settings_page.dart';
 import 'package:syncopathy/update_checker.dart';
 import 'package:syncopathy/visualizer_page.dart';
@@ -51,23 +52,23 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _selectedIndex);
-    final model = context.read<SyncopathyModel>();
-    model.mpvPlayer.path.addListener(_handleVideoPathChange);
-    model.mpvPlayer.path.addListener(_updateVideoTitle);
+    final player = context.read<PlayerModel>();
+    player.path.addListener(_handleVideoPathChange);
+    player.path.addListener(_updateVideoTitle);
     _updateVideoTitle(); // Initial update
   }
 
   @override
   void dispose() {
-    final model = context.read<SyncopathyModel>();
-    model.mpvPlayer.path.removeListener(_handleVideoPathChange);
-    model.mpvPlayer.path.removeListener(_updateVideoTitle);
+    final player = context.read<PlayerModel>();
+    player.path.removeListener(_handleVideoPathChange);
+    player.path.removeListener(_updateVideoTitle);
     super.dispose();
   }
 
   void _updateVideoTitle() {
-    final model = context.read<SyncopathyModel>();
-    final path = model.mpvPlayer.path.value;
+    final player = context.read<PlayerModel>();
+    final path = player.path.value;
     setState(() {
       _currentVideoTitle = path.isNotEmpty
           ? p.basenameWithoutExtension(path)
@@ -77,7 +78,8 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
 
   void _handleVideoPathChange() {
     final model = context.read<SyncopathyModel>();
-    if (model.mpvPlayer.path.value.isNotEmpty &&
+    final player = context.read<PlayerModel>();
+    if (player.path.value.isNotEmpty &&
         model.settings.embeddedVideoPlayer) {
       setState(() {
         _selectedIndex = 1; // Navigate to Visualizer tab
@@ -272,9 +274,9 @@ class ConnectionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final model = context.watch<SyncopathyModel>();
+    final player = context.watch<PlayerModel>();
     return ValueListenableBuilder(
-      valueListenable: model.isScanning,
+      valueListenable: player.isScanning,
       builder: (context, scanning, child) {
         if (scanning) {
           return Padding(
@@ -296,7 +298,7 @@ class ConnectionButton extends StatelessWidget {
           );
         }
         return ValueListenableBuilder(
-          valueListenable: model.isConnected,
+          valueListenable: player.isConnected,
           builder: (context, connected, child) {
             return Tooltip(
               message: connected ? "Connected" : "Disconnected",
@@ -308,7 +310,7 @@ class ConnectionButton extends StatelessWidget {
                       : Icons.bluetooth_disabled,
                   color: connected ? Colors.green : Colors.red,
                 ),
-                onPressed: scanning ? null : () => model.tryConnect(),
+                onPressed: scanning ? null : () => player.tryConnect(),
               ),
             );
           },

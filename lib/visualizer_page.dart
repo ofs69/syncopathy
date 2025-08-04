@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/model/app_model.dart';
+import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/scrolling_graph.dart';
 import 'package:syncopathy/video_controls.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
@@ -35,21 +37,22 @@ class _VisualizerPageState extends State<VisualizerPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Call super.build(context)
+    super.build(context);
     final model = context.watch<SyncopathyModel>();
+    final player = context.watch<PlayerModel>();
 
     enterFullscreen() => Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FullscreenVideoPage(
-          player: model.mpvPlayer.player,
-          videoParamsNotifier: model.mpvPlayer.player.videoParams,
-        ),
-      ),
-    ).then((_) => _toggleFullscreen());
+          context,
+          MaterialPageRoute(
+            builder: (context) => FullscreenVideoPage(
+              player: player.mpvPlayer.player,
+              videoParamsNotifier: player.mpvPlayer.player.videoParams,
+            ),
+          ),
+        ).then((_) => _toggleFullscreen());
 
-    return ValueListenableBuilder(
-      valueListenable: model.funscript,
+    return ValueListenableBuilder<Funscript?>(
+      valueListenable: player.funscript,
       builder: (context, funscript, child) {
         if (funscript == null) {
           return const Center(child: Text('No funscript loaded'));
@@ -65,9 +68,9 @@ class _VisualizerPageState extends State<VisualizerPage>
                         child: Hero(
                           tag: 'videoPlayer',
                           child: CustomMpvVideoWidget(
-                            player: model.mpvPlayer.player,
+                            player: player.mpvPlayer.player,
                             videoParamsNotifier:
-                                model.mpvPlayer.player.videoParams,
+                                player.mpvPlayer.player.videoParams,
                           ),
                         ),
                       )
@@ -86,7 +89,7 @@ class _VisualizerPageState extends State<VisualizerPage>
                   ),
                   child: InteractiveScrollingGraph(
                     funscript: funscript,
-                    videoPosition: model.positionNoOffset,
+                    videoPosition: player.positionNoOffset,
                   ),
                 ),
               ),

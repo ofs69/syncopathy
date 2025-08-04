@@ -31,6 +31,8 @@ class _VideoItemState extends State<VideoItem> {
 
   void _showContextMenu(BuildContext context, TapUpDetails details) async {
     final categories = await isar.userCategorys.where().findAll();
+    if (!context.mounted) return;
+
     if (categories.isEmpty) {
       return;
     }

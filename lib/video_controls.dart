@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/heatmap.dart';
-import 'package:syncopathy/model/app_model.dart';
+import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/player_model.dart';
 
 class VideoControls extends StatefulWidget {
   final bool isFullscreen;
@@ -20,7 +21,7 @@ class VideoControls extends StatefulWidget {
 class _VideoControlsState extends State<VideoControls> {
   @override
   Widget build(BuildContext context) {
-    final model = context.watch<SyncopathyModel>();
+    final player = context.watch<PlayerModel>();
 
     return Material(
       type: MaterialType.transparency,
@@ -43,12 +44,12 @@ class _VideoControlsState extends State<VideoControls> {
                 children: [
                   // Play/Pause Button
                   ValueListenableBuilder<bool>(
-                    valueListenable: model.paused,
+                    valueListenable: player.paused,
                     builder: (context, isPaused, child) {
                       return IconButton(
                         icon: Icon(isPaused ? Icons.play_arrow : Icons.pause),
                         iconSize: 48.0,
-                        onPressed: model.togglePause,
+                        onPressed: player.togglePause,
                       );
                     },
                   ),
@@ -60,16 +61,16 @@ class _VideoControlsState extends State<VideoControls> {
                         // Volume Slider
                         Row(
                           children: [
-                            Tooltip(
+                            const Tooltip(
                               message: "Volume",
-                              child: const Text(
+                              child: Text(
                                 "Vol",
                                 style: TextStyle(fontSize: 12),
                               ),
                             ),
                             Expanded(
                               child: ValueListenableBuilder<double>(
-                                valueListenable: model.volume,
+                                valueListenable: player.volume,
                                 builder: (context, volume, child) {
                                   return Slider(
                                     value: volume,
@@ -77,7 +78,7 @@ class _VideoControlsState extends State<VideoControls> {
                                     max: 100,
                                     divisions: 100,
                                     label: '${volume.round()}%',
-                                    onChanged: model.setVolume,
+                                    onChanged: player.setVolume,
                                   );
                                 },
                               ),
@@ -86,20 +87,20 @@ class _VideoControlsState extends State<VideoControls> {
                         ),
                         // Playback Speed Controls
                         ValueListenableBuilder<bool>(
-                          valueListenable: model.paused,
+                          valueListenable: player.paused,
                           builder: (context, isPaused, child) {
                             return Row(
                               children: [
-                                Tooltip(
+                                const Tooltip(
                                   message: "Playback Speed",
-                                  child: const Text(
+                                  child: Text(
                                     "Spd",
                                     style: TextStyle(fontSize: 12),
                                   ),
                                 ),
                                 Expanded(
                                   child: ValueListenableBuilder<double>(
-                                    valueListenable: model.playbackSpeed,
+                                    valueListenable: player.playbackSpeed,
                                     builder: (context, speed, child) {
                                       return Slider(
                                         value: speed,
@@ -108,7 +109,7 @@ class _VideoControlsState extends State<VideoControls> {
                                         divisions: 15,
                                         label: '${speed.toStringAsFixed(1)}x',
                                         onChanged: isPaused
-                                            ? model.setPlaybackSpeed
+                                            ? player.setPlaybackSpeed
                                             : null, // Disable when not paused
                                       );
                                     },
@@ -126,8 +127,8 @@ class _VideoControlsState extends State<VideoControls> {
                   Expanded(
                     child: SizedBox(
                       height: 50,
-                      child: ValueListenableBuilder(
-                        valueListenable: model.funscript,
+                      child: ValueListenableBuilder<Funscript?>(
+                        valueListenable: player.funscript,
                         builder: (context, funscript, child) {
                           if (funscript == null) {
                             return const Center(
@@ -136,10 +137,10 @@ class _VideoControlsState extends State<VideoControls> {
                           }
                           return Heatmap(
                             funscript: funscript,
-                            totalDuration: model.duration,
-                            videoPosition: model.positionNoOffset,
+                            totalDuration: player.duration,
+                            videoPosition: player.positionNoOffset,
                             onClick: (d) =>
-                                model.seekTo(d.inSeconds.toDouble()),
+                                player.seekTo(d.inSeconds.toDouble()),
                           );
                         },
                       ),

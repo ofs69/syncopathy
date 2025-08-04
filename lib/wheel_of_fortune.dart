@@ -70,7 +70,7 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
             widget.videos[i].title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 16, color: Colors.black),
+            style: const TextStyle(fontSize: 16, color: Colors.black),
           ),
         ),
     ];
@@ -89,7 +89,7 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
             Future.delayed(const Duration(milliseconds: 500), () {
               if (!mounted) return;
               setState(() => _isSpinning = false);
-              Navigator.of(context).pop(); // Close dialog
+              Navigator.of(context).pop();
               widget.onVideoSelected(widget.videos[_selectedIndex]);
             });
           },
@@ -106,3 +106,4 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
     );
   }
 }
+

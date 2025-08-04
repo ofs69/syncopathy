@@ -42,8 +42,11 @@ void main() async {
   var model = SyncopathyModel(settings);
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => model,
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: model),
+        ChangeNotifierProvider.value(value: model.player),
+      ],
       child: const Syncopathy(),
     ),
   );

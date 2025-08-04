@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/media_library.dart';
+import 'package:syncopathy/model/player_model.dart';
 
 class MediaPage extends StatefulWidget {
   const MediaPage({super.key});
@@ -16,7 +17,7 @@ class _MediaPageState extends State<MediaPage> with AutomaticKeepAliveClientMixi
   bool get wantKeepAlive => true;
 
   Future<void> _openVideoFile() async {
-    final model = context.read<SyncopathyModel>();
+    final player = context.read<PlayerModel>();
 
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.video,
@@ -25,7 +26,7 @@ class _MediaPageState extends State<MediaPage> with AutomaticKeepAliveClientMixi
     if (result != null) {
       final String? filePath = result.files.single.path;
       if (filePath != null) {
-        await model.tryToOpenVideo(filePath);
+        await player.tryToOpenVideo(filePath);
       }
     }
   }
@@ -34,6 +35,7 @@ class _MediaPageState extends State<MediaPage> with AutomaticKeepAliveClientMixi
   Widget build(BuildContext context) {
     super.build(context); // Call super.build(context)
     final model = context.read<SyncopathyModel>();
+    final player = context.read<PlayerModel>();
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -44,7 +46,7 @@ class _MediaPageState extends State<MediaPage> with AutomaticKeepAliveClientMixi
             child: MediaLibrary(
               mediaPaths: model.settings.mediaPaths,
               onVideoTapped: (v) =>
-                  model.openVideoAndScript(v.videoPath, v.funscriptPath),
+                  player.openVideoAndScript(v.videoPath, v.funscriptPath),
             ),
           ),
           const SizedBox(height: 16),
@@ -57,7 +59,7 @@ class _MediaPageState extends State<MediaPage> with AutomaticKeepAliveClientMixi
               ),
               const SizedBox(width: 8),
               ElevatedButton.icon(
-                onPressed: () => model.closeVideo(),
+                onPressed: () => player.closeVideo(),
                 icon: const Icon(Icons.close),
                 label: const Text('Close Video'),
               ),
