@@ -22,18 +22,19 @@ class FunscriptManager {
   }
 
   static Future<Funscript?> loadAndProcessFunscript(
-      String script, Settings settings) async {
-    var funscriptFile = await Funscript.fromFile(script).catchError(
-      (e) => null,
-      test: (e) => true,
-    );
+    String script,
+    Settings settings,
+  ) async {
+    var funscriptFile = await Funscript.fromFile(
+      script,
+    ).catchError((e) => null, test: (e) => true);
     if (funscriptFile == null) return null;
 
     funscriptFile.actions = FunscriptAlgorithms.processForHandy(
       funscriptFile.actions,
       rdpEpsilon: settings.rdpEpsilon,
       slewMaxRateOfChangePerSecond: settings.slewMaxRateOfChange,
-      remapRange: settings.remapFullRange ? (0, 100) : null
+      remapRange: settings.remapFullRange ? (0, 100) : null,
     );
     return funscriptFile;
   }

@@ -12,7 +12,8 @@ class MediaPage extends StatefulWidget {
   State<MediaPage> createState() => _MediaPageState();
 }
 
-class _MediaPageState extends State<MediaPage> with AutomaticKeepAliveClientMixin {
+class _MediaPageState extends State<MediaPage>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 

@@ -13,6 +13,7 @@ import 'package:syncopathy/generated/handy_rpc.pb.dart';
 import 'package:syncopathy/generated/messages.pb.dart';
 import 'package:universal_ble/universal_ble.dart';
 import "package:async_locks/async_locks.dart";
+import 'package:syncopathy/logging.dart';
 
 class HandyBle extends FunscriptDevice {
   BleDevice? _device;
@@ -25,12 +26,6 @@ class HandyBle extends FunscriptDevice {
   ValueNotifier<bool> get isConnected => _isConnected;
   final ValueNotifier<bool> _isScanning = ValueNotifier(false);
   ValueNotifier<bool> get isScanning => _isScanning;
-
-  final StreamController<String> _errorController;
-  Stream<String> get onError => _errorController.stream;
-
-  final StreamController<String> _notificationController;
-  Stream<String> get onNotification => _notificationController.stream;
 
   final ValueNotifier<double> _sliderMin = ValueNotifier(0.0);
   ValueNotifier<double> get sliderMin => _sliderMin;
@@ -54,7 +49,7 @@ class HandyBle extends FunscriptDevice {
 
   static final _connectSemaphore = Semaphore(1);
 
-  HandyBle(this._errorController, this._notificationController) {
+  HandyBle() {
     _startConnectionCheckTimer();
     UniversalBle.onScanResult = _handleScanResults;
   }
@@ -79,13 +74,13 @@ class HandyBle extends FunscriptDevice {
           if (_isConnected.value != isCurrentlyConnected) {
             _isConnected.value = isCurrentlyConnected;
             if (!isCurrentlyConnected) {
-              _addNotification("Device disconnected.");
+              Logger.info("Device disconnected.");
             }
           }
         } catch (e) {
           if (_isConnected.value) {
             _isConnected.value = false;
-            _addError("Connection check failed: $e");
+            Logger.error("Connection check failed: $e");
           }
         }
       } else if (_isConnected.value) {
@@ -112,7 +107,7 @@ class HandyBle extends FunscriptDevice {
         await UniversalBle.getBluetoothAvailabilityState();
 
     if (bluetoothAvailabilityState != AvailabilityState.poweredOn) {
-      _addError("NO BLUETOOTH AVAILABLE!");
+      Logger.error("NO BLUETOOTH AVAILABLE!");
       _isScanning.value = false;
       return;
     }
@@ -172,18 +167,10 @@ class HandyBle extends FunscriptDevice {
       await UniversalBle.stopScan();
       _isScanning.value = false;
       await _device?.disconnect();
-      _errorController.sink.add(e.toString());
+      Logger.error(e.toString());
     } finally {
       _connectSemaphore.release();
     }
-  }
-
-  void _addNotification(String msg) {
-    _notificationController.add(msg);
-  }
-
-  void _addError(String msg) {
-    _errorController.add(msg);
   }
 
   @override
@@ -256,7 +243,7 @@ class HandyBle extends FunscriptDevice {
   Future<void> _txWrite(Uint8List buffer) async {
     if (_tx == null) return;
     return await _tx!.write(buffer).catchError((error) {
-      _addError(error.toString());
+      Logger.error(error.toString());
       _disconnected();
     });
   }
@@ -266,17 +253,17 @@ class HandyBle extends FunscriptDevice {
     if (message.type == MessageType.MESSAGE_TYPE_RESPONSE) {
       if (message.response.hasError()) {
         var error = message.response.error;
-        _errorController.sink.add(error.toString());
+        Logger.error(error.toString());
       } else {
         _pendingRequests[message.response.id]?.complete(message);
 
-        _addNotification(
+        Logger.info(
           message.response.toString().replaceAll(RegExp(r'\s+'), ' '),
         );
       }
       _pendingRequests.remove(message.response.id);
     } else if (message.type == MessageType.MESSAGE_TYPE_NOTIFICATION) {
-      _addNotification(
+      Logger.info(
         message.notification.toString().replaceAll(RegExp(r'\s+'), ' '),
       );
     } else {
@@ -404,7 +391,7 @@ class HandyBle extends FunscriptDevice {
   Future<void> _syncTime(int currentTimeMs, bool isPaused) async {
     Future<void> syncTimeInternal(int currentTimeMs, bool isPaused) async {
       if (_tx == null) return;
-      _addNotification("sync time! $currentTimeMs");
+      Logger.info("sync time! $currentTimeMs");
       var requestId = nextRequestId;
       var message = RpcMessage(
         type: MessageType.MESSAGE_TYPE_REQUEST,
@@ -443,7 +430,7 @@ class HandyBle extends FunscriptDevice {
 
   Future<void> _startPlayback(int startTimeMs, double playbackRate) async {
     if (_tx == null) return;
-    _addNotification("start playback!");
+    Logger.info("start playback!");
     _isPaused = false;
 
     var requestId = nextRequestId;
@@ -476,7 +463,7 @@ class HandyBle extends FunscriptDevice {
   Future<void> _stopPlayback() async {
     if (_tx == null) return;
     _isPaused = true;
-    _addNotification("stop playback!");
+    Logger.info("stop playback!");
 
     var requestId = nextRequestId;
     var message = RpcMessage(

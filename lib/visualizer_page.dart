@@ -42,14 +42,14 @@ class _VisualizerPageState extends State<VisualizerPage>
     final player = context.watch<PlayerModel>();
 
     enterFullscreen() => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FullscreenVideoPage(
-              player: player.mpvPlayer.player,
-              videoParamsNotifier: player.mpvPlayer.player.videoParams,
-            ),
-          ),
-        ).then((_) => _toggleFullscreen());
+      context,
+      MaterialPageRoute(
+        builder: (context) => FullscreenVideoPage(
+          player: player.mpvPlayer.player,
+          videoParamsNotifier: player.mpvPlayer.player.videoParams,
+        ),
+      ),
+    ).then((_) => _toggleFullscreen());
 
     return ValueListenableBuilder<Funscript?>(
       valueListenable: player.funscript,

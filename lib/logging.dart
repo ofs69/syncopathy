@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:syncopathy/model/app_model.dart';
 
 enum LogLevel { debug, info, warning, error }
 
@@ -57,15 +55,6 @@ class _LoggingPanelState extends State<LoggingPanel> {
     // Listen to the global log stream
     _logSubscription = _logStreamController.stream.listen((entry) {
       _addLogMessage(entry);
-    });
-
-    // Existing error and notification streams should now use the Logger
-    final model = context.read<SyncopathyModel>();
-    model.onError.listen((message) {
-      Logger.error(message);
-    });
-    model.onNotification.listen((message) {
-      Logger.info(message);
     });
   }
 

@@ -1,8 +1,8 @@
-
 import 'dart:async';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:flutter/widgets.dart';
+import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/funscript_stream_controller.dart';
@@ -12,8 +12,6 @@ import 'package:syncopathy/model/settings.dart';
 
 class PlayerModel extends ChangeNotifier {
   late final MpvVideoplayer mpvPlayer;
-  final StreamController<String> _errorController;
-  final StreamController<String> _notificationController;
 
   late final HandyBle _handyBle;
   final Settings settings;
@@ -37,11 +35,11 @@ class PlayerModel extends ChangeNotifier {
 
   late final FunscriptStreamController _funscriptStreamController;
 
-  PlayerModel(this.settings, this._errorController, this._notificationController) {
+  PlayerModel(this.settings) {
     mpvPlayer = MpvVideoplayer(videoOutput: settings.embeddedVideoPlayer);
     mpvPlayer.duration.addListener(_handleDurationChange);
 
-    _handyBle = HandyBle(_errorController, _notificationController);
+    _handyBle = HandyBle();
     _funscriptStreamController = FunscriptStreamController(_handyBle);
 
     path.addListener(_tryToLoadFunscript);
@@ -79,7 +77,7 @@ class PlayerModel extends ChangeNotifier {
   }
 
   void _handleLoadedScript() async {
-    _addNotification(funscript.value?.fileName ?? "no script loaded");
+    Logger.debug(funscript.value?.fileName ?? "no script loaded");
 
     if (funscript.value != null) {
       _funscriptStreamController.loadFunscript(
@@ -106,9 +104,9 @@ class PlayerModel extends ChangeNotifier {
     } catch (e) {
       // It's possible mediaPath is not a valid path, causing an exception.
       // In that case, we can't find a funscript.
-      _addError('Error while searching for funscript: $e');
+      Logger.error('Error while searching for funscript: $e');
     }
-    _addError('Failed to find funscript');
+    Logger.error('Failed to find funscript');
     return null;
   }
 
@@ -138,7 +136,7 @@ class PlayerModel extends ChangeNotifier {
         mpvPlayer.loadFile(filePath);
         return;
       } catch (e) {
-        _addError(e.toString());
+        Logger.error(e.toString());
       }
     }
     funscript.value = null;
@@ -150,7 +148,7 @@ class PlayerModel extends ChangeNotifier {
     var funscriptFile = await Funscript.fromFile(script).catchError(
       (e) => null,
       test: (e) {
-        _addError(e.toString());
+        Logger.error(e.toString());
         return true;
       },
     );
@@ -162,10 +160,6 @@ class PlayerModel extends ChangeNotifier {
     );
     funscript.value = funscriptFile;
   }
-
-  void _addError(String string) => _errorController.sink.add(string);
-  void _addNotification(String string) =>
-      _notificationController.sink.add(string);
 
   void _handlePausedChanged() {
     if (paused.value) {
@@ -188,8 +182,6 @@ class PlayerModel extends ChangeNotifier {
     mpvPlayer.seekTo(posPercent.clamp(0.0, 1.0));
   }
 
-  // These methods assume your MpvVideoplayer class has corresponding
-  // `togglePause()` and `setSpeed(double)` methods.
   void togglePause() {
     mpvPlayer.togglePause();
   }
@@ -225,7 +217,7 @@ class PlayerModel extends ChangeNotifier {
       mpvPlayer.loadFile(videoPath);
       return;
     } catch (e) {
-      _addError(e.toString());
+      Logger.error(e.toString());
     }
   }
 }

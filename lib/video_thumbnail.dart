@@ -89,7 +89,9 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
             });
           }
         } else {
-          Logger.error('ffmpeg error for ${widget.videoPath}: ${result.stderr}');
+          Logger.error(
+            'ffmpeg error for ${widget.videoPath}: ${result.stderr}',
+          );
         }
       } finally {
         _ffmpegSemaphore.release();

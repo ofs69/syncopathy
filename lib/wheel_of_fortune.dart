@@ -106,4 +106,3 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
     );
   }
 }
-
