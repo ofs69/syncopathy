@@ -18,16 +18,8 @@ class VisualizerPage extends StatefulWidget {
 
 class _VisualizerPageState extends State<VisualizerPage>
     with AutomaticKeepAliveClientMixin {
-  bool _isFullscreen = false;
-
   @override
   bool get wantKeepAlive => true;
-
-  void _toggleFullscreen() {
-    setState(() {
-      _isFullscreen = !_isFullscreen;
-    });
-  }
 
   @override
   void dispose() {
@@ -49,7 +41,7 @@ class _VisualizerPageState extends State<VisualizerPage>
           videoParamsNotifier: player.mpvPlayer.player.videoParams,
         ),
       ),
-    ).then((_) => _toggleFullscreen());
+    );
 
     return ValueListenableBuilder<Funscript?>(
       valueListenable: player.funscript,
@@ -95,10 +87,7 @@ class _VisualizerPageState extends State<VisualizerPage>
               ),
               Hero(
                 tag: 'videoControls',
-                child: VideoControls(
-                  isFullscreen: _isFullscreen,
-                  onFullscreenToggle: enterFullscreen,
-                ),
+                child: VideoControls(onFullscreenToggle: enterFullscreen),
               ),
             ],
           ),

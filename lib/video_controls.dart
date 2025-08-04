@@ -5,14 +5,9 @@ import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/player_model.dart';
 
 class VideoControls extends StatefulWidget {
-  final bool isFullscreen;
   final VoidCallback onFullscreenToggle;
 
-  const VideoControls({
-    super.key,
-    required this.isFullscreen,
-    required this.onFullscreenToggle,
-  });
+  const VideoControls({super.key, required this.onFullscreenToggle});
 
   @override
   State<VideoControls> createState() => _VideoControlsState();
@@ -149,11 +144,7 @@ class _VideoControlsState extends State<VideoControls> {
                   const SizedBox(width: 16),
                   // Fullscreen Button
                   IconButton(
-                    icon: Icon(
-                      widget.isFullscreen
-                          ? Icons.fullscreen_exit
-                          : Icons.fullscreen,
-                    ),
+                    icon: const Icon(Icons.fullscreen),
                     onPressed: widget.onFullscreenToggle,
                   ),
                 ],

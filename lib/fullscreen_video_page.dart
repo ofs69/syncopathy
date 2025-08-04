@@ -112,7 +112,6 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                     child: Hero(
                       tag: 'videoControls',
                       child: VideoControls(
-                        isFullscreen: true,
                         onFullscreenToggle: () => Navigator.pop(context),
                       ),
                     ),

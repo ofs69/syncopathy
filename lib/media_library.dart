@@ -583,6 +583,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
             onPressed: _isLoading ? null : _refreshVideos,
             tooltip: 'Refresh',
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Column(
