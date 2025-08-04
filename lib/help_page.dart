@@ -21,79 +21,104 @@ class _HelpPageState extends State<HelpPage> {
             ).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 24),
-          Text(
-            'General Information',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Syncopathy is a desktop application designed to synchronize video playback with external devices. It provides a clean interface for managing your media library and visualizing funscripts.',
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Key Features:',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Column(
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInfoPoint(
-                context,
-                'Media Management: Organize and browse your video library.',
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'General Information',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Syncopathy is a desktop application designed to synchronize video playback with external devices. It provides a clean interface for managing your media library and visualizing funscripts.',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+
+                    const SizedBox(height: 48),
+                    Text(
+                      'Getting Started',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'To begin, navigate to the "Settings" tab (accessible via the \'3\' shortcut or by clicking the gear icon). Under "Media Library Paths", add the directories where your video and funscript files are stored. Syncopathy will automatically scan these directories for compatible media.',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Video Players',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildInfoPoint(
+                          context,
+                          'Embedded Player: This MPV-based player is integrated directly into the application and is currently only available on Windows. It offers the same core video playback functionality as the external player. You can enable or disable the embedded player in the settings.',
+                        ),
+                        _buildInfoPoint(
+                          context,
+                          'External Player: When the embedded player is disabled, Syncopathy will utilize an external MPV player. This option offers the same core video playback functionality as the embedded player, but is available across all supported platforms. To use it, ensure MPV is installed on your system and disable the embedded player in the settings.',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              _buildInfoPoint(
-                context,
-                'Funscript Visualization: View and interact with funscripts synchronized to your videos.',
-              ),
-              _buildInfoPoint(
-                context,
-                'Device Connectivity: Connect and control the Handy via bluetooth.',
+              const SizedBox(width: 24),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Available Shortcuts',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildShortcutItem(
+                      context,
+                      Icons.space_bar,
+                      'Toggle video playback (Play/Pause)',
+                      'Spacebar',
+                    ),
+                    _buildShortcutItem(
+                      context,
+                      Icons.looks_one,
+                      'Switch to Media tab',
+                      '1',
+                    ),
+                    _buildShortcutItem(
+                      context,
+                      Icons.looks_two,
+                      'Switch to Video Player tab',
+                      '2',
+                    ),
+                    _buildShortcutItem(
+                      context,
+                      Icons.looks_3,
+                      'Switch to Settings tab',
+                      '3',
+                    ),
+                    _buildShortcutItem(
+                      context,
+                      Icons.looks_4,
+                      'Switch to Help tab',
+                      '4',
+                    ),
+                  ],
+                ),
               ),
             ],
-          ),
-          const SizedBox(height: 48),
-          Text(
-            'Available Shortcuts',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          _buildShortcutItem(
-            context,
-            Icons.space_bar,
-            'Toggle video playback (Play/Pause)',
-            'Spacebar',
-          ),
-          _buildShortcutItem(
-            context,
-            Icons.looks_one,
-            'Switch to Media tab',
-            '1',
-          ),
-          _buildShortcutItem(
-            context,
-            Icons.looks_two,
-            'Switch to Video Player tab',
-            '2',
-          ),
-          _buildShortcutItem(
-            context,
-            Icons.looks_3,
-            'Switch to Settings tab',
-            '3',
-          ),
-          _buildShortcutItem(
-            context,
-            Icons.looks_4,
-            'Switch to Help tab',
-            '4',
           ),
         ],
       ),

@@ -183,9 +183,12 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                 setState(() {
                   _selectedIndex = index;
                 });
+                final int currentPage =
+                    _pageController.page?.round() ?? _selectedIndex;
+                final int pageDelta = (index - currentPage).abs();
                 _pageController.animateToPage(
                   index,
-                  duration: const Duration(milliseconds: 300),
+                  duration: Duration(milliseconds: 300 * pageDelta),
                   curve: Curves.ease,
                 );
               },

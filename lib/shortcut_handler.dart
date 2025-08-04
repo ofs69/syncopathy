@@ -53,9 +53,13 @@ class _ShortcutHandlerState extends State<ShortcutHandler> {
           }
 
           if (newIndex != null) {
+            final int currentPage =
+                widget.pageController.page?.round() ??
+                widget.pageController.initialPage;
+            final int pageDelta = (newIndex - currentPage).abs();
             widget.pageController.animateToPage(
               newIndex,
-              duration: const Duration(milliseconds: 300),
+              duration: Duration(milliseconds: 300 * pageDelta),
               curve: Curves.ease,
             );
             widget.onTabChanged(newIndex);
