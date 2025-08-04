@@ -85,7 +85,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
   UserCategory? _selectedCategory;
   bool _isLoading = false;
   int videosPerRow = 6;
-  Set<VideoFilter> _currentVisibilityFilters = {};
+  final Set<VideoFilter> _currentVisibilityFilters = {};
 
   @override
   void initState() {

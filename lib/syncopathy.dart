@@ -50,6 +50,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   bool _isUpToDate = false;
   late PageController _pageController;
   String _currentVideoTitle = '';
+
   @override
   void initState() {
     super.initState();
@@ -66,6 +67,12 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     player.path.removeListener(_handleVideoPathChange);
     player.path.removeListener(_updateVideoTitle);
     super.dispose();
+  }
+
+  void _onTabChanged(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   void _updateVideoTitle() {
@@ -165,6 +172,8 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   @override
   Widget build(BuildContext context) {
     return ShortcutHandler(
+      pageController: _pageController,
+      onTabChanged: _onTabChanged,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,

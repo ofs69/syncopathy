@@ -5,8 +5,15 @@ import 'package:syncopathy/model/player_model.dart';
 
 class ShortcutHandler extends StatefulWidget {
   final Widget child;
+  final PageController pageController;
+  final ValueChanged<int> onTabChanged;
 
-  const ShortcutHandler({super.key, required this.child});
+  const ShortcutHandler({
+    super.key,
+    required this.child,
+    required this.pageController,
+    required this.onTabChanged,
+  });
 
   @override
   State<ShortcutHandler> createState() => _ShortcutHandlerState();
@@ -33,10 +40,30 @@ class _ShortcutHandlerState extends State<ShortcutHandler> {
       focusNode: _focusNode,
       autofocus: true,
       onKeyEvent: (FocusNode node, KeyEvent event) {
-        if (event is KeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.space) {
-          context.read<PlayerModel>().togglePause();
-          return KeyEventResult.handled;
+        if (event is KeyDownEvent) {
+          int? newIndex;
+          if (event.logicalKey == LogicalKeyboardKey.digit1) {
+            newIndex = 0;
+          } else if (event.logicalKey == LogicalKeyboardKey.digit2) {
+            newIndex = 1;
+          } else if (event.logicalKey == LogicalKeyboardKey.digit3) {
+            newIndex = 2;
+          } else if (event.logicalKey == LogicalKeyboardKey.digit4) {
+            newIndex = 3;
+          }
+
+          if (newIndex != null) {
+            widget.pageController.animateToPage(
+              newIndex,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.ease,
+            );
+            widget.onTabChanged(newIndex);
+            return KeyEventResult.handled;
+          } else if (event.logicalKey == LogicalKeyboardKey.space) {
+            context.read<PlayerModel>().togglePause();
+            return KeyEventResult.handled;
+          }
         }
         return KeyEventResult.ignored;
       },

@@ -71,6 +71,30 @@ class _HelpPageState extends State<HelpPage> {
             'Toggle video playback (Play/Pause)',
             'Spacebar',
           ),
+          _buildShortcutItem(
+            context,
+            Icons.looks_one,
+            'Switch to Media tab',
+            '1',
+          ),
+          _buildShortcutItem(
+            context,
+            Icons.looks_two,
+            'Switch to Video Player tab',
+            '2',
+          ),
+          _buildShortcutItem(
+            context,
+            Icons.looks_3,
+            'Switch to Settings tab',
+            '3',
+          ),
+          _buildShortcutItem(
+            context,
+            Icons.looks_4,
+            'Switch to Help tab',
+            '4',
+          ),
         ],
       ),
     );
