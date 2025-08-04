@@ -89,6 +89,7 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
             Future.delayed(const Duration(milliseconds: 500), () {
               if (!mounted) return;
               setState(() => _isSpinning = false);
+              if (!context.mounted) return; // Additional check
               Navigator.of(context).pop();
               widget.onVideoSelected(widget.videos[_selectedIndex]);
             });

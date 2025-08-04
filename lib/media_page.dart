@@ -5,8 +5,11 @@ import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/media_library.dart';
 import 'package:syncopathy/model/player_model.dart';
 
+import 'package:syncopathy/media_manager.dart';
+
 class MediaPage extends StatefulWidget {
-  const MediaPage({super.key});
+  final MediaManager mediaManager;
+  const MediaPage({super.key, required this.mediaManager});
 
   @override
   State<MediaPage> createState() => _MediaPageState();
@@ -45,7 +48,7 @@ class _MediaPageState extends State<MediaPage>
         children: [
           Expanded(
             child: MediaLibrary(
-              mediaPaths: model.settings.mediaPaths,
+              mediaManager: model.mediaManager,
               onVideoTapped: (v) =>
                   player.openVideoAndScript(v.videoPath, v.funscriptPath),
             ),

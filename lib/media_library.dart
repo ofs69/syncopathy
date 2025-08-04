@@ -23,14 +23,15 @@ enum SortOption {
   final String label;
 }
 
+
 class MediaLibrary extends StatefulWidget {
-  final List<String> mediaPaths;
   final void Function(Video) onVideoTapped;
+  final MediaManager mediaManager;
 
   const MediaLibrary({
     super.key,
     required this.onVideoTapped,
-    required this.mediaPaths,
+    required this.mediaManager,
   });
 
   @override
@@ -54,7 +55,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
   @override
   void initState() {
     super.initState();
-    _mediaManager = MediaManager(widget.mediaPaths);
+    _mediaManager = widget.mediaManager;
     _refreshVideos();
 
     _filteredVideos = _mediaManager.allVideos;
@@ -634,23 +635,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
                   ),
                 if (!_isLoading && _filteredVideos.isEmpty)
                   Center(
-                    child: widget.mediaPaths.isEmpty
-                        ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.folder_off_outlined, size: 48),
-                              SizedBox(height: 16),
-                              Text(
-                                'No media paths configured.',
-                                style: TextStyle(fontSize: 18),
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Please add media library paths in the Settings page. And refresh.',
-                              ),
-                            ],
-                          )
-                        : Text(
+                    child: Text(
                             _searchController.text.isEmpty
                                 ? 'No videos found in configured paths.'
                                 : 'No videos found for "${_searchController.text}".',
