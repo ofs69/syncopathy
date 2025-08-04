@@ -114,7 +114,7 @@ class MediaManager {
       }
     }
 
-    final processSemaphore = Semaphore(16);
+    final processSemaphore = Semaphore(8);
     final List<Future<void>> processFutures = [];
     for (final videoFile in videoFiles) {
       processFutures.add(() async {

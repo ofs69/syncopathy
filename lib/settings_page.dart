@@ -6,6 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:io' show Platform;
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -172,6 +175,12 @@ class _SettingsPageState extends State<SettingsPage>
           title: 'Video Player',
           children: [_buildEmbeddedVideoPlayerSettings(context)],
         ),
+        const SizedBox(height: 16),
+        _buildSettingsCard(
+          context,
+          title: 'App Data',
+          children: [_buildAppDataSettings(context)],
+        ),
       ],
     );
   }
@@ -231,6 +240,12 @@ class _SettingsPageState extends State<SettingsPage>
                 context,
                 title: 'Video Player',
                 children: [_buildEmbeddedVideoPlayerSettings(context)],
+              ),
+              const SizedBox(height: 16),
+              _buildSettingsCard(
+                context,
+                title: 'App Data',
+                children: [_buildAppDataSettings(context)],
               ),
             ],
           ),
@@ -393,7 +408,7 @@ class _SettingsPageState extends State<SettingsPage>
     return SwitchListTile(
       title: const Text('Remap to Full Range'),
       subtitle: const Text(
-        "Remaps the funscript actions to use the full 0-100 range. The Handy will still remap into the range specified below. Changes are applied when loading a funscript.",
+        "Remaps the funscript actions to use the full 0-100 range. The Handy will still remap into the range specified by the stroke range setting. Changes are applied when loading a funscript.",
       ),
       value: _remapFullRange,
       onChanged: (value) {
@@ -491,6 +506,38 @@ class _SettingsPageState extends State<SettingsPage>
           },
         ),
         Center(child: Text('${_currentOffsetMs.round()} ms')),
+      ],
+    );
+  }
+
+  Widget _buildAppDataSettings(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
+          title: const Text('Open App Data Directory'),
+          subtitle: const Text(
+            'Opens the directory where application data (e.g., database, thumbnails) are stored.',
+          ),
+          trailing: const Icon(Icons.folder_open),
+          onTap: () async {
+            try {
+              final directory = await getApplicationSupportDirectory();
+              final directoryPath = directory.path;
+              if (Platform.isWindows) {
+                await launchUrl(Uri.parse('file:///$directoryPath'));
+              } else {
+                await launchUrl(Uri.parse(directoryPath));
+              }
+            } catch (e) {
+              Logger.error('Error opening app data directory: $e');
+              if (!context.mounted) return;
+              final messenger = ScaffoldMessenger.of(context);
+              messenger.showSnackBar(
+                SnackBar(content: Text('Error opening directory: $e')),
+              );
+            }
+          },
+        ),
       ],
     );
   }

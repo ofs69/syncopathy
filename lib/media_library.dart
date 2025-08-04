@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:async_locks/async_locks.dart';
+
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:syncopathy/main.dart';
