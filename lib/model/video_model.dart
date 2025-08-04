@@ -19,6 +19,7 @@ class Video {
   bool isDislike = false;
   FunscriptMetadata? funscriptMetadata;
   DateTime dateFirstFound = DateTime.now();
+  double? duration;
 
   final categories = IsarLinks<UserCategory>();
 
@@ -30,6 +31,7 @@ class Video {
     required this.averageMin,
     required this.averageMax,
     this.funscriptMetadata,
+    this.duration,
   });
 
   String get videoHash {

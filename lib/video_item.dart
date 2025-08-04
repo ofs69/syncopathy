@@ -29,6 +29,13 @@ class _VideoItemState extends State<VideoItem> {
   bool _isHovering = false;
   bool _isTapped = false;
 
+  String _formatDuration(double? duration) {
+    if (duration == null) return '--:--';
+    final minutes = (duration ~/ 60).toString().padLeft(2, '0');
+    final seconds = (duration % 60).toInt().toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
   void _showContextMenu(BuildContext context, TapUpDetails details) async {
     final categories = await isar.userCategorys.where().findAll();
     if (!context.mounted) return;
@@ -103,16 +110,13 @@ class _VideoItemState extends State<VideoItem> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    VideoThumbnail(
-                      videoPath: widget.video.videoPath,
-                      videoHash: widget.video.videoHash,
-                    ),
+                    VideoThumbnail(video: widget.video),
                     Positioned(
                       bottom: 0,
                       left: 0,
                       right: 0,
                       child: Container(
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
@@ -138,6 +142,25 @@ class _VideoItemState extends State<VideoItem> {
                       right: 8.0,
                       child: Column(
                         children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                              vertical: 4.0,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(4.0),
+                            ),
+                            child: Text(
+                              _formatDuration(widget.video.duration),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4.0),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8.0,

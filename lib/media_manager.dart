@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:async_locks/async_locks.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
@@ -21,8 +22,42 @@ class MediaManager {
     _allVideos.addAll(isar.videos.where().findAllSync());
   }
 
-  void dispose() {
-    videoCountNotifier.dispose();
+  Future<double?> _getVideoDuration(String videoPath, {bool cache = true}) async {
+    if (cache) {
+      final existingVideo = await isar.videos.filter().videoPathEqualTo(videoPath).findFirst();
+      if (existingVideo != null && existingVideo.duration != null && existingVideo.duration! > 0) {
+        return existingVideo.duration;
+      }
+    }
+
+    try {
+      final ffprobeResult = await Process.run('ffprobe', [
+        '-v',
+        'error',
+        '-show_entries',
+        'format=duration',
+        '-of',
+        'default=noprint_wrappers=1:nokey=1',
+        videoPath,
+      ]);
+
+      if (ffprobeResult.exitCode != 0) {
+        Logger.error('ffprobe error for $videoPath: ${ffprobeResult.stderr}');
+        return null;
+      }
+
+      final durationSeconds = double.tryParse(ffprobeResult.stdout.trim());
+      if (durationSeconds == null || durationSeconds <= 0) {
+        Logger.error(
+          'Could not parse duration for $videoPath: ${ffprobeResult.stdout}',
+        );
+        return null;
+      }
+      return durationSeconds;
+    } catch (e) {
+      Logger.error('Error getting video duration for $videoPath: $e');
+      return null;
+    }
   }
 
   Future<void> refreshVideos() async {
@@ -61,77 +96,93 @@ class MediaManager {
       }
     }
 
+    final processSemaphore = Semaphore(16);
+    final List<Future<void>> processFutures = [];
     for (final videoFile in videoFiles) {
-      final videoPath = videoFile.path;
-      final videoBasename = p.basenameWithoutExtension(videoPath);
-      final funscriptPaths = funscriptMap[videoBasename];
+      processFutures.add(() async {
+        await processSemaphore.acquire();
+        try {
+          final videoPath = videoFile.path;
+          final videoBasename = p.basenameWithoutExtension(videoPath);
+          final funscriptPaths = funscriptMap[videoBasename];
 
-      if (funscriptPaths != null && funscriptPaths.isNotEmpty) {
-        if (funscriptPaths.length > 1) {
-          final funscripts = await Future.wait(
-            funscriptPaths.map(
-              (path) => Funscript.fromFile(
-                path,
-              ).catchError((e) => null, test: (e) => true),
-            ),
-          );
-          final validFunscripts = funscripts.nonNulls.toList();
+          if (funscriptPaths != null && funscriptPaths.isNotEmpty) {
+            if (funscriptPaths.length > 1) {
+              final funscripts = await Future.wait(
+                funscriptPaths.map(
+                  (path) => Funscript.fromFile(
+                    path,
+                  ).catchError((e) => null, test: (e) => true),
+                ),
+              );
+              final validFunscripts = funscripts.nonNulls.toList();
 
-          if (validFunscripts.length > 1) {
-            final firstActions = validFunscripts.first.actions;
-            bool allActionsSame = true;
-            for (int i = 1; i < validFunscripts.length; i++) {
-              if (!listEquals(firstActions, validFunscripts[i].actions)) {
-                allActionsSame = false;
-                break;
+              if (validFunscripts.length > 1) {
+                final firstActions = validFunscripts.first.actions;
+                bool allActionsSame = true;
+                for (int i = 1; i < validFunscripts.length; i++) {
+                  if (!listEquals(firstActions, validFunscripts[i].actions)) {
+                    allActionsSame = false;
+                    break;
+                  }
+                }
+
+                if (!allActionsSame) {
+                  Logger.warning(
+                    'Multiple funscripts found for video with different actions: $videoPath Funscripts: ${funscriptPaths.join(', ')}',
+                  );
+                } else {
+                  Logger.info(
+                    'Multiple funscripts found for video with identical actions: $videoPath Funscripts: ${funscriptPaths.join(', ')}',
+                  );
+                }
               }
             }
-
-            if (!allActionsSame) {
+            final funscriptPath = funscriptPaths.first;
+            if (p.dirname(videoPath) != p.dirname(funscriptPath)) {
               Logger.warning(
-                'Multiple funscripts found for video with different actions: $videoPath Funscripts: ${funscriptPaths.join(', ')}',
-              );
-            } else {
-              Logger.info(
-                'Multiple funscripts found for video with identical actions: $videoPath Funscripts: ${funscriptPaths.join(', ')}',
+                'Video and funscript not in same directory: Video: $videoPath Funscript: $funscriptPath',
               );
             }
+            final title = videoBasename;
+            final funscript = await Funscript.fromFile(
+              funscriptPath,
+            ).catchError((e) => null, test: (e) => true);
+
+            if (funscript != null) {
+              final averageSpeed = FunscriptAlgorithms.averageSpeed(
+                funscript.actions,
+              );
+
+              final averageMin = FunscriptAlgorithms.averageMin(
+                funscript.actions,
+              );
+              final averageMax = FunscriptAlgorithms.averageMax(
+                funscript.actions,
+              );
+              final duration = await _getVideoDuration(videoFile.path);
+
+              var video = Video(
+                title: title,
+                videoPath: videoPath,
+                funscriptPath: funscriptPath,
+                averageSpeed: averageSpeed,
+                averageMin: averageMin,
+                averageMax: averageMax,
+                funscriptMetadata: funscript.metadata,
+                duration: duration,
+              );
+
+              _allVideos.add(video);
+              videoCountNotifier.value = _allVideos.length;
+            }
           }
+        } finally {
+          processSemaphore.release();
         }
-        final funscriptPath = funscriptPaths.first;
-        if (p.dirname(videoPath) != p.dirname(funscriptPath)) {
-          Logger.warning(
-            'Video and funscript not in same directory: Video: $videoPath Funscript: $funscriptPath',
-          );
-        }
-        final title = videoBasename;
-        final funscript = await Funscript.fromFile(
-          funscriptPath,
-        ).catchError((e) => null, test: (e) => true);
-
-        if (funscript != null) {
-          final averageSpeed = FunscriptAlgorithms.averageSpeed(
-            funscript.actions,
-          );
-
-          final averageMin = FunscriptAlgorithms.averageMin(funscript.actions);
-          final averageMax = FunscriptAlgorithms.averageMax(funscript.actions);
-
-          var video = Video(
-            title: title,
-            videoPath: videoPath,
-            funscriptPath: funscriptPath,
-            averageSpeed: averageSpeed,
-            averageMin: averageMin,
-            averageMax: averageMax,
-            funscriptMetadata: funscript.metadata,
-          );
-
-          _allVideos.add(video);
-          videoCountNotifier.value = _allVideos.length;
-        }
-      }
+      }());
     }
+    await Future.wait(processFutures);
 
     // Update the database
     // remove files not found from the database
@@ -162,6 +213,7 @@ class MediaManager {
           dbVideo.averageMin = video.averageMin;
           dbVideo.averageMax = video.averageMax;
           dbVideo.funscriptMetadata = video.funscriptMetadata;
+          dbVideo.duration = video.duration;
           await isar.videos.put(dbVideo);
         }
       }

@@ -4,7 +4,7 @@ import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_page.dart';
 import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/player_model.dart';
-import 'package:syncopathy/model/video_model.dart';
+
 import 'package:syncopathy/settings_page.dart';
 import 'package:syncopathy/update_checker.dart';
 import 'package:syncopathy/visualizer_page.dart';
