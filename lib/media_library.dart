@@ -21,13 +21,40 @@ enum SortOption {
   final String label;
 }
 
-enum VisibilityFilter {
-  showAll('Show All'),
-  hideFavorites('Hide Favorites'),
-  hideDisliked('Hide Disliked');
-
-  const VisibilityFilter(this.label);
+class VideoFilter {
   final String label;
+  final String id;
+
+  const VideoFilter._(this.label, this.id);
+
+  static const VideoFilter hideFavorite = VideoFilter._(
+    'Hide Favorite',
+    'hideFavorite',
+  );
+  static const VideoFilter hideDisliked = VideoFilter._(
+    'Hide Disliked',
+    'hideDisliked',
+  );
+  static const VideoFilter hideUnrated = VideoFilter._(
+    'Hide Unrated',
+    'hideUnrated',
+  );
+
+  static List<VideoFilter> get values => [
+    hideFavorite,
+    hideUnrated,
+    hideDisliked,
+  ];
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VideoFilter &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 class MediaLibrary extends StatefulWidget {
@@ -58,7 +85,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
   UserCategory? _selectedCategory;
   bool _isLoading = false;
   int videosPerRow = 6;
-  VisibilityFilter _currentVisibilityFilter = VisibilityFilter.showAll;
+  Set<VideoFilter> _currentVisibilityFilters = {};
 
   @override
   void initState() {
@@ -139,13 +166,19 @@ class _MediaLibraryState extends State<MediaLibrary> {
         }
       }
 
-      if (_currentVisibilityFilter == VisibilityFilter.hideFavorites &&
+      if (_currentVisibilityFilters.contains(VideoFilter.hideFavorite) &&
           video.isFavorite) {
         return false;
       }
 
-      if (_currentVisibilityFilter == VisibilityFilter.hideDisliked &&
+      if (_currentVisibilityFilters.contains(VideoFilter.hideDisliked) &&
           video.isDislike) {
+        return false;
+      }
+
+      if (_currentVisibilityFilters.contains(VideoFilter.hideUnrated) &&
+          !video.isFavorite &&
+          !video.isDislike) {
         return false;
       }
 
@@ -206,7 +239,13 @@ class _MediaLibraryState extends State<MediaLibrary> {
   }
 
   void _showRandomVideoPicker() {
-    var availableVideos = _filteredVideos.where((v) => !v.isDislike).toList();
+    var availableVideos = _filteredVideos.where((v) {
+      bool shouldHideUnrated =
+          _currentVisibilityFilters.contains(VideoFilter.hideUnrated) &&
+          !v.isFavorite &&
+          !v.isDislike;
+      return !v.isDislike && !shouldHideUnrated;
+    }).toList();
 
     if (availableVideos.isEmpty) {
       if (mounted) {
@@ -563,10 +602,34 @@ class _MediaLibraryState extends State<MediaLibrary> {
             tooltip: _isSortAscending ? 'Sort Descending' : 'Sort Ascending',
           ),
           const SizedBox(width: 16),
+          PopupMenuButton<VideoFilter>(
+            icon: const Icon(Icons.visibility),
+            tooltip: 'Filter Videos',
+            onSelected: (VideoFilter filter) {
+              setState(() {
+                if (_currentVisibilityFilters.contains(filter)) {
+                  _currentVisibilityFilters.remove(filter);
+                } else {
+                  _currentVisibilityFilters.add(filter);
+                }
+              });
+              _updateDisplayedVideos();
+            },
+            itemBuilder: (BuildContext context) {
+              return VideoFilter.values.map((VideoFilter filter) {
+                return CheckedPopupMenuItem<VideoFilter>(
+                  value: filter,
+                  checked: _currentVisibilityFilters.contains(filter),
+                  child: Text(filter.label),
+                );
+              }).toList();
+            },
+          ),
+          const SizedBox(width: 16),
           // Filter Buttons
           ActionChip(
             avatar: const Icon(Icons.filter_list),
-            label: const Text('Funscript Metadata'),
+            label: const Text('Metadata'),
             onPressed: _showFunscriptMetadataFilterDialog,
           ),
           const SizedBox(width: 16),
@@ -576,25 +639,6 @@ class _MediaLibraryState extends State<MediaLibrary> {
             onPressed: _showCategoryDialog,
           ),
           const SizedBox(width: 16),
-          DropdownButton<VisibilityFilter>(
-            value: _currentVisibilityFilter,
-            icon: const Icon(Icons.visibility),
-            underline: const SizedBox.shrink(),
-            onChanged: (VisibilityFilter? newValue) {
-              if (newValue != null) {
-                setState(() {
-                  _currentVisibilityFilter = newValue;
-                });
-                _updateDisplayedVideos();
-              }
-            },
-            items: VisibilityFilter.values.map((VisibilityFilter option) {
-              return DropdownMenuItem<VisibilityFilter>(
-                value: option,
-                child: Text(option.label),
-              );
-            }).toList(),
-          ),
 
           // Videos Per Row Dropdown)
           Tooltip(
