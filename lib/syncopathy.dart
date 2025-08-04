@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:syncopathy/help_page.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_page.dart';
 import 'package:syncopathy/model/app_model.dart';
@@ -7,10 +8,10 @@ import 'package:syncopathy/model/player_model.dart';
 
 import 'package:syncopathy/settings_page.dart';
 import 'package:syncopathy/update_checker.dart';
-import 'package:syncopathy/visualizer_page.dart';
+import 'package:syncopathy/video_player_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path/path.dart' as p;
-
+import 'package:syncopathy/shortcut_handler.dart';
 
 class Syncopathy extends StatelessWidget {
   const Syncopathy({super.key});
@@ -49,7 +50,6 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   bool _isUpToDate = false;
   late PageController _pageController;
   String _currentVideoTitle = '';
-
   @override
   void initState() {
     super.initState();
@@ -83,7 +83,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     final player = context.read<PlayerModel>();
     if (player.path.value.isNotEmpty && model.settings.embeddedVideoPlayer) {
       setState(() {
-        _selectedIndex = 1; // Navigate to Visualizer tab
+        _selectedIndex = 1; // Navigate to Video Player tab
       });
       _pageController.animateToPage(
         1,
@@ -144,14 +144,19 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
         label: Text('Media'),
       ),
       const NavigationRailDestination(
-        icon: Icon(Icons.line_axis_outlined),
-        selectedIcon: Icon(Icons.line_axis),
-        label: Text("Visualizer"),
+        icon: Icon(Icons.play_circle_outline),
+        selectedIcon: Icon(Icons.play_circle_filled),
+        label: Text("Video Player"),
       ),
       const NavigationRailDestination(
         icon: Icon(Icons.settings_outlined),
         selectedIcon: Icon(Icons.settings),
         label: Text('Settings'),
+      ),
+      const NavigationRailDestination(
+        icon: Icon(Icons.help_outline),
+        selectedIcon: Icon(Icons.help),
+        label: Text('Help'),
       ),
     ];
     return destinations;
@@ -159,112 +164,128 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Row(
-          children: [
-            Text(widget.title),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                final inAnimation = Tween<Offset>(
-                  begin: const Offset(1.0, 0.0), // New child comes from right
-                  end: Offset.zero,
-                ).animate(animation);
+    return ShortcutHandler(
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Row(
+            children: [
+              Text(widget.title),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  final inAnimation = Tween<Offset>(
+                    begin: const Offset(1.0, 0.0), // New child comes from right
+                    end: Offset.zero,
+                  ).animate(animation);
 
-                final outAnimation = Tween<Offset>(
-                  begin: Offset.zero,
-                  end: const Offset(-1.0, 0.0), // Old child goes to left
-                ).animate(animation);
+                  final outAnimation = Tween<Offset>(
+                    begin: Offset.zero,
+                    end: const Offset(-1.0, 0.0), // Old child goes to left
+                  ).animate(animation);
 
-                return SlideTransition(
-                  position: animation.status == AnimationStatus.reverse
-                      ? outAnimation
-                      : inAnimation,
-                  child: FadeTransition(opacity: animation, child: child),
+                  return SlideTransition(
+                    position: animation.status == AnimationStatus.reverse
+                        ? outAnimation
+                        : inAnimation,
+                    child: FadeTransition(opacity: animation, child: child),
+                  );
+                },
+                child: Text(
+                  _currentVideoTitle.isNotEmpty
+                      ? " - $_currentVideoTitle"
+                      : "", // Handle empty case
+                  key: ValueKey<String>(
+                    _currentVideoTitle,
+                  ), // Key based on changing content
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            if (_isCheckingForUpdates)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (_isUpToDate)
+              const Tooltip(
+                message: 'You are on the latest version!',
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Icon(Icons.check_circle, color: Colors.green),
+                ),
+              )
+            else if (_latestVersion != null)
+              Tooltip(
+                message: 'New version available: $_latestVersion',
+                child: IconButton(
+                  icon: const Icon(Icons.update, color: Colors.amber),
+                  onPressed: _openReleasePage,
+                ),
+              )
+            else
+              IconButton(
+                icon: const Icon(Icons.update_sharp),
+                onPressed: _checkForUpdates,
+                tooltip: 'Check for Updates',
+              ),
+            const SizedBox(width: 20),
+            const Padding(
+              padding: EdgeInsets.only(right: 20.0),
+              child: ConnectionButton(),
+            ),
+            IconButton(
+              icon: const Icon(Icons.help_outline),
+              onPressed: () {
+                _pageController.animateToPage(
+                  3, // Index of the RebindShortcutsPage
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.ease,
+                );
+                setState(() {
+                  _selectedIndex = 3;
+                });
+              },
+              tooltip: 'Help',
+            ),
+          ],
+        ),
+        body: Row(
+          children: <Widget>[
+            NavigationRail(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (int index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+                _pageController.animateToPage(
+                  index,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.ease,
                 );
               },
-              child: Text(
-                _currentVideoTitle.isNotEmpty
-                    ? " - $_currentVideoTitle"
-                    : "", // Handle empty case
-                key: ValueKey<String>(
-                  _currentVideoTitle,
-                ), // Key based on changing content
+              labelType: NavigationRailLabelType.all,
+              destinations: _destinations,
+            ),
+            const VerticalDivider(thickness: 1, width: 1),
+            Expanded(
+              child: PageContent(
+                selectedIndex: _selectedIndex,
+                onPageChanged: (index) {
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                },
+                pageController: _pageController,
               ),
             ),
           ],
         ),
-        actions: [
-          if (_isCheckingForUpdates)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(),
-              ),
-            )
-          else if (_isUpToDate)
-            const Tooltip(
-              message: 'You are on the latest version!',
-              child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Icon(Icons.check_circle, color: Colors.green),
-              ),
-            )
-          else if (_latestVersion != null)
-            Tooltip(
-              message: 'New version available: $_latestVersion',
-              child: IconButton(
-                icon: const Icon(Icons.update, color: Colors.amber),
-                onPressed: _openReleasePage,
-              ),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.update_sharp),
-              onPressed: _checkForUpdates,
-              tooltip: 'Check for Updates',
-            ),
-          const SizedBox(width: 20),
-          const Padding(
-            padding: EdgeInsets.only(right: 20.0),
-            child: ConnectionButton(),
-          ),
-        ],
-      ),
-      body: Row(
-        children: <Widget>[
-          NavigationRail(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (int index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-              _pageController.animateToPage(
-                index,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.ease,
-              );
-            },
-            labelType: NavigationRailLabelType.all,
-            destinations: _destinations,
-          ),
-          const VerticalDivider(thickness: 1, width: 1),
-          Expanded(
-            child: PageContent(
-              selectedIndex: _selectedIndex,
-              onPageChanged: (index) {
-                setState(() {
-                  _selectedIndex = index;
-                });
-              },
-              pageController: _pageController,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -361,9 +382,14 @@ class _PageContentState extends State<PageContent> {
                     controller: widget.pageController,
                     onPageChanged: widget.onPageChanged,
                     children: <Widget>[
-                      MediaPage(mediaManager: context.read<SyncopathyModel>().mediaManager,),
-                      VisualizerPage(),
+                      MediaPage(
+                        mediaManager: context
+                            .read<SyncopathyModel>()
+                            .mediaManager,
+                      ),
+                      VideoPlayerPage(),
                       SettingsPage(),
+                      HelpPage(),
                     ],
                   ),
                 ),

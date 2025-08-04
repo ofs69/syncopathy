@@ -9,14 +9,14 @@ import 'package:syncopathy/video_controls.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
 import 'package:syncopathy/fullscreen_video_page.dart';
 
-class VisualizerPage extends StatefulWidget {
-  const VisualizerPage({super.key});
+class VideoPlayerPage extends StatefulWidget {
+  const VideoPlayerPage({super.key});
 
   @override
-  State<VisualizerPage> createState() => _VisualizerPageState();
+  State<VideoPlayerPage> createState() => _VideoPlayerPageState();
 }
 
-class _VisualizerPageState extends State<VisualizerPage>
+class _VideoPlayerPageState extends State<VideoPlayerPage>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;

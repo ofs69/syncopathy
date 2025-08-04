@@ -12,13 +12,11 @@ import 'package:syncopathy/wheel_of_fortune.dart';
 
 enum SortOption {
   none('Default'),
-  titleAsc('Title A-Z'),
-  titleDesc('Title Z-A'),
-  speedAsc('Speed (Slowest)'),
-  speedDesc('Speed (Fastest)'),
-  depthAsc('Depth (Shallowest)'),
-  depthDesc('Depth (Deepest)'),
-  lastModifiedDesc('Recently Changed');
+  title('Title'),
+  speed('Speed'),
+  depth('Depth'),
+  duration('Duration'),
+  lastModified('Last Modified');
 
   const SortOption(this.label);
   final String label;
@@ -45,7 +43,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
   late final MediaManager _mediaManager;
   late List<Video> _filteredVideos;
   final _searchController = TextEditingController();
-  SortOption _currentSortOrder = SortOption.none;
+  SortOption _currentSortOption = SortOption.none;
+  bool _isSortAscending = true;
   String? _selectedAuthor;
   String? _selectedTag;
   String? _selectedPerformer;
@@ -147,28 +146,31 @@ class _MediaLibraryState extends State<MediaLibrary> {
       }
 
       // Within each group (favorites, normal, disliked), sort by the selected option.
-      switch (_currentSortOrder) {
-        case SortOption.titleAsc:
-          return a.title.compareTo(b.title);
-        case SortOption.titleDesc:
-          return b.title.compareTo(a.title);
-        case SortOption.speedAsc:
-          return a.averageSpeed.compareTo(b.averageSpeed);
-        case SortOption.speedDesc:
-          return b.averageSpeed.compareTo(a.averageSpeed);
-        case SortOption.depthAsc:
+      int compareResult = 0;
+      switch (_currentSortOption) {
+        case SortOption.title:
+          compareResult = a.title.compareTo(b.title);
+          break;
+        case SortOption.speed:
+          compareResult = a.averageSpeed.compareTo(b.averageSpeed);
+          break;
+        case SortOption.depth:
           final depthA = a.averageMax - a.averageMin;
           final depthB = b.averageMax - b.averageMin;
-          return depthA.compareTo(depthB);
-        case SortOption.depthDesc:
-          final depthA = a.averageMax - a.averageMin;
-          final depthB = b.averageMax - b.averageMin;
-          return depthB.compareTo(depthA);
-        case SortOption.lastModifiedDesc:
-          return b.dateFirstFound.compareTo(a.dateFirstFound);
+          compareResult = depthA.compareTo(depthB);
+          break;
+        case SortOption.duration:
+          compareResult = (a.duration ?? 0).compareTo(b.duration ?? 0);
+          break;
+        case SortOption.lastModified:
+          compareResult = a.dateFirstFound.compareTo(b.dateFirstFound);
+          break;
         case SortOption.none:
-          return 0; // Keep original order within each group
+          compareResult = 0;
+          break;
       }
+
+      return _isSortAscending ? compareResult : -compareResult;
     });
 
     setState(() {
@@ -485,13 +487,13 @@ class _MediaLibraryState extends State<MediaLibrary> {
           const SizedBox(width: 16),
           // Sorting Dropdown
           DropdownButton<SortOption>(
-            value: _currentSortOrder,
+            value: _currentSortOption,
             icon: const Icon(Icons.sort),
             underline: const SizedBox.shrink(), // Hides the default underline
             onChanged: (SortOption? newValue) {
               if (newValue != null) {
                 setState(() {
-                  _currentSortOrder = newValue;
+                  _currentSortOption = newValue;
                 });
                 _updateDisplayedVideos();
               }
@@ -502,6 +504,16 @@ class _MediaLibraryState extends State<MediaLibrary> {
                 child: Text(option.label),
               );
             }).toList(),
+          ),
+          IconButton(
+            icon: Icon(_isSortAscending ? Icons.arrow_upward : Icons.arrow_downward),
+            onPressed: () {
+              setState(() {
+                _isSortAscending = !_isSortAscending;
+              });
+              _updateDisplayedVideos();
+            },
+            tooltip: _isSortAscending ? 'Sort Descending' : 'Sort Ascending',
           ),
           const SizedBox(width: 16),
           // Filter Buttons
