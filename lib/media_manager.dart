@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:async_locks/async_locks.dart';
 import 'package:collection/collection.dart';
@@ -22,11 +23,19 @@ class MediaManager {
     _allVideos.addAll(isar.videos.where().findAllSync());
   }
 
-  Future<double?> _getVideoDuration(String videoPath, {bool cache = true}) async {
+  Future<Map<String, dynamic>> _getVideoMetadata(
+    String videoPath, {
+    bool cache = true,
+  }) async {
     if (cache) {
-      final existingVideo = await isar.videos.filter().videoPathEqualTo(videoPath).findFirst();
-      if (existingVideo != null && existingVideo.duration != null && existingVideo.duration! > 0) {
-        return existingVideo.duration;
+      final existingVideo = await isar.videos
+          .filter()
+          .videoPathEqualTo(videoPath)
+          .findFirst();
+      if (existingVideo != null &&
+          existingVideo.duration != null &&
+          existingVideo.duration! > 0) {
+        return {'duration': existingVideo.duration};
       }
     }
 
@@ -34,29 +43,38 @@ class MediaManager {
       final ffprobeResult = await Process.run('ffprobe', [
         '-v',
         'error',
+        '-select_streams',
+        'v:0',
         '-show_entries',
-        'format=duration',
+        'stream=width,height:format=duration',
         '-of',
-        'default=noprint_wrappers=1:nokey=1',
+        'json',
         videoPath,
       ]);
 
       if (ffprobeResult.exitCode != 0) {
         Logger.error('ffprobe error for $videoPath: ${ffprobeResult.stderr}');
-        return null;
+        return {};
       }
 
-      final durationSeconds = double.tryParse(ffprobeResult.stdout.trim());
-      if (durationSeconds == null || durationSeconds <= 0) {
+      final Map<String, dynamic> jsonOutput =
+          jsonDecode(ffprobeResult.stdout) as Map<String, dynamic>;
+      final format = jsonOutput['format'];
+
+      final duration = format != null
+          ? double.tryParse(format['duration'] as String)
+          : null;
+
+      if (duration == null || duration <= 0) {
         Logger.error(
           'Could not parse duration for $videoPath: ${ffprobeResult.stdout}',
         );
-        return null;
       }
-      return durationSeconds;
+
+      return {'duration': duration};
     } catch (e) {
-      Logger.error('Error getting video duration for $videoPath: $e');
-      return null;
+      Logger.error('Error getting video metadata for $videoPath: $e');
+      return {'duration': 0.0};
     }
   }
 
@@ -160,7 +178,11 @@ class MediaManager {
               final averageMax = FunscriptAlgorithms.averageMax(
                 funscript.actions,
               );
-              final duration = await _getVideoDuration(videoFile.path);
+              final metadata = await _getVideoMetadata(
+                videoFile.path,
+                cache: true,
+              );
+              final duration = metadata['duration'];
 
               var video = Video(
                 title: title,

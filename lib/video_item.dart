@@ -151,12 +151,15 @@ class _VideoItemState extends State<VideoItem> {
                               color: Colors.black54,
                               borderRadius: BorderRadius.circular(4.0),
                             ),
-                            child: Text(
-                              _formatDuration(widget.video.duration),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                            child: Tooltip(
+                              message: "Duration",
+                              child: Text(
+                                _formatDuration(widget.video.duration),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
