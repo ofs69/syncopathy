@@ -87,6 +87,17 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
             Navigator.pop(context);
           },
           onTap: _toggleControls,
+          onLongPressStart: (_) {
+            if (!_showControls) {
+              setState(() {
+                _showControls = true;
+              });
+            }
+            _hideControlsTimer?.cancel();
+          },
+          onLongPressEnd: (_) {
+            _startHideControlsTimer();
+          },
           child: Stack(
             alignment: Alignment.bottomCenter,
             children: [
@@ -113,6 +124,12 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                       tag: 'videoControls',
                       child: VideoControls(
                         onFullscreenToggle: () => Navigator.pop(context),
+                        onInteractionStart: () {
+                          _hideControlsTimer?.cancel();
+                        },
+                        onInteractionEnd: () {
+                          _startHideControlsTimer();
+                        },
                       ),
                     ),
                   ),

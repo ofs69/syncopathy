@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/model/funscript.dart';
 
 class Heatmap extends StatefulWidget {
@@ -12,6 +13,8 @@ class Heatmap extends StatefulWidget {
       Duration(milliseconds: (totalDuration.value * 1000).round());
 
   final void Function(Duration)? onClick;
+  final VoidCallback? onInteractionStart;
+  final VoidCallback? onInteractionEnd;
 
   const Heatmap({
     super.key,
@@ -19,6 +22,8 @@ class Heatmap extends StatefulWidget {
     required this.totalDuration,
     this.onClick,
     required this.videoPosition,
+    this.onInteractionStart,
+    this.onInteractionEnd,
   });
 
   @override
@@ -27,6 +32,25 @@ class Heatmap extends StatefulWidget {
 
 class _HeatmapState extends State<Heatmap> {
   final ValueNotifier<double?> _hoverPosition = ValueNotifier<double?>(null);
+  final Throttler _throttler = Throttler(milliseconds: 100);
+
+  @override
+  void dispose() {
+    _throttler.dispose();
+    super.dispose();
+  }
+
+  void _handleInteraction(Offset localPosition, BoxConstraints constraints) {
+    if (widget.onClick != null &&
+        widget.totalDuration.value > 0 &&
+        constraints.maxWidth > 0) {
+      final dx = localPosition.dx.clamp(0, constraints.maxWidth);
+      final clickedMs =
+          (dx / constraints.maxWidth) *
+          widget.totalDurationGetter.inMilliseconds;
+      widget.onClick!(Duration(milliseconds: clickedMs.round()));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,19 +70,24 @@ class _HeatmapState extends State<Heatmap> {
             _hoverPosition.value = null;
           },
           child: GestureDetector(
+            onPanStart: (details) {
+              _hoverPosition.value = null;
+              widget.onInteractionStart?.call();
+            },
+            onPanEnd: (details) {
+              widget.onInteractionEnd?.call();
+            },
+            onPanUpdate: (details) {
+              _throttler.run(() {
+                _handleInteraction(details.localPosition, constraints);
+              });
+            },
             onTapDown: (details) {
-              if (widget.onClick != null &&
-                  widget.totalDuration.value > 0 &&
-                  constraints.maxWidth > 0) {
-                final dx = details.localPosition.dx.clamp(
-                  0,
-                  constraints.maxWidth,
-                );
-                final clickedMs =
-                    (dx / constraints.maxWidth) *
-                    widget.totalDurationGetter.inMilliseconds;
-                widget.onClick!(Duration(milliseconds: clickedMs.round()));
-              }
+              widget.onInteractionStart?.call();
+            },
+            onTapUp: (details) {
+              _handleInteraction(details.localPosition, constraints);
+              widget.onInteractionEnd?.call();
             },
             child: ClipRect(
               child: Container(
@@ -267,18 +296,6 @@ class IndicatorPainter extends CustomPainter {
       Offset(indicatorX, 0),
       Offset(indicatorX, size.height),
       indicatorBorderPaint,
-    );
-
-    final progressBorderPaint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke;
-    canvas.drawRect(Rect.fromLTWH(0, 0, indicatorX, 3.0), progressBorderPaint);
-
-    final progressFillPaint = Paint()..color = Colors.red;
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, indicatorX, 3.0), // Solid bar on top with height 3.0
-      progressFillPaint,
     );
 
     canvas.drawLine(

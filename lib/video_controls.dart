@@ -6,8 +6,15 @@ import 'package:syncopathy/model/player_model.dart';
 
 class VideoControls extends StatefulWidget {
   final VoidCallback onFullscreenToggle;
+  final VoidCallback? onInteractionStart;
+  final VoidCallback? onInteractionEnd;
 
-  const VideoControls({super.key, required this.onFullscreenToggle});
+  const VideoControls({
+    super.key,
+    required this.onFullscreenToggle,
+    this.onInteractionStart,
+    this.onInteractionEnd,
+  });
 
   @override
   State<VideoControls> createState() => _VideoControlsState();
@@ -74,6 +81,10 @@ class _VideoControlsState extends State<VideoControls> {
                                     divisions: 100,
                                     label: '${volume.round()}%',
                                     onChanged: player.setVolume,
+                                    onChangeStart: (_) =>
+                                        widget.onInteractionStart?.call(),
+                                    onChangeEnd: (_) =>
+                                        widget.onInteractionEnd?.call(),
                                   );
                                 },
                               ),
@@ -106,6 +117,10 @@ class _VideoControlsState extends State<VideoControls> {
                                         onChanged: isPaused
                                             ? player.setPlaybackSpeed
                                             : null, // Disable when not paused
+                                        onChangeStart: (_) =>
+                                            widget.onInteractionStart?.call(),
+                                        onChangeEnd: (_) =>
+                                            widget.onInteractionEnd?.call(),
                                       );
                                     },
                                   ),
@@ -136,6 +151,8 @@ class _VideoControlsState extends State<VideoControls> {
                             videoPosition: player.positionNoOffset,
                             onClick: (d) =>
                                 player.seekTo(d.inSeconds.toDouble()),
+                            onInteractionStart: widget.onInteractionStart,
+                            onInteractionEnd: widget.onInteractionEnd,
                           );
                         },
                       ),
