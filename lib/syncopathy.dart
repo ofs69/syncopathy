@@ -5,6 +5,8 @@ import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_page.dart';
 import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/model/video_model.dart';
+import 'package:collection/collection.dart';
 
 import 'package:syncopathy/settings_page.dart';
 import 'package:syncopathy/update_checker_widget.dart';
@@ -48,6 +50,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
 
   late PageController _pageController;
   String _currentVideoTitle = '';
+  Video? _currentVideo;
 
   @override
   void initState() {
@@ -55,15 +58,15 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     _pageController = PageController(initialPage: _selectedIndex);
     final player = context.read<PlayerModel>();
     player.path.addListener(_handleVideoPathChange);
-    player.path.addListener(_updateVideoTitle);
-    _updateVideoTitle(); // Initial update
+    player.path.addListener(_updateVideoTitleAndVideo);
+    _updateVideoTitleAndVideo(); // Initial update
   }
 
   @override
   void dispose() {
     final player = context.read<PlayerModel>();
     player.path.removeListener(_handleVideoPathChange);
-    player.path.removeListener(_updateVideoTitle);
+    player.path.removeListener(_updateVideoTitleAndVideo);
     super.dispose();
   }
 
@@ -80,13 +83,17 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     );
   }
 
-  void _updateVideoTitle() {
+  void _updateVideoTitleAndVideo() {
     final player = context.read<PlayerModel>();
+    final mediaManager = context.read<SyncopathyModel>().mediaManager;
     final path = player.path.value;
     setState(() {
       _currentVideoTitle = path.isNotEmpty
           ? p.basenameWithoutExtension(path)
           : '';
+      _currentVideo = mediaManager.allVideos.firstWhereOrNull(
+        (video) => video.videoPath == path,
+      );
     });
   }
 
@@ -174,6 +181,53 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
             ],
           ),
           actions: [
+            if (_currentVideo != null) ...[
+              IconButton(
+                icon: Icon(
+                  _currentVideo!.isFavorite ? Icons.star : Icons.star_border,
+                  color: _currentVideo!.isFavorite
+                      ? Colors.yellow.shade600
+                      : null,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _currentVideo!.isFavorite = !_currentVideo!.isFavorite;
+                    if (_currentVideo!.isFavorite) {
+                      _currentVideo!.isDislike = false;
+                    }
+                  });
+                  context.read<SyncopathyModel>().mediaManager.saveFavorite(
+                    _currentVideo!,
+                  );
+                },
+                tooltip: _currentVideo!.isFavorite
+                    ? 'Remove from Favorites'
+                    : 'Add to Favorites',
+              ),
+              IconButton(
+                icon: Icon(
+                  _currentVideo!.isDislike
+                      ? Icons.thumb_down
+                      : Icons.thumb_down_off_alt,
+                  color: _currentVideo!.isDislike ? Colors.blue.shade300 : null,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _currentVideo!.isDislike = !_currentVideo!.isDislike;
+                    if (_currentVideo!.isDislike) {
+                      _currentVideo!.isFavorite = false;
+                    }
+                  });
+                  context.read<SyncopathyModel>().mediaManager.saveDislike(
+                    _currentVideo!,
+                  );
+                },
+                tooltip: _currentVideo!.isDislike
+                    ? 'Remove Dislike'
+                    : 'Dislike Video',
+              ),
+              const SizedBox(width: 20),
+            ],
             const UpdateCheckerWidget(),
             const SizedBox(width: 20),
             const Padding(

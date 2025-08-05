@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:async_locks/async_locks.dart';
@@ -17,10 +18,17 @@ class MediaManager {
   List<Video> get allVideos => _allVideos;
   final List<String> _paths;
   final ValueNotifier<int> videoCountNotifier = ValueNotifier(0);
+  final _videoUpdateController = StreamController<Video>.broadcast();
+
+  Stream<Video> get videoUpdates => _videoUpdateController.stream;
 
   MediaManager(this._paths) {
     _allVideos.clear();
     _allVideos.addAll(isar.videos.where().findAllSync());
+  }
+
+  void dispose() {
+    _videoUpdateController.close();
   }
 
   Future<Map<String, dynamic>> _getVideoMetadata(
@@ -250,12 +258,14 @@ class MediaManager {
     await isar.writeTxn(() async {
       isar.videos.put(video);
     });
+    _videoUpdateController.add(video);
   }
 
   void saveDislike(Video video) async {
     await isar.writeTxn(() async {
       isar.videos.put(video);
     });
+    _videoUpdateController.add(video);
   }
 
   Future<void> createCategory(String name, {String? description}) async {

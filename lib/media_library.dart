@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -87,20 +88,26 @@ class _MediaLibraryState extends State<MediaLibrary> {
   int videosPerRow = 6;
   final Set<VideoFilter> _currentVisibilityFilters = {};
 
+  StreamSubscription? _videoUpdateSubscription;
+
   @override
   void initState() {
     super.initState();
     _mediaManager = widget.mediaManager;
     _refreshVideos();
 
-    _filteredVideos = _mediaManager.allVideos;
+    _filteredVideos = [];
     _searchController.addListener(_updateDisplayedVideos);
+    _videoUpdateSubscription = _mediaManager.videoUpdates.listen((_) {
+      _updateDisplayedVideos();
+    });
   }
 
   @override
   void dispose() {
     _searchController.removeListener(_updateDisplayedVideos);
     _searchController.dispose();
+    _videoUpdateSubscription?.cancel();
     super.dispose();
   }
 
@@ -230,7 +237,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
   }
 
   Future<void> _refreshVideos() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _filteredVideos = []; // Clear videos when loading starts
+    });
     await _mediaManager.refreshVideos();
     if (mounted) {
       _updateDisplayedVideos();
