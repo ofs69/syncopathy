@@ -71,6 +71,13 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     setState(() {
       _selectedIndex = index;
     });
+    final int currentPage = _pageController.page?.round() ?? _selectedIndex;
+    final int pageDelta = (index - currentPage).abs();
+    _pageController.animateToPage(
+      index,
+      duration: Duration(milliseconds: 300 * pageDelta),
+      curve: Curves.ease,
+    );
   }
 
   void _updateVideoTitle() {
@@ -179,19 +186,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
           children: <Widget>[
             NavigationRail(
               selectedIndex: _selectedIndex,
-              onDestinationSelected: (int index) {
-                setState(() {
-                  _selectedIndex = index;
-                });
-                final int currentPage =
-                    _pageController.page?.round() ?? _selectedIndex;
-                final int pageDelta = (index - currentPage).abs();
-                _pageController.animateToPage(
-                  index,
-                  duration: Duration(milliseconds: 300 * pageDelta),
-                  curve: Curves.ease,
-                );
-              },
+              onDestinationSelected: _onTabChanged,
               labelType: NavigationRailLabelType.all,
               destinations: _destinations,
             ),

@@ -42,26 +42,24 @@ class _ShortcutHandlerState extends State<ShortcutHandler> {
       onKeyEvent: (FocusNode node, KeyEvent event) {
         if (event is KeyDownEvent) {
           int? newIndex;
-          if (event.logicalKey == LogicalKeyboardKey.digit1) {
-            newIndex = 0;
-          } else if (event.logicalKey == LogicalKeyboardKey.digit2) {
-            newIndex = 1;
-          } else if (event.logicalKey == LogicalKeyboardKey.digit3) {
-            newIndex = 2;
-          } else if (event.logicalKey == LogicalKeyboardKey.digit4) {
-            newIndex = 3;
+          switch (event.logicalKey) {
+            case LogicalKeyboardKey.digit1:
+              newIndex = 0;
+              break;
+            case LogicalKeyboardKey.digit2:
+              newIndex = 1;
+              break;
+            case LogicalKeyboardKey.digit3:
+              newIndex = 2;
+              break;
+            case LogicalKeyboardKey.digit4:
+              newIndex = 3;
+              break;
+            default:
+              break;
           }
 
           if (newIndex != null) {
-            final int currentPage =
-                widget.pageController.page?.round() ??
-                widget.pageController.initialPage;
-            final int pageDelta = (newIndex - currentPage).abs();
-            widget.pageController.animateToPage(
-              newIndex,
-              duration: Duration(milliseconds: 300 * pageDelta),
-              curve: Curves.ease,
-            );
             widget.onTabChanged(newIndex);
             return KeyEventResult.handled;
           } else if (event.logicalKey == LogicalKeyboardKey.space) {
