@@ -29,18 +29,6 @@ class _HelpPageState extends State<HelpPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'General Information',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Syncopathy is a desktop application designed to synchronize video playback with external devices. It provides a clean interface for managing your media library and visualizing funscripts.',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-
-                    const SizedBox(height: 48),
-                    Text(
                       'Getting Started',
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
@@ -70,6 +58,30 @@ class _HelpPageState extends State<HelpPage> {
                           'External Player: When the embedded player is disabled, Syncopathy will utilize an external MPV player. This option offers the same core video playback functionality as the embedded player, but is available across all supported platforms. To use it, ensure MPV is installed on your system and disable the embedded player in the settings.',
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Connecting The Handy',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'To connect your Handy, ensure it has firmware version 4 or newer. Bluetooth must be enabled on your Handy, preferably in exclusive Bluetooth mode, or in Wi-Fi + Bluetooth mode.',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoPoint(
+                      context,
+                      'Once Bluetooth is enabled, The Handy\'s LED will pulse blue (Bluetooth exclusive mode) or alternate between magenta and blue (Bluetooth + Wi-Fi mode), indicating it\'s ready to connect.',
+                    ),
+                    _buildInfoPoint(
+                      context,
+                      'When the LED is pulsing blue, you can press the connect button in the top right of the app bar to initiate the connection.',
+                    ),
+                    _buildInfoPoint(
+                      context,
+                      'Bluetooth must be enabled and your device must support Bluetooth Low Energy (BLE) for the connection.',
                     ),
                   ],
                 ),
