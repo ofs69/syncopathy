@@ -13,11 +13,10 @@ class SyncopathyModel extends ChangeNotifier {
 
   SyncopathyModel(this.settings) {
     player = PlayerModel(settings);
-    mediaManager = MediaManager(settings.mediaPaths);
+    mediaManager = MediaManager(settings.mediaPaths.value);
   }
 
   void selectCategory(UserCategory? category) {
     selectedCategory.value = category;
   }
-
 }

@@ -40,13 +40,29 @@ class _SettingsPageState extends State<SettingsPage>
   void initState() {
     super.initState();
     _model = context.read<SyncopathyModel>();
-    _model.settings.addListener(_onSettingsChanged);
+    _model.settings.min.addListener(_onSettingsChanged);
+    _model.settings.max.addListener(_onSettingsChanged);
+    _model.settings.offsetMs.addListener(_onSettingsChanged);
+    _model.settings.mediaPaths.addListener(_onSettingsChanged);
+    _model.settings.slewMaxRateOfChange.addListener(_onSettingsChanged);
+    _model.settings.rdpEpsilon.addListener(_onSettingsChanged);
+    _model.settings.remapFullRange.addListener(_onSettingsChanged);
+    _model.settings.skipToAction.addListener(_onSettingsChanged);
+    _model.settings.embeddedVideoPlayer.addListener(_onSettingsChanged);
     _updateStateFromSettings();
   }
 
   @override
   void dispose() {
-    _model.settings.removeListener(_onSettingsChanged);
+    _model.settings.min.removeListener(_onSettingsChanged);
+    _model.settings.max.removeListener(_onSettingsChanged);
+    _model.settings.offsetMs.removeListener(_onSettingsChanged);
+    _model.settings.mediaPaths.removeListener(_onSettingsChanged);
+    _model.settings.slewMaxRateOfChange.removeListener(_onSettingsChanged);
+    _model.settings.rdpEpsilon.removeListener(_onSettingsChanged);
+    _model.settings.remapFullRange.removeListener(_onSettingsChanged);
+    _model.settings.skipToAction.removeListener(_onSettingsChanged);
+    _model.settings.embeddedVideoPlayer.removeListener(_onSettingsChanged);
     super.dispose();
   }
 
@@ -57,16 +73,16 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   void _updateStateFromSettings() {
-    _currentMin = _model.settings.min.toDouble();
-    _currentMax = _model.settings.max.toDouble();
-    _currentOffsetMs = _model.settings.offsetMs.toDouble();
-    _currentRdpEpsilon = _model.settings.rdpEpsilon ?? 15.0;
-    _rdpEpsilonEnabled = _model.settings.rdpEpsilon != null;
-    _currentSlewMaxRateOfChange = _model.settings.slewMaxRateOfChange ?? 400.0;
-    _slewMaxRateOfChangeEnabled = _model.settings.slewMaxRateOfChange != null;
-    _remapFullRange = _model.settings.remapFullRange;
-    _skipToAction = _model.settings.skipToAction;
-    _embeddedVideoPlayer = _model.settings.embeddedVideoPlayer;
+    _currentMin = _model.settings.min.value.toDouble();
+    _currentMax = _model.settings.max.value.toDouble();
+    _currentOffsetMs = _model.settings.offsetMs.value.toDouble();
+    _currentRdpEpsilon = _model.settings.rdpEpsilon.value ?? 15.0;
+    _rdpEpsilonEnabled = _model.settings.rdpEpsilon.value != null;
+    _currentSlewMaxRateOfChange = _model.settings.slewMaxRateOfChange.value ?? 400.0;
+    _slewMaxRateOfChangeEnabled = _model.settings.slewMaxRateOfChange.value != null;
+    _remapFullRange = _model.settings.remapFullRange.value;
+    _skipToAction = _model.settings.skipToAction.value;
+    _embeddedVideoPlayer = _model.settings.embeddedVideoPlayer.value;
   }
 
   Future<void> _addPath() async {
@@ -289,10 +305,10 @@ class _SettingsPageState extends State<SettingsPage>
             borderRadius: BorderRadius.circular(8),
           ),
           child: ListView.builder(
-            itemCount: _model.settings.mediaPaths.length,
+            itemCount: _model.settings.mediaPaths.value.length,
             shrinkWrap: true,
             itemBuilder: (context, index) {
-              final path = _model.settings.mediaPaths[index];
+              final path = _model.settings.mediaPaths.value[index];
               return ListTile(
                 title: Text(path),
                 trailing: IconButton(

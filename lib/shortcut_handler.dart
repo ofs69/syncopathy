@@ -31,7 +31,6 @@ class ShortcutHandler extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Shortcuts(
       shortcuts: <LogicalKeySet, Intent>{
         LogicalKeySet(

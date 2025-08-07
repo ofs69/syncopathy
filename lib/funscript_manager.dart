@@ -32,9 +32,9 @@ class FunscriptManager {
 
     funscriptFile.actions = FunscriptAlgorithms.processForHandy(
       funscriptFile.actions,
-      rdpEpsilon: settings.rdpEpsilon,
-      slewMaxRateOfChangePerSecond: settings.slewMaxRateOfChange,
-      remapRange: settings.remapFullRange ? (0, 100) : null,
+      rdpEpsilon: settings.rdpEpsilon.value,
+      slewMaxRateOfChangePerSecond: settings.slewMaxRateOfChange.value,
+      remapRange: settings.remapFullRange.value ? (0, 100) : null,
     );
     return funscriptFile;
   }

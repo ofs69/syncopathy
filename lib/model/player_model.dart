@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:path/path.dart' as p;
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/funscript_algo.dart';
@@ -29,14 +30,16 @@ class PlayerModel extends ChangeNotifier {
 
   ValueNotifier<String> get path => mpvPlayer.path;
   ValueNotifier<Funscript?> funscript = ValueNotifier(null);
+
   String? _lastAttemptedLoadPath;
   int get positionMs =>
-      (positionNoOffset.value * 1000.0).round().toInt() + settings.offsetMs;
+      (positionNoOffset.value * 1000.0).round().toInt() +
+      settings.offsetMs.value;
 
   late final FunscriptStreamController _funscriptStreamController;
 
   PlayerModel(this.settings) {
-    mpvPlayer = MpvVideoplayer(videoOutput: settings.embeddedVideoPlayer);
+    mpvPlayer = MpvVideoplayer(videoOutput: settings.embeddedVideoPlayer.value);
     mpvPlayer.duration.addListener(_handleDurationChange);
 
     _handyBle = HandyBle();
@@ -47,11 +50,15 @@ class PlayerModel extends ChangeNotifier {
 
     paused.addListener(_handlePausedChanged);
     positionNoOffset.addListener(_handlePositionChanged);
-    settings.addListener(applySettings);
+    settings.saveNotifier.stream.listen((_) {
+      applySettings();
+    });
+
+    
   }
 
   void _handleDurationChange() {
-    if (settings.skipToAction) {
+    if (settings.skipToAction.value) {
       final startTime = FunscriptAlgorithms.findFirstStroke(
         funscript.value!.actions,
       );
@@ -62,8 +69,8 @@ class PlayerModel extends ChangeNotifier {
 
   void tryConnect() {
     _handyBle.startScan(
-      (settings.min.toDouble() / 100.0).clamp(0.0, 1.0),
-      (settings.max.toDouble() / 100.0).clamp(0.0, 1.0),
+      (settings.min.value.toDouble() / 100.0).clamp(0.0, 1.0),
+      (settings.max.value.toDouble() / 100.0).clamp(0.0, 1.0),
     );
   }
 
@@ -71,7 +78,7 @@ class PlayerModel extends ChangeNotifier {
   void dispose() {
     path.removeListener(_tryToLoadFunscript);
     _handyBle.dispose();
-    settings.removeListener(applySettings);
+
     mpvPlayer.dispose();
     super.dispose();
   }
@@ -154,9 +161,9 @@ class PlayerModel extends ChangeNotifier {
     );
     funscriptFile!.actions = FunscriptAlgorithms.processForHandy(
       funscriptFile.actions,
-      rdpEpsilon: settings.rdpEpsilon,
-      slewMaxRateOfChangePerSecond: settings.slewMaxRateOfChange,
-      remapRange: settings.remapFullRange ? (0, 100) : null,
+      rdpEpsilon: settings.rdpEpsilon.value,
+      slewMaxRateOfChangePerSecond: settings.slewMaxRateOfChange.value,
+      remapRange: settings.remapFullRange.value ? (0, 100) : null,
     );
     funscript.value = funscriptFile;
   }
@@ -194,10 +201,15 @@ class PlayerModel extends ChangeNotifier {
     mpvPlayer.setVolume(volume);
   }
 
+  void setMinMax(int min, int max) {
+    settings.setMinMax(min, max);
+  }
+
   void applySettings() {
+    Logger.debug("Applying min ${settings.min.value} max: ${settings.max.value}");
     _handyBle.setSettings(
-      (settings.min.toDouble() / 100.0).clamp(0.0, 1.0),
-      (settings.max.toDouble() / 100.0).clamp(0.0, 1.0),
+      (settings.min.value.toDouble() / 100.0).clamp(0.0, 1.0),
+      (settings.max.value.toDouble() / 100.0).clamp(0.0, 1.0),
     );
   }
 

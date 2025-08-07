@@ -91,7 +91,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                   children: [
                     Expanded(
                       flex: 6,
-                      child: model.settings.embeddedVideoPlayer
+                      child: model.settings.embeddedVideoPlayer.value
                           ? GestureDetector(
                               onDoubleTap: enterFullscreen,
                               child: Hero(
