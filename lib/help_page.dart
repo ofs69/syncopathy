@@ -35,7 +35,7 @@ class _HelpPageState extends State<HelpPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'To begin, navigate to the "Settings" tab (accessible via the \'3\' shortcut or by clicking the gear icon). Under "Media Library Paths", add the directories where your video and funscript files are stored. Syncopathy will automatically scan these directories for compatible media.',
+                      'To begin, navigate to the "Settings" tab. Under "Media Library Paths", add the directories where your video and funscript files are stored. Syncopathy will automatically scan these directories for compatible media.',
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                     const SizedBox(height: 16),
