@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:syncopathy/model/player_model.dart';
 
-class ShortcutHandler extends StatefulWidget {
+class SelectTabIntent extends Intent {
+  const SelectTabIntent(this.index);
+  final int index;
+}
+
+class SelectTabAction extends Action<SelectTabIntent> {
+  SelectTabAction(this.onTabChanged);
+
+  final ValueChanged<int> onTabChanged;
+
+  @override
+  void invoke(SelectTabIntent intent) {
+    onTabChanged(intent.index);
+  }
+}
+
+class ShortcutHandler extends StatelessWidget {
   final Widget child;
   final PageController pageController;
   final ValueChanged<int> onTabChanged;
@@ -16,60 +30,41 @@ class ShortcutHandler extends StatefulWidget {
   });
 
   @override
-  State<ShortcutHandler> createState() => _ShortcutHandlerState();
-}
-
-class _ShortcutHandlerState extends State<ShortcutHandler> {
-  late FocusNode _focusNode;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode = FocusNode();
-  }
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Focus(
-      focusNode: _focusNode,
-      autofocus: true,
-      onKeyEvent: (FocusNode node, KeyEvent event) {
-        if (event is KeyDownEvent) {
-          int? newIndex;
-          switch (event.logicalKey) {
-            case LogicalKeyboardKey.digit1:
-              newIndex = 0;
-              break;
-            case LogicalKeyboardKey.digit2:
-              newIndex = 1;
-              break;
-            case LogicalKeyboardKey.digit3:
-              newIndex = 2;
-              break;
-            case LogicalKeyboardKey.digit4:
-              newIndex = 3;
-              break;
-            default:
-              break;
-          }
 
-          if (newIndex != null) {
-            widget.onTabChanged(newIndex);
-            return KeyEventResult.handled;
-          } else if (event.logicalKey == LogicalKeyboardKey.space) {
-            context.read<PlayerModel>().togglePause();
-            return KeyEventResult.handled;
-          }
-        }
-        return KeyEventResult.ignored;
+    return Shortcuts(
+      shortcuts: <LogicalKeySet, Intent>{
+        LogicalKeySet(
+          LogicalKeyboardKey.controlLeft,
+          LogicalKeyboardKey.digit1,
+        ): const SelectTabIntent(
+          0,
+        ),
+        LogicalKeySet(
+          LogicalKeyboardKey.controlLeft,
+          LogicalKeyboardKey.digit2,
+        ): const SelectTabIntent(
+          1,
+        ),
+        LogicalKeySet(
+          LogicalKeyboardKey.controlLeft,
+          LogicalKeyboardKey.digit3,
+        ): const SelectTabIntent(
+          2,
+        ),
+        LogicalKeySet(
+          LogicalKeyboardKey.controlLeft,
+          LogicalKeyboardKey.digit4,
+        ): const SelectTabIntent(
+          3,
+        ),
       },
-      child: widget.child,
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          SelectTabIntent: SelectTabAction(onTabChanged),
+        },
+        child: Focus(autofocus: true, child: child),
+      ),
     );
   }
 }

@@ -51,11 +51,13 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   late PageController _pageController;
   String _currentVideoTitle = '';
   Video? _currentVideo;
+  late FocusNode _videoPlayerFocusNode;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _selectedIndex);
+    _videoPlayerFocusNode = FocusNode();
     final player = context.read<PlayerModel>();
     player.path.addListener(_handleVideoPathChange);
     player.path.addListener(_updateVideoTitleAndVideo);
@@ -67,6 +69,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     final player = context.read<PlayerModel>();
     player.path.removeListener(_handleVideoPathChange);
     player.path.removeListener(_updateVideoTitleAndVideo);
+    _videoPlayerFocusNode.dispose();
     super.dispose();
   }
 
@@ -254,6 +257,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                   });
                 },
                 pageController: _pageController,
+                videoPlayerFocusNode: _videoPlayerFocusNode,
               ),
             ),
           ],
@@ -320,11 +324,13 @@ class PageContent extends StatefulWidget {
     required this.selectedIndex,
     required this.onPageChanged,
     required this.pageController,
+    this.videoPlayerFocusNode,
   });
 
   final int selectedIndex;
   final ValueChanged<int> onPageChanged;
   final PageController pageController;
+  final FocusNode? videoPlayerFocusNode;
 
   @override
   State<PageContent> createState() => _PageContentState();
@@ -332,6 +338,14 @@ class PageContent extends StatefulWidget {
 
 class _PageContentState extends State<PageContent> {
   bool _isLogVisible = true;
+
+  @override
+  void didUpdateWidget(covariant PageContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedIndex == 1 && widget.videoPlayerFocusNode != null) {
+      widget.videoPlayerFocusNode!.requestFocus();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -359,7 +373,7 @@ class _PageContentState extends State<PageContent> {
                             .read<SyncopathyModel>()
                             .mediaManager,
                       ),
-                      VideoPlayerPage(),
+                      VideoPlayerPage(focusNode: widget.videoPlayerFocusNode),
                       SettingsPage(),
                       HelpPage(),
                     ],

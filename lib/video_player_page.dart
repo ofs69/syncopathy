@@ -10,19 +10,45 @@ import 'package:syncopathy/custom_mpv_video_widget.dart';
 import 'package:syncopathy/fullscreen_video_page.dart';
 
 class VideoPlayerPage extends StatefulWidget {
-  const VideoPlayerPage({super.key});
+  const VideoPlayerPage({super.key, this.focusNode});
+
+  final FocusNode? focusNode;
 
   @override
   State<VideoPlayerPage> createState() => _VideoPlayerPageState();
 }
 
+class TogglePauseIntent extends Intent {
+  const TogglePauseIntent();
+}
+
+class TogglePauseAction extends Action<TogglePauseIntent> {
+  TogglePauseAction(this.playerModel);
+
+  final PlayerModel playerModel;
+
+  @override
+  void invoke(TogglePauseIntent intent) {
+    playerModel.togglePause();
+  }
+}
+
 class _VideoPlayerPageState extends State<VideoPlayerPage>
     with AutomaticKeepAliveClientMixin {
+  final FocusNode _focusNode = FocusNode();
+
   @override
   bool get wantKeepAlive => true;
 
   @override
+  void initState() {
+    super.initState();
+    _focusNode.requestFocus();
+  }
+
+  @override
   void dispose() {
+    _focusNode.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
@@ -43,56 +69,70 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
       ),
     );
 
-    return ValueListenableBuilder<Funscript?>(
-      valueListenable: player.funscript,
-      builder: (context, funscript, child) {
-        if (funscript == null) {
-          return const Center(child: Text('No funscript loaded'));
-        }
-        return Scaffold(
-          body: Column(
-            children: [
-              Expanded(
-                flex: 6,
-                child: model.settings.embeddedVideoPlayer
-                    ? GestureDetector(
-                        onDoubleTap: enterFullscreen,
-                        child: Hero(
-                          tag: 'videoPlayer',
-                          child: CustomMpvVideoWidget(
-                            player: player.mpvPlayer.player,
-                            videoParamsNotifier:
-                                player.mpvPlayer.player.videoParams,
-                          ),
+    return Shortcuts(
+      shortcuts: <LogicalKeySet, Intent>{
+        LogicalKeySet(LogicalKeyboardKey.space): const TogglePauseIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          TogglePauseIntent: TogglePauseAction(player),
+        },
+        child: Focus(
+          focusNode: widget.focusNode,
+          autofocus: true,
+          child: ValueListenableBuilder<Funscript?>(
+            valueListenable: player.funscript,
+            builder: (context, funscript, child) {
+              if (funscript == null) {
+                return const Center(child: Text('No funscript loaded'));
+              }
+              return Scaffold(
+                body: Column(
+                  children: [
+                    Expanded(
+                      flex: 6,
+                      child: model.settings.embeddedVideoPlayer
+                          ? GestureDetector(
+                              onDoubleTap: enterFullscreen,
+                              child: Hero(
+                                tag: 'videoPlayer',
+                                child: CustomMpvVideoWidget(
+                                  player: player.mpvPlayer.player,
+                                  videoParamsNotifier:
+                                      player.mpvPlayer.player.videoParams,
+                                ),
+                              ),
+                            )
+                          : const Center(
+                              child: Text(
+                                'Embedded video player is disabled in settings.',
+                              ),
+                            ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
                         ),
-                      )
-                    : const Center(
-                        child: Text(
-                          'Embedded video player is disabled in settings.',
+                        child: InteractiveScrollingGraph(
+                          funscript: funscript,
+                          videoPosition: player.positionNoOffset,
                         ),
                       ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: InteractiveScrollingGraph(
-                    funscript: funscript,
-                    videoPosition: player.positionNoOffset,
-                  ),
+                    ),
+                    Hero(
+                      tag: 'videoControls',
+                      child: VideoControls(onFullscreenToggle: enterFullscreen),
+                    ),
+                  ],
                 ),
-              ),
-              Hero(
-                tag: 'videoControls',
-                child: VideoControls(onFullscreenToggle: enterFullscreen),
-              ),
-            ],
+              );
+            },
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

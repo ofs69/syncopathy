@@ -78,6 +78,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
   late final MediaManager _mediaManager;
   late List<Video> _filteredVideos;
   final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
   SortOption _currentSortOption = SortOption.none;
   bool _isSortAscending = true;
   String? _selectedAuthor;
@@ -107,6 +108,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
   void dispose() {
     _searchController.removeListener(_updateDisplayedVideos);
     _searchController.dispose();
+    _searchFocusNode.dispose();
     _videoUpdateSubscription?.cancel();
     super.dispose();
   }
@@ -687,14 +689,17 @@ class _MediaLibraryState extends State<MediaLibrary> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Search Videos',
-                hintText: 'What are you looking for?',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
+            child: FocusScope(
+              child: TextField(
+                focusNode: _searchFocusNode, // Assign the focus node
+                controller: _searchController,
+                decoration: InputDecoration(
+                  labelText: 'Search Videos',
+                  hintText: 'What are you looking for?',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
                 ),
               ),
             ),
