@@ -171,9 +171,14 @@ class MediaManager {
               );
             }
             final title = videoBasename;
-            final funscript = await Funscript.fromFile(
-              funscriptPath,
-            ).catchError((e) => null, test: (e) => true);
+            final funscript = await Funscript.fromFile(funscriptPath)
+                .catchError(
+                  (e) => null,
+                  test: (e) {
+                    Logger.error(e.toString());
+                    return true;
+                  },
+                );
 
             if (funscript != null) {
               final averageSpeed = FunscriptAlgorithms.averageSpeed(
