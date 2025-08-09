@@ -37,7 +37,7 @@ class _MediaPageState extends State<MediaPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Call super.build(context)
+    super.build(context);
     final model = context.read<SyncopathyModel>();
     final player = context.read<PlayerModel>();
 
