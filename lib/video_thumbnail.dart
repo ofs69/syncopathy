@@ -19,53 +19,75 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
   String? _thumbnailPath;
   bool _isGenerating = false;
   static final _ffmpegSemaphore = Semaphore(2);
+  static final _thumbnailFutures = <String, Future<String?>>{};
 
   @override
   void initState() {
     super.initState();
-    _generateThumbnail();
+    _getThumbnail();
   }
 
   @override
   void didUpdateWidget(covariant VideoThumbnail oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.video.videoPath != oldWidget.video.videoPath) {
-      // If the video path changes, reset and generate a new thumbnail.
+      // If the video path changes, we might need to re-fetch.
       _thumbnailPath = null;
-      _generateThumbnail();
+      _getThumbnail();
     }
   }
 
-  Future<void> _generateThumbnail() async {
+  void _getThumbnail() async {
     if (!mounted) return;
+
     setState(() {
       _isGenerating = true;
     });
 
+    final videoHash = widget.video.videoHash;
+    final future = _thumbnailFutures.putIfAbsent(
+      videoHash,
+      () => _generateThumbnailAndGetPath(widget.video),
+    );
+
+    try {
+      final path = await future;
+      if (mounted) {
+        setState(() {
+          _thumbnailPath = path;
+        });
+      }
+    } catch (e) {
+      // error is logged in _generateThumbnailAndGetPath
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGenerating = false;
+        });
+      }
+    }
+  }
+
+  static Future<String?> _generateThumbnailAndGetPath(Video video) async {
     try {
       final appDataPath = await getApplicationSupportDirectory();
       final thumbDir = Directory(p.join(appDataPath.path, 'thumbnails'));
       await thumbDir.create(recursive: true);
 
       // store the thumbnail file without an extension as jpg
-      final filename = widget.video.videoHash;
+      final filename = video.videoHash;
       final thumbnailFile = File(p.join(thumbDir.path, filename));
 
       if (await thumbnailFile.exists()) {
-        if (mounted) {
-          setState(() {
-            _thumbnailPath = thumbnailFile.path;
-          });
-        }
-        return;
+        return thumbnailFile.path;
       }
 
-      final durationSeconds = widget.video.duration;
+      final durationSeconds = video.duration;
       if (durationSeconds == null || durationSeconds <= 0) {
         Logger.warning(
-          'Video duration not available for ${widget.video.videoPath}. Cannot generate thumbnail at 1% mark.',
+          'Video duration not available for ${video.videoPath}. Cannot generate thumbnail at 1% mark.',
         );
-        return;
+        return null;
       }
 
       // Calculate seek time (5% of duration)
@@ -79,7 +101,7 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
           '-ss', // Seek to the calculated time
           seekTimeSeconds.toString(),
           '-i',
-          widget.video.videoPath,
+          video.videoPath,
           '-vf',
           "thumbnail,scale=300:-1",
           '-vframes',
@@ -97,36 +119,28 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
 
         if (result.exitCode != 0) {
           Logger.warning(
-            'ffmpeg failed with -ss option for ${widget.video.videoPath}: ${result.stderr}. Retrying without -ss.',
+            'ffmpeg failed with -ss option for ${video.videoPath}: ${result.stderr}. Retrying without -ss.',
           );
           // Retry without -ss option
           ffmpegArgs.removeRange(2, 4); // Remove '-ss' and seekTimeSeconds
           result = await Process.run('ffmpeg', ffmpegArgs);
         }
         if (result.exitCode == 0 && await thumbnailFile.exists()) {
-          if (mounted) {
-            setState(() {
-              _thumbnailPath = thumbnailFile.path;
-            });
-          }
+          return thumbnailFile.path;
         } else {
           Logger.error(
-            'ffmpeg error for ${widget.video.videoPath}: ${result.stderr}',
+            'ffmpeg error for ${video.videoPath}: ${result.stderr}',
           );
+          return null;
         }
       } finally {
         _ffmpegSemaphore.release();
       }
     } catch (e) {
       Logger.error(
-        'Error generating thumbnail for ${widget.video.videoPath}: $e',
+        'Error generating thumbnail for ${video.videoPath}: $e',
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isGenerating = false;
-        });
-      }
+      return null;
     }
   }
 
