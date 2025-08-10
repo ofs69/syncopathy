@@ -13,6 +13,7 @@ class VideoItem extends StatefulWidget {
     required this.onFavoriteChanged,
     required this.onDislikeChanged,
     required this.onCategoryChanged,
+    this.showTitle = true,
   });
 
   final Video video;
@@ -20,6 +21,7 @@ class VideoItem extends StatefulWidget {
   final void Function(Video) onFavoriteChanged;
   final void Function(Video) onDislikeChanged;
   final void Function(Video, UserCategory, bool) onCategoryChanged;
+  final bool showTitle;
 
   @override
   State<VideoItem> createState() => _VideoItemState();
@@ -111,32 +113,35 @@ class _VideoItemState extends State<VideoItem> {
                   fit: StackFit.expand,
                   children: [
                     VideoThumbnail(video: widget.video),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.transparent, Colors.black],
+                    if (widget.showTitle)
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.transparent, Colors.black],
+                            ),
                           ),
-                        ),
-                        padding: const EdgeInsets.all(8.0),
-                        child: Tooltip(
-                          message: getVideoTooltip(widget.video),
-                          child: Text(
-                            widget.video.title,
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(color: Colors.white),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
+                          padding: const EdgeInsets.all(8.0),
+                          child: Tooltip(
+                            message: getVideoTooltip(widget.video),
+                            child: Text(
+                              widget.video.title,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(color: Colors.white),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
                       ),
-                    ),
                     Positioned(
                       top: 8.0,
                       right: 8.0,

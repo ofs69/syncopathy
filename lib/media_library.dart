@@ -87,6 +87,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
   bool _isLoading = false;
   int videosPerRow = 6;
   final Set<VideoFilter> _currentVisibilityFilters = {};
+  bool _showVideoTitles = true;
 
   StreamSubscription? _videoUpdateSubscription;
 
@@ -610,27 +611,41 @@ class _MediaLibraryState extends State<MediaLibrary> {
             tooltip: _isSortAscending ? 'Sort Descending' : 'Sort Ascending',
           ),
           const SizedBox(width: 16),
-          PopupMenuButton<VideoFilter>(
+          PopupMenuButton<dynamic>(
             icon: const Icon(Icons.visibility),
-            tooltip: 'Filter Videos',
-            onSelected: (VideoFilter filter) {
-              setState(() {
-                if (_currentVisibilityFilters.contains(filter)) {
-                  _currentVisibilityFilters.remove(filter);
-                } else {
-                  _currentVisibilityFilters.add(filter);
-                }
-              });
-              _updateDisplayedVideos();
+            tooltip: 'View Options',
+            onSelected: (dynamic value) {
+              if (value is VideoFilter) {
+                setState(() {
+                  if (_currentVisibilityFilters.contains(value)) {
+                    _currentVisibilityFilters.remove(value);
+                  } else {
+                    _currentVisibilityFilters.add(value);
+                  }
+                });
+                _updateDisplayedVideos();
+              } else if (value == 'toggle_titles') {
+                setState(() {
+                  _showVideoTitles = !_showVideoTitles;
+                });
+              }
             },
             itemBuilder: (BuildContext context) {
-              return VideoFilter.values.map((VideoFilter filter) {
-                return CheckedPopupMenuItem<VideoFilter>(
-                  value: filter,
-                  checked: _currentVisibilityFilters.contains(filter),
-                  child: Text(filter.label),
-                );
-              }).toList();
+              return <PopupMenuEntry<dynamic>>[
+                ...VideoFilter.values.map((VideoFilter filter) {
+                  return CheckedPopupMenuItem<VideoFilter>(
+                    value: filter,
+                    checked: _currentVisibilityFilters.contains(filter),
+                    child: Text(filter.label),
+                  );
+                }),
+                const PopupMenuDivider(),
+                CheckedPopupMenuItem<String>(
+                  value: 'toggle_titles',
+                  checked: _showVideoTitles,
+                  child: const Text('Show Titles'),
+                ),
+              ];
             },
           ),
           const SizedBox(width: 16),
@@ -647,7 +662,6 @@ class _MediaLibraryState extends State<MediaLibrary> {
             onPressed: _showCategoryDialog,
           ),
           const SizedBox(width: 16),
-
           // Videos Per Row Dropdown)
           Tooltip(
             message: 'Videos per row',
@@ -764,6 +778,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
                         final video = _filteredVideos[index];
                         return VideoItem(
                           video: video,
+                          showTitle: _showVideoTitles,
                           onVideoTapped: widget.onVideoTapped,
                           onFavoriteChanged: (video) {
                             _mediaManager.saveFavorite(video);
