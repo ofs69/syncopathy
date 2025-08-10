@@ -28,6 +28,7 @@ class VideoItem extends StatefulWidget {
 }
 
 class _VideoItemState extends State<VideoItem> {
+  final GlobalKey<VideoThumbnailState> _thumbnailKey = GlobalKey();
   bool _isHovering = false;
   bool _isTapped = false;
 
@@ -42,11 +43,28 @@ class _VideoItemState extends State<VideoItem> {
     final categories = await isar.userCategorys.where().findAll();
     if (!context.mounted) return;
 
-    if (categories.isEmpty) {
-      return;
+    final List<PopupMenuEntry<String>> menuItems = [
+      const PopupMenuItem<String>(
+        value: 'regenerate_thumbnail',
+        child: Text('Regenerate Thumbnail'),
+      ),
+    ];
+
+    if (categories.isNotEmpty) {
+      menuItems.add(const PopupMenuDivider());
+      menuItems.addAll(
+        categories.map((category) {
+          return PopupMenuItem<String>(
+            value: 'category_${category.id}',
+            child: widget.video.categories.any((c) => c.id == category.id)
+                ? Text("Remove: ${category.name}")
+                : Text(category.name),
+          );
+        }).toList(),
+      );
     }
 
-    final result = await showMenu<UserCategory>(
+    final result = await showMenu<String>(
       context: context,
       position: RelativeRect.fromLTRB(
         details.globalPosition.dx,
@@ -54,21 +72,20 @@ class _VideoItemState extends State<VideoItem> {
         details.globalPosition.dx,
         details.globalPosition.dy,
       ),
-      items: categories.map((category) {
-        return PopupMenuItem<UserCategory>(
-          value: category,
-          child: widget.video.categories.any((c) => c.id == category.id)
-              ? Text("Remove: ${category.name}")
-              : Text(category.name),
-        );
-      }).toList(),
+      items: menuItems,
     );
 
     if (result != null) {
-      bool removeCategory = widget.video.categories.any(
-        (c) => c.id == result.id,
-      );
-      widget.onCategoryChanged(widget.video, result, removeCategory);
+      if (result == 'regenerate_thumbnail') {
+        _thumbnailKey.currentState?.regenerateThumbnail();
+      } else if (result.startsWith('category_')) {
+        final categoryId = int.parse(result.substring('category_'.length));
+        final selectedCategory = categories.firstWhere((c) => c.id == categoryId);
+        bool removeCategory = widget.video.categories.any(
+          (c) => c.id == selectedCategory.id,
+        );
+        widget.onCategoryChanged(widget.video, selectedCategory, removeCategory);
+      }
     }
   }
 
@@ -112,7 +129,7 @@ class _VideoItemState extends State<VideoItem> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    VideoThumbnail(video: widget.video),
+                    VideoThumbnail(key: _thumbnailKey, video: widget.video),
                     if (widget.showTitle)
                       Positioned(
                         bottom: 0,

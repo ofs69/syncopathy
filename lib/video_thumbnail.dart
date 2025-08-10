@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:math';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import "package:async_locks/async_locks.dart";
@@ -12,11 +14,11 @@ class VideoThumbnail extends StatefulWidget {
   const VideoThumbnail({super.key, required this.video});
 
   @override
-  State<VideoThumbnail> createState() => _VideoThumbnailState();
+  State<VideoThumbnail> createState() => VideoThumbnailState();
 }
 
-class _VideoThumbnailState extends State<VideoThumbnail> {
-  String? _thumbnailPath;
+class VideoThumbnailState extends State<VideoThumbnail> {
+  Uint8List? _thumbnailBytes;
   bool _isGenerating = false;
   static final _ffmpegSemaphore = Semaphore(2);
   static final _thumbnailFutures = <String, Future<String?>>{};
@@ -32,12 +34,46 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
     super.didUpdateWidget(oldWidget);
     if (widget.video.videoPath != oldWidget.video.videoPath) {
       // If the video path changes, we might need to re-fetch.
-      _thumbnailPath = null;
       _getThumbnail();
     }
   }
 
-  void _getThumbnail() async {
+  void regenerateThumbnail() async {
+    // Temporarily set thumbnail path to null to force widget rebuild
+    setState(() {
+      _thumbnailBytes = null; // Clear bytes too
+    });
+
+    // Delete the existing thumbnail file to force regeneration
+    final appDataPath = await getApplicationSupportDirectory();
+    final thumbDir = Directory(p.join(appDataPath.path, 'thumbnails'));
+    final filename = widget.video.videoHash;
+    final thumbnailFile = File(p.join(thumbDir.path, filename));
+
+    if (await thumbnailFile.exists()) {
+      try {
+        await thumbnailFile.delete();
+        await Future.delayed(
+          const Duration(milliseconds: 50),
+        ); // Add a small delay
+      } catch (e) {
+        Logger.error('Error deleting thumbnail file: $e');
+      }
+    }
+
+    // Clear the existing thumbnail path and remove from cache to force regeneration
+    setState(() {
+      _thumbnailFutures.remove(widget.video.videoHash);
+    });
+
+    final random = Random();
+    final seekFraction = 0.05 + random.nextInt(90) * 0.01;
+    _getThumbnail(seekFraction: seekFraction);
+  }
+
+  void _getThumbnail({
+    double seekFraction = 0.05
+  }) async {
     if (!mounted) return;
 
     setState(() {
@@ -47,18 +83,25 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
     final videoHash = widget.video.videoHash;
     final future = _thumbnailFutures.putIfAbsent(
       videoHash,
-      () => _generateThumbnailAndGetPath(widget.video),
+      () => _generateThumbnailAndGetPath(widget.video, seekFraction),
     );
 
     try {
       final path = await future;
       if (mounted) {
-        setState(() {
-          _thumbnailPath = path;
-        });
+        if (path != null) {
+          final bytes = await File(path).readAsBytes();
+          setState(() {
+            _thumbnailBytes = bytes;
+          });
+        } else {
+          setState(() {
+            _thumbnailBytes = null;
+          });
+        }
       }
     } catch (e) {
-      // error is logged in _generateThumbnailAndGetPath
+      Logger.error('Error in _getThumbnail for ${widget.video.title}: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -68,7 +111,10 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
     }
   }
 
-  static Future<String?> _generateThumbnailAndGetPath(Video video) async {
+  static Future<String?> _generateThumbnailAndGetPath(
+    Video video,
+    double seekFraction,
+  ) async {
     try {
       final appDataPath = await getApplicationSupportDirectory();
       final thumbDir = Directory(p.join(appDataPath.path, 'thumbnails'));
@@ -90,8 +136,7 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
         return null;
       }
 
-      // Calculate seek time (5% of duration)
-      final seekTimeSeconds = durationSeconds * 0.05;
+      final seekTimeSeconds = durationSeconds * seekFraction;
 
       await _ffmpegSemaphore.acquire();
       try {
@@ -142,9 +187,9 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
 
   @override
   Widget build(BuildContext context) {
-    if (_thumbnailPath != null) {
-      return Image.file(
-        File(_thumbnailPath!),
+    if (_thumbnailBytes != null) {
+      return Image.memory(
+        _thumbnailBytes!,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           // This can happen if the file gets deleted from the cache.
