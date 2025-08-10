@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/model/app_model.dart';
@@ -78,16 +79,18 @@ class _SettingsPageState extends State<SettingsPage>
     _currentOffsetMs = _model.settings.offsetMs.value.toDouble();
     _currentRdpEpsilon = _model.settings.rdpEpsilon.value ?? 15.0;
     _rdpEpsilonEnabled = _model.settings.rdpEpsilon.value != null;
-    _currentSlewMaxRateOfChange = _model.settings.slewMaxRateOfChange.value ?? 400.0;
-    _slewMaxRateOfChangeEnabled = _model.settings.slewMaxRateOfChange.value != null;
+    _currentSlewMaxRateOfChange =
+        _model.settings.slewMaxRateOfChange.value ?? 400.0;
+    _slewMaxRateOfChangeEnabled =
+        _model.settings.slewMaxRateOfChange.value != null;
     _remapFullRange = _model.settings.remapFullRange.value;
     _skipToAction = _model.settings.skipToAction.value;
     _embeddedVideoPlayer = _model.settings.embeddedVideoPlayer.value;
   }
 
   Future<void> _addPath() async {
-    final String? selectedDirectory = await FilePicker.platform
-        .getDirectoryPath();
+    final String? selectedDirectory =
+        await FilePicker.platform.getDirectoryPath();
 
     if (selectedDirectory != null) {
       await _model.settings.addPath(selectedDirectory);
@@ -104,9 +107,8 @@ class _SettingsPageState extends State<SettingsPage>
 
     final currentOffset = _currentOffsetMs.round();
     final currentRdpEpsilon = _rdpEpsilonEnabled ? _currentRdpEpsilon : null;
-    final currentSlewRate = _slewMaxRateOfChangeEnabled
-        ? _currentSlewMaxRateOfChange
-        : null;
+    final currentSlewRate =
+        _slewMaxRateOfChangeEnabled ? _currentSlewMaxRateOfChange : null;
     final remapFullRange = _remapFullRange;
     final skipToAction = _skipToAction;
     final embeddedVideoPlayer = _embeddedVideoPlayer;
@@ -351,26 +353,18 @@ class _SettingsPageState extends State<SettingsPage>
           isThreeLine: true,
         ),
         if (_rdpEpsilonEnabled)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              children: [
-                Slider(
-                  value: _currentRdpEpsilon,
-                  min: 0,
-                  max: 50,
-                  divisions: 50,
-                  label: _currentRdpEpsilon.round().toString(),
-                  onChanged: (value) {
-                    setState(() {
-                      _currentRdpEpsilon = value;
-                      _debouncer.run(_saveSettings);
-                    });
-                  },
-                ),
-                Text('Value: ${_currentRdpEpsilon.toStringAsFixed(2)}'),
-              ],
-            ),
+          _buildSliderWithNumericInput(
+            context,
+            value: _currentRdpEpsilon,
+            min: 0,
+            max: 50,
+            divisions: 50,
+            onChanged: (value) {
+              setState(() {
+                _currentRdpEpsilon = value;
+              });
+            },
+            onSave: _saveSettings,
           ),
       ],
     );
@@ -395,26 +389,18 @@ class _SettingsPageState extends State<SettingsPage>
           isThreeLine: true,
         ),
         if (_slewMaxRateOfChangeEnabled)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              children: [
-                Slider(
-                  value: _currentSlewMaxRateOfChange,
-                  min: 100,
-                  max: 1000,
-                  divisions: 90,
-                  label: _currentSlewMaxRateOfChange.round().toString(),
-                  onChanged: (value) {
-                    setState(() {
-                      _currentSlewMaxRateOfChange = value;
-                      _debouncer.run(_saveSettings);
-                    });
-                  },
-                ),
-                Text('Value: ${_currentSlewMaxRateOfChange.round()}'),
-              ],
-            ),
+          _buildSliderWithNumericInput(
+            context,
+            value: _currentSlewMaxRateOfChange,
+            min: 100,
+            max: 1000,
+            divisions: 90,
+            onChanged: (value) {
+              setState(() {
+                _currentSlewMaxRateOfChange = value;
+              });
+            },
+            onSave: _saveSettings,
           ),
       ],
     );
@@ -491,7 +477,46 @@ class _SettingsPageState extends State<SettingsPage>
             });
           },
         ),
-        Text('Min: ${_currentMin.round()}, Max: ${_currentMax.round()}'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Expanded(
+              child: FocusNumericInput(
+                label: 'Min',
+                value: _currentMin,
+                min: 0,
+                max: 100,
+                onChanged: (value) {
+                  setState(() {
+                    _currentMin = value;
+                    if (_currentMin > _currentMax) {
+                      _currentMax = _currentMin;
+                    }
+                    _saveSettings();
+                  });
+                },
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: FocusNumericInput(
+                label: 'Max',
+                value: _currentMax,
+                min: 0,
+                max: 100,
+                onChanged: (value) {
+                  setState(() {
+                    _currentMax = value;
+                    if (_currentMax < _currentMin) {
+                      _currentMin = _currentMax;
+                    }
+                    _saveSettings();
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -508,21 +533,61 @@ class _SettingsPageState extends State<SettingsPage>
           ),
           isThreeLine: true,
         ),
-        Slider(
+        _buildSliderWithNumericInput(
+          context,
           value: _currentOffsetMs,
           min: -200,
           max: 200,
           divisions: 400,
-          label: _currentOffsetMs.round().toString(),
           onChanged: (value) {
             setState(() {
               _currentOffsetMs = value;
-              _debouncer.run(_saveSettings);
             });
           },
+          onSave: _saveSettings,
         ),
-        Center(child: Text('${_currentOffsetMs.round()} ms')),
       ],
+    );
+  }
+
+  Widget _buildSliderWithNumericInput(BuildContext context, {
+    required double value,
+    required double min,
+    required double max,
+    required int divisions,
+    required ValueChanged<double> onChanged,
+    required VoidCallback onSave,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              divisions: divisions,
+              label: value.round().toString(),
+              onChanged: onChanged,
+              onChangeEnd: (value) => onSave(),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: FocusNumericInput(
+              value: value,
+              min: min,
+              max: max,
+              onChanged: (newValue) {
+                onChanged(newValue);
+                onSave();
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -554,6 +619,88 @@ class _SettingsPageState extends State<SettingsPage>
             }
           },
         ),
+      ],
+    );
+  }
+}
+
+class FocusNumericInput extends StatefulWidget {
+  final double value;
+  final ValueChanged<double> onChanged;
+  final double? min;
+  final double? max;
+  final String? label;
+
+  const FocusNumericInput({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    this.min,
+    this.max,
+    this.label,
+  });
+
+  @override
+  State<FocusNumericInput> createState() => _FocusNumericInputState();
+}
+
+class _FocusNumericInputState extends State<FocusNumericInput> {
+  late final TextEditingController _controller;
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.value.round().toString());
+    _focusNode = FocusNode();
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(FocusNumericInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != oldWidget.value) {
+      _controller.text = widget.value.round().toString();
+    }
+  }
+
+  void _onFocusChange() {
+    if (!_focusNode.hasFocus) {
+      var text = _controller.text;
+      if (text.isEmpty) {
+        text = '0';
+      }
+      var parsedValue = double.tryParse(text);
+      if (parsedValue != null) {
+        if (widget.min != null) {
+          parsedValue = parsedValue.clamp(widget.min!, widget.max!);
+        }
+        widget.onChanged(parsedValue);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _controller,
+      focusNode: _focusNode,
+      decoration: InputDecoration(
+        labelText: widget.label,
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+      ),
+      keyboardType: TextInputType.number,
+      inputFormatters: <TextInputFormatter>[
+        FilteringTextInputFormatter.digitsOnly
       ],
     );
   }
