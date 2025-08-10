@@ -149,124 +149,101 @@ class _SettingsPageState extends State<SettingsPage>
     );
   }
 
+  List<Widget> _buildAllSettingsCards(BuildContext context) {
+    return [
+      _buildSettingsCard(
+        context,
+        title: 'Media Library Paths',
+        subtitle:
+            'Folders to search for videos and funscripts (searched recursively).',
+        children: [_buildMediaPaths(context)],
+      ),
+      _buildSettingsCard(
+        context,
+        title: 'Funscript Processing',
+        children: [
+          _buildRdpEpsilonSettings(context),
+          const Divider(),
+          _buildSlewRateSettings(context),
+          const Divider(),
+          _buildRemapFullRangeSettings(context),
+          const Divider(),
+          _buildSkipToActionSettings(context),
+        ],
+      ),
+      _buildSettingsCard(
+        context,
+        title: 'Stroke Range',
+        subtitle:
+            "The min/max stroke length as a percentage of the device's full range.",
+        children: [_buildMinMaxSettings(context)],
+      ),
+      _buildSettingsCard(
+        context,
+        title: 'Timing',
+        children: [_buildOffsetSettings(context)],
+      ),
+      _buildSettingsCard(
+        context,
+        title: 'Video Player',
+        children: [_buildEmbeddedVideoPlayerSettings(context)],
+      ),
+      _buildSettingsCard(
+        context,
+        title: 'App Data',
+        children: [_buildAppDataSettings(context)],
+      ),
+    ];
+  }
+
+  List<Widget> _addSpacingBetweenWidgets(List<Widget> widgets, double spacing) {
+    if (widgets.isEmpty) {
+      return [];
+    }
+    return widgets
+        .expand((widget) => [widget, SizedBox(height: spacing)])
+        .toList()
+      ..removeLast();
+  }
+
   Widget _buildSingleColumnLayout(BuildContext context) {
+    final allCards = _buildAllSettingsCards(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildSettingsCard(
-          context,
-          title: 'Media Library Paths',
-          subtitle:
-              'Folders to search for videos and funscripts (searched recursively).',
-          children: [_buildMediaPaths(context)],
-        ),
-        const SizedBox(height: 16),
-        _buildSettingsCard(
-          context,
-          title: 'Funscript Processing',
-          children: [
-            _buildRdpEpsilonSettings(context),
-            const Divider(),
-            _buildSlewRateSettings(context),
-            const Divider(),
-            _buildRemapFullRangeSettings(context),
-            const Divider(),
-            _buildSkipToActionSettings(context),
-          ],
-        ),
-        const SizedBox(height: 16),
-        _buildSettingsCard(
-          context,
-          title: 'Stroke Range',
-          subtitle:
-              "The min/max stroke length as a percentage of the device's full range.",
-          children: [_buildMinMaxSettings(context)],
-        ),
-        const SizedBox(height: 16),
-        _buildSettingsCard(
-          context,
-          title: 'Timing',
-          children: [_buildOffsetSettings(context)],
-        ),
-        const SizedBox(height: 16),
-        _buildSettingsCard(
-          context,
-          title: 'Video Player',
-          children: [_buildEmbeddedVideoPlayerSettings(context)],
-        ),
-        const SizedBox(height: 16),
-        _buildSettingsCard(
-          context,
-          title: 'App Data',
-          children: [_buildAppDataSettings(context)],
-        ),
-      ],
+      children: _addSpacingBetweenWidgets(allCards, 16.0),
     );
   }
 
   Widget _buildTwoColumnLayout(BuildContext context) {
+    final allCards = _buildAllSettingsCards(context);
+
+    // Explicitly assign cards to columns based on the original layout
+    final List<Widget> column1Cards = [
+      allCards[0], // Media Library Paths
+      allCards[1], // Funscript Processing
+    ];
+
+    final List<Widget> column2Cards = [
+      allCards[2], // Stroke Range
+      allCards[3], // Timing
+      allCards[4], // Video Player
+      allCards[5], // App Data
+    ];
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildSettingsCard(
-                context,
-                title: 'Media Library Paths',
-                subtitle:
-                    'Folders to search for videos and funscripts (searched recursively).',
-                children: [_buildMediaPaths(context)],
-              ),
-              const SizedBox(height: 16),
-              _buildSettingsCard(
-                context,
-                title: 'Funscript Processing',
-                children: [
-                  _buildRdpEpsilonSettings(context),
-                  const Divider(),
-                  _buildSlewRateSettings(context),
-                  const Divider(),
-                  _buildRemapFullRangeSettings(context),
-                  const Divider(),
-                  _buildSkipToActionSettings(context),
-                ],
-              ),
-            ],
+            children: _addSpacingBetweenWidgets(column1Cards, 16.0),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildSettingsCard(
-                context,
-                title: 'Stroke Range',
-                subtitle:
-                    "The min/max stroke length as a percentage of the device's full range.",
-                children: [_buildMinMaxSettings(context)],
-              ),
-              const SizedBox(height: 16),
-              _buildSettingsCard(
-                context,
-                title: 'Timing',
-                children: [_buildOffsetSettings(context)],
-              ),
-              const SizedBox(height: 16),
-              _buildSettingsCard(
-                context,
-                title: 'Video Player',
-                children: [_buildEmbeddedVideoPlayerSettings(context)],
-              ),
-              const SizedBox(height: 16),
-              _buildSettingsCard(
-                context,
-                title: 'App Data',
-                children: [_buildAppDataSettings(context)],
-              ),
-            ],
+            children: _addSpacingBetweenWidgets(column2Cards, 16.0),
           ),
         ),
       ],
