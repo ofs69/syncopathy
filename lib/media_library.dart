@@ -577,7 +577,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
             icon: const Icon(Icons.shuffle),
             onPressed: _showRandomVideoPicker,
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           // Sorting Dropdown
           DropdownButton<SortOption>(
             value: _currentSortOption,
@@ -598,6 +598,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
               );
             }).toList(),
           ),
+          const SizedBox(width: 8),
           IconButton(
             icon: Icon(
               _isSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
@@ -610,7 +611,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
             },
             tooltip: _isSortAscending ? 'Sort Descending' : 'Sort Ascending',
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           PopupMenuButton<dynamic>(
             icon: const Icon(Icons.visibility),
             tooltip: 'View Options',
@@ -648,20 +649,20 @@ class _MediaLibraryState extends State<MediaLibrary> {
               ];
             },
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           // Filter Buttons
           ActionChip(
             avatar: const Icon(Icons.filter_list),
             label: const Text('Metadata'),
             onPressed: _showFunscriptMetadataFilterDialog,
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           ActionChip(
             avatar: const Icon(Icons.category_outlined),
             label: Text(_selectedCategory?.name ?? 'Category'),
             onPressed: _showCategoryDialog,
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           // Videos Per Row Dropdown)
           Tooltip(
             message: 'Videos per row',
