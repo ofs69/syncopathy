@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
+import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript_metadata.dart';
 
 /// Represents a single action in a Funscript file.
@@ -98,15 +99,21 @@ class Funscript {
     }
 
     final metadataMap = json['metadata'] as Map<String, dynamic>?;
+    FunscriptMetadata? metadata;
+    if (metadataMap != null) {
+      try {
+        metadata = FunscriptMetadata.fromJson(metadataMap);
+      } catch (e) {
+        Logger.warning("Failed to parse Funscript metadata for '$filePath': $e");
+      }
+    }
 
     return Funscript(
       version: json['version'] as String? ?? "1.0",
       inverted: json['inverted'] as bool? ?? false,
       range: json['range'] as int? ?? 90,
       actions: uniqueActions,
-      metadata: metadataMap != null
-          ? FunscriptMetadata.fromJson(metadataMap)
-          : null,
+      metadata: metadata,
       filePath: filePath,
     );
   }
