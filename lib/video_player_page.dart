@@ -63,8 +63,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
       context,
       MaterialPageRoute(
         builder: (context) => FullscreenVideoPage(
-          player: player.mpvPlayer.player,
-          videoParamsNotifier: player.mpvPlayer.player.videoParams,
+          player: player,
+          videoParamsNotifier: player.videoParams,
         ),
       ),
     );
@@ -97,9 +97,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                               child: Hero(
                                 tag: 'videoPlayer',
                                 child: CustomMpvVideoWidget(
-                                  player: player.mpvPlayer.player,
-                                  videoParamsNotifier:
-                                      player.mpvPlayer.player.videoParams,
+                                  player: player,
+                                  videoParamsNotifier: player.videoParams,
                                 ),
                               ),
                             )

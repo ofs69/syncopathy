@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:libmpv_dart/libmpv.dart';
+import 'package:syncopathy/model/player_model.dart';
 
 class CustomMpvVideoWidget extends StatefulWidget {
-  final Player player;
+  final PlayerModel player;
   final ValueNotifier<VideoParams> videoParamsNotifier;
   final bool isFullscreen;
 
@@ -23,21 +24,21 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
   @override
   void initState() {
     super.initState();
-    _textureId = widget.player.id.value;
-    widget.player.id.addListener(_updateTextureId);
+    _textureId = widget.player.textureId.value;
+    widget.player.textureId.addListener(_updateTextureId);
   }
 
   void _updateTextureId() {
     if (mounted) {
       setState(() {
-        _textureId = widget.player.id.value;
+        _textureId = widget.player.textureId.value;
       });
     }
   }
 
   @override
   void dispose() {
-    widget.player.id.removeListener(_updateTextureId);
+    widget.player.textureId.removeListener(_updateTextureId);
     super.dispose();
   }
 

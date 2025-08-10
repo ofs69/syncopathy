@@ -131,9 +131,7 @@ class _VideoItemState extends State<VideoItem> {
                             message: getVideoTooltip(widget.video),
                             child: Text(
                               widget.video.title,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
+                              style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(color: Colors.white),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,

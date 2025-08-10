@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:libmpv_dart/libmpv.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
+import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/video_controls.dart';
 
 class FullscreenVideoPage extends StatefulWidget {
-  final Player player;
+  final PlayerModel player;
   final ValueNotifier<VideoParams> videoParamsNotifier;
 
   const FullscreenVideoPage({

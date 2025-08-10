@@ -89,8 +89,8 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Future<void> _addPath() async {
-    final String? selectedDirectory =
-        await FilePicker.platform.getDirectoryPath();
+    final String? selectedDirectory = await FilePicker.platform
+        .getDirectoryPath();
 
     if (selectedDirectory != null) {
       await _model.settings.addPath(selectedDirectory);
@@ -107,8 +107,9 @@ class _SettingsPageState extends State<SettingsPage>
 
     final currentOffset = _currentOffsetMs.round();
     final currentRdpEpsilon = _rdpEpsilonEnabled ? _currentRdpEpsilon : null;
-    final currentSlewRate =
-        _slewMaxRateOfChangeEnabled ? _currentSlewMaxRateOfChange : null;
+    final currentSlewRate = _slewMaxRateOfChangeEnabled
+        ? _currentSlewMaxRateOfChange
+        : null;
     final remapFullRange = _remapFullRange;
     final skipToAction = _skipToAction;
     final embeddedVideoPlayer = _embeddedVideoPlayer;
@@ -550,7 +551,8 @@ class _SettingsPageState extends State<SettingsPage>
     );
   }
 
-  Widget _buildSliderWithNumericInput(BuildContext context, {
+  Widget _buildSliderWithNumericInput(
+    BuildContext context, {
     required double value,
     required double min,
     required double max,
@@ -700,7 +702,7 @@ class _FocusNumericInputState extends State<FocusNumericInput> {
       ),
       keyboardType: TextInputType.number,
       inputFormatters: <TextInputFormatter>[
-        FilteringTextInputFormatter.digitsOnly
+        FilteringTextInputFormatter.digitsOnly,
       ],
     );
   }

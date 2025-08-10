@@ -104,7 +104,9 @@ class Funscript {
       try {
         metadata = FunscriptMetadata.fromJson(metadataMap);
       } catch (e) {
-        Logger.warning("Failed to parse Funscript metadata for '$filePath': $e");
+        Logger.warning(
+          "Failed to parse Funscript metadata for '$filePath': $e",
+        );
       }
     }
 

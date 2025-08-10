@@ -128,18 +128,14 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
         if (result.exitCode == 0 && await thumbnailFile.exists()) {
           return thumbnailFile.path;
         } else {
-          Logger.error(
-            'ffmpeg error for ${video.videoPath}: ${result.stderr}',
-          );
+          Logger.error('ffmpeg error for ${video.videoPath}: ${result.stderr}');
           return null;
         }
       } finally {
         _ffmpegSemaphore.release();
       }
     } catch (e) {
-      Logger.error(
-        'Error generating thumbnail for ${video.videoPath}: $e',
-      );
+      Logger.error('Error generating thumbnail for ${video.videoPath}: $e');
       return null;
     }
   }
