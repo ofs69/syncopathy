@@ -11,7 +11,6 @@ import 'package:syncopathy/model/video_model.dart';
 import 'package:syncopathy/wheel_of_fortune.dart';
 
 enum SortOption {
-  none('Default'),
   title('Title'),
   speed('Speed'),
   depth('Depth'),
@@ -79,7 +78,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
   late List<Video> _filteredVideos;
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
-  SortOption _currentSortOption = SortOption.none;
+  SortOption _currentSortOption = SortOption.title;
   bool _isSortAscending = true;
   String? _selectedAuthor;
   String? _selectedTag;
@@ -224,9 +223,6 @@ class _MediaLibraryState extends State<MediaLibrary> {
           break;
         case SortOption.lastModified:
           compareResult = a.dateFirstFound.compareTo(b.dateFirstFound);
-          break;
-        case SortOption.none:
-          compareResult = 0;
           break;
       }
 
