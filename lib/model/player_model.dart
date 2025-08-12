@@ -236,4 +236,8 @@ class PlayerModel extends ChangeNotifier {
       Logger.error(e.toString());
     }
   }
+
+  void setSizeAndPosition(int width, int height, int x, int y) {
+    _mpvPlayer.setSizeAndPosition(width, height, x, y);
+  }
 }

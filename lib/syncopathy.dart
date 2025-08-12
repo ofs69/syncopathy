@@ -105,7 +105,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     final model = context.read<SyncopathyModel>();
     final player = context.read<PlayerModel>();
     if (player.path.value.isNotEmpty &&
-        model.settings.embeddedVideoPlayer.value) {
+        model.settings.autoSwitchToVideoPlayerTab.value) {
       setState(() {
         _selectedIndex = 1; // Navigate to Video Player tab
       });

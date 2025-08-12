@@ -20,6 +20,7 @@ class SettingsEntity {
   bool remapFullRange = true;
   bool skipToAction = true;
   bool embeddedVideoPlayer = false;
+  bool autoSwitchToVideoPlayerTab = false;
 }
 
 class Settings {
@@ -35,6 +36,7 @@ class Settings {
   late ValueNotifier<bool> remapFullRange;
   late ValueNotifier<bool> skipToAction;
   late ValueNotifier<bool> embeddedVideoPlayer;
+  late ValueNotifier<bool> autoSwitchToVideoPlayerTab;
   StreamController<void> get saveNotifier => _saveNotifier;
   final _saveNotifier = StreamController<void>.broadcast();
 
@@ -48,6 +50,7 @@ class Settings {
     remapFullRange = ValueNotifier<bool>(false);
     skipToAction = ValueNotifier<bool>(false);
     embeddedVideoPlayer = ValueNotifier<bool>(false);
+    autoSwitchToVideoPlayerTab = ValueNotifier<bool>(false);
   }
 
   Future<void> load() async {
@@ -64,6 +67,7 @@ class Settings {
     remapFullRange.value = _entity.remapFullRange;
     skipToAction.value = _entity.skipToAction;
     embeddedVideoPlayer.value = _entity.embeddedVideoPlayer;
+    autoSwitchToVideoPlayerTab.value = _entity.autoSwitchToVideoPlayerTab;
     await _save();
   }
 
@@ -139,5 +143,11 @@ class Settings {
     _entity.embeddedVideoPlayer = value;
     await _save();
     embeddedVideoPlayer.value = value;
+  }
+
+  Future<void> setAutoSwitchToVideoPlayerTab(bool value) async {
+    _entity.autoSwitchToVideoPlayerTab = value;
+    await _save();
+    autoSwitchToVideoPlayerTab.value = value;
   }
 }

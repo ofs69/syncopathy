@@ -35,6 +35,7 @@ class _SettingsPageState extends State<SettingsPage>
   late bool _slewMaxRateOfChangeEnabled;
   late bool _remapFullRange;
   late bool _embeddedVideoPlayer;
+  late bool _autoSwitchToVideoPlayerTab;
 
   late final SyncopathyModel _model;
   final _debouncer = Debouncer(milliseconds: 500);
@@ -51,6 +52,7 @@ class _SettingsPageState extends State<SettingsPage>
     _model.settings.rdpEpsilon.addListener(_onSettingsChanged);
     _model.settings.remapFullRange.addListener(_onSettingsChanged);
     _model.settings.skipToAction.addListener(_onSettingsChanged);
+    _model.settings.autoSwitchToVideoPlayerTab.addListener(_onSettingsChanged);
     _model.settings.embeddedVideoPlayer.addListener(_onSettingsChanged);
     _updateStateFromSettings();
   }
@@ -65,6 +67,9 @@ class _SettingsPageState extends State<SettingsPage>
     _model.settings.rdpEpsilon.removeListener(_onSettingsChanged);
     _model.settings.remapFullRange.removeListener(_onSettingsChanged);
     _model.settings.skipToAction.removeListener(_onSettingsChanged);
+    _model.settings.autoSwitchToVideoPlayerTab.removeListener(
+      _onSettingsChanged,
+    );
     _model.settings.embeddedVideoPlayer.removeListener(_onSettingsChanged);
     super.dispose();
   }
@@ -88,6 +93,8 @@ class _SettingsPageState extends State<SettingsPage>
     _remapFullRange = _model.settings.remapFullRange.value;
     _skipToAction = _model.settings.skipToAction.value;
     _embeddedVideoPlayer = _model.settings.embeddedVideoPlayer.value;
+    _autoSwitchToVideoPlayerTab =
+        _model.settings.autoSwitchToVideoPlayerTab.value;
   }
 
   Future<void> _addPath() async {
@@ -115,6 +122,7 @@ class _SettingsPageState extends State<SettingsPage>
     final remapFullRange = _remapFullRange;
     final skipToAction = _skipToAction;
     final embeddedVideoPlayer = _embeddedVideoPlayer;
+    final autoSwitchToVideoPlayerTab = _autoSwitchToVideoPlayerTab;
 
     _model.settings.setMinMax(currentMin, currentMax);
     _model.settings.setOffsetMs(currentOffset);
@@ -122,6 +130,7 @@ class _SettingsPageState extends State<SettingsPage>
     _model.settings.setSlewMaxRateOfChange(currentSlewRate);
     _model.settings.setRemapFullRange(remapFullRange);
     _model.settings.setSkipToAction(skipToAction);
+    _model.settings.setAutoSwitchToVideoPlayerTab(autoSwitchToVideoPlayerTab);
     _model.settings.setEmbeddedVideoPlayer(embeddedVideoPlayer);
     Logger.info('Settings saved.');
   }
@@ -188,7 +197,11 @@ class _SettingsPageState extends State<SettingsPage>
       _buildSettingsCard(
         context,
         title: 'Video Player',
-        children: [_buildEmbeddedVideoPlayerSettings(context)],
+        children: [
+          _buildEmbeddedVideoPlayerSettings(context),
+          const Divider(),
+          _buildAutoSwitchToVideoPlayerTabSettings(context),
+        ],
       ),
       _buildSettingsCard(
         context,
@@ -437,6 +450,24 @@ class _SettingsPageState extends State<SettingsPage>
     );
   }
 
+  Widget _buildAutoSwitchToVideoPlayerTabSettings(BuildContext context) {
+    return SwitchListTile(
+      title: const Text('Auto Switch to Video Player Tab'),
+      subtitle: const Text(
+        'Automatically switches to the video player tab when a video is loaded.',
+      ),
+      value: _autoSwitchToVideoPlayerTab,
+      onChanged: (value) {
+        setState(() {
+          _autoSwitchToVideoPlayerTab = value;
+          _saveSettings();
+        });
+      },
+      secondary: const Icon(Icons.tab),
+      isThreeLine: true,
+    );
+  }
+
   Widget _buildMinMaxSettings(BuildContext context) {
     return Column(
       children: [
@@ -664,19 +695,19 @@ class _SettingsPageState extends State<SettingsPage>
                 for (final video in videos) {
                   final future =
                       VideoThumbnailState.generateThumbnailAndGetPath(
-                    video,
-                    0.05,
-                    ffmpegSemaphore,
-                  ).then((path) {
-                    if (path != null) {
-                      successCount++;
-                    }
-                    if (dialogContext.mounted) {
-                      setState(() {
-                        generatedCount++;
+                        video,
+                        0.05,
+                        ffmpegSemaphore,
+                      ).then((path) {
+                        if (path != null) {
+                          successCount++;
+                        }
+                        if (dialogContext.mounted) {
+                          setState(() {
+                            generatedCount++;
+                          });
+                        }
                       });
-                    }
-                  });
                   futures.add(future);
                 }
 
@@ -708,9 +739,7 @@ class _SettingsPageState extends State<SettingsPage>
       if (context.mounted && count != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Thumbnail generation complete. Generated: $count',
-            ),
+            content: Text('Thumbnail generation complete. Generated: $count'),
           ),
         );
       }

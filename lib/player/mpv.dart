@@ -49,6 +49,10 @@ class MpvVideoplayer {
     _player.command(["loadfile", ""]);
   }
 
+  void setSizeAndPosition(int width, int height, int x, int y) {
+    _player.setPropertyString("geometry", "${width}x$height+$x+$y");
+  }
+
   void dispose() {
     _player.destroy();
   }

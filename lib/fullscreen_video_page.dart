@@ -6,6 +6,7 @@ import 'package:libmpv_dart/libmpv.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/video_controls.dart';
+import 'package:window_manager/window_manager.dart';
 
 class FullscreenVideoPage extends StatefulWidget {
   final PlayerModel player;
@@ -77,72 +78,112 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
       backgroundColor: widget.isEmbeddedPlayerEnabled
           ? Colors.black
           : Colors.transparent,
-      body: MouseRegion(
-        onHover: (_) {
-          if (!_showControls) {
-            setState(() {
-              _showControls = true;
-            });
-          }
-          _startHideControlsTimer();
-        },
-        child: GestureDetector(
-          onDoubleTap: () {
-            // exit fullscreen
-            Navigator.pop(context);
-          },
-          onTap: _toggleControls,
-          onLongPressStart: (_) {
-            if (!_showControls) {
-              setState(() {
-                _showControls = true;
-              });
-            }
-            _hideControlsTimer?.cancel();
-          },
-          onLongPressEnd: (_) {
-            _startHideControlsTimer();
-          },
-          child: Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              Center(
-                child: Hero(
-                  tag: 'videoPlayer',
-                  child: CustomMpvVideoWidget(
-                    player: widget.player,
-                    videoParamsNotifier: widget.videoParamsNotifier,
-                    isFullscreen: true,
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: AnimatedOpacity(
-                  opacity: _showControls ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: IgnorePointer(
-                    ignoring: !_showControls,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return MouseRegion(
+            onHover: (_) {
+              if (!_showControls) {
+                setState(() {
+                  _showControls = true;
+                });
+              }
+              _startHideControlsTimer();
+            },
+            child: GestureDetector(
+              onDoubleTap: () {
+                // exit fullscreen
+                Navigator.pop(context);
+              },
+              onTap: _toggleControls,
+              onLongPressStart: (_) {
+                if (!_showControls) {
+                  setState(() {
+                    _showControls = true;
+                  });
+                }
+                _hideControlsTimer?.cancel();
+              },
+              onLongPressEnd: (_) {
+                _startHideControlsTimer();
+              },
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  Center(
                     child: Hero(
-                      tag: 'videoControls',
-                      child: VideoControls(
-                        onFullscreenToggle: () => Navigator.pop(context),
-                        onInteractionStart: () {
-                          _hideControlsTimer?.cancel();
-                        },
-                        onInteractionEnd: () {
-                          _startHideControlsTimer();
-                        },
+                      tag: 'videoPlayer',
+                      child: CustomMpvVideoWidget(
+                        player: widget.player,
+                        videoParamsNotifier: widget.videoParamsNotifier,
+                        isFullscreen: true,
                       ),
                     ),
                   ),
-                ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: AnimatedOpacity(
+                      opacity: _showControls ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 300),
+                      child: IgnorePointer(
+                        ignoring: !_showControls,
+                        child: widget.isEmbeddedPlayerEnabled
+                            ? const SizedBox.shrink()
+                            : Tooltip(
+                                message:
+                                    'Set external player size and position',
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.aspect_ratio,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () async {
+                                    final windowBounds = await windowManager
+                                        .getBounds();
+                                    final titleBarHeight = await windowManager
+                                        .getTitleBarHeight();
+                                    widget.player.setSizeAndPosition(
+                                      constraints.maxWidth.toInt(),
+                                      constraints.maxHeight.toInt(),
+                                      windowBounds.left.toInt(),
+                                      (windowBounds.top + titleBarHeight)
+                                          .toInt(),
+                                    );
+                                  },
+                                ),
+                              ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: AnimatedOpacity(
+                      opacity: _showControls ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 300),
+                      child: IgnorePointer(
+                        ignoring: !_showControls,
+                        child: Hero(
+                          tag: 'videoControls',
+                          child: VideoControls(
+                            onFullscreenToggle: () => Navigator.pop(context),
+                            onInteractionStart: () {
+                              _hideControlsTimer?.cancel();
+                            },
+                            onInteractionEnd: () {
+                              _startHideControlsTimer();
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
