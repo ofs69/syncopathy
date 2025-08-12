@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:async_locks/async_locks.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,7 +11,8 @@ import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:io' show Platform;
+import 'package:path/path.dart' as p;
+import 'package:syncopathy/video_thumbnail.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -190,7 +193,7 @@ class _SettingsPageState extends State<SettingsPage>
       ),
       _buildSettingsCard(
         context,
-        title: 'App Data',
+        title: 'Data Management',
         children: [_buildAppDataSettings(context)],
       ),
     ];
@@ -598,8 +601,116 @@ class _SettingsPageState extends State<SettingsPage>
             }
           },
         ),
+        ListTile(
+          title: const Text('Generate Missing Thumbnails'),
+          subtitle: const Text(
+            'Scans all videos and generates thumbnails for those that are missing one.',
+          ),
+          trailing: const Icon(Icons.image_search),
+          onTap: () async {
+            final bool? shouldGenerate = await showDialog<bool>(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Confirm Thumbnail Generation'),
+                  content: const Text(
+                    'This may take a long time depending on the number of videos. Are you sure you want to continue?',
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Generate'),
+                    ),
+                  ],
+                );
+              },
+            );
+
+            if (shouldGenerate == true) {
+              _generateMissingThumbnails(context);
+            }
+          },
+        ),
       ],
     );
+  }
+
+  Future<void> _generateMissingThumbnails(BuildContext context) async {
+    final model = context.read<SyncopathyModel>();
+    final videos = model.mediaManager.allVideos;
+    int generatedCount = 0;
+    bool generationStarted = false;
+    int successCount = 0;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            if (!generationStarted) {
+              generationStarted = true;
+              Future(() async {
+                Semaphore ffmpegSemaphore = Semaphore(2);
+                final futures = <Future>[];
+                for (final video in videos) {
+                  final future =
+                      VideoThumbnailState.generateThumbnailAndGetPath(
+                        video,
+                        0.05,
+                        ffmpegSemaphore,
+                      ).then((path) {
+                        if (path != null) {
+                          successCount++;
+                        }
+                        if (dialogContext.mounted) {
+                          setState(() {
+                            generatedCount++;
+                          });
+                        }
+                      });
+                  futures.add(future);
+                }
+
+                await Future.wait(futures);
+
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              });
+            }
+
+            return AlertDialog(
+              title: const Text('Generating Thumbnails'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  LinearProgressIndicator(
+                    value: videos.isEmpty ? 0 : generatedCount / videos.length,
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Processed $generatedCount of ${videos.length} videos.'),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Thumbnail generation complete. Generated: $successCount',
+          ),
+        ),
+      );
+    }
   }
 }
 

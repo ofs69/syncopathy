@@ -83,7 +83,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
     final videoHash = widget.video.videoHash;
     final future = _thumbnailFutures.putIfAbsent(
       videoHash,
-      () => _generateThumbnailAndGetPath(widget.video, seekFraction),
+      () => generateThumbnailAndGetPath(widget.video, seekFraction, _ffmpegSemaphore),
     );
 
     try {
@@ -111,9 +111,10 @@ class VideoThumbnailState extends State<VideoThumbnail> {
     }
   }
 
-  static Future<String?> _generateThumbnailAndGetPath(
+  static Future<String?> generateThumbnailAndGetPath(
     Video video,
     double seekFraction,
+    Semaphore ffmpegSemaphore
   ) async {
     try {
       final appDataPath = await getApplicationSupportDirectory();
@@ -138,7 +139,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
 
       final seekTimeSeconds = durationSeconds * seekFraction;
 
-      await _ffmpegSemaphore.acquire();
+      await ffmpegSemaphore.acquire();
       try {
         List<String> ffmpegArgs = [
           '-xerror',
@@ -177,7 +178,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
           return null;
         }
       } finally {
-        _ffmpegSemaphore.release();
+        ffmpegSemaphore.release();
       }
     } catch (e) {
       Logger.error('Error generating thumbnail for ${video.videoPath}: $e');
