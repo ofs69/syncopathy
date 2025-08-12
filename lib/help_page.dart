@@ -51,11 +51,11 @@ class _HelpPageState extends State<HelpPage> {
                       children: [
                         _buildInfoPoint(
                           context,
-                          'Embedded Player: This MPV-based player is integrated directly into the application and is currently only available on Windows. It offers the same core video playback functionality as the external player. You can enable or disable the embedded player in the settings.',
+                          'Embedded Player: This MPV-based player is integrated directly into the application and is currently only available on Windows. You can enable or disable the embedded player in the settings.',
                         ),
                         _buildInfoPoint(
                           context,
-                          'External Player: When the embedded player is disabled, Syncopathy will utilize an external MPV player. This option offers the same core video playback functionality as the embedded player, but is available across all supported platforms. To use it, ensure MPV is installed on your system and disable the embedded player in the settings.',
+                          'External Player: When the embedded player is disabled, Syncopathy will utilize an external MPV player. It is available across all supported platforms. To use it disable the embedded player in the settings.',
                         ),
                       ],
                     ),
