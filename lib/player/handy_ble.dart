@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/model/funscript.dart';
-import 'package:syncopathy/funscript_stream_controller.dart';
+import 'package:syncopathy/player/funscript_stream_controller.dart';
 import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/generated/handy_rpc.pb.dart';
 import 'package:syncopathy/generated/messages.pb.dart';
