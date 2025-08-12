@@ -2,17 +2,19 @@ import 'package:flutter/foundation.dart';
 import 'package:libmpv_dart/libmpv.dart';
 
 class MpvVideoplayer {
-  late Player player;
+  late Player _player;
 
-  ValueNotifier<bool> get paused => player.paused;
-  ValueNotifier<double> get position => player.position;
-  ValueNotifier<double> get duration => player.duration;
-  ValueNotifier<double> get playbackSpeed => player.speed;
-  ValueNotifier<String> get path => player.path;
-  ValueNotifier<double> get volume => player.volume;
+  ValueNotifier<bool> get paused => _player.paused;
+  ValueNotifier<double> get position => _player.position;
+  ValueNotifier<double> get duration => _player.duration;
+  ValueNotifier<double> get playbackSpeed => _player.speed;
+  ValueNotifier<String> get path => _player.path;
+  ValueNotifier<double> get volume => _player.volume;
+  ValueNotifier<VideoParams> get videoParams => _player.videoParams;
+  ValueNotifier<int> get textureId => _player.id;
 
   MpvVideoplayer({required bool videoOutput}) {
-    player = Player(
+    _player = Player(
       {
         'config': 'yes',
         'config-dir': '',
@@ -29,37 +31,37 @@ class MpvVideoplayer {
       initialize: true,
     );
 
-    player.setPropertyString('keep-open', 'always');
-    player.setPropertyString('loop-file', 'inf');
-    player.setPropertyString("pause", 'yes');
-    player.setPropertyDouble("volume", 100.0);
+    _player.setPropertyString('keep-open', 'always');
+    _player.setPropertyString('loop-file', 'inf');
+    _player.setPropertyString("pause", 'yes');
+    _player.setPropertyDouble("volume", 100.0);
 
-    player.command(["keybind", "CLOSE_WIN", "ignore"]);
-    player.command(["keybind", "q", "ignore"]);
+    _player.command(["keybind", "CLOSE_WIN", "ignore"]);
+    _player.command(["keybind", "q", "ignore"]);
   }
 
   void loadFile(String filepath) {
-    player.command(["loadfile", filepath]);
+    _player.command(["loadfile", filepath]);
     bringToFront();
   }
 
   void closeFile() {
-    player.command(["stop"]);
-    player.command(["loadfile", ""]);
+    _player.command(["stop"]);
+    _player.command(["loadfile", ""]);
   }
 
   void dispose() {
-    player.destroy();
+    _player.destroy();
   }
 
   void bringToFront() async {
-    player.setPropertyString("ontop", "yes");
+    _player.setPropertyString("ontop", "yes");
     await Future.delayed(Duration(microseconds: 100));
-    player.setPropertyString("ontop", "no");
+    _player.setPropertyString("ontop", "no");
   }
 
   void seekTo(double positionPercent) {
-    player.command([
+    _player.command([
       "seek",
       (positionPercent * 100.0).toString(),
       "absolute-percent+exact",
@@ -67,18 +69,18 @@ class MpvVideoplayer {
   }
 
   void pause() {
-    player.setPropertyFlag('pause', true);
+    _player.setPropertyFlag('pause', true);
   }
 
   void togglePause() {
-    player.setPropertyFlag('pause', !paused.value);
+    _player.setPropertyFlag('pause', !paused.value);
   }
 
   void setSpeed(double speed) {
-    player.command(["set", "speed", speed.toStringAsPrecision(3)]);
+    _player.command(["set", "speed", speed.toStringAsPrecision(3)]);
   }
 
   void setVolume(double volume) {
-    player.setPropertyDouble('volume', volume.clamp(0, 100));
+    _player.setPropertyDouble('volume', volume.clamp(0, 100));
   }
 }

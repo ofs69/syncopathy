@@ -23,7 +23,7 @@ class PlayerModel extends ChangeNotifier {
   ValueNotifier<double> get duration => _mpvPlayer.duration;
   ValueNotifier<double> get playbackSpeed => _mpvPlayer.playbackSpeed;
   ValueNotifier<double> get volume => _mpvPlayer.volume;
-  ValueNotifier<VideoParams> get videoParams => _mpvPlayer.player.videoParams;
+  ValueNotifier<VideoParams> get videoParams => _mpvPlayer.videoParams;
 
   ValueNotifier<bool> get isConnected => _handyBle.isConnected;
   ValueNotifier<bool> get isScanning => _handyBle.isScanning;
@@ -36,7 +36,7 @@ class PlayerModel extends ChangeNotifier {
       (positionNoOffset.value * 1000.0).round().toInt() +
       _settings.offsetMs.value;
 
-  ValueNotifier<int> get textureId => _mpvPlayer.player.id;
+  ValueNotifier<int> get textureId => _mpvPlayer.textureId;
 
   late final FunscriptStreamController _funscriptStreamController;
 
