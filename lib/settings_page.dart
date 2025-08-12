@@ -11,7 +11,6 @@ import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:path/path.dart' as p;
 import 'package:syncopathy/video_thumbnail.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -631,7 +630,8 @@ class _SettingsPageState extends State<SettingsPage>
             );
 
             if (shouldGenerate == true) {
-              _generateMissingThumbnails(context);
+              if (!mounted) return;
+              _callGenerateMissingThumbnails();
             }
           },
         ),
@@ -639,14 +639,18 @@ class _SettingsPageState extends State<SettingsPage>
     );
   }
 
-  Future<void> _generateMissingThumbnails(BuildContext context) async {
+  void _callGenerateMissingThumbnails() {
+    _generateMissingThumbnails(context);
+  }
+
+  void _generateMissingThumbnails(BuildContext context) {
     final model = context.read<SyncopathyModel>();
     final videos = model.mediaManager.allVideos;
     int generatedCount = 0;
     bool generationStarted = false;
     int successCount = 0;
 
-    await showDialog(
+    showDialog<int>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
@@ -655,31 +659,31 @@ class _SettingsPageState extends State<SettingsPage>
             if (!generationStarted) {
               generationStarted = true;
               Future(() async {
-                Semaphore ffmpegSemaphore = Semaphore(2);
+                final ffmpegSemaphore = Semaphore(2);
                 final futures = <Future>[];
                 for (final video in videos) {
                   final future =
                       VideoThumbnailState.generateThumbnailAndGetPath(
-                        video,
-                        0.05,
-                        ffmpegSemaphore,
-                      ).then((path) {
-                        if (path != null) {
-                          successCount++;
-                        }
-                        if (dialogContext.mounted) {
-                          setState(() {
-                            generatedCount++;
-                          });
-                        }
+                    video,
+                    0.05,
+                    ffmpegSemaphore,
+                  ).then((path) {
+                    if (path != null) {
+                      successCount++;
+                    }
+                    if (dialogContext.mounted) {
+                      setState(() {
+                        generatedCount++;
                       });
+                    }
+                  });
                   futures.add(future);
                 }
 
                 await Future.wait(futures);
 
                 if (dialogContext.mounted) {
-                  Navigator.of(dialogContext).pop();
+                  Navigator.of(dialogContext).pop(successCount);
                 }
               });
             }
@@ -700,17 +704,17 @@ class _SettingsPageState extends State<SettingsPage>
           },
         );
       },
-    );
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Thumbnail generation complete. Generated: $successCount',
+    ).then((count) {
+      if (context.mounted && count != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Thumbnail generation complete. Generated: $count',
+            ),
           ),
-        ),
-      );
-    }
+        );
+      }
+    });
   }
 }
 

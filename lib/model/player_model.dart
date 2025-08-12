@@ -7,9 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/funscript_algo.dart';
-import 'package:syncopathy/funscript_stream_controller.dart';
-import 'package:syncopathy/handy_ble.dart';
-import 'package:syncopathy/mpv.dart';
+import 'package:syncopathy/player/funscript_stream_controller.dart';
+import 'package:syncopathy/player/handy_ble.dart';
+import 'package:syncopathy/player/mpv.dart';
 import 'package:syncopathy/model/settings.dart';
 
 class PlayerModel extends ChangeNotifier {
