@@ -71,9 +71,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
     _getThumbnail(seekFraction: seekFraction);
   }
 
-  void _getThumbnail({
-    double seekFraction = 0.05
-  }) async {
+  void _getThumbnail({double seekFraction = 0.05}) async {
     if (!mounted) return;
 
     setState(() {
@@ -83,18 +81,24 @@ class VideoThumbnailState extends State<VideoThumbnail> {
     final videoHash = widget.video.videoHash;
     final future = _thumbnailFutures.putIfAbsent(
       videoHash,
-      () => generateThumbnailAndGetPath(widget.video, seekFraction, _ffmpegSemaphore),
+      () => generateThumbnailAndGetPath(
+        widget.video,
+        seekFraction,
+        _ffmpegSemaphore,
+      ),
     );
 
     try {
       final path = await future;
-      if (mounted) {
-        if (path != null) {
-          final bytes = await File(path).readAsBytes();
+      if (path != null) {
+        final bytes = await File(path).readAsBytes();
+        if (mounted) {
           setState(() {
             _thumbnailBytes = bytes;
           });
-        } else {
+        }
+      } else {
+        if (mounted) {
           setState(() {
             _thumbnailBytes = null;
           });
@@ -114,7 +118,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
   static Future<String?> generateThumbnailAndGetPath(
     Video video,
     double seekFraction,
-    Semaphore ffmpegSemaphore
+    Semaphore ffmpegSemaphore,
   ) async {
     try {
       final appDataPath = await getApplicationSupportDirectory();
