@@ -42,7 +42,6 @@ class MpvVideoplayer {
 
   void loadFile(String filepath) {
     _player.command(["loadfile", filepath]);
-    bringToFront();
   }
 
   void closeFile() {

@@ -65,6 +65,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
         builder: (context) => FullscreenVideoPage(
           player: player,
           videoParamsNotifier: player.videoParams,
+          isEmbeddedPlayerEnabled: model.settings.embeddedVideoPlayer.value,
         ),
       ),
     );

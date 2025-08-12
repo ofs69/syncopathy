@@ -30,6 +30,7 @@ void main() async {
   WindowOptions windowOptions = const WindowOptions(
     size: Size(1920, 1080),
     center: true,
+    backgroundColor: Colors.transparent,
   );
 
   windowManager.waitUntilReadyToShow(windowOptions, () async {

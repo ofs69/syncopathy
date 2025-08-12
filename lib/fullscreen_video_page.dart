@@ -10,11 +10,13 @@ import 'package:syncopathy/video_controls.dart';
 class FullscreenVideoPage extends StatefulWidget {
   final PlayerModel player;
   final ValueNotifier<VideoParams> videoParamsNotifier;
+  final bool isEmbeddedPlayerEnabled;
 
   const FullscreenVideoPage({
     super.key,
     required this.player,
     required this.videoParamsNotifier,
+    required this.isEmbeddedPlayerEnabled,
   });
 
   @override
@@ -72,7 +74,9 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: widget.isEmbeddedPlayerEnabled
+          ? Colors.black
+          : Colors.transparent,
       body: MouseRegion(
         onHover: (_) {
           if (!_showControls) {
