@@ -21,6 +21,7 @@ class SettingsEntity {
   bool skipToAction = true;
   bool embeddedVideoPlayer = false;
   bool autoSwitchToVideoPlayerTab = false;
+  bool autoPlay = true;
 }
 
 class Settings {
@@ -37,6 +38,7 @@ class Settings {
   late ValueNotifier<bool> skipToAction;
   late ValueNotifier<bool> embeddedVideoPlayer;
   late ValueNotifier<bool> autoSwitchToVideoPlayerTab;
+  late ValueNotifier<bool> autoPlay;
   StreamController<void> get saveNotifier => _saveNotifier;
   final _saveNotifier = StreamController<void>.broadcast();
 
@@ -51,6 +53,7 @@ class Settings {
     skipToAction = ValueNotifier<bool>(false);
     embeddedVideoPlayer = ValueNotifier<bool>(false);
     autoSwitchToVideoPlayerTab = ValueNotifier<bool>(false);
+    autoPlay = ValueNotifier<bool>(true);
   }
 
   Future<void> load() async {
@@ -68,6 +71,7 @@ class Settings {
     skipToAction.value = _entity.skipToAction;
     embeddedVideoPlayer.value = _entity.embeddedVideoPlayer;
     autoSwitchToVideoPlayerTab.value = _entity.autoSwitchToVideoPlayerTab;
+    autoPlay.value = _entity.autoPlay;
     await _save();
   }
 
@@ -149,5 +153,11 @@ class Settings {
     _entity.autoSwitchToVideoPlayerTab = value;
     await _save();
     autoSwitchToVideoPlayerTab.value = value;
+  }
+
+  Future<void> setAutoPlay(bool value) async {
+    _entity.autoPlay = value;
+    await _save();
+    autoPlay.value = value;
   }
 }

@@ -75,6 +75,10 @@ class MpvVideoplayer {
     _player.setPropertyFlag('pause', true);
   }
 
+  void play() {
+    _player.setPropertyFlag('pause', false);
+  }
+
   void togglePause() {
     _player.setPropertyFlag('pause', !paused.value);
   }

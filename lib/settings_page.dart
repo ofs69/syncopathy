@@ -36,6 +36,7 @@ class _SettingsPageState extends State<SettingsPage>
   late bool _remapFullRange;
   late bool _embeddedVideoPlayer;
   late bool _autoSwitchToVideoPlayerTab;
+  late bool _autoPlay;
 
   late final SyncopathyModel _model;
   final _debouncer = Debouncer(milliseconds: 500);
@@ -54,6 +55,7 @@ class _SettingsPageState extends State<SettingsPage>
     _model.settings.skipToAction.addListener(_onSettingsChanged);
     _model.settings.autoSwitchToVideoPlayerTab.addListener(_onSettingsChanged);
     _model.settings.embeddedVideoPlayer.addListener(_onSettingsChanged);
+    _model.settings.autoPlay.addListener(_onSettingsChanged);
     _updateStateFromSettings();
   }
 
@@ -71,6 +73,7 @@ class _SettingsPageState extends State<SettingsPage>
       _onSettingsChanged,
     );
     _model.settings.embeddedVideoPlayer.removeListener(_onSettingsChanged);
+    _model.settings.autoPlay.removeListener(_onSettingsChanged);
     super.dispose();
   }
 
@@ -95,6 +98,7 @@ class _SettingsPageState extends State<SettingsPage>
     _embeddedVideoPlayer = _model.settings.embeddedVideoPlayer.value;
     _autoSwitchToVideoPlayerTab =
         _model.settings.autoSwitchToVideoPlayerTab.value;
+    _autoPlay = _model.settings.autoPlay.value;
   }
 
   Future<void> _addPath() async {
@@ -123,6 +127,7 @@ class _SettingsPageState extends State<SettingsPage>
     final skipToAction = _skipToAction;
     final embeddedVideoPlayer = _embeddedVideoPlayer;
     final autoSwitchToVideoPlayerTab = _autoSwitchToVideoPlayerTab;
+    final autoPlay = _autoPlay;
 
     _model.settings.setMinMax(currentMin, currentMax);
     _model.settings.setOffsetMs(currentOffset);
@@ -132,6 +137,7 @@ class _SettingsPageState extends State<SettingsPage>
     _model.settings.setSkipToAction(skipToAction);
     _model.settings.setAutoSwitchToVideoPlayerTab(autoSwitchToVideoPlayerTab);
     _model.settings.setEmbeddedVideoPlayer(embeddedVideoPlayer);
+    _model.settings.setAutoPlay(autoPlay);
     Logger.info('Settings saved.');
   }
 
@@ -201,6 +207,8 @@ class _SettingsPageState extends State<SettingsPage>
           _buildEmbeddedVideoPlayerSettings(context),
           const Divider(),
           _buildAutoSwitchToVideoPlayerTabSettings(context),
+          const Divider(),
+          _buildAutoPlaySettings(context),
         ],
       ),
       _buildSettingsCard(
@@ -465,6 +473,21 @@ class _SettingsPageState extends State<SettingsPage>
       },
       secondary: const Icon(Icons.tab),
       isThreeLine: true,
+    );
+  }
+
+  Widget _buildAutoPlaySettings(BuildContext context) {
+    return SwitchListTile(
+      title: const Text('Auto Play'),
+      subtitle: const Text('Automatically plays the video when loaded.'),
+      value: _autoPlay,
+      onChanged: (value) {
+        setState(() {
+          _autoPlay = value;
+          _saveSettings();
+        });
+      },
+      secondary: const Icon(Icons.play_arrow),
     );
   }
 

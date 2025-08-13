@@ -29,7 +29,7 @@ class PlayerModel extends ChangeNotifier {
   ValueNotifier<bool> get isScanning => _handyBle.isScanning;
 
   ValueNotifier<String> get path => _mpvPlayer.path;
-  ValueNotifier<Funscript?> funscript = ValueNotifier(null);
+  ValueNotifier<Funscript?> currentFunscript = ValueNotifier(null);
 
   String? _lastAttemptedLoadPath;
   int get positionMs =>
@@ -50,7 +50,7 @@ class PlayerModel extends ChangeNotifier {
     _funscriptStreamController = FunscriptStreamController(_handyBle);
 
     path.addListener(_tryToLoadFunscript);
-    funscript.addListener(_handleLoadedScript);
+    currentFunscript.addListener(_handleLoadedScript);
 
     paused.addListener(_handlePausedChanged);
     positionNoOffset.addListener(_handlePositionChanged);
@@ -62,7 +62,7 @@ class PlayerModel extends ChangeNotifier {
   void _handleDurationChange() {
     if (_settings.skipToAction.value) {
       final startTime = FunscriptAlgorithms.findFirstStroke(
-        funscript.value!.actions,
+        currentFunscript.value!.actions,
       );
       final percentPos = (startTime / 1000.0) / duration.value;
       _mpvPlayer.seekTo(percentPos.clamp(0.0, 1.0));
@@ -85,17 +85,16 @@ class PlayerModel extends ChangeNotifier {
     super.dispose();
   }
 
-  void _handleLoadedScript() async {
-    Logger.debug(funscript.value?.fileName ?? "no script loaded");
+  Future<void> _handleLoadedScript() async {
+    Logger.debug(currentFunscript.value?.fileName ?? "no script loaded");
 
-    if (funscript.value != null) {
-      _funscriptStreamController.loadFunscript(
-        funscript.value!,
-        positionMs,
+    if (currentFunscript.value != null) {
+      await _funscriptStreamController.loadFunscript(
+        currentFunscript.value!,
         playbackSpeed.value,
       );
     } else {
-      _funscriptStreamController.unloadFunscript();
+      await _funscriptStreamController.unloadFunscript();
     }
   }
 
@@ -132,14 +131,15 @@ class PlayerModel extends ChangeNotifier {
     }
     _lastAttemptedLoadPath = filePath;
 
-    if (funscript.value != null && funscript.value?.filePath == filePath) {
+    if (currentFunscript.value != null &&
+        currentFunscript.value?.filePath == filePath) {
       return;
     }
 
     final script = _findFunscript(filePath);
     if (script != null) {
       try {
-        closeVideo();
+        await closeVideo();
         await _loadAndProcessFunscript(script);
 
         _mpvPlayer.loadFile(filePath);
@@ -148,7 +148,7 @@ class PlayerModel extends ChangeNotifier {
         Logger.error(e.toString());
       }
     }
-    funscript.value = null;
+    currentFunscript.value = null;
     _mpvPlayer.closeFile();
     _mpvPlayer.path.value = "";
   }
@@ -167,19 +167,22 @@ class PlayerModel extends ChangeNotifier {
       slewMaxRateOfChangePerSecond: _settings.slewMaxRateOfChange.value,
       remapRange: _settings.remapFullRange.value ? (0, 100) : null,
     );
-    funscript.value = funscriptFile;
+    currentFunscript.value = funscriptFile;
   }
 
-  void _handlePausedChanged() {
+  Future<void> _handlePausedChanged() async {
     if (paused.value) {
-      _funscriptStreamController.stopPlayback();
+      await _funscriptStreamController.stopPlayback();
     } else {
-      _funscriptStreamController.startPlayback(positionMs, playbackSpeed.value);
+      await _funscriptStreamController.startPlayback(
+        positionMs,
+        playbackSpeed.value,
+      );
     }
   }
 
-  void _handlePositionChanged() {
-    _funscriptStreamController.positionUpdate(
+  Future<void> _handlePositionChanged() async {
+    await _funscriptStreamController.positionUpdate(
       positionMs,
       paused.value,
       playbackSpeed.value,
@@ -217,20 +220,23 @@ class PlayerModel extends ChangeNotifier {
     );
   }
 
-  void closeVideo() {
+  Future<void> closeVideo() async {
     _mpvPlayer.pause();
-    _funscriptStreamController.stopPlayback();
-    _funscriptStreamController.unloadFunscript();
+    await _funscriptStreamController.stopPlayback();
+    await _funscriptStreamController.unloadFunscript();
     _mpvPlayer.closeFile();
     _mpvPlayer.path.value = "";
   }
 
   void openVideoAndScript(String videoPath, String funscriptPath) async {
     try {
-      closeVideo();
+      await closeVideo();
       _lastAttemptedLoadPath = videoPath;
       await _loadAndProcessFunscript(funscriptPath);
       _mpvPlayer.loadFile(videoPath);
+      if (_settings.autoPlay.value) {
+        _mpvPlayer.play();
+      }
       return;
     } catch (e) {
       Logger.error(e.toString());

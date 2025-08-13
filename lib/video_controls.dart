@@ -218,7 +218,7 @@ class _VideoControlsState extends State<VideoControls> {
                     child: SizedBox(
                       height: 50,
                       child: ValueListenableBuilder<Funscript?>(
-                        valueListenable: player.funscript,
+                        valueListenable: player.currentFunscript,
                         builder: (context, funscript, child) {
                           if (funscript == null) {
                             return const Center(

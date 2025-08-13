@@ -17,53 +17,58 @@ const SettingsEntitySchema = CollectionSchema(
   name: r'SettingsEntity',
   id: -7271317039764597112,
   properties: {
-    r'autoSwitchToVideoPlayerTab': PropertySchema(
+    r'autoPlay': PropertySchema(
       id: 0,
+      name: r'autoPlay',
+      type: IsarType.bool,
+    ),
+    r'autoSwitchToVideoPlayerTab': PropertySchema(
+      id: 1,
       name: r'autoSwitchToVideoPlayerTab',
       type: IsarType.bool,
     ),
     r'embeddedVideoPlayer': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'embeddedVideoPlayer',
       type: IsarType.bool,
     ),
     r'max': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'max',
       type: IsarType.long,
     ),
     r'mediaPaths': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'mediaPaths',
       type: IsarType.stringList,
     ),
     r'min': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'min',
       type: IsarType.long,
     ),
     r'offsetMs': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'offsetMs',
       type: IsarType.long,
     ),
     r'rdpEpsilon': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'rdpEpsilon',
       type: IsarType.double,
     ),
     r'remapFullRange': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'remapFullRange',
       type: IsarType.bool,
     ),
     r'skipToAction': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'skipToAction',
       type: IsarType.bool,
     ),
     r'slewMaxRateOfChange': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'slewMaxRateOfChange',
       type: IsarType.double,
     )
@@ -104,16 +109,17 @@ void _settingsEntitySerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeBool(offsets[0], object.autoSwitchToVideoPlayerTab);
-  writer.writeBool(offsets[1], object.embeddedVideoPlayer);
-  writer.writeLong(offsets[2], object.max);
-  writer.writeStringList(offsets[3], object.mediaPaths);
-  writer.writeLong(offsets[4], object.min);
-  writer.writeLong(offsets[5], object.offsetMs);
-  writer.writeDouble(offsets[6], object.rdpEpsilon);
-  writer.writeBool(offsets[7], object.remapFullRange);
-  writer.writeBool(offsets[8], object.skipToAction);
-  writer.writeDouble(offsets[9], object.slewMaxRateOfChange);
+  writer.writeBool(offsets[0], object.autoPlay);
+  writer.writeBool(offsets[1], object.autoSwitchToVideoPlayerTab);
+  writer.writeBool(offsets[2], object.embeddedVideoPlayer);
+  writer.writeLong(offsets[3], object.max);
+  writer.writeStringList(offsets[4], object.mediaPaths);
+  writer.writeLong(offsets[5], object.min);
+  writer.writeLong(offsets[6], object.offsetMs);
+  writer.writeDouble(offsets[7], object.rdpEpsilon);
+  writer.writeBool(offsets[8], object.remapFullRange);
+  writer.writeBool(offsets[9], object.skipToAction);
+  writer.writeDouble(offsets[10], object.slewMaxRateOfChange);
 }
 
 SettingsEntity _settingsEntityDeserialize(
@@ -123,17 +129,18 @@ SettingsEntity _settingsEntityDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = SettingsEntity();
-  object.autoSwitchToVideoPlayerTab = reader.readBool(offsets[0]);
-  object.embeddedVideoPlayer = reader.readBool(offsets[1]);
+  object.autoPlay = reader.readBool(offsets[0]);
+  object.autoSwitchToVideoPlayerTab = reader.readBool(offsets[1]);
+  object.embeddedVideoPlayer = reader.readBool(offsets[2]);
   object.id = id;
-  object.max = reader.readLong(offsets[2]);
-  object.mediaPaths = reader.readStringList(offsets[3]) ?? [];
-  object.min = reader.readLong(offsets[4]);
-  object.offsetMs = reader.readLong(offsets[5]);
-  object.rdpEpsilon = reader.readDoubleOrNull(offsets[6]);
-  object.remapFullRange = reader.readBool(offsets[7]);
-  object.skipToAction = reader.readBool(offsets[8]);
-  object.slewMaxRateOfChange = reader.readDoubleOrNull(offsets[9]);
+  object.max = reader.readLong(offsets[3]);
+  object.mediaPaths = reader.readStringList(offsets[4]) ?? [];
+  object.min = reader.readLong(offsets[5]);
+  object.offsetMs = reader.readLong(offsets[6]);
+  object.rdpEpsilon = reader.readDoubleOrNull(offsets[7]);
+  object.remapFullRange = reader.readBool(offsets[8]);
+  object.skipToAction = reader.readBool(offsets[9]);
+  object.slewMaxRateOfChange = reader.readDoubleOrNull(offsets[10]);
   return object;
 }
 
@@ -149,20 +156,22 @@ P _settingsEntityDeserializeProp<P>(
     case 1:
       return (reader.readBool(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 3:
-      return (reader.readStringList(offset) ?? []) as P;
-    case 4:
       return (reader.readLong(offset)) as P;
+    case 4:
+      return (reader.readStringList(offset) ?? []) as P;
     case 5:
       return (reader.readLong(offset)) as P;
     case 6:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 7:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 8:
       return (reader.readBool(offset)) as P;
     case 9:
+      return (reader.readBool(offset)) as P;
+    case 10:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -265,6 +274,16 @@ extension SettingsEntityQueryWhere
 
 extension SettingsEntityQueryFilter
     on QueryBuilder<SettingsEntity, SettingsEntity, QFilterCondition> {
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterFilterCondition>
+      autoPlayEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'autoPlay',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<SettingsEntity, SettingsEntity, QAfterFilterCondition>
       autoSwitchToVideoPlayerTabEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
@@ -930,6 +949,19 @@ extension SettingsEntityQueryLinks
 
 extension SettingsEntityQuerySortBy
     on QueryBuilder<SettingsEntity, SettingsEntity, QSortBy> {
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy> sortByAutoPlay() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'autoPlay', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      sortByAutoPlayDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'autoPlay', Sort.desc);
+    });
+  }
+
   QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
       sortByAutoSwitchToVideoPlayerTab() {
     return QueryBuilder.apply(this, (query) {
@@ -1054,6 +1086,19 @@ extension SettingsEntityQuerySortBy
 
 extension SettingsEntityQuerySortThenBy
     on QueryBuilder<SettingsEntity, SettingsEntity, QSortThenBy> {
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy> thenByAutoPlay() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'autoPlay', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      thenByAutoPlayDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'autoPlay', Sort.desc);
+    });
+  }
+
   QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
       thenByAutoSwitchToVideoPlayerTab() {
     return QueryBuilder.apply(this, (query) {
@@ -1190,6 +1235,12 @@ extension SettingsEntityQuerySortThenBy
 
 extension SettingsEntityQueryWhereDistinct
     on QueryBuilder<SettingsEntity, SettingsEntity, QDistinct> {
+  QueryBuilder<SettingsEntity, SettingsEntity, QDistinct> distinctByAutoPlay() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'autoPlay');
+    });
+  }
+
   QueryBuilder<SettingsEntity, SettingsEntity, QDistinct>
       distinctByAutoSwitchToVideoPlayerTab() {
     return QueryBuilder.apply(this, (query) {
@@ -1263,6 +1314,12 @@ extension SettingsEntityQueryProperty
   QueryBuilder<SettingsEntity, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<SettingsEntity, bool, QQueryOperations> autoPlayProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'autoPlay');
     });
   }
 

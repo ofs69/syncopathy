@@ -82,7 +82,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
           focusNode: widget.focusNode,
           autofocus: true,
           child: ValueListenableBuilder<Funscript?>(
-            valueListenable: player.funscript,
+            valueListenable: player.currentFunscript,
             builder: (context, funscript, child) {
               if (funscript == null) {
                 return const Center(child: Text('No funscript loaded'));
