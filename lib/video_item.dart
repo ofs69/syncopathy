@@ -4,6 +4,8 @@ import 'package:syncopathy/main.dart';
 import 'package:syncopathy/model/user_category.dart';
 import 'package:syncopathy/model/video_model.dart';
 import 'package:syncopathy/video_thumbnail.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:path/path.dart' as p;
 
 class VideoItem extends StatefulWidget {
   const VideoItem({
@@ -39,6 +41,16 @@ class _VideoItemState extends State<VideoItem> {
     return '$minutes:$seconds';
   }
 
+  void _openDirectory(String path) async {
+    final directory = p.dirname(path);
+    final uri = Uri.file(directory);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      // Handle error
+    }
+  }
+
   void _showContextMenu(BuildContext context, TapUpDetails details) async {
     final categories = await isar.userCategorys.where().findAll();
     if (!context.mounted) return;
@@ -48,7 +60,20 @@ class _VideoItemState extends State<VideoItem> {
         value: 'regenerate_thumbnail',
         child: Text('Regenerate Thumbnail'),
       ),
+      const PopupMenuItem<String>(
+        value: 'open_video_dir',
+        child: Text('Open video directory'),
+      ),
     ];
+
+    if (widget.video.funscriptPath.isNotEmpty) {
+      menuItems.add(
+        const PopupMenuItem<String>(
+          value: 'open_script_dir',
+          child: Text('Open script directory'),
+        ),
+      );
+    }
 
     if (categories.isNotEmpty) {
       menuItems.add(const PopupMenuDivider());
@@ -78,13 +103,23 @@ class _VideoItemState extends State<VideoItem> {
     if (result != null) {
       if (result == 'regenerate_thumbnail') {
         _thumbnailKey.currentState?.regenerateThumbnail();
+      } else if (result == 'open_video_dir') {
+        _openDirectory(widget.video.videoPath);
+      } else if (result == 'open_script_dir') {
+        _openDirectory(widget.video.funscriptPath);
       } else if (result.startsWith('category_')) {
         final categoryId = int.parse(result.substring('category_'.length));
-        final selectedCategory = categories.firstWhere((c) => c.id == categoryId);
+        final selectedCategory = categories.firstWhere(
+          (c) => c.id == categoryId,
+        );
         bool removeCategory = widget.video.categories.any(
           (c) => c.id == selectedCategory.id,
         );
-        widget.onCategoryChanged(widget.video, selectedCategory, removeCategory);
+        widget.onCategoryChanged(
+          widget.video,
+          selectedCategory,
+          removeCategory,
+        );
       }
     }
   }
