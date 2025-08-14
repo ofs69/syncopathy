@@ -144,7 +144,6 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
     if (mounted) {
       setState(() {
         _speeds = speeds;
-        
       });
     }
   }
@@ -181,7 +180,6 @@ class GraphPainter extends CustomPainter {
   final Duration viewDuration;
   final ThemeData theme;
   final List<double> speeds;
-  
 
   GraphPainter({
     required this.funscript,
@@ -269,8 +267,7 @@ class GraphPainter extends CustomPainter {
       final speed = speeds[i];
       final normalizedSpeed = min(speed / speedNormalizationValue, 1.0);
 
-      final double colorPosition =
-          normalizedSpeed * (heatmapColors.length - 1);
+      final double colorPosition = normalizedSpeed * (heatmapColors.length - 1);
       final int fromIndex = colorPosition.floor().clamp(
         0,
         heatmapColors.length - 2,

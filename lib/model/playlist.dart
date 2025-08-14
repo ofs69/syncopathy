@@ -1,4 +1,3 @@
-
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
@@ -13,9 +12,9 @@ class Playlist extends ChangeNotifier {
     required List<Video> videos,
     int initialIndex = 0,
     bool isShuffled = false,
-  })  : _videos = List.of(videos),
-        _currentIndex = initialIndex,
-        _isShuffled = isShuffled {
+  }) : _videos = List.of(videos),
+       _currentIndex = initialIndex,
+       _isShuffled = isShuffled {
     if (_isShuffled) {
       _videos.shuffle();
     }

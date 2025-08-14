@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/model/playlist.dart';
@@ -18,7 +17,9 @@ class PlaylistControls extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(Icons.shuffle),
-          color: playlist.isShuffled ? Theme.of(context).colorScheme.primary : null,
+          color: playlist.isShuffled
+              ? Theme.of(context).colorScheme.primary
+              : null,
           onPressed: () => playlist.shuffle(),
           tooltip: 'Shuffle',
         ),
