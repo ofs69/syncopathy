@@ -41,10 +41,10 @@ class VideoFilter {
   );
 
   static List<VideoFilter> get values => [
-    hideFavorite,
-    hideUnrated,
-    hideDisliked,
-  ];
+        hideFavorite,
+        hideUnrated,
+        hideDisliked,
+      ];
 
   @override
   bool operator ==(Object other) =>
@@ -88,6 +88,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
   int videosPerRow = 6;
   final Set<VideoFilter> _currentVisibilityFilters = {};
   bool _showVideoTitles = true;
+
+  final Set<Video> _selectedVideos = {};
+  bool get _isSelectionMode => _selectedVideos.isNotEmpty;
 
   StreamSubscription? _videoUpdateSubscription;
 
@@ -147,18 +150,15 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
     final query = _searchController.text.toLowerCase();
     List<Video> videos = _mediaManager.allVideos.where((video) {
-      final authorMatch =
-          _selectedAuthor == null ||
+      final authorMatch = _selectedAuthor == null ||
           video.funscriptMetadata?.creator == _selectedAuthor;
       if (!authorMatch) return false;
 
-      final tagMatch =
-          _selectedTag == null ||
+      final tagMatch = _selectedTag == null ||
           video.funscriptMetadata?.tags.contains(_selectedTag) == true;
       if (!tagMatch) return false;
 
-      final performerMatch =
-          _selectedPerformer == null ||
+      final performerMatch = _selectedPerformer == null ||
           video.funscriptMetadata?.performers.contains(_selectedPerformer) ==
               true;
       if (!performerMatch) return false;
@@ -251,8 +251,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
     var availableVideos = _filteredVideos.where((v) {
       bool shouldHideUnrated =
           _currentVisibilityFilters.contains(VideoFilter.hideUnrated) &&
-          !v.isFavorite &&
-          !v.isDislike;
+              !v.isFavorite &&
+              !v.isDislike;
       return !v.isDislike && !shouldHideUnrated;
     }).toList();
 
@@ -396,14 +396,15 @@ class _MediaLibraryState extends State<MediaLibrary> {
           builder: (BuildContext context, StateSetter setState) {
             return DraggableScrollableSheet(
               expand: false,
-              builder: (BuildContext context, ScrollController scrollController) {
+              builder:
+                  (BuildContext context, ScrollController scrollController) {
                 final filteredItems = isar.userCategorys
                     .where()
                     .findAllSync()
                     .where(
                       (item) => item.name.toLowerCase().contains(
-                        searchController.text.toLowerCase(),
-                      ),
+                            searchController.text.toLowerCase(),
+                          ),
                     )
                     .toList();
 
@@ -548,6 +549,132 @@ class _MediaLibraryState extends State<MediaLibrary> {
     }
   }
 
+  Future<void> _showBulkAddCategoryDialog() async {
+    final category = await _showCategorySelectionDialog();
+    if (category != null) {
+      await _mediaManager.addVideosToCategory(_selectedVideos.toList(), category);
+      setState(() {
+        _selectedVideos.clear();
+      });
+      _updateDisplayedVideos();
+    }
+  }
+
+  Future<void> _showBulkRemoveCategoryDialog() async {
+    final category = await _showCategorySelectionDialog(showAddCategory: false);
+    if (category != null) {
+      await _mediaManager.removeVideosFromCategory(
+          _selectedVideos.toList(), category);
+      setState(() {
+        _selectedVideos.clear();
+      });
+      _updateDisplayedVideos();
+    }
+  }
+
+  Future<UserCategory?> _showCategorySelectionDialog(
+      {bool showAddCategory = true}) async {
+    return await showModalBottomSheet<UserCategory?>(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        final searchController = TextEditingController();
+        final newCategoryController = TextEditingController();
+
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return DraggableScrollableSheet(
+              expand: false,
+              builder:
+                  (BuildContext context, ScrollController scrollController) {
+                final filteredItems = isar.userCategorys
+                    .where()
+                    .findAllSync()
+                    .where(
+                      (item) => item.name.toLowerCase().contains(
+                            searchController.text.toLowerCase(),
+                          ),
+                    )
+                    .toList();
+
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextField(
+                        controller: searchController,
+                        onChanged: (value) => setState(() {}),
+                        decoration: InputDecoration(
+                          labelText: 'Search Categories',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        itemCount: filteredItems.length,
+                        itemBuilder: (context, index) {
+                          final item = filteredItems[index];
+                          return ListTile(
+                            title: Text(item.name),
+                            onTap: () => Navigator.of(context).pop(item),
+                          );
+                        },
+                      ),
+                    ),
+                    if (showAddCategory)
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: newCategoryController,
+                                decoration: const InputDecoration(
+                                  labelText: 'New Category Name',
+                                  border: OutlineInputBorder(),
+                                ),
+                                onSubmitted: (value) async {
+                                  if (value.isNotEmpty) {
+                                    await _mediaManager.createCategory(value);
+                                    newCategoryController.clear();
+                                    searchController.clear();
+                                    setState(() {});
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.add),
+                              onPressed: () async {
+                                if (newCategoryController.text.isNotEmpty) {
+                                  await _mediaManager.createCategory(
+                                    newCategoryController.text,
+                                  );
+                                  newCategoryController.clear();
+                                  searchController.clear();
+                                  setState(() {});
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   List<Widget> confirmDialogActions(
     BuildContext context,
     void Function() onDelete,
@@ -566,136 +693,172 @@ class _MediaLibraryState extends State<MediaLibrary> {
     ];
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Media Library'),
-        actions: [
-          TextButton.icon(
-            label: const Text("Surprise Me!"),
-            icon: const Icon(Icons.shuffle),
-            onPressed: _showRandomVideoPicker,
+  AppBar _buildSelectionAppBar() {
+    return AppBar(
+      title: Text('${_selectedVideos.length} selected'),
+      leading: IconButton(
+        icon: const Icon(Icons.close),
+        onPressed: () {
+          setState(() {
+            _selectedVideos.clear();
+          });
+        },
+      ),
+      actions: [
+        TextButton.icon(
+          icon: const Icon(Icons.category),
+          label: const Text('Add to category'),
+          onPressed: _showBulkAddCategoryDialog,
+        ),
+        TextButton.icon(
+          icon: const Icon(Icons.remove_circle_outline),
+          label: const Text('Remove from category'),
+          onPressed: _showBulkRemoveCategoryDialog,
+        ),
+      ],
+    );
+  }
+
+  AppBar _buildDefaultAppBar() {
+    return AppBar(
+      title: const Text('Media Library'),
+      actions: [
+        TextButton.icon(
+          label: const Text("Surprise Me!"),
+          icon: const Icon(Icons.shuffle),
+          onPressed: _showRandomVideoPicker,
+        ),
+        const SizedBox(width: 8),
+        // Sorting Dropdown
+        DropdownButton<SortOption>(
+          value: _currentSortOption,
+          icon: const Icon(Icons.sort),
+          underline: const SizedBox.shrink(), // Hides the default underline
+          onChanged: (SortOption? newValue) {
+            if (newValue != null) {
+              setState(() {
+                _currentSortOption = newValue;
+              });
+              _updateDisplayedVideos();
+            }
+          },
+          items: SortOption.values.map((SortOption option) {
+            return DropdownMenuItem<SortOption>(
+              value: option,
+              child: Text(option.label),
+            );
+          }).toList(),
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          icon: Icon(
+            _isSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
           ),
-          const SizedBox(width: 8),
-          // Sorting Dropdown
-          DropdownButton<SortOption>(
-            value: _currentSortOption,
-            icon: const Icon(Icons.sort),
-            underline: const SizedBox.shrink(), // Hides the default underline
-            onChanged: (SortOption? newValue) {
+          onPressed: () {
+            setState(() {
+              _isSortAscending = !_isSortAscending;
+            });
+            _updateDisplayedVideos();
+          },
+          tooltip: _isSortAscending ? 'Sort Descending' : 'Sort Ascending',
+        ),
+        const SizedBox(width: 8),
+        PopupMenuButton<dynamic>(
+          icon: const Icon(Icons.visibility),
+          tooltip: 'View Options',
+          onSelected: (dynamic value) {
+            if (value is VideoFilter) {
+              setState(() {
+                if (_currentVisibilityFilters.contains(value)) {
+                  _currentVisibilityFilters.remove(value);
+                } else {
+                  _currentVisibilityFilters.add(value);
+                }
+              });
+              _updateDisplayedVideos();
+            } else if (value == 'toggle_titles') {
+              setState(() {
+                _showVideoTitles = !_showVideoTitles;
+              });
+            }
+          },
+          itemBuilder: (BuildContext context) {
+            return <PopupMenuEntry<dynamic>>[
+              ...VideoFilter.values.map((VideoFilter filter) {
+                return CheckedPopupMenuItem<VideoFilter>(
+                  value: filter,
+                  checked: _currentVisibilityFilters.contains(filter),
+                  child: Text(filter.label),
+                );
+              }),
+              const PopupMenuDivider(),
+              CheckedPopupMenuItem<String>(
+                value: 'toggle_titles',
+                checked: _showVideoTitles,
+                child: const Text('Show Titles'),
+              ),
+            ];
+          },
+        ),
+        const SizedBox(width: 8),
+        // Filter Buttons
+        ActionChip(
+          avatar: const Icon(Icons.filter_list),
+          label: const Text('Metadata'),
+          onPressed: _showFunscriptMetadataFilterDialog,
+        ),
+        const SizedBox(width: 8),
+        ActionChip(
+          avatar: const Icon(Icons.category_outlined),
+          label: Text(_selectedCategory?.name ?? 'Category'),
+          onPressed: _showCategoryDialog,
+        ),
+        const SizedBox(width: 8),
+        Tooltip(
+          message: 'Long-press or right-click an item for more options.',
+          child: Icon(
+            Icons.info_outline,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          ),
+        ),
+        const SizedBox(width: 8),
+        // Videos Per Row Dropdown)
+        Tooltip(
+          message: 'Videos per row',
+          child: DropdownButton<int>(
+            value: videosPerRow,
+            onChanged: (int? newValue) {
               if (newValue != null) {
                 setState(() {
-                  _currentSortOption = newValue;
+                  videosPerRow = newValue;
                 });
-                _updateDisplayedVideos();
               }
             },
-            items: SortOption.values.map((SortOption option) {
-              return DropdownMenuItem<SortOption>(
-                value: option,
-                child: Text(option.label),
+            items: List.generate(9, (i) => i + 2) // 2 to 10
+                .map<DropdownMenuItem<int>>((int value) {
+              return DropdownMenuItem<int>(
+                value: value,
+                child: Text(value.toString()),
               );
             }).toList(),
           ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: Icon(
-              _isSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-            ),
-            onPressed: () {
-              setState(() {
-                _isSortAscending = !_isSortAscending;
-              });
-              _updateDisplayedVideos();
-            },
-            tooltip: _isSortAscending ? 'Sort Descending' : 'Sort Ascending',
-          ),
-          const SizedBox(width: 8),
-          PopupMenuButton<dynamic>(
-            icon: const Icon(Icons.visibility),
-            tooltip: 'View Options',
-            onSelected: (dynamic value) {
-              if (value is VideoFilter) {
-                setState(() {
-                  if (_currentVisibilityFilters.contains(value)) {
-                    _currentVisibilityFilters.remove(value);
-                  } else {
-                    _currentVisibilityFilters.add(value);
-                  }
-                });
-                _updateDisplayedVideos();
-              } else if (value == 'toggle_titles') {
-                setState(() {
-                  _showVideoTitles = !_showVideoTitles;
-                });
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return <PopupMenuEntry<dynamic>>[
-                ...VideoFilter.values.map((VideoFilter filter) {
-                  return CheckedPopupMenuItem<VideoFilter>(
-                    value: filter,
-                    checked: _currentVisibilityFilters.contains(filter),
-                    child: Text(filter.label),
-                  );
-                }),
-                const PopupMenuDivider(),
-                CheckedPopupMenuItem<String>(
-                  value: 'toggle_titles',
-                  checked: _showVideoTitles,
-                  child: const Text('Show Titles'),
-                ),
-              ];
-            },
-          ),
-          const SizedBox(width: 8),
-          // Filter Buttons
-          ActionChip(
-            avatar: const Icon(Icons.filter_list),
-            label: const Text('Metadata'),
-            onPressed: _showFunscriptMetadataFilterDialog,
-          ),
-          const SizedBox(width: 8),
-          ActionChip(
-            avatar: const Icon(Icons.category_outlined),
-            label: Text(_selectedCategory?.name ?? 'Category'),
-            onPressed: _showCategoryDialog,
-          ),
-          const SizedBox(width: 8),
-          // Videos Per Row Dropdown)
-          Tooltip(
-            message: 'Videos per row',
-            child: DropdownButton<int>(
-              value: videosPerRow,
-              onChanged: (int? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    videosPerRow = newValue;
-                  });
-                }
-              },
-              items:
-                  List.generate(9, (i) => i + 2) // 2 to 10
-                      .map<DropdownMenuItem<int>>((int value) {
-                        return DropdownMenuItem<int>(
-                          value: value,
-                          child: Text(value.toString()),
-                        );
-                      })
-                      .toList(),
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Refresh Button
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _isLoading ? null : _refreshVideos,
-            tooltip: 'Refresh',
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+        ),
+        const SizedBox(width: 8),
+        // Refresh Button
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          onPressed: _isLoading ? null : _refreshVideos,
+          tooltip: 'Refresh',
+        ),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: _isSelectionMode ? _buildSelectionAppBar() : _buildDefaultAppBar(),
       body: Column(
         children: [
           Padding(
@@ -759,11 +922,11 @@ class _MediaLibraryState extends State<MediaLibrary> {
                     duration: const Duration(milliseconds: 500),
                     transitionBuilder:
                         (Widget child, Animation<double> animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          );
-                        },
+                      return FadeTransition(
+                        opacity: animation,
+                        child: child,
+                      );
+                    },
                     child: GridView.builder(
                       key: ValueKey(_filteredVideos.length),
                       padding: const EdgeInsets.all(8.0),
@@ -777,10 +940,33 @@ class _MediaLibraryState extends State<MediaLibrary> {
                       itemCount: _filteredVideos.length,
                       itemBuilder: (context, index) {
                         final video = _filteredVideos[index];
+                        final isSelected = _selectedVideos.contains(video);
                         return VideoItem(
                           video: video,
+                          isSelected: isSelected,
                           showTitle: _showVideoTitles,
-                          onVideoTapped: widget.onVideoTapped,
+                          onVideoTapped: (video) {
+                            if (_isSelectionMode) {
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedVideos.remove(video);
+                                } else {
+                                  _selectedVideos.add(video);
+                                }
+                              });
+                            } else {
+                              widget.onVideoTapped(video);
+                            }
+                          },
+                          onLongPress: () {
+                            setState(() {
+                              if (isSelected) {
+                                _selectedVideos.remove(video);
+                              } else {
+                                _selectedVideos.add(video);
+                              }
+                            });
+                          },
                           onFavoriteChanged: (video) {
                             _mediaManager.saveFavorite(video);
                             _updateDisplayedVideos();
@@ -789,7 +975,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
                             _mediaManager.saveDislike(video);
                             _updateDisplayedVideos();
                           },
-                          onCategoryChanged: (video, category, removeCategory) {
+                          onCategoryChanged:
+                              (video, category, removeCategory) {
                             if (removeCategory) {
                               _mediaManager.removeVideoCategory(
                                 video,

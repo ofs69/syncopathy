@@ -16,6 +16,8 @@ class VideoItem extends StatefulWidget {
     required this.onDislikeChanged,
     required this.onCategoryChanged,
     this.showTitle = true,
+    this.isSelected = false,
+    this.onLongPress,
   });
 
   final Video video;
@@ -24,6 +26,8 @@ class VideoItem extends StatefulWidget {
   final void Function(Video) onDislikeChanged;
   final void Function(Video, UserCategory, bool) onCategoryChanged;
   final bool showTitle;
+  final bool isSelected;
+  final VoidCallback? onLongPress;
 
   @override
   State<VideoItem> createState() => _VideoItemState();
@@ -149,6 +153,7 @@ class _VideoItemState extends State<VideoItem> {
             onTapUp: (_) => setState(() => _isTapped = false),
             onTapCancel: () => setState(() => _isTapped = false),
             onTap: () => widget.onVideoTapped(widget.video),
+            onLongPress: widget.onLongPress,
             onSecondaryTapUp: (details) => _showContextMenu(context, details),
             child: AnimatedScale(
               scale: _isTapped ? 0.95 : (_isHovering ? 1.03 : 1.0),
@@ -158,13 +163,24 @@ class _VideoItemState extends State<VideoItem> {
                 clipBehavior: Clip.antiAlias,
                 elevation: 2.0,
                 shape: RoundedRectangleBorder(
-                  side: borderSide,
+                  side: widget.isSelected
+                      ? BorderSide(color: Theme.of(context).primaryColor, width: 3.0)
+                      : borderSide,
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
                     VideoThumbnail(key: _thumbnailKey, video: widget.video),
+                    if (widget.isSelected)
+                      Container(
+                        color: Theme.of(context).primaryColor.withOpacity(0.5),
+                        child: Icon(
+                          Icons.check_circle,
+                          color: Colors.white,
+                          size: iconSize,
+                        ),
+                      ),
                     if (widget.showTitle)
                       Positioned(
                         bottom: 0,

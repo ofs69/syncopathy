@@ -306,4 +306,36 @@ class MediaManager {
       await video.categories.save();
     });
   }
+
+  Future<void> addVideosToCategory(
+    List<Video> videos,
+    UserCategory category,
+  ) async {
+    for (var video in videos) {
+      await video.categories.load();
+    }
+    await isar.writeTxn(() async {
+      for (var video in videos) {
+        if (!video.categories.any((c) => c.id == category.id)) {
+          video.categories.add(category);
+          await video.categories.save();
+        }
+      }
+    });
+  }
+
+  Future<void> removeVideosFromCategory(
+    List<Video> videos,
+    UserCategory category,
+  ) async {
+    for (var video in videos) {
+      await video.categories.load();
+    }
+    await isar.writeTxn(() async {
+      for (var video in videos) {
+        video.categories.removeWhere((c) => c.id == category.id);
+        await video.categories.save();
+      }
+    });
+  }
 }
