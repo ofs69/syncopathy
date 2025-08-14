@@ -33,7 +33,7 @@ class _MediaPageState extends State<MediaPage>
           Expanded(
             child: MediaLibrary(
               mediaManager: model.mediaManager,
-              onVideoTapped: (v) => player.openVideoAndScript(v),
+              onVideoTapped: (v) => player.openVideoAndScript(v, false),
             ),
           ),
           const SizedBox(height: 16),

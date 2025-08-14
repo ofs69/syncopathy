@@ -8,6 +8,7 @@ import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/video_model.dart';
 import 'package:collection/collection.dart';
+import 'package:syncopathy/playlist_controls.dart';
 
 import 'package:syncopathy/settings_page.dart';
 import 'package:syncopathy/update_checker_widget.dart';
@@ -226,6 +227,8 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
               ),
               const SizedBox(width: 20),
             ],
+            const PlaylistControls(),
+            const SizedBox(width: 20),
             const UpdateCheckerWidget(),
             const SizedBox(width: 20),
             const Padding(

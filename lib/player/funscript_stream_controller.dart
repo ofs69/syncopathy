@@ -163,7 +163,6 @@ class FunscriptStreamController {
         }
 
         if (batch.isNotEmpty && !batchIsSameAsBuffer) {
-          assert(batch.length > 1);
           Logger.debug(
             "Preparing batch of size ${batch.length}. From ${batch.first.at}ms to ${batch.last.at}ms.",
           );

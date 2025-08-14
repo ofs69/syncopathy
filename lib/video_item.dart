@@ -3,6 +3,8 @@ import 'package:syncopathy/model/user_category.dart';
 import 'package:syncopathy/model/video_model.dart';
 import 'package:syncopathy/video_thumbnail.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
+import 'package:provider/provider.dart';
+import 'package:syncopathy/model/player_model.dart';
 
 class VideoItem extends StatefulWidget {
   const VideoItem({
@@ -97,8 +99,12 @@ class _VideoItemState extends State<VideoItem> {
         final double iconSize = (constraints.maxHeight / 7).clamp(16.0, 32.0);
         final double padding = (iconSize / 4).clamp(4.0, 16.0);
 
+        final playerModel = Provider.of<PlayerModel>(context);
+
         final BorderSide borderSide;
-        if (widget.video.isFavorite) {
+        if (widget.video.id == playerModel.currentVideoNotifier.value?.id) {
+          borderSide = BorderSide(color: Colors.green, width: 6.0);
+        } else if (widget.video.isFavorite) {
           borderSide = BorderSide(color: Colors.yellow.shade600, width: 3.0);
         } else if (widget.video.isDislike) {
           borderSide = BorderSide(color: Colors.blue.shade300, width: 3.0);

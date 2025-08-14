@@ -19,7 +19,6 @@ class PlayerModel extends ChangeNotifier {
   late final HandyBle _handyBle;
   final Settings _settings;
   final MediaManager _mediaManager;
-  Playlist? playlist;
 
   ValueNotifier<bool> get paused => _mpvPlayer.paused;
   ValueNotifier<double> get positionNoOffset => _mpvPlayer.position;
@@ -34,6 +33,9 @@ class PlayerModel extends ChangeNotifier {
   ValueNotifier<String> get mediaPath => _mpvPlayer.path;
   ValueNotifier<Funscript?> currentFunscript = ValueNotifier(null);
   ValueNotifier<Video?> currentVideoNotifier = ValueNotifier(null);
+
+  ValueNotifier<Playlist?> playlist = ValueNotifier(null);
+  bool _hasTriggeredNextVideo = false;
 
   int get positionMs =>
       (positionNoOffset.value * 1000.0).round().toInt() +
@@ -63,13 +65,35 @@ class PlayerModel extends ChangeNotifier {
   }
 
   void setPlaylist(List<Video> videos, int initialIndex) {
-    playlist = Playlist(videos: videos, initialIndex: initialIndex);
-    notifyListeners();
+    // Remove listener from previous playlist if it exists
+    playlist.value?.removeListener(_handlePlaylistChange);
+
+    final newPlaylist = Playlist(videos: videos, initialIndex: initialIndex);
+    playlist.value = newPlaylist;
+
+    // Add listener to the new playlist
+    newPlaylist.addListener(_handlePlaylistChange);
+
+    _mpvPlayer.disableLooping();
+
+    if (newPlaylist.currentVideo != null) {
+      openVideoAndScript(newPlaylist.currentVideo!, true);
+    }
+  }
+
+  void _handlePlaylistChange() {
+    // This method is called when the playlist's internal state changes (e.g., next/previous)
+    if (playlist.value != null &&
+        playlist.value!.currentVideo != null &&
+        playlist.value!.currentVideo != currentVideoNotifier.value) {
+      openVideoAndScript(playlist.value!.currentVideo!, true);
+    }
   }
 
   void clearPlaylist() {
-    playlist = null;
-    notifyListeners();
+    playlist.value?.removeListener(_handlePlaylistChange);
+    playlist.value = null;
+    _mpvPlayer.enableLooping();
   }
 
   void _handleDurationChange() {
@@ -122,6 +146,9 @@ class PlayerModel extends ChangeNotifier {
       final video = await _mediaManager.getVideoByPath(mediaPath.value);
       if (video != null) {
         currentVideoNotifier.value = video;
+        if (_settings.autoPlay.value) {
+          _mpvPlayer.play();
+        }
       } else {
         closeVideo();
       }
@@ -162,6 +189,28 @@ class PlayerModel extends ChangeNotifier {
       paused.value,
       playbackSpeed.value,
     );
+    _checkAndPlayNextVideo();
+  }
+
+  void _checkAndPlayNextVideo() {
+    if (playlist.value == null || _hasTriggeredNextVideo) {
+      return;
+    }
+
+    const double endThresholdSeconds =
+        0.15; // Play next video 150 millieseconds before current one ends
+
+    if (duration.value > 0 &&
+        positionNoOffset.value >= (duration.value - endThresholdSeconds)) {
+      if (playlist.value!.currentIndex.value <
+          playlist.value!.videos.length - 1) {
+        _hasTriggeredNextVideo =
+            true; // Prevent multiple triggers for the same video
+        playlist.value!.next();
+      } else {
+        // If no next video, do nothing.
+      }
+    }
   }
 
   void seekTo(double time) {
@@ -203,14 +252,17 @@ class PlayerModel extends ChangeNotifier {
     _mpvPlayer.path.value = "";
   }
 
-  void openVideoAndScript(Video video) async {
+  void openVideoAndScript(Video video, bool isPlaylist) async {
     try {
+      _hasTriggeredNextVideo = false; // Reset flag for new video
+      if (!isPlaylist) {
+        clearPlaylist();
+      }
       await closeVideo();
       await _loadAndProcessFunscript(video.funscriptPath);
       _mpvPlayer.loadFile(video.videoPath);
-      if (_settings.autoPlay.value) {
-        _mpvPlayer.play();
-      }
+      _mpvPlayer.pause();
+
       return;
     } catch (e) {
       Logger.error(e.toString());

@@ -9,6 +9,8 @@ import 'package:syncopathy/model/user_category.dart';
 import 'package:syncopathy/video_item.dart';
 import 'package:syncopathy/model/video_model.dart';
 import 'package:syncopathy/wheel_of_fortune.dart';
+import 'package:provider/provider.dart';
+import 'package:syncopathy/model/player_model.dart';
 
 enum SortOption {
   title('Title'),
@@ -248,6 +250,20 @@ class _MediaLibraryState extends State<MediaLibrary> {
       _updateDisplayedVideos();
       setState(() => _isLoading = false);
     }
+  }
+
+  void _startPlaylist() {
+    final playlistVideos = _filteredVideos.where((video) => !video.isDislike).toList();
+    if (playlistVideos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No non-disliked videos to create a playlist!')),
+      );
+      return;
+    }
+    Provider.of<PlayerModel>(context, listen: false).setPlaylist(playlistVideos, 0);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Playlist created with ${playlistVideos.length} videos!')),
+    );
   }
 
   void _showRandomVideoPicker() {
@@ -737,6 +753,12 @@ class _MediaLibraryState extends State<MediaLibrary> {
           label: const Text("Surprise Me!"),
           icon: const Icon(Icons.shuffle),
           onPressed: _showRandomVideoPicker,
+        ),
+        const SizedBox(width: 8),
+        TextButton.icon(
+          label: const Text("Start Playlist"),
+          icon: const Icon(Icons.playlist_play),
+          onPressed: _startPlaylist,
         ),
         const SizedBox(width: 8),
         // Sorting Dropdown

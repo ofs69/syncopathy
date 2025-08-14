@@ -40,6 +40,14 @@ class MpvVideoplayer {
     _player.command(["keybind", "q", "ignore"]);
   }
 
+  void enableLooping() {
+    _player.setPropertyString('loop-file', 'inf');
+  }
+
+  void disableLooping() {
+    _player.setPropertyString('loop-file', 'no');
+  }
+
   void loadFile(String filepath) {
     _player.command(["loadfile", filepath]);
   }
