@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:libmpv_dart/libmpv.dart';
-import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
 
 import 'package:syncopathy/logging.dart';
@@ -11,12 +9,15 @@ import 'package:syncopathy/player/funscript_stream_controller.dart';
 import 'package:syncopathy/player/handy_ble.dart';
 import 'package:syncopathy/player/mpv.dart';
 import 'package:syncopathy/model/settings.dart';
+import 'package:syncopathy/model/video_model.dart';
+import 'package:syncopathy/media_manager.dart';
 
 class PlayerModel extends ChangeNotifier {
   late MpvVideoplayer _mpvPlayer;
 
   late final HandyBle _handyBle;
   final Settings _settings;
+  final MediaManager _mediaManager;
 
   ValueNotifier<bool> get paused => _mpvPlayer.paused;
   ValueNotifier<double> get positionNoOffset => _mpvPlayer.position;
@@ -28,10 +29,10 @@ class PlayerModel extends ChangeNotifier {
   ValueNotifier<bool> get isConnected => _handyBle.isConnected;
   ValueNotifier<bool> get isScanning => _handyBle.isScanning;
 
-  ValueNotifier<String> get path => _mpvPlayer.path;
+  ValueNotifier<String> get mediaPath => _mpvPlayer.path;
   ValueNotifier<Funscript?> currentFunscript = ValueNotifier(null);
+  ValueNotifier<Video?> currentVideoNotifier = ValueNotifier(null);
 
-  String? _lastAttemptedLoadPath;
   int get positionMs =>
       (positionNoOffset.value * 1000.0).round().toInt() +
       _settings.offsetMs.value;
@@ -40,7 +41,7 @@ class PlayerModel extends ChangeNotifier {
 
   late final FunscriptStreamController _funscriptStreamController;
 
-  PlayerModel(this._settings) {
+  PlayerModel(this._settings, this._mediaManager) {
     _mpvPlayer = MpvVideoplayer(
       videoOutput: _settings.embeddedVideoPlayer.value,
     );
@@ -49,7 +50,7 @@ class PlayerModel extends ChangeNotifier {
     _handyBle = HandyBle();
     _funscriptStreamController = FunscriptStreamController(_handyBle);
 
-    path.addListener(_tryToLoadFunscript);
+    mediaPath.addListener(_handleMediaPathChange);
     currentFunscript.addListener(_handleLoadedScript);
 
     paused.addListener(_handlePausedChanged);
@@ -78,7 +79,7 @@ class PlayerModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    path.removeListener(_tryToLoadFunscript);
+    mediaPath.removeListener(_handleMediaPathChange);
     _handyBle.dispose();
 
     _mpvPlayer.dispose();
@@ -98,59 +99,21 @@ class PlayerModel extends ChangeNotifier {
     }
   }
 
-  String? _findFunscript(String mediaPath) {
-    // Searches for a .funscript file in the same directory as mediaPath,
-    // with the same base name.
-    try {
-      final directoryPath = p.dirname(mediaPath);
-      final baseName = p.basenameWithoutExtension(mediaPath);
-      final funscriptPath = p.join(directoryPath, '$baseName.funscript');
-
-      if (File(funscriptPath).existsSync()) {
-        return funscriptPath;
-      }
-    } catch (e) {
-      // It's possible mediaPath is not a valid path, causing an exception.
-      // In that case, we can't find a funscript.
-      Logger.error('Error while searching for funscript: $e');
-    }
-    Logger.error('Failed to find funscript');
-    return null;
-  }
-
-  void _tryToLoadFunscript() async {
-    await tryToOpenVideo(path.value);
-  }
-
-  Future<void> tryToOpenVideo(String filePath) async {
-    var testFile = File(filePath);
-    if (_lastAttemptedLoadPath == filePath ||
-        filePath.isEmpty ||
-        !await testFile.exists()) {
-      return;
-    }
-    _lastAttemptedLoadPath = filePath;
-
-    if (currentFunscript.value != null &&
-        currentFunscript.value?.filePath == filePath) {
+  void _handleMediaPathChange() async {
+    if (mediaPath.value.isEmpty) {
+      currentVideoNotifier.value = null;
       return;
     }
 
-    final script = _findFunscript(filePath);
-    if (script != null) {
-      try {
-        await closeVideo();
-        await _loadAndProcessFunscript(script);
-
-        _mpvPlayer.loadFile(filePath);
-        return;
-      } catch (e) {
-        Logger.error(e.toString());
+    if (currentVideoNotifier.value == null ||
+        currentVideoNotifier.value!.videoPath != mediaPath.value) {
+      final video = await _mediaManager.getVideoByPath(mediaPath.value);
+      if (video != null) {
+        currentVideoNotifier.value = video;
+      } else {
+        closeVideo();
       }
     }
-    currentFunscript.value = null;
-    _mpvPlayer.closeFile();
-    _mpvPlayer.path.value = "";
   }
 
   Future<void> _loadAndProcessFunscript(String script) async {
@@ -173,7 +136,8 @@ class PlayerModel extends ChangeNotifier {
   Future<void> _handlePausedChanged() async {
     if (paused.value) {
       await _funscriptStreamController.stopPlayback();
-    } else {
+    }
+    else {
       await _funscriptStreamController.startPlayback(
         positionMs,
         playbackSpeed.value,
@@ -228,12 +192,11 @@ class PlayerModel extends ChangeNotifier {
     _mpvPlayer.path.value = "";
   }
 
-  void openVideoAndScript(String videoPath, String funscriptPath) async {
+  void openVideoAndScript(Video video) async {
     try {
       await closeVideo();
-      _lastAttemptedLoadPath = videoPath;
-      await _loadAndProcessFunscript(funscriptPath);
-      _mpvPlayer.loadFile(videoPath);
+      await _loadAndProcessFunscript(video.funscriptPath);
+      _mpvPlayer.loadFile(video.videoPath);
       if (_settings.autoPlay.value) {
         _mpvPlayer.play();
       }

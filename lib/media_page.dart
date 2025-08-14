@@ -1,4 +1,3 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/model/app_model.dart';
@@ -20,21 +19,6 @@ class _MediaPageState extends State<MediaPage>
   @override
   bool get wantKeepAlive => true;
 
-  Future<void> _openVideoFile() async {
-    final player = context.read<PlayerModel>();
-
-    final FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.video,
-    );
-
-    if (result != null) {
-      final String? filePath = result.files.single.path;
-      if (filePath != null) {
-        await player.tryToOpenVideo(filePath);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -49,19 +33,12 @@ class _MediaPageState extends State<MediaPage>
           Expanded(
             child: MediaLibrary(
               mediaManager: model.mediaManager,
-              onVideoTapped: (v) =>
-                  player.openVideoAndScript(v.videoPath, v.funscriptPath),
+              onVideoTapped: (v) => player.openVideoAndScript(v),
             ),
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              ElevatedButton.icon(
-                onPressed: _openVideoFile,
-                icon: const Icon(Icons.folder_open),
-                label: const Text('Open Video'),
-              ),
-              const SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: () => player.closeVideo(),
                 icon: const Icon(Icons.close),

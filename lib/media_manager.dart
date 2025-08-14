@@ -338,4 +338,8 @@ class MediaManager {
       }
     });
   }
+
+  Future<Video?> getVideoByPath(String path) async {
+    return _allVideos.firstWhereOrNull((video) => video.videoPath == path);
+  }
 }

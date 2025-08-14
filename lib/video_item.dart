@@ -49,9 +49,6 @@ class _VideoItemState extends State<VideoItem> {
   }
 
   void _showContextMenu(BuildContext context, TapUpDetails details) async {
-    final categories = await isar.userCategorys.where().findAll();
-    if (!context.mounted) return;
-
     final List<PopupMenuEntry<String>> menuItems = [
       const PopupMenuItem<String>(
         value: 'regenerate_thumbnail',
@@ -69,20 +66,6 @@ class _VideoItemState extends State<VideoItem> {
           value: 'open_script_dir',
           child: Text('Open script file directory'),
         ),
-      );
-    }
-
-    if (categories.isNotEmpty) {
-      menuItems.add(const PopupMenuDivider());
-      menuItems.addAll(
-        categories.map((category) {
-          return PopupMenuItem<String>(
-            value: 'category_${category.id}',
-            child: widget.video.categories.any((c) => c.id == category.id)
-                ? Text("Remove: ${category.name}")
-                : Text(category.name),
-          );
-        }).toList(),
       );
     }
 
@@ -104,19 +87,6 @@ class _VideoItemState extends State<VideoItem> {
         _openFileDirectory(widget.video.videoPath);
       } else if (result == 'open_script_dir') {
         _openFileDirectory(widget.video.funscriptPath);
-      } else if (result.startsWith('category_')) {
-        final categoryId = int.parse(result.substring('category_'.length));
-        final selectedCategory = categories.firstWhere(
-          (c) => c.id == categoryId,
-        );
-        bool removeCategory = widget.video.categories.any(
-          (c) => c.id == selectedCategory.id,
-        );
-        widget.onCategoryChanged(
-          widget.video,
-          selectedCategory,
-          removeCategory,
-        );
       }
     }
   }
@@ -170,7 +140,7 @@ class _VideoItemState extends State<VideoItem> {
                     VideoThumbnail(key: _thumbnailKey, video: widget.video),
                     if (widget.isSelected)
                       Container(
-                        color: Theme.of(context).primaryColor.withOpacity(0.5),
+                        color: Theme.of(context).primaryColor.withAlpha(130),
                         child: Icon(
                           Icons.check_circle,
                           color: Colors.white,

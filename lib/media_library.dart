@@ -41,10 +41,10 @@ class VideoFilter {
   );
 
   static List<VideoFilter> get values => [
-        hideFavorite,
-        hideUnrated,
-        hideDisliked,
-      ];
+    hideFavorite,
+    hideUnrated,
+    hideDisliked,
+  ];
 
   @override
   bool operator ==(Object other) =>
@@ -150,15 +150,18 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
     final query = _searchController.text.toLowerCase();
     List<Video> videos = _mediaManager.allVideos.where((video) {
-      final authorMatch = _selectedAuthor == null ||
+      final authorMatch =
+          _selectedAuthor == null ||
           video.funscriptMetadata?.creator == _selectedAuthor;
       if (!authorMatch) return false;
 
-      final tagMatch = _selectedTag == null ||
+      final tagMatch =
+          _selectedTag == null ||
           video.funscriptMetadata?.tags.contains(_selectedTag) == true;
       if (!tagMatch) return false;
 
-      final performerMatch = _selectedPerformer == null ||
+      final performerMatch =
+          _selectedPerformer == null ||
           video.funscriptMetadata?.performers.contains(_selectedPerformer) ==
               true;
       if (!performerMatch) return false;
@@ -251,8 +254,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
     var availableVideos = _filteredVideos.where((v) {
       bool shouldHideUnrated =
           _currentVisibilityFilters.contains(VideoFilter.hideUnrated) &&
-              !v.isFavorite &&
-              !v.isDislike;
+          !v.isFavorite &&
+          !v.isDislike;
       return !v.isDislike && !shouldHideUnrated;
     }).toList();
 
@@ -396,15 +399,14 @@ class _MediaLibraryState extends State<MediaLibrary> {
           builder: (BuildContext context, StateSetter setState) {
             return DraggableScrollableSheet(
               expand: false,
-              builder:
-                  (BuildContext context, ScrollController scrollController) {
+              builder: (BuildContext context, ScrollController scrollController) {
                 final filteredItems = isar.userCategorys
                     .where()
                     .findAllSync()
                     .where(
                       (item) => item.name.toLowerCase().contains(
-                            searchController.text.toLowerCase(),
-                          ),
+                        searchController.text.toLowerCase(),
+                      ),
                     )
                     .toList();
 
@@ -552,7 +554,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
   Future<void> _showBulkAddCategoryDialog() async {
     final category = await _showCategorySelectionDialog();
     if (category != null) {
-      await _mediaManager.addVideosToCategory(_selectedVideos.toList(), category);
+      await _mediaManager.addVideosToCategory(
+        _selectedVideos.toList(),
+        category,
+      );
       setState(() {
         _selectedVideos.clear();
       });
@@ -564,7 +569,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
     final category = await _showCategorySelectionDialog(showAddCategory: false);
     if (category != null) {
       await _mediaManager.removeVideosFromCategory(
-          _selectedVideos.toList(), category);
+        _selectedVideos.toList(),
+        category,
+      );
       setState(() {
         _selectedVideos.clear();
       });
@@ -572,8 +579,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
     }
   }
 
-  Future<UserCategory?> _showCategorySelectionDialog(
-      {bool showAddCategory = true}) async {
+  Future<UserCategory?> _showCategorySelectionDialog({
+    bool showAddCategory = true,
+  }) async {
     return await showModalBottomSheet<UserCategory?>(
       context: context,
       isScrollControlled: true,
@@ -587,87 +595,89 @@ class _MediaLibraryState extends State<MediaLibrary> {
               expand: false,
               builder:
                   (BuildContext context, ScrollController scrollController) {
-                final filteredItems = isar.userCategorys
-                    .where()
-                    .findAllSync()
-                    .where(
-                      (item) => item.name.toLowerCase().contains(
+                    final filteredItems = isar.userCategorys
+                        .where()
+                        .findAllSync()
+                        .where(
+                          (item) => item.name.toLowerCase().contains(
                             searchController.text.toLowerCase(),
                           ),
-                    )
-                    .toList();
+                        )
+                        .toList();
 
-                return Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        controller: searchController,
-                        onChanged: (value) => setState(() {}),
-                        decoration: InputDecoration(
-                          labelText: 'Search Categories',
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        controller: scrollController,
-                        itemCount: filteredItems.length,
-                        itemBuilder: (context, index) {
-                          final item = filteredItems[index];
-                          return ListTile(
-                            title: Text(item.name),
-                            onTap: () => Navigator.of(context).pop(item),
-                          );
-                        },
-                      ),
-                    ),
-                    if (showAddCategory)
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: newCategoryController,
-                                decoration: const InputDecoration(
-                                  labelText: 'New Category Name',
-                                  border: OutlineInputBorder(),
-                                ),
-                                onSubmitted: (value) async {
-                                  if (value.isNotEmpty) {
-                                    await _mediaManager.createCategory(value);
-                                    newCategoryController.clear();
-                                    searchController.clear();
-                                    setState(() {});
-                                  }
-                                },
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: TextField(
+                            controller: searchController,
+                            onChanged: (value) => setState(() {}),
+                            decoration: InputDecoration(
+                              labelText: 'Search Categories',
+                              prefixIcon: const Icon(Icons.search),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12.0),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(Icons.add),
-                              onPressed: () async {
-                                if (newCategoryController.text.isNotEmpty) {
-                                  await _mediaManager.createCategory(
-                                    newCategoryController.text,
-                                  );
-                                  newCategoryController.clear();
-                                  searchController.clear();
-                                  setState(() {});
-                                }
-                              },
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                  ],
-                );
-              },
+                        Expanded(
+                          child: ListView.builder(
+                            controller: scrollController,
+                            itemCount: filteredItems.length,
+                            itemBuilder: (context, index) {
+                              final item = filteredItems[index];
+                              return ListTile(
+                                title: Text(item.name),
+                                onTap: () => Navigator.of(context).pop(item),
+                              );
+                            },
+                          ),
+                        ),
+                        if (showAddCategory)
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: newCategoryController,
+                                    decoration: const InputDecoration(
+                                      labelText: 'New Category Name',
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    onSubmitted: (value) async {
+                                      if (value.isNotEmpty) {
+                                        await _mediaManager.createCategory(
+                                          value,
+                                        );
+                                        newCategoryController.clear();
+                                        searchController.clear();
+                                        setState(() {});
+                                      }
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () async {
+                                    if (newCategoryController.text.isNotEmpty) {
+                                      await _mediaManager.createCategory(
+                                        newCategoryController.text,
+                                      );
+                                      newCategoryController.clear();
+                                      searchController.clear();
+                                      setState(() {});
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    );
+                  },
             );
           },
         );
@@ -818,7 +828,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
           message: 'Long-press or right-click an item for more options.',
           child: Icon(
             Icons.info_outline,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
           ),
         ),
         const SizedBox(width: 8),
@@ -834,13 +844,15 @@ class _MediaLibraryState extends State<MediaLibrary> {
                 });
               }
             },
-            items: List.generate(9, (i) => i + 2) // 2 to 10
-                .map<DropdownMenuItem<int>>((int value) {
-              return DropdownMenuItem<int>(
-                value: value,
-                child: Text(value.toString()),
-              );
-            }).toList(),
+            items:
+                List.generate(9, (i) => i + 2) // 2 to 10
+                    .map<DropdownMenuItem<int>>((int value) {
+                      return DropdownMenuItem<int>(
+                        value: value,
+                        child: Text(value.toString()),
+                      );
+                    })
+                    .toList(),
           ),
         ),
         const SizedBox(width: 8),
@@ -858,7 +870,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _isSelectionMode ? _buildSelectionAppBar() : _buildDefaultAppBar(),
+      appBar: _isSelectionMode
+          ? _buildSelectionAppBar()
+          : _buildDefaultAppBar(),
       body: Column(
         children: [
           Padding(
@@ -922,11 +936,11 @@ class _MediaLibraryState extends State<MediaLibrary> {
                     duration: const Duration(milliseconds: 500),
                     transitionBuilder:
                         (Widget child, Animation<double> animation) {
-                      return FadeTransition(
-                        opacity: animation,
-                        child: child,
-                      );
-                    },
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
+                        },
                     child: GridView.builder(
                       key: ValueKey(_filteredVideos.length),
                       padding: const EdgeInsets.all(8.0),
@@ -975,8 +989,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
                             _mediaManager.saveDislike(video);
                             _updateDisplayedVideos();
                           },
-                          onCategoryChanged:
-                              (video, category, removeCategory) {
+                          onCategoryChanged: (video, category, removeCategory) {
                             if (removeCategory) {
                               _mediaManager.removeVideoCategory(
                                 video,

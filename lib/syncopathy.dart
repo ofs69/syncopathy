@@ -50,7 +50,6 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   int _selectedIndex = 0;
 
   late PageController _pageController;
-  String _currentVideoTitle = '';
   Video? _currentVideo;
   late FocusNode _videoPlayerFocusNode;
 
@@ -60,16 +59,16 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     _pageController = PageController(initialPage: _selectedIndex);
     _videoPlayerFocusNode = FocusNode();
     final player = context.read<PlayerModel>();
-    player.path.addListener(_handleVideoPathChange);
-    player.path.addListener(_updateVideoTitleAndVideo);
+    player.mediaPath.addListener(_handleVideoPathChange);
+    player.mediaPath.addListener(_updateVideoTitleAndVideo);
     _updateVideoTitleAndVideo(); // Initial update
   }
 
   @override
   void dispose() {
     final player = context.read<PlayerModel>();
-    player.path.removeListener(_handleVideoPathChange);
-    player.path.removeListener(_updateVideoTitleAndVideo);
+    player.mediaPath.removeListener(_handleVideoPathChange);
+    player.mediaPath.removeListener(_updateVideoTitleAndVideo);
     _videoPlayerFocusNode.dispose();
     super.dispose();
   }
@@ -90,11 +89,8 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   void _updateVideoTitleAndVideo() {
     final player = context.read<PlayerModel>();
     final mediaManager = context.read<SyncopathyModel>().mediaManager;
-    final path = player.path.value;
+    final path = player.mediaPath.value;
     setState(() {
-      _currentVideoTitle = path.isNotEmpty
-          ? p.basenameWithoutExtension(path)
-          : '';
       _currentVideo = mediaManager.allVideos.firstWhereOrNull(
         (video) => video.videoPath == path,
       );
@@ -104,7 +100,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   void _handleVideoPathChange() {
     final model = context.read<SyncopathyModel>();
     final player = context.read<PlayerModel>();
-    if (player.path.value.isNotEmpty &&
+    if (player.mediaPath.value.isNotEmpty &&
         model.settings.autoSwitchToVideoPlayerTab.value) {
       setState(() {
         _selectedIndex = 1; // Navigate to Video Player tab
@@ -175,12 +171,10 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                   );
                 },
                 child: Text(
-                  _currentVideoTitle.isNotEmpty
-                      ? " - $_currentVideoTitle"
-                      : "", // Handle empty case
-                  key: ValueKey<String>(
-                    _currentVideoTitle,
-                  ), // Key based on changing content
+                  _currentVideo?.title != null
+                      ? " - ${_currentVideo?.title}"
+                      : "",
+                  key: ValueKey<String>(_currentVideo?.title ?? ""),
                 ),
               ),
             ],
