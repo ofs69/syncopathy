@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/helper/constants.dart';
 
 /// A widget that wraps the [ScrollingGraph] with a slider to control the zoom level (view duration).
 class InteractiveScrollingGraph extends StatefulWidget {
@@ -101,7 +102,6 @@ class ScrollingGraph extends StatefulWidget {
 
 class _ScrollingGraphState extends State<ScrollingGraph> {
   List<double> _speeds = [];
-  double _maxSpeed = 1.0;
 
   @override
   void initState() {
@@ -122,7 +122,6 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
       if (mounted) {
         setState(() {
           _speeds = [];
-          _maxSpeed = 1.0;
         });
       }
       return;
@@ -145,10 +144,7 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
     if (mounted) {
       setState(() {
         _speeds = speeds;
-        _maxSpeed = speeds.isEmpty
-            ? 1.0
-            : (List<double>.from(speeds)
-                ..sort())[(speeds.length * 0.98).floor()];
+        
       });
     }
   }
@@ -169,7 +165,6 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
               viewDuration: widget.viewDuration,
               theme: Theme.of(context),
               speeds: _speeds,
-              maxSpeed: _maxSpeed,
             ),
             size: Size.infinite,
           ),
@@ -186,7 +181,7 @@ class GraphPainter extends CustomPainter {
   final Duration viewDuration;
   final ThemeData theme;
   final List<double> speeds;
-  final double maxSpeed;
+  
 
   GraphPainter({
     required this.funscript,
@@ -194,7 +189,6 @@ class GraphPainter extends CustomPainter {
     required this.viewDuration,
     required this.theme,
     required this.speeds,
-    required this.maxSpeed,
   });
 
   @override
@@ -272,30 +266,26 @@ class GraphPainter extends CustomPainter {
           size.width;
       final y2 = size.height - (p2.pos / 100.0) * size.height;
 
-      if (maxSpeed > 0) {
-        final speed = speeds[i];
-        final normalizedSpeed = sqrt(min(speed / maxSpeed, 1.0));
+      final speed = speeds[i];
+      final normalizedSpeed = min(speed / speedNormalizationValue, 1.0);
 
-        final double colorPosition =
-            normalizedSpeed * (heatmapColors.length - 1);
-        final int fromIndex = colorPosition.floor().clamp(
-          0,
-          heatmapColors.length - 2,
-        );
-        final int toIndex = colorPosition.ceil().clamp(
-          0,
-          heatmapColors.length - 1,
-        );
-        final double t = colorPosition - fromIndex;
+      final double colorPosition =
+          normalizedSpeed * (heatmapColors.length - 1);
+      final int fromIndex = colorPosition.floor().clamp(
+        0,
+        heatmapColors.length - 2,
+      );
+      final int toIndex = colorPosition.ceil().clamp(
+        0,
+        heatmapColors.length - 1,
+      );
+      final double t = colorPosition - fromIndex;
 
-        linePaint.color = Color.lerp(
-          heatmapColors[fromIndex],
-          heatmapColors[toIndex],
-          t,
-        )!;
-      } else {
-        linePaint.color = heatmapColors.first;
-      }
+      linePaint.color = Color.lerp(
+        heatmapColors[fromIndex],
+        heatmapColors[toIndex],
+        t,
+      )!;
 
       canvas.drawLine(Offset(x1, y1), Offset(x2, y2), linePaint);
 
@@ -323,7 +313,6 @@ class GraphPainter extends CustomPainter {
         oldDelegate.funscript != funscript ||
         oldDelegate.theme != theme ||
         oldDelegate.viewDuration != viewDuration ||
-        oldDelegate.speeds != speeds ||
-        oldDelegate.maxSpeed != maxSpeed;
+        oldDelegate.speeds != speeds;
   }
 }

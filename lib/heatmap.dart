@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/helper/constants.dart';
 
 class Heatmap extends StatefulWidget {
   final Funscript funscript;
@@ -200,13 +201,6 @@ class HeatmapPainter extends CustomPainter {
       return;
     }
 
-    // Use a percentile to determine max speed to avoid outliers dominating the color scale.
-    final sortedSpeeds = List<double>.from(speeds)..sort();
-    final maxSpeed = sortedSpeeds[(sortedSpeeds.length * 0.98).floor()];
-    if (maxSpeed == 0) {
-      return;
-    }
-
     final paint = Paint();
     final List<Color> heatmapColors = [
       Colors.black,
@@ -236,7 +230,7 @@ class HeatmapPainter extends CustomPainter {
       }
 
       // Normalize speed and apply sqrt to get a better color distribution
-      final normalizedSpeed = sqrt(min(speed / maxSpeed, 1.0));
+      final normalizedSpeed = min(speed / speedNormalizationValue, 1.0);
 
       final double colorPosition = normalizedSpeed * (heatmapColors.length - 1);
       final int fromIndex = colorPosition.floor().clamp(
