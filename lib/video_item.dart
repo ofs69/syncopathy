@@ -4,8 +4,7 @@ import 'package:syncopathy/main.dart';
 import 'package:syncopathy/model/user_category.dart';
 import 'package:syncopathy/model/video_model.dart';
 import 'package:syncopathy/video_thumbnail.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:path/path.dart' as p;
+import 'package:syncopathy/helper/platform_utils.dart';
 
 class VideoItem extends StatefulWidget {
   const VideoItem({
@@ -45,14 +44,8 @@ class _VideoItemState extends State<VideoItem> {
     return '$minutes:$seconds';
   }
 
-  void _openDirectory(String path) async {
-    final directory = p.dirname(path);
-    final uri = Uri.file(directory);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      // Handle error
-    }
+  void _openFileDirectory(String path) async {
+    await PlatformUtils.openFileExplorer(path);
   }
 
   void _showContextMenu(BuildContext context, TapUpDetails details) async {
@@ -66,7 +59,7 @@ class _VideoItemState extends State<VideoItem> {
       ),
       const PopupMenuItem<String>(
         value: 'open_video_dir',
-        child: Text('Open video directory'),
+        child: Text('Open video file directory'),
       ),
     ];
 
@@ -74,7 +67,7 @@ class _VideoItemState extends State<VideoItem> {
       menuItems.add(
         const PopupMenuItem<String>(
           value: 'open_script_dir',
-          child: Text('Open script directory'),
+          child: Text('Open script file directory'),
         ),
       );
     }
@@ -108,9 +101,9 @@ class _VideoItemState extends State<VideoItem> {
       if (result == 'regenerate_thumbnail') {
         _thumbnailKey.currentState?.regenerateThumbnail();
       } else if (result == 'open_video_dir') {
-        _openDirectory(widget.video.videoPath);
+        _openFileDirectory(widget.video.videoPath);
       } else if (result == 'open_script_dir') {
-        _openDirectory(widget.video.funscriptPath);
+        _openFileDirectory(widget.video.funscriptPath);
       } else if (result.startsWith('category_')) {
         final categoryId = int.parse(result.substring('category_'.length));
         final selectedCategory = categories.firstWhere(
@@ -164,7 +157,10 @@ class _VideoItemState extends State<VideoItem> {
                 elevation: 2.0,
                 shape: RoundedRectangleBorder(
                   side: widget.isSelected
-                      ? BorderSide(color: Theme.of(context).primaryColor, width: 3.0)
+                      ? BorderSide(
+                          color: Theme.of(context).primaryColor,
+                          width: 3.0,
+                        )
                       : borderSide,
                   borderRadius: BorderRadius.circular(8.0),
                 ),
