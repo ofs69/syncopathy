@@ -11,6 +11,7 @@ import 'package:syncopathy/player/mpv.dart';
 import 'package:syncopathy/model/settings.dart';
 import 'package:syncopathy/model/video_model.dart';
 import 'package:syncopathy/media_manager.dart';
+import 'package:syncopathy/model/playlist.dart';
 
 class PlayerModel extends ChangeNotifier {
   late MpvVideoplayer _mpvPlayer;
@@ -18,6 +19,7 @@ class PlayerModel extends ChangeNotifier {
   late final HandyBle _handyBle;
   final Settings _settings;
   final MediaManager _mediaManager;
+  Playlist? playlist;
 
   ValueNotifier<bool> get paused => _mpvPlayer.paused;
   ValueNotifier<double> get positionNoOffset => _mpvPlayer.position;
@@ -58,6 +60,16 @@ class PlayerModel extends ChangeNotifier {
     _settings.saveNotifier.stream.listen((_) {
       applySettings();
     });
+  }
+
+  void setPlaylist(List<Video> videos, int initialIndex) {
+    playlist = Playlist(videos: videos, initialIndex: initialIndex);
+    notifyListeners();
+  }
+
+  void clearPlaylist() {
+    playlist = null;
+    notifyListeners();
   }
 
   void _handleDurationChange() {

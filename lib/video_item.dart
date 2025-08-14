@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
-import 'package:syncopathy/main.dart';
 import 'package:syncopathy/model/user_category.dart';
 import 'package:syncopathy/model/video_model.dart';
 import 'package:syncopathy/video_thumbnail.dart';

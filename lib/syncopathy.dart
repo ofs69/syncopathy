@@ -13,7 +13,6 @@ import 'package:syncopathy/settings_page.dart';
 import 'package:syncopathy/update_checker_widget.dart';
 import 'package:syncopathy/video_player_page.dart';
 
-import 'package:path/path.dart' as p;
 import 'package:syncopathy/shortcut_handler.dart';
 
 class Syncopathy extends StatelessWidget {
