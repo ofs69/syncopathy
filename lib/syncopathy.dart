@@ -150,31 +150,49 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
           title: Row(
             children: [
               Text(widget.title),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  final inAnimation = Tween<Offset>(
-                    begin: const Offset(1.0, 0.0), // New child comes from right
-                    end: Offset.zero,
-                  ).animate(animation);
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder:
+                      (Widget child, Animation<double> animation) {
+                        final inAnimation = Tween<Offset>(
+                          begin: const Offset(
+                            1.0,
+                            0.0,
+                          ), // New child comes from right
+                          end: Offset.zero,
+                        ).animate(animation);
 
-                  final outAnimation = Tween<Offset>(
-                    begin: Offset.zero,
-                    end: const Offset(-1.0, 0.0), // Old child goes to left
-                  ).animate(animation);
+                        final outAnimation = Tween<Offset>(
+                          begin: Offset.zero,
+                          end: const Offset(
+                            -1.0,
+                            0.0,
+                          ), // Old child goes to left
+                        ).animate(animation);
 
-                  return SlideTransition(
-                    position: animation.status == AnimationStatus.reverse
-                        ? outAnimation
-                        : inAnimation,
-                    child: FadeTransition(opacity: animation, child: child),
-                  );
-                },
-                child: Text(
-                  _currentVideo?.title != null
-                      ? " - ${_currentVideo?.title}"
-                      : "",
-                  key: ValueKey<String>(_currentVideo?.title ?? ""),
+                        return SlideTransition(
+                          position: animation.status == AnimationStatus.reverse
+                              ? outAnimation
+                              : inAnimation,
+                          child: FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          ),
+                        );
+                      },
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _currentVideo?.title != null
+                          ? " - ${_currentVideo?.title}"
+                          : "",
+                      key: ValueKey<String>(_currentVideo?.title ?? ""),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      softWrap: false,
+                    ),
+                  ),
                 ),
               ),
             ],
