@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:libmpv_dart/libmpv.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
@@ -137,6 +139,12 @@ class PlayerModel extends ChangeNotifier {
 
   void _handleMediaPathChange() async {
     if (mediaPath.value.isEmpty) {
+      currentVideoNotifier.value = null;
+      return;
+    }
+
+    if (await FileSystemEntity.type(mediaPath.value) !=
+        FileSystemEntityType.file) {
       currentVideoNotifier.value = null;
       return;
     }
