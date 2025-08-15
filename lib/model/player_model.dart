@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:libmpv_dart/libmpv.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
 
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
@@ -205,18 +204,30 @@ class PlayerModel extends ChangeNotifier {
       return;
     }
 
-    const double endThresholdSeconds =
-        0.15; // Play next video 150 millieseconds before current one ends
+    bool shouldPlayNext = false;
+    if (currentFunscript.value != null &&
+        currentFunscript.value!.actions.isNotEmpty) {
+      final triggerTimeMs = currentFunscript.value!.actions.last.at - 100;
+      if (positionMs >= triggerTimeMs) {
+        shouldPlayNext = true;
+      }
+    } else {
+      // Fallback to old logic if no funscript is loaded
+      const double endThresholdSeconds =
+          0.15; // Play next video 150 millieseconds before current one ends
 
-    if (duration.value > 0 &&
-        positionNoOffset.value >= (duration.value - endThresholdSeconds)) {
+      if (duration.value > 0 &&
+          positionNoOffset.value >= (duration.value - endThresholdSeconds)) {
+        shouldPlayNext = true;
+      }
+    }
+
+    if (shouldPlayNext) {
       if (playlist.value!.currentIndex.value <
           playlist.value!.videos.length - 1) {
         _hasTriggeredNextVideo =
             true; // Prevent multiple triggers for the same video
         playlist.value!.next();
-      } else {
-        // If no next video, do nothing.
       }
     }
   }

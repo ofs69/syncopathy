@@ -21,7 +21,7 @@ class FunscriptStreamController {
   Funscript? _currentFunscript;
   final List<FunscriptAction> _currentBuffer = List.empty(growable: true);
 
-  static const int batchSize = 30;
+  static const int batchSize = 40;
   final FunscriptDevice? _device;
 
   FunscriptStreamController(this._device);
