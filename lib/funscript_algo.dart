@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/funscript.dart';
 
 class FunscriptAlgorithms {
@@ -227,7 +228,6 @@ class FunscriptAlgorithms {
         actions.insert(0, FunscriptAction(at: 0, pos: actions.first.pos));
       }
 
-      const int intervalMs = 1500;
       int actionLen = actions.length;
       if (actionLen >= 2) {
         for (int i = 1; i < actionLen; i++) {
@@ -235,13 +235,13 @@ class FunscriptAlgorithms {
           var to = actions[i];
 
           var diff = to.at - from.at;
-          for (int x = 1; x < (diff / intervalMs); x++) {
-            var time = from.at + x * intervalMs;
+          for (int x = 1; x < (diff / paddingIntervalMs); x++) {
+            var time = from.at + x * paddingIntervalMs;
             var posRel = time / diff;
             var pos = (from.pos + (to.pos - from.pos) * posRel);
 
             var action = FunscriptAction(
-              at: from.at + x * intervalMs,
+              at: from.at + x * paddingIntervalMs,
               pos: pos.toInt().clamp(0, 100),
             );
             actions.add(action);

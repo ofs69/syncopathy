@@ -102,8 +102,7 @@ class PlayerModel extends ChangeNotifier {
       final startTime = FunscriptAlgorithms.findFirstStroke(
         currentFunscript.value!.actions,
       );
-      final percentPos = (startTime / 1000.0) / duration.value;
-      _mpvPlayer.seekTo(percentPos.clamp(0.0, 1.0));
+      seekTo(startTime / 1000.0);
     }
   }
 
@@ -234,6 +233,7 @@ class PlayerModel extends ChangeNotifier {
 
   void seekTo(double time) {
     final posPercent = time / duration.value;
+    positionNoOffset.value = time;
     _mpvPlayer.seekTo(posPercent.clamp(0.0, 1.0));
   }
 

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/logging.dart';
 
@@ -21,7 +22,7 @@ class FunscriptStreamController {
   Funscript? _currentFunscript;
   final List<FunscriptAction> _currentBuffer = List.empty(growable: true);
 
-  static const int batchSize = 40;
+  static const int batchSize = 50;
   final FunscriptDevice? _device;
 
   FunscriptStreamController(this._device);
@@ -72,6 +73,12 @@ class FunscriptStreamController {
   ) async {
     if (_currentFunscript == null) return;
 
+    // subtract an offset for the buffering
+    // the offset is added back at the bottom
+    // this causes some points that are already past to be buffered
+    // which should prevent some issues
+    positionMs -= paddingIntervalMs;
+
     // Determine if we need to flush the buffer.
     // - If playback is paused.
     // - If we seeked outside the current buffer range.
@@ -79,17 +86,15 @@ class FunscriptStreamController {
     if (_currentBuffer.isNotEmpty) {
       final firstAction = _currentBuffer.first;
       final lastAction = _currentBuffer.last;
-      if (positionMs < firstAction.at || positionMs > lastAction.at) {
-        flush = true;
-
-        if (_currentBuffer.isNotEmpty) {
-          flush = _currentBuffer.last.at != _currentFunscript!.actions.last.at;
-        }
-        if (flush) {
-          Logger.debug(
-            "Position $positionMs ms is outside of buffer [${firstAction.at}, ${lastAction.at}], flushing.",
-          );
-        }
+      if (positionMs < firstAction.at) {
+        flush = _currentBuffer.first.at != _currentFunscript!.actions.first.at;
+      } else if (positionMs > lastAction.at) {
+        flush = _currentBuffer.last.at != _currentFunscript!.actions.last.at;
+      }
+      if (flush) {
+        Logger.debug(
+          "Position $positionMs ms is outside of buffer [${firstAction.at}, ${lastAction.at}], flushing.",
+        );
       }
     } else if (_currentFunscript!.actions.isNotEmpty) {
       // Buffer is empty, but we have a script, so it's the initial fill.
@@ -166,11 +171,16 @@ class FunscriptStreamController {
           Logger.debug(
             "Preparing batch of size ${batch.length}. From ${batch.first.at}ms to ${batch.last.at}ms.",
           );
-          _bufferBatch(batch, endOfBatchIndex, flush);
+          await _bufferBatch(batch, endOfBatchIndex, flush);
+          return;
         }
       }
     }
 
-    await _device?.positionUpdate(positionMs, paused, playbackRate);
+    await _device?.positionUpdate(
+      positionMs + paddingIntervalMs,
+      paused,
+      playbackRate,
+    );
   }
 }
