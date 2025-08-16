@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:syncopathy/heatmap.dart';
 import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/funscript.dart';
-import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 
 class VideoControls extends StatefulWidget {
@@ -25,33 +24,43 @@ class VideoControls extends StatefulWidget {
 class _VideoControlsState extends State<VideoControls> {
   RangeValues minMax = RangeValues(0, 100);
   final _debouncer = Debouncer(milliseconds: 500);
+  late final SyncopathyModel _model;
 
   @override
   void initState() {
-    final model = context.read<SyncopathyModel>();
+    _model = context.read<SyncopathyModel>();
     minMax = RangeValues(
-      model.settings.min.value.toDouble(),
-      model.settings.max.value.toDouble(),
+      _model.settings.min.value.toDouble(),
+      _model.settings.max.value.toDouble(),
     );
 
-    model.settings.min.addListener(
-      () => setState(() {
-        minMax = RangeValues(model.settings.min.value.toDouble(), minMax.end);
-      }),
-    );
-    model.settings.max.addListener(
-      () => setState(() {
-        minMax = RangeValues(minMax.start, model.settings.max.value.toDouble());
-      }),
-    );
+    _model.settings.min.addListener(_handleMinMaxValueChange);
+    _model.settings.max.addListener(_handleMinMaxValueChange);
 
     super.initState();
   }
 
+  void _handleMinMaxValueChange() {
+    if (mounted) {
+      setState(() {
+        minMax = RangeValues(
+          _model.settings.min.value.toDouble(),
+          _model.settings.max.value.toDouble(),
+        );
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _model.settings.min.removeListener(_handleMinMaxValueChange);
+    _model.settings.max.removeListener(_handleMinMaxValueChange);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final player = context.watch<PlayerModel>();
-    final model = context.watch<SyncopathyModel>();
+    final player = _model.player;
 
     const sliderHeight = 30.0;
 
@@ -193,7 +202,7 @@ class _VideoControlsState extends State<VideoControls> {
                                     setState(() {
                                       minMax = values;
                                       _debouncer.run(() {
-                                        model.settings.setMinMax(
+                                        _model.settings.setMinMax(
                                           values.start.round(),
                                           values.end.round(),
                                         );

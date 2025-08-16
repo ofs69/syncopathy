@@ -103,8 +103,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
     return Shortcuts(
       shortcuts: <LogicalKeySet, Intent>{
         LogicalKeySet(LogicalKeyboardKey.space): const TogglePauseIntent(),
-        LogicalKeySet(LogicalKeyboardKey.arrowRight): const NextPlaylistEntryIntent(),
-        LogicalKeySet(LogicalKeyboardKey.arrowLeft): const PreviousPlaylistEntryIntent(),
+        LogicalKeySet(LogicalKeyboardKey.arrowRight):
+            const NextPlaylistEntryIntent(),
+        LogicalKeySet(LogicalKeyboardKey.arrowLeft):
+            const PreviousPlaylistEntryIntent(),
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
