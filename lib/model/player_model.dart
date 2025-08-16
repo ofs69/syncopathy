@@ -37,6 +37,9 @@ class PlayerModel extends ChangeNotifier {
 
   ValueNotifier<double> get _positionNoOffset => _mpvPlayer.position;
 
+  ValueNotifier<bool> _isLoopingVideo = ValueNotifier(false);
+  ValueNotifier<bool> get isLoopingVideo => _isLoopingVideo;
+
   int get positionMs =>
       (_positionNoOffset.value * 1000.0).round().toInt() +
       _settings.offsetMs.value;
@@ -90,6 +93,10 @@ class PlayerModel extends ChangeNotifier {
   }
 
   void _checkAndPlayNextVideo() {
+    if (_isLoopingVideo.value) {
+      return;
+    }
+
     if (playlist.value == null || _hasTriggeredNextVideo) {
       return;
     }
@@ -119,6 +126,22 @@ class PlayerModel extends ChangeNotifier {
             true; // Prevent multiple triggers for the same video
         playlist.value!.next();
       }
+    }
+  }
+
+  void toggleLoopVideo() {
+    if (playlist.value == null) {
+      return; // Looping is always enabled for single videos
+    }
+    _setLooping(!_isLoopingVideo.value);
+  }
+
+  void _setLooping(bool enable) {
+    _isLoopingVideo.value = enable;
+    if (enable) {
+      _mpvPlayer.enableLooping();
+    } else {
+      _mpvPlayer.disableLooping();
     }
   }
 
@@ -167,6 +190,9 @@ class PlayerModel extends ChangeNotifier {
       _hasTriggeredNextVideo = false;
       if (!isPlaylist) {
         clearPlaylist();
+        _setLooping(true);
+      } else {
+        _setLooping(false);
       }
 
       await closeVideo();
@@ -256,7 +282,7 @@ class PlayerModel extends ChangeNotifier {
   void clearPlaylist() {
     playlist.value?.removeListener(_handlePlaylistChange);
     playlist.value = null;
-    _mpvPlayer.enableLooping();
+    _setLooping(true);
   }
 
   void setPlaylist(List<Video> videos, int initialIndex) {
@@ -269,7 +295,7 @@ class PlayerModel extends ChangeNotifier {
     // Add listener to the new playlist
     newPlaylist.addListener(_handlePlaylistChange);
 
-    _mpvPlayer.disableLooping();
+    _setLooping(false);
 
     if (newPlaylist.currentVideo != null) {
       openVideoAndScript(newPlaylist.currentVideo!, true);

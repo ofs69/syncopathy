@@ -24,34 +24,74 @@ class _PlaylistControlsState extends State<PlaylistControls> {
 
         return Row(
           children: [
-            IconButton(
-              icon: Icon(
-                playlist.isShuffled ? Icons.shuffle_on_outlined : Icons.shuffle,
+            Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: ToggleButtons(
+                isSelected: [playlist.isShuffled],
+                onPressed: (int index) {
+                  playlist.shuffle();
+                  setState(() {});
+                },
+                borderRadius: BorderRadius.circular(20.0),
+                constraints: const BoxConstraints(
+                  minWidth: 40.0,
+                  minHeight: 40.0,
+                ),
+                selectedColor: Colors.green,
+                children: const <Widget>[
+                  Tooltip(message: 'Shuffle', child: Icon(Icons.shuffle)),
+                ],
               ),
-              color: playlist.isShuffled
-                  ? Theme.of(context).colorScheme.primary
-                  : null,
-              onPressed: () {
-                playlist.shuffle();
-                setState(() {});
-              },
-              tooltip: 'Shuffle',
             ),
-            IconButton(
-              icon: const Icon(Icons.skip_previous),
-              onPressed: () {
-                playlist.previous();
-                setState(() {});
-              },
-              tooltip: 'Previous',
+            Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: ValueListenableBuilder<bool>(
+                valueListenable: model.isLoopingVideo,
+                builder: (context, isLooping, child) {
+                  return ToggleButtons(
+                    isSelected: [isLooping],
+                    onPressed: (int index) {
+                      model.toggleLoopVideo();
+                    },
+                    borderRadius: BorderRadius.circular(20.0),
+                    constraints: const BoxConstraints(
+                      minWidth: 40.0,
+                      minHeight: 40.0,
+                    ),
+                    selectedColor: Colors.green,
+                    children: <Widget>[
+                      Tooltip(
+                        message: 'Loop',
+                        child: Icon(
+                          isLooping ? Icons.repeat_on_outlined : Icons.repeat,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
-            IconButton(
-              icon: const Icon(Icons.skip_next),
-              onPressed: () {
-                playlist.next();
-                setState(() {});
-              },
-              tooltip: 'Next',
+            Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: IconButton(
+                icon: const Icon(Icons.skip_previous),
+                onPressed: () {
+                  playlist.previous();
+                  setState(() {});
+                },
+                tooltip: 'Previous',
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: IconButton(
+                icon: const Icon(Icons.skip_next),
+                onPressed: () {
+                  playlist.next();
+                  setState(() {});
+                },
+                tooltip: 'Next',
+              ),
             ),
             const SizedBox(width: 8),
             ValueListenableBuilder(
