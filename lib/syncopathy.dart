@@ -141,39 +141,15 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                   duration: const Duration(milliseconds: 300),
                   transitionBuilder:
                       (Widget child, Animation<double> animation) {
-                        final inAnimation = Tween<Offset>(
-                          begin: const Offset(
-                            1.0,
-                            0.0,
-                          ), // New child comes from right
-                          end: Offset.zero,
-                        ).animate(animation);
-
-                        final outAnimation = Tween<Offset>(
-                          begin: Offset.zero,
-                          end: const Offset(
-                            -1.0,
-                            0.0,
-                          ), // Old child goes to left
-                        ).animate(animation);
-
-                        return SlideTransition(
-                          position: animation.status == AnimationStatus.reverse
-                              ? outAnimation
-                              : inAnimation,
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          ),
-                        );
+                        return FadeTransition(opacity: animation, child: child);
                       },
                   child: Align(
+                    key: ValueKey<bool>(currentVideo != null),
                     alignment: Alignment.centerLeft,
                     child: Text(
                       currentVideo?.title != null
                           ? " - ${currentVideo?.title}"
                           : "",
-                      key: ValueKey<String>(currentVideo?.title ?? ""),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       softWrap: false,
@@ -184,53 +160,71 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
             ],
           ),
           actions: [
-            if (currentVideo != null) ...[
-              IconButton(
-                icon: Icon(
-                  currentVideo.isFavorite ? Icons.star : Icons.star_border,
-                  color: currentVideo.isFavorite
-                      ? Colors.yellow.shade600
-                      : null,
-                ),
-                onPressed: () {
-                  setState(() {
-                    currentVideo.isFavorite = !currentVideo.isFavorite;
-                    if (currentVideo.isFavorite) {
-                      currentVideo.isDislike = false;
-                    }
-                  });
-                  context.read<SyncopathyModel>().mediaManager.saveFavorite(
-                    currentVideo,
-                  );
-                },
-                tooltip: currentVideo.isFavorite
-                    ? 'Remove from Favorites'
-                    : 'Add to Favorites',
-              ),
-              IconButton(
-                icon: Icon(
-                  currentVideo.isDislike
-                      ? Icons.thumb_down
-                      : Icons.thumb_down_off_alt,
-                  color: currentVideo.isDislike ? Colors.blue.shade300 : null,
-                ),
-                onPressed: () {
-                  setState(() {
-                    currentVideo.isDislike = !currentVideo.isDislike;
-                    if (currentVideo.isDislike) {
-                      currentVideo.isFavorite = false;
-                    }
-                  });
-                  context.read<SyncopathyModel>().mediaManager.saveDislike(
-                    currentVideo,
-                  );
-                },
-                tooltip: currentVideo.isDislike
-                    ? 'Remove Dislike'
-                    : 'Dislike Video',
-              ),
-              const SizedBox(width: 20),
-            ],
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              child: currentVideo != null
+                  ? Row(
+                      key: const ValueKey<bool>(true),
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            currentVideo.isFavorite
+                                ? Icons.star
+                                : Icons.star_border,
+                            color: currentVideo.isFavorite
+                                ? Colors.yellow.shade600
+                                : null,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              currentVideo.isFavorite =
+                                  !currentVideo.isFavorite;
+                              if (currentVideo.isFavorite) {
+                                currentVideo.isDislike = false;
+                              }
+                            });
+                            context
+                                .read<SyncopathyModel>()
+                                .mediaManager
+                                .saveFavorite(currentVideo);
+                          },
+                          tooltip: currentVideo.isFavorite
+                              ? 'Remove from Favorites'
+                              : 'Add to Favorites',
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            currentVideo.isDislike
+                                ? Icons.thumb_down
+                                : Icons.thumb_down_off_alt,
+                            color: currentVideo.isDislike
+                                ? Colors.blue.shade300
+                                : null,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              currentVideo.isDislike = !currentVideo.isDislike;
+                              if (currentVideo.isDislike) {
+                                currentVideo.isFavorite = false;
+                              }
+                            });
+                            context
+                                .read<SyncopathyModel>()
+                                .mediaManager
+                                .saveDislike(currentVideo);
+                          },
+                          tooltip: currentVideo.isDislike
+                              ? 'Remove Dislike'
+                              : 'Dislike Video',
+                        ),
+                        const SizedBox(width: 20),
+                      ],
+                    )
+                  : const SizedBox.shrink(key: ValueKey<bool>(false)),
+            ),
             const PlaylistControls(),
             const SizedBox(width: 20),
             const UpdateCheckerWidget(),
