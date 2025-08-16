@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
+import 'package:syncopathy/funscript_metadata_filter_bottom_sheet.dart';
 import 'package:syncopathy/main.dart';
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/model/user_category.dart';
@@ -312,104 +313,29 @@ class _MediaLibraryState extends State<MediaLibrary> {
   }
 
   Future<void> _showFunscriptMetadataFilterDialog() async {
-    String? currentAuthor = _selectedAuthor;
-    String? currentTag = _selectedTag;
-    String? currentPerformer = _selectedPerformer;
-
-    await showDialog<void>(
+    final selectedFilters = await showModalBottomSheet<Map<String, String?>?>(
       context: context,
+      isScrollControlled: true,
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Filter Funscript Metadata'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildFilterDropdown(
-                      title: 'Author',
-                      items: _allAuthors,
-                      selectedItem: currentAuthor,
-                      onItemSelected: (selected) {
-                        setState(() {
-                          currentAuthor = selected;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFilterDropdown(
-                      title: 'Tag',
-                      items: _allTags,
-                      selectedItem: currentTag,
-                      onItemSelected: (selected) {
-                        setState(() {
-                          currentTag = selected;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFilterDropdown(
-                      title: 'Performer',
-                      items: _allPerformers,
-                      selectedItem: currentPerformer,
-                      onItemSelected: (selected) {
-                        setState(() {
-                          currentPerformer = selected;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedAuthor = currentAuthor;
-                      _selectedTag = currentTag;
-                      _selectedPerformer = currentPerformer;
-                    });
-                    _updateDisplayedVideos();
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Apply'),
-                ),
-              ],
-            );
-          },
+        return FunscriptMetadataFilterBottomSheet(
+          allAuthors: _allAuthors,
+          allTags: _allTags,
+          allPerformers: _allPerformers,
+          initialAuthor: _selectedAuthor,
+          initialTag: _selectedTag,
+          initialPerformer: _selectedPerformer,
         );
       },
     );
-  }
 
-  Widget _buildFilterDropdown({
-    required String title,
-    required List<String> items,
-    required String? selectedItem,
-    required Function(String?) onItemSelected,
-  }) {
-    return DropdownButtonFormField<String?>(
-      decoration: InputDecoration(
-        labelText: title,
-        border: const OutlineInputBorder(),
-      ),
-      value: selectedItem,
-      hint: Text('Select $title'),
-      onChanged: onItemSelected,
-      items: [
-        const DropdownMenuItem<String?>(value: null, child: Text('All')),
-        ...items.map((item) {
-          return DropdownMenuItem<String>(value: item, child: Text(item));
-        }),
-      ],
-    );
+    if (selectedFilters != null) {
+      setState(() {
+        _selectedAuthor = selectedFilters['author'];
+        _selectedTag = selectedFilters['tag'];
+        _selectedPerformer = selectedFilters['performer'];
+      });
+      _updateDisplayedVideos();
+    }
   }
 
   Future<void> _showCategoryDialog() async {
@@ -1043,3 +969,4 @@ class _MediaLibraryState extends State<MediaLibrary> {
     );
   }
 }
+
