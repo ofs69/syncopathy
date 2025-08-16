@@ -47,7 +47,10 @@ class PlayerModel extends ChangeNotifier {
     );
 
     _handyBle = HandyBle(_settings);
-    _funscriptStreamController = FunscriptStreamController(_handyBle);
+    _funscriptStreamController = FunscriptStreamController(
+      _handyBle,
+      currentFunscript,
+    );
 
     paused.addListener(_handlePausedChanged);
     _funscriptStreamController.canPlay.addListener(_handlePausedChanged);
@@ -58,6 +61,7 @@ class PlayerModel extends ChangeNotifier {
   void dispose() {
     paused.removeListener(_handlePausedChanged);
     _funscriptStreamController.canPlay.removeListener(_handlePausedChanged);
+    _funscriptStreamController.dispose();
     positionNoOffset.removeListener(_handlePositionChanged);
     _mpvPlayer.dispose();
     _handyBle.dispose();
@@ -147,7 +151,6 @@ class PlayerModel extends ChangeNotifier {
 
     if (funscriptFile == null) {
       currentFunscript.value = null;
-      await _funscriptStreamController.unloadFunscript();
       return false;
     }
 
@@ -158,13 +161,7 @@ class PlayerModel extends ChangeNotifier {
       remapRange: _settings.remapFullRange.value ? (0, 100) : null,
     );
     currentFunscript.value = funscriptFile;
-
     Logger.debug(currentFunscript.value?.fileName ?? "no script loaded");
-
-    await _funscriptStreamController.loadFunscript(
-      currentFunscript.value!,
-      playbackSpeed.value,
-    );
 
     return true;
   }
@@ -205,7 +202,7 @@ class PlayerModel extends ChangeNotifier {
   Future<void> closeVideo() async {
     pause();
     await _funscriptStreamController.stopPlayback();
-    await _funscriptStreamController.unloadFunscript();
+    currentFunscript.value = null;
     _mpvPlayer.closeFile();
   }
 

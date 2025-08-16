@@ -20,14 +20,22 @@ abstract class FunscriptDevice {
 }
 
 class FunscriptStreamController {
-  Funscript? _currentFunscript;
+  final ValueNotifier<Funscript?> _currentFunscriptNotifier;
+  Funscript? get _currentFunscript => _currentFunscriptNotifier.value;
+
   final List<FunscriptAction> _currentBuffer = List.empty(growable: true);
 
   static const int batchSize = 50;
   final FunscriptDevice? _device;
   ValueNotifier<bool> canPlay = ValueNotifier(false);
 
-  FunscriptStreamController(this._device);
+  FunscriptStreamController(this._device, this._currentFunscriptNotifier) {
+    _currentFunscriptNotifier.addListener(_handleFunscriptChange);
+  }
+
+  void dispose() {
+    _currentFunscriptNotifier.removeListener(_handleFunscriptChange);
+  }
 
   Future<void> _bufferBatch(
     List<FunscriptAction> batch,
@@ -47,14 +55,12 @@ class FunscriptStreamController {
     canPlay.value = true;
   }
 
-  Future<void> loadFunscript(Funscript funscript, double playbackRate) async {
+  Future<void> _loadFunscript() async {
     canPlay.value = false;
-    _currentFunscript = funscript;
     await _device?.initStream();
   }
 
-  Future<void> unloadFunscript() async {
-    _currentFunscript = null;
+  Future<void> _unloadFunscript() async {
     _currentBuffer.clear();
     canPlay.value = false;
     await _device?.deinitStream();
@@ -185,5 +191,13 @@ class FunscriptStreamController {
     double playbackRate,
   ) async {
     await _device?.positionUpdate(positionMs, paused, playbackRate);
+  }
+
+  void _handleFunscriptChange() async {
+    if (_currentFunscript != null) {
+      await _loadFunscript();
+    } else {
+      await _unloadFunscript();
+    }
   }
 }
