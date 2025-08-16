@@ -1,10 +1,8 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:libmpv_dart/video/video_params.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/logging.dart';
-import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/playlist.dart';
 import 'package:syncopathy/model/settings.dart';
@@ -29,7 +27,6 @@ class PlayerModel extends ChangeNotifier {
   ValueNotifier<bool> get isConnected => _handyBle.isConnected;
 
   final Settings _settings;
-  final MediaManager _mediaManager;
   late final FunscriptStreamController _funscriptStreamController;
 
   final ValueNotifier<Playlist?> playlist = ValueNotifier(null);
@@ -44,7 +41,7 @@ class PlayerModel extends ChangeNotifier {
       (_positionNoOffset.value * 1000.0).round().toInt() +
       _settings.offsetMs.value;
 
-  PlayerModel(this._settings, this._mediaManager) {
+  PlayerModel(this._settings) {
     _mpvPlayer = MpvVideoplayer(
       videoOutput: _settings.embeddedVideoPlayer.value,
     );
