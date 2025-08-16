@@ -123,10 +123,10 @@ class PlayerModel extends ChangeNotifier {
   }
 
   Future<void> _handlePausedChanged() async {
-    // if (_funscriptStreamController.canPlay.value &&
-    //     (_shouldPlay != !paused.value)) {
-    //   _shouldPlay = !paused.value;
-    // }
+    if (_funscriptStreamController.canPlay.value &&
+        (_shouldPlay != !paused.value)) {
+      _shouldPlay = !paused.value;
+    }
 
     if (_shouldPlay) {
       await play();
