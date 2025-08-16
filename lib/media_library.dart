@@ -253,16 +253,25 @@ class _MediaLibraryState extends State<MediaLibrary> {
   }
 
   void _startPlaylist() {
-    final playlistVideos = _filteredVideos.where((video) => !video.isDislike).toList();
+    final playlistVideos = _filteredVideos
+        .where((video) => !video.isDislike)
+        .toList();
     if (playlistVideos.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No non-disliked videos to create a playlist!')),
+        const SnackBar(
+          content: Text('No non-disliked videos to create a playlist!'),
+        ),
       );
       return;
     }
-    Provider.of<PlayerModel>(context, listen: false).setPlaylist(playlistVideos, 0);
+    Provider.of<PlayerModel>(
+      context,
+      listen: false,
+    ).setPlaylist(playlistVideos, 0);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Playlist created with ${playlistVideos.length} videos!')),
+      SnackBar(
+        content: Text('Playlist created with ${playlistVideos.length} videos!'),
+      ),
     );
   }
 

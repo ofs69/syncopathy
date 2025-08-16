@@ -58,7 +58,7 @@ class _PlaylistControlsState extends State<PlaylistControls> {
               valueListenable: playlist.currentIndex,
               builder: (context, currentIndex, child) {
                 return Text('${currentIndex + 1} / ${playlist.videos.length}');
-              }
+              },
             ),
           ],
         );

@@ -200,8 +200,8 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                     }
                   });
                   context.read<SyncopathyModel>().mediaManager.saveFavorite(
-                        currentVideo,
-                      );
+                    currentVideo,
+                  );
                 },
                 tooltip: currentVideo.isFavorite
                     ? 'Remove from Favorites'
@@ -222,8 +222,8 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                     }
                   });
                   context.read<SyncopathyModel>().mediaManager.saveDislike(
-                        currentVideo,
-                      );
+                    currentVideo,
+                  );
                 },
                 tooltip: currentVideo.isDislike
                     ? 'Remove Dislike'
