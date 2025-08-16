@@ -6,8 +6,6 @@ import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_page.dart';
 import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/player_model.dart';
-import 'package:syncopathy/model/video_model.dart';
-import 'package:collection/collection.dart';
 import 'package:syncopathy/playlist_controls.dart';
 
 import 'package:syncopathy/settings_page.dart';
@@ -50,7 +48,6 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   int _selectedIndex = 0;
 
   late PageController _pageController;
-  Video? _currentVideo;
   late FocusNode _videoPlayerFocusNode;
 
   @override
@@ -59,16 +56,13 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     _pageController = PageController(initialPage: _selectedIndex);
     _videoPlayerFocusNode = FocusNode();
     final player = context.read<PlayerModel>();
-    player.mediaPath.addListener(_handleVideoPathChange);
-    player.mediaPath.addListener(_updateVideoTitleAndVideo);
-    _updateVideoTitleAndVideo(); // Initial update
+    player.currentVideo.addListener(_handleVideoChange);
   }
 
   @override
   void dispose() {
     final player = context.read<PlayerModel>();
-    player.mediaPath.removeListener(_handleVideoPathChange);
-    player.mediaPath.removeListener(_updateVideoTitleAndVideo);
+    player.currentVideo.removeListener(_handleVideoChange);
     _videoPlayerFocusNode.dispose();
     super.dispose();
   }
@@ -86,21 +80,10 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     );
   }
 
-  void _updateVideoTitleAndVideo() {
-    final player = context.read<PlayerModel>();
-    final mediaManager = context.read<SyncopathyModel>().mediaManager;
-    final path = player.mediaPath.value;
-    setState(() {
-      _currentVideo = mediaManager.allVideos.firstWhereOrNull(
-        (video) => video.videoPath == path,
-      );
-    });
-  }
-
-  void _handleVideoPathChange() {
+  void _handleVideoChange() {
     final model = context.read<SyncopathyModel>();
     final player = context.read<PlayerModel>();
-    if (player.mediaPath.value.isNotEmpty &&
+    if (player.currentVideo.value != null &&
         model.settings.autoSwitchToVideoPlayerTab.value) {
       setState(() {
         _selectedIndex = 1; // Navigate to Video Player tab
@@ -110,6 +93,8 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.ease,
       );
+    } else {
+      setState(() {});
     }
   }
 
@@ -141,6 +126,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentVideo = context.read<PlayerModel>().currentVideo.value;
     return ShortcutHandler(
       pageController: _pageController,
       onTabChanged: _onTabChanged,
@@ -184,10 +170,10 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      _currentVideo?.title != null
-                          ? " - ${_currentVideo?.title}"
+                      currentVideo?.title != null
+                          ? " - ${currentVideo?.title}"
                           : "",
-                      key: ValueKey<String>(_currentVideo?.title ?? ""),
+                      key: ValueKey<String>(currentVideo?.title ?? ""),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       softWrap: false,
@@ -198,48 +184,48 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
             ],
           ),
           actions: [
-            if (_currentVideo != null) ...[
+            if (currentVideo != null) ...[
               IconButton(
                 icon: Icon(
-                  _currentVideo!.isFavorite ? Icons.star : Icons.star_border,
-                  color: _currentVideo!.isFavorite
+                  currentVideo.isFavorite ? Icons.star : Icons.star_border,
+                  color: currentVideo.isFavorite
                       ? Colors.yellow.shade600
                       : null,
                 ),
                 onPressed: () {
                   setState(() {
-                    _currentVideo!.isFavorite = !_currentVideo!.isFavorite;
-                    if (_currentVideo!.isFavorite) {
-                      _currentVideo!.isDislike = false;
+                    currentVideo.isFavorite = !currentVideo.isFavorite;
+                    if (currentVideo.isFavorite) {
+                      currentVideo.isDislike = false;
                     }
                   });
                   context.read<SyncopathyModel>().mediaManager.saveFavorite(
-                    _currentVideo!,
-                  );
+                        currentVideo,
+                      );
                 },
-                tooltip: _currentVideo!.isFavorite
+                tooltip: currentVideo.isFavorite
                     ? 'Remove from Favorites'
                     : 'Add to Favorites',
               ),
               IconButton(
                 icon: Icon(
-                  _currentVideo!.isDislike
+                  currentVideo.isDislike
                       ? Icons.thumb_down
                       : Icons.thumb_down_off_alt,
-                  color: _currentVideo!.isDislike ? Colors.blue.shade300 : null,
+                  color: currentVideo.isDislike ? Colors.blue.shade300 : null,
                 ),
                 onPressed: () {
                   setState(() {
-                    _currentVideo!.isDislike = !_currentVideo!.isDislike;
-                    if (_currentVideo!.isDislike) {
-                      _currentVideo!.isFavorite = false;
+                    currentVideo.isDislike = !currentVideo.isDislike;
+                    if (currentVideo.isDislike) {
+                      currentVideo.isFavorite = false;
                     }
                   });
                   context.read<SyncopathyModel>().mediaManager.saveDislike(
-                    _currentVideo!,
-                  );
+                        currentVideo,
+                      );
                 },
-                tooltip: _currentVideo!.isDislike
+                tooltip: currentVideo.isDislike
                     ? 'Remove Dislike'
                     : 'Dislike Video',
               ),

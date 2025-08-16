@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/settings.dart';
 import 'package:syncopathy/player/funscript_stream_controller.dart';
 import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/generated/handy_rpc.pb.dart';
@@ -27,14 +28,6 @@ class HandyBle extends FunscriptDevice {
   final ValueNotifier<bool> _isScanning = ValueNotifier(false);
   ValueNotifier<bool> get isScanning => _isScanning;
 
-  final ValueNotifier<double> _sliderMin = ValueNotifier(0.0);
-  ValueNotifier<double> get sliderMin => _sliderMin;
-  final ValueNotifier<double> _sliderMax = ValueNotifier(0.0);
-  ValueNotifier<double> get sliderMax => _sliderMax;
-
-  double _initMin = 0.0;
-  double _initMax = 1.0;
-
   int _nextRequestId = 1;
   int get nextRequestId => _nextRequestId++;
   final _pendingRequests = <int, Completer<RpcMessage>>{};
@@ -48,13 +41,20 @@ class HandyBle extends FunscriptDevice {
   bool _isPaused = true;
 
   static final _connectSemaphore = Semaphore(1);
+  final Settings _settings;
 
-  HandyBle() {
+  HandyBle(this._settings) {
+    _settings.min.addListener(setSettings);
+    _settings.max.addListener(setSettings);
+
     _startConnectionCheckTimer();
     UniversalBle.onScanResult = _handleScanResults;
   }
 
   void dispose() {
+    _settings.min.removeListener(setSettings);
+    _settings.max.removeListener(setSettings);
+
     _connectionCheckTimer?.cancel();
     _rxSubscription?.cancel();
     if (_device != null) {
@@ -98,10 +98,8 @@ class HandyBle extends FunscriptDevice {
     _isConnected.value = false;
   }
 
-  void startScan(double minPos, double maxPos) async {
+  void startScan() async {
     _isScanning.value = true;
-    _initMin = minPos;
-    _initMax = maxPos;
 
     final bluetoothAvailabilityState =
         await UniversalBle.getBluetoothAvailabilityState();
@@ -287,8 +285,8 @@ class HandyBle extends FunscriptDevice {
       var response = value.response;
       if (response.hasResponseSliderStrokeGet()) {
         var get = response.responseSliderStrokeGet;
-        sliderMin.value = get.min;
-        sliderMax.value = get.max;
+        _settings.min.value = (get.min * 100.0).clamp(0, 100).toInt();
+        _settings.max.value = (get.max * 100.0).clamp(0, 100).toInt();
       }
     });
 
@@ -296,14 +294,17 @@ class HandyBle extends FunscriptDevice {
     await response;
   }
 
-  Future<void> setSettings(double min, double max) async {
+  Future<void> setSettings() async {
     if (_tx == null) return;
     var requestId = nextRequestId;
     var message = RpcMessage(
       type: MessageType.MESSAGE_TYPE_REQUEST,
       request: Request(
         id: requestId,
-        requestSliderStrokeSet: RequestSliderStrokeSet(min: min, max: max),
+        requestSliderStrokeSet: RequestSliderStrokeSet(
+          min: (_settings.min.value / 100.0).clamp(0.0, 1.0),
+          max: (_settings.max.value / 100.0).clamp(0.0, 1.0),
+        ),
       ),
     );
 
@@ -313,8 +314,8 @@ class HandyBle extends FunscriptDevice {
       var response = value.response;
       if (response.hasResponseSliderStrokeSet()) {
         var set = response.responseSliderStrokeSet;
-        sliderMin.value = set.min;
-        sliderMax.value = set.max;
+        _settings.min.value = (set.min * 100.0).clamp(0, 100).toInt();
+        _settings.max.value = (set.max * 100.0).clamp(0, 100).toInt();
       }
     });
 
@@ -537,6 +538,6 @@ class HandyBle extends FunscriptDevice {
 
     var _ = await response;
 
-    await setSettings(_initMin.toDouble(), _initMax.toDouble());
+    await setSettings();
   }
 }

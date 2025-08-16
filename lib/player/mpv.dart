@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:libmpv_dart/libmpv.dart';
 
@@ -8,7 +10,7 @@ class MpvVideoplayer {
   ValueNotifier<double> get position => _player.position;
   ValueNotifier<double> get duration => _player.duration;
   ValueNotifier<double> get playbackSpeed => _player.speed;
-  ValueNotifier<String> get path => _player.path;
+  //ValueNotifier<String> get path => _player.path;
   ValueNotifier<double> get volume => _player.volume;
   ValueNotifier<VideoParams> get videoParams => _player.videoParams;
   ValueNotifier<int> get textureId => _player.id;
@@ -48,8 +50,30 @@ class MpvVideoplayer {
     _player.setPropertyString('loop-file', 'no');
   }
 
-  void loadFile(String filepath) {
+  Future<bool> loadFile(String filepath) async {
+    if (_player.path.value == filepath) {
+      return true;
+    }
+
+    final completer = Completer<bool>();
+
+    void listener() {
+      if (_player.duration.value > 0 && !completer.isCompleted) {
+        completer.complete(true);
+      }
+    }
+
+    _player.duration.addListener(listener);
+
     _player.command(["loadfile", filepath]);
+
+    try {
+      return await completer.future.timeout(const Duration(seconds: 5));
+    } on TimeoutException {
+      return false;
+    } finally {
+      _player.duration.removeListener(listener);
+    }
   }
 
   void closeFile() {
@@ -85,10 +109,6 @@ class MpvVideoplayer {
 
   void play() {
     _player.setPropertyFlag('pause', false);
-  }
-
-  void togglePause() {
-    _player.setPropertyFlag('pause', !paused.value);
   }
 
   void setSpeed(double speed) {

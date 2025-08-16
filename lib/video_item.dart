@@ -102,7 +102,7 @@ class _VideoItemState extends State<VideoItem> {
         final playerModel = Provider.of<PlayerModel>(context);
 
         final BorderSide borderSide;
-        if (widget.video.id == playerModel.currentVideoNotifier.value?.id) {
+        if (widget.video.id == playerModel.currentVideo.value?.id) {
           borderSide = BorderSide(color: Colors.green, width: 6.0);
         } else if (widget.video.isFavorite) {
           borderSide = BorderSide(color: Colors.yellow.shade600, width: 3.0);

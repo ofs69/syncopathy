@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/logging.dart';
@@ -24,6 +25,7 @@ class FunscriptStreamController {
 
   static const int batchSize = 50;
   final FunscriptDevice? _device;
+  ValueNotifier<bool> canPlay = ValueNotifier(false);
 
   FunscriptStreamController(this._device);
 
@@ -34,6 +36,7 @@ class FunscriptStreamController {
   ) async {
     if (flush) {
       _currentBuffer.clear();
+      canPlay.value = false;
     }
     _currentBuffer.addAll(batch);
     Logger.debug(
@@ -41,18 +44,19 @@ class FunscriptStreamController {
     );
 
     await _device?.bufferBatch(batch, tailActionIndex, flush);
+    canPlay.value = true;
   }
 
   Future<void> loadFunscript(Funscript funscript, double playbackRate) async {
+    canPlay.value = false;
     _currentFunscript = funscript;
     await _device?.initStream();
-
-    await positionUpdate(0, true, playbackRate);
   }
 
   Future<void> unloadFunscript() async {
     _currentFunscript = null;
     _currentBuffer.clear();
+    canPlay.value = false;
     await _device?.deinitStream();
   }
 
@@ -61,12 +65,11 @@ class FunscriptStreamController {
   }
 
   Future<void> startPlayback(int positionMs, double playbackRate) async {
-    if (_currentFunscript == null) return;
-    positionUpdate(positionMs, false, playbackRate);
+    if (_currentFunscript == null || !canPlay.value) return;
     await _device?.startPlayback(positionMs, playbackRate);
   }
 
-  Future<void> positionUpdate(
+  Future<void> bufferFunscript(
     int positionMs,
     bool paused,
     double playbackRate,
@@ -74,7 +77,6 @@ class FunscriptStreamController {
     if (_currentFunscript == null) return;
 
     // subtract an offset for the buffering
-    // the offset is added back at the bottom
     // this causes some points that are already past to be buffered
     // which should prevent some issues
     positionMs -= paddingIntervalMs;
@@ -102,8 +104,8 @@ class FunscriptStreamController {
     }
 
     // Find where we are in the current buffer
-    final indexInBuffer = _currentBuffer.indexWhere(
-      (action) => action.at >= positionMs,
+    final indexInBuffer = _currentBuffer.lowerBound(
+      FunscriptAction(at: positionMs, pos: 0),
     );
 
     // Check if we need to buffer a new batch.
@@ -172,15 +174,16 @@ class FunscriptStreamController {
             "Preparing batch of size ${batch.length}. From ${batch.first.at}ms to ${batch.last.at}ms.",
           );
           await _bufferBatch(batch, endOfBatchIndex, flush);
-          return;
         }
       }
     }
+  }
 
-    await _device?.positionUpdate(
-      positionMs + paddingIntervalMs,
-      paused,
-      playbackRate,
-    );
+  Future<void> positionUpdate(
+    int positionMs,
+    bool paused,
+    double playbackRate,
+  ) async {
+    await _device?.positionUpdate(positionMs, paused, playbackRate);
   }
 }
