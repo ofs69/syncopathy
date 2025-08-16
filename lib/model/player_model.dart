@@ -76,18 +76,20 @@ class PlayerModel extends ChangeNotifier {
   }
 
   Future<void> _handlePositionChanged() async {
-    final stopwatch = Stopwatch()..start();
-    await _funscriptStreamController.bufferFunscript(
+    if (!await _funscriptStreamController.bufferFunscript(
       positionMs,
       paused.value,
       playbackSpeed.value,
-    );
+    )) {
+      if (!paused.value) {
+        await _funscriptStreamController.positionUpdate(
+          positionMs,
+          paused.value,
+          playbackSpeed.value,
+        );
+      }
+    }
     if (!paused.value) {
-      await _funscriptStreamController.positionUpdate(
-        positionMs + stopwatch.elapsedMilliseconds,
-        paused.value,
-        playbackSpeed.value,
-      );
       _checkAndPlayNextVideo();
     }
   }

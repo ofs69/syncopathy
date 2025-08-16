@@ -255,15 +255,15 @@ class HandyBle extends FunscriptDevice {
       } else {
         _pendingRequests[message.response.id]?.complete(message);
 
-        Logger.info(
-          message.response.toString().replaceAll(RegExp(r'\s+'), ' '),
-        );
+        // Logger.info(
+        //   message.response.toString().replaceAll(RegExp(r'\s+'), ' '),
+        // );
       }
       _pendingRequests.remove(message.response.id);
     } else if (message.type == MessageType.MESSAGE_TYPE_NOTIFICATION) {
-      Logger.info(
-        message.notification.toString().replaceAll(RegExp(r'\s+'), ' '),
-      );
+      // Logger.info(
+      //   message.notification.toString().replaceAll(RegExp(r'\s+'), ' '),
+      // );
     } else {
       throw Exception("Unknown message type: ${message.type}");
     }

@@ -75,12 +75,12 @@ class FunscriptStreamController {
     await _device?.startPlayback(positionMs, playbackRate);
   }
 
-  Future<void> bufferFunscript(
+  Future<bool> bufferFunscript(
     int positionMs,
     bool paused,
     double playbackRate,
   ) async {
-    if (_currentFunscript == null) return;
+    if (_currentFunscript == null) return false;
 
     // subtract an offset for the buffering
     // this causes some points that are already past to be buffered
@@ -180,9 +180,11 @@ class FunscriptStreamController {
             "Preparing batch of size ${batch.length}. From ${batch.first.at}ms to ${batch.last.at}ms.",
           );
           await _bufferBatch(batch, endOfBatchIndex, flush);
+          return true;
         }
       }
     }
+    return false;
   }
 
   Future<void> positionUpdate(
