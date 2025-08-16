@@ -22,6 +22,7 @@ class SettingsEntity {
   bool embeddedVideoPlayer = false;
   bool autoSwitchToVideoPlayerTab = false;
   bool autoPlay = true;
+  bool invert = false;
 }
 
 class Settings {
@@ -39,6 +40,7 @@ class Settings {
   late ValueNotifier<bool> embeddedVideoPlayer;
   late ValueNotifier<bool> autoSwitchToVideoPlayerTab;
   late ValueNotifier<bool> autoPlay;
+  late ValueNotifier<bool> invert;
   StreamController<void> get saveNotifier => _saveNotifier;
   final _saveNotifier = StreamController<void>.broadcast();
 
@@ -54,6 +56,7 @@ class Settings {
     embeddedVideoPlayer = ValueNotifier<bool>(false);
     autoSwitchToVideoPlayerTab = ValueNotifier<bool>(false);
     autoPlay = ValueNotifier<bool>(true);
+    invert = ValueNotifier<bool>(false);
   }
 
   Future<void> load() async {
@@ -72,6 +75,7 @@ class Settings {
     embeddedVideoPlayer.value = _entity.embeddedVideoPlayer;
     autoSwitchToVideoPlayerTab.value = _entity.autoSwitchToVideoPlayerTab;
     autoPlay.value = _entity.autoPlay;
+    invert.value = _entity.invert;
     await _save();
   }
 
@@ -159,5 +163,11 @@ class Settings {
     _entity.autoPlay = value;
     await _save();
     autoPlay.value = value;
+  }
+
+  Future<void> setInvert(bool value) async {
+    _entity.invert = value;
+    await _save();
+    invert.value = value;
   }
 }

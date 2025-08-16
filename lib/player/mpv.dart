@@ -76,9 +76,10 @@ class MpvVideoplayer {
     }
   }
 
-  void closeFile() {
+  Future<void> closeFile() async {
     _player.command(["stop"]);
-    _player.command(["loadfile", ""]);
+    _player.path.value = "";
+    _player.duration.value = 0.0;
   }
 
   void setSizeAndPosition(int width, int height, int x, int y) {

@@ -48,7 +48,7 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
       _selectedIndex = _random.nextInt(widget.videos.length);
     });
     // Add a short delay before adding to stream to allow the state to update
-    Future.delayed(const Duration(milliseconds: 50), () {
+    Future.delayed(const Duration(milliseconds: 25), () {
       _selected.add(_selectedIndex);
     });
   }
@@ -84,7 +84,7 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
           selected: _selected.stream,
           animateFirst: false,
           items: items,
-          duration: const Duration(seconds: 1, milliseconds: 500),
+          duration: const Duration(seconds: 1, milliseconds: 0),
           onAnimationEnd: () {
             Future.delayed(const Duration(milliseconds: 500), () {
               if (!mounted) return;

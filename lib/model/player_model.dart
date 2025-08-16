@@ -129,14 +129,9 @@ class PlayerModel extends ChangeNotifier {
     // }
 
     if (_shouldPlay) {
-      play();
-      await _funscriptStreamController.startPlayback(
-        positionMs,
-        playbackSpeed.value,
-      );
+      await play();
     } else {
-      pause();
-      await _funscriptStreamController.stopPlayback();
+      await pause();
     }
   }
 
@@ -156,9 +151,10 @@ class PlayerModel extends ChangeNotifier {
 
     funscriptFile.actions = FunscriptAlgorithms.processForHandy(
       funscriptFile.actions,
-      rdpEpsilon: _settings.rdpEpsilon.value,
-      slewMaxRateOfChangePerSecond: _settings.slewMaxRateOfChange.value,
-      remapRange: _settings.remapFullRange.value ? (0, 100) : null,
+      _settings.slewMaxRateOfChange.value,
+      _settings.rdpEpsilon.value,
+      _settings.remapFullRange.value ? (0, 100) : null,
+      _settings.invert.value,
     );
     currentFunscript.value = funscriptFile;
     Logger.debug(currentFunscript.value?.fileName ?? "no script loaded");
@@ -176,7 +172,7 @@ class PlayerModel extends ChangeNotifier {
       await closeVideo();
       await _loadAndProcessFunscript(video.funscriptPath);
       await _mpvPlayer.loadFile(video.videoPath);
-      pause();
+      await pause();
 
       currentVideo.value = video;
 
@@ -200,29 +196,34 @@ class PlayerModel extends ChangeNotifier {
   }
 
   Future<void> closeVideo() async {
-    pause();
-    await _funscriptStreamController.stopPlayback();
+    await pause();
+    currentVideo.value = null;
     currentFunscript.value = null;
-    _mpvPlayer.closeFile();
+    await _mpvPlayer.closeFile();
   }
 
-  void togglePause() {
+  Future<void> togglePause() async {
     _shouldPlay = !_shouldPlay;
     if (_shouldPlay) {
-      play();
+      await play();
     } else {
-      pause();
+      await pause();
     }
   }
 
-  void play() {
+  Future<void> play() async {
     _shouldPlay = true;
     _mpvPlayer.play();
+    await _funscriptStreamController.startPlayback(
+      positionMs,
+      playbackSpeed.value,
+    );
   }
 
-  void pause() {
+  Future<void> pause() async {
     _shouldPlay = false;
     _mpvPlayer.pause();
+    await _funscriptStreamController.stopPlayback();
   }
 
   void setVolume(double volume) {

@@ -37,6 +37,7 @@ class _SettingsPageState extends State<SettingsPage>
   late bool _embeddedVideoPlayer;
   late bool _autoSwitchToVideoPlayerTab;
   late bool _autoPlay;
+  late bool _invert;
 
   late final SyncopathyModel _model;
   final _debouncer = Debouncer(milliseconds: 500);
@@ -74,6 +75,7 @@ class _SettingsPageState extends State<SettingsPage>
     );
     _model.settings.embeddedVideoPlayer.removeListener(_onSettingsChanged);
     _model.settings.autoPlay.removeListener(_onSettingsChanged);
+    _model.settings.invert.removeListener(_onSettingsChanged);
     super.dispose();
   }
 
@@ -99,6 +101,7 @@ class _SettingsPageState extends State<SettingsPage>
     _autoSwitchToVideoPlayerTab =
         _model.settings.autoSwitchToVideoPlayerTab.value;
     _autoPlay = _model.settings.autoPlay.value;
+    _invert = _model.settings.invert.value;
   }
 
   Future<void> _addPath() async {
@@ -128,6 +131,7 @@ class _SettingsPageState extends State<SettingsPage>
     final embeddedVideoPlayer = _embeddedVideoPlayer;
     final autoSwitchToVideoPlayerTab = _autoSwitchToVideoPlayerTab;
     final autoPlay = _autoPlay;
+    final invert = _invert;
 
     _model.settings.setMinMax(currentMin, currentMax);
     _model.settings.setOffsetMs(currentOffset);
@@ -138,6 +142,7 @@ class _SettingsPageState extends State<SettingsPage>
     _model.settings.setAutoSwitchToVideoPlayerTab(autoSwitchToVideoPlayerTab);
     _model.settings.setEmbeddedVideoPlayer(embeddedVideoPlayer);
     _model.settings.setAutoPlay(autoPlay);
+    _model.settings.setInvert(invert);
     Logger.info('Settings saved.');
   }
 
@@ -182,6 +187,8 @@ class _SettingsPageState extends State<SettingsPage>
           _buildRdpEpsilonSettings(context),
           const Divider(),
           _buildSlewRateSettings(context),
+          const Divider(),
+          _buildInvertSettings(context),
           const Divider(),
           _buildRemapFullRangeSettings(context),
           const Divider(),
@@ -488,6 +495,24 @@ class _SettingsPageState extends State<SettingsPage>
         });
       },
       secondary: const Icon(Icons.play_arrow),
+    );
+  }
+
+  Widget _buildInvertSettings(BuildContext context) {
+    return SwitchListTile(
+      title: const Text('Invert'),
+      subtitle: const Text(
+        'Inverts the funscript actions. Changes are applied when loading a funscript.',
+      ),
+      value: _invert,
+      onChanged: (value) {
+        setState(() {
+          _invert = value;
+          _saveSettings();
+        });
+      },
+      secondary: const Icon(Icons.swap_vert),
+      isThreeLine: true,
     );
   }
 

@@ -195,12 +195,19 @@ class FunscriptAlgorithms {
     return maxes.reduce((a, b) => a + b) / maxes.length;
   }
 
+  static List<FunscriptAction> invert(List<FunscriptAction> actions) {
+    return actions
+        .map((e) => FunscriptAction(at: e.at, pos: 100 - e.pos))
+        .toList();
+  }
+
   static List<FunscriptAction> processForHandy(
-    List<FunscriptAction> actions, {
+    List<FunscriptAction> actions,
     double? slewMaxRateOfChangePerSecond,
     double? rdpEpsilon,
     (int minRange, int maxRange)? remapRange,
-  }) {
+    bool invert,
+  ) {
     if (actions.isEmpty) {
       return actions;
     }
@@ -216,6 +223,10 @@ class FunscriptAlgorithms {
     }
     if (rdpEpsilon != null) {
       actions = FunscriptAlgorithms.rdp(actions, rdpEpsilon);
+    }
+
+    if (invert) {
+      actions = FunscriptAlgorithms.invert(actions);
     }
 
     {

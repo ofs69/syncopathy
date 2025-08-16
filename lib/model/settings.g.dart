@@ -32,43 +32,48 @@ const SettingsEntitySchema = CollectionSchema(
       name: r'embeddedVideoPlayer',
       type: IsarType.bool,
     ),
-    r'max': PropertySchema(
+    r'invert': PropertySchema(
       id: 3,
+      name: r'invert',
+      type: IsarType.bool,
+    ),
+    r'max': PropertySchema(
+      id: 4,
       name: r'max',
       type: IsarType.long,
     ),
     r'mediaPaths': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'mediaPaths',
       type: IsarType.stringList,
     ),
     r'min': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'min',
       type: IsarType.long,
     ),
     r'offsetMs': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'offsetMs',
       type: IsarType.long,
     ),
     r'rdpEpsilon': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'rdpEpsilon',
       type: IsarType.double,
     ),
     r'remapFullRange': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'remapFullRange',
       type: IsarType.bool,
     ),
     r'skipToAction': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'skipToAction',
       type: IsarType.bool,
     ),
     r'slewMaxRateOfChange': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'slewMaxRateOfChange',
       type: IsarType.double,
     )
@@ -112,14 +117,15 @@ void _settingsEntitySerialize(
   writer.writeBool(offsets[0], object.autoPlay);
   writer.writeBool(offsets[1], object.autoSwitchToVideoPlayerTab);
   writer.writeBool(offsets[2], object.embeddedVideoPlayer);
-  writer.writeLong(offsets[3], object.max);
-  writer.writeStringList(offsets[4], object.mediaPaths);
-  writer.writeLong(offsets[5], object.min);
-  writer.writeLong(offsets[6], object.offsetMs);
-  writer.writeDouble(offsets[7], object.rdpEpsilon);
-  writer.writeBool(offsets[8], object.remapFullRange);
-  writer.writeBool(offsets[9], object.skipToAction);
-  writer.writeDouble(offsets[10], object.slewMaxRateOfChange);
+  writer.writeBool(offsets[3], object.invert);
+  writer.writeLong(offsets[4], object.max);
+  writer.writeStringList(offsets[5], object.mediaPaths);
+  writer.writeLong(offsets[6], object.min);
+  writer.writeLong(offsets[7], object.offsetMs);
+  writer.writeDouble(offsets[8], object.rdpEpsilon);
+  writer.writeBool(offsets[9], object.remapFullRange);
+  writer.writeBool(offsets[10], object.skipToAction);
+  writer.writeDouble(offsets[11], object.slewMaxRateOfChange);
 }
 
 SettingsEntity _settingsEntityDeserialize(
@@ -133,14 +139,15 @@ SettingsEntity _settingsEntityDeserialize(
   object.autoSwitchToVideoPlayerTab = reader.readBool(offsets[1]);
   object.embeddedVideoPlayer = reader.readBool(offsets[2]);
   object.id = id;
-  object.max = reader.readLong(offsets[3]);
-  object.mediaPaths = reader.readStringList(offsets[4]) ?? [];
-  object.min = reader.readLong(offsets[5]);
-  object.offsetMs = reader.readLong(offsets[6]);
-  object.rdpEpsilon = reader.readDoubleOrNull(offsets[7]);
-  object.remapFullRange = reader.readBool(offsets[8]);
-  object.skipToAction = reader.readBool(offsets[9]);
-  object.slewMaxRateOfChange = reader.readDoubleOrNull(offsets[10]);
+  object.invert = reader.readBool(offsets[3]);
+  object.max = reader.readLong(offsets[4]);
+  object.mediaPaths = reader.readStringList(offsets[5]) ?? [];
+  object.min = reader.readLong(offsets[6]);
+  object.offsetMs = reader.readLong(offsets[7]);
+  object.rdpEpsilon = reader.readDoubleOrNull(offsets[8]);
+  object.remapFullRange = reader.readBool(offsets[9]);
+  object.skipToAction = reader.readBool(offsets[10]);
+  object.slewMaxRateOfChange = reader.readDoubleOrNull(offsets[11]);
   return object;
 }
 
@@ -158,20 +165,22 @@ P _settingsEntityDeserializeProp<P>(
     case 2:
       return (reader.readBool(offset)) as P;
     case 3:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 4:
-      return (reader.readStringList(offset) ?? []) as P;
-    case 5:
       return (reader.readLong(offset)) as P;
+    case 5:
+      return (reader.readStringList(offset) ?? []) as P;
     case 6:
       return (reader.readLong(offset)) as P;
     case 7:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 8:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 9:
       return (reader.readBool(offset)) as P;
     case 10:
+      return (reader.readBool(offset)) as P;
+    case 11:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -355,6 +364,16 @@ extension SettingsEntityQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterFilterCondition>
+      invertEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'invert',
+        value: value,
       ));
     });
   }
@@ -990,6 +1009,19 @@ extension SettingsEntityQuerySortBy
     });
   }
 
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy> sortByInvert() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'invert', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      sortByInvertDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'invert', Sort.desc);
+    });
+  }
+
   QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy> sortByMax() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'max', Sort.asc);
@@ -1139,6 +1171,19 @@ extension SettingsEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy> thenByInvert() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'invert', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      thenByInvertDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'invert', Sort.desc);
+    });
+  }
+
   QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy> thenByMax() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'max', Sort.asc);
@@ -1255,6 +1300,12 @@ extension SettingsEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<SettingsEntity, SettingsEntity, QDistinct> distinctByInvert() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'invert');
+    });
+  }
+
   QueryBuilder<SettingsEntity, SettingsEntity, QDistinct> distinctByMax() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'max');
@@ -1334,6 +1385,12 @@ extension SettingsEntityQueryProperty
       embeddedVideoPlayerProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'embeddedVideoPlayer');
+    });
+  }
+
+  QueryBuilder<SettingsEntity, bool, QQueryOperations> invertProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'invert');
     });
   }
 
