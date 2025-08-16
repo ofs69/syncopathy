@@ -33,6 +33,36 @@ class TogglePauseAction extends Action<TogglePauseIntent> {
   }
 }
 
+class NextPlaylistEntryIntent extends Intent {
+  const NextPlaylistEntryIntent();
+}
+
+class NextPlaylistEntryAction extends Action<NextPlaylistEntryIntent> {
+  NextPlaylistEntryAction(this.playerModel);
+
+  final PlayerModel playerModel;
+
+  @override
+  void invoke(NextPlaylistEntryIntent intent) {
+    playerModel.playlist.value?.next();
+  }
+}
+
+class PreviousPlaylistEntryIntent extends Intent {
+  const PreviousPlaylistEntryIntent();
+}
+
+class PreviousPlaylistEntryAction extends Action<PreviousPlaylistEntryIntent> {
+  PreviousPlaylistEntryAction(this.playerModel);
+
+  final PlayerModel playerModel;
+
+  @override
+  void invoke(PreviousPlaylistEntryIntent intent) {
+    playerModel.playlist.value?.previous();
+  }
+}
+
 class _VideoPlayerPageState extends State<VideoPlayerPage>
     with AutomaticKeepAliveClientMixin {
   final FocusNode _focusNode = FocusNode();
@@ -73,10 +103,14 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
     return Shortcuts(
       shortcuts: <LogicalKeySet, Intent>{
         LogicalKeySet(LogicalKeyboardKey.space): const TogglePauseIntent(),
+        LogicalKeySet(LogicalKeyboardKey.arrowRight): const NextPlaylistEntryIntent(),
+        LogicalKeySet(LogicalKeyboardKey.arrowLeft): const PreviousPlaylistEntryIntent(),
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
           TogglePauseIntent: TogglePauseAction(player),
+          NextPlaylistEntryIntent: NextPlaylistEntryAction(player),
+          PreviousPlaylistEntryIntent: PreviousPlaylistEntryAction(player),
         },
         child: Focus(
           focusNode: widget.focusNode,

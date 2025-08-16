@@ -105,6 +105,18 @@ class _HelpPageState extends State<HelpPage> {
                     ),
                     _buildShortcutItem(
                       context,
+                      Icons.arrow_forward,
+                      'Next playlist entry',
+                      'Arrow Right',
+                    ),
+                    _buildShortcutItem(
+                      context,
+                      Icons.arrow_back,
+                      'Previous playlist entry',
+                      'Arrow Left',
+                    ),
+                    _buildShortcutItem(
+                      context,
                       Icons.looks_one,
                       'Switch to Media tab',
                       'Ctrl+1',

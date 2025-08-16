@@ -37,7 +37,7 @@ class PlayerModel extends ChangeNotifier {
 
   ValueNotifier<double> get _positionNoOffset => _mpvPlayer.position;
 
-  ValueNotifier<bool> _isLoopingVideo = ValueNotifier(false);
+  final ValueNotifier<bool> _isLoopingVideo = ValueNotifier(false);
   ValueNotifier<bool> get isLoopingVideo => _isLoopingVideo;
 
   int get positionMs =>
