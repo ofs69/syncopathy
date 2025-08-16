@@ -783,9 +783,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
         const SizedBox(width: 8),
         Tooltip(
           message: 'Long-press or right-click an item for more options.',
-          child: Icon(
-            Icons.info_outline,
-            color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+          child: IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: () {},
           ),
         ),
         const SizedBox(width: 8),
@@ -969,4 +969,3 @@ class _MediaLibraryState extends State<MediaLibrary> {
     );
   }
 }
-

@@ -173,25 +173,37 @@ class _FunscriptMetadataFilterBottomSheetState
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(
-                        context,
-                      ).pop(null); // Dismiss without applying
-                    },
-                    child: const Text('Cancel'),
+                  Tooltip(
+                    message:
+                        'These filters apply to metadata embedded within funscripts.',
+                    child: IconButton(
+                      icon: const Icon(Icons.info_outline),
+                      onPressed: () {}, // No action needed for info icon
+                    ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop({
-                        'author': _selectedAuthor,
-                        'tag': _selectedTag,
-                        'performer': _selectedPerformer,
-                      });
-                    },
-                    child: const Text('Apply'),
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(
+                            context,
+                          ).pop(null); // Dismiss without applying
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop({
+                            'author': _selectedAuthor,
+                            'tag': _selectedTag,
+                            'performer': _selectedPerformer,
+                          });
+                        },
+                        child: const Text('Apply'),
+                      ),
+                    ],
                   ),
                 ],
               ),
