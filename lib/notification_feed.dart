@@ -11,6 +11,7 @@ class NotificationMessage {
   final String id;
   final String message;
   final LogLevel level;
+  final StackTrace stackTrace;
   Timer? timer;
   final ValueNotifier<double> progressNotifier;
   int remainingSeconds;
@@ -21,6 +22,7 @@ class NotificationMessage {
   NotificationMessage({
     required this.message,
     required this.level,
+    required this.stackTrace,
     this.timer,
     int initialSeconds = 5,
   }) : id = const Uuid().v4(),
@@ -35,7 +37,7 @@ class NotificationFeedManager extends ChangeNotifier {
 
   List<NotificationMessage> get notifications => _notifications;
 
-  void addNotification(String message, LogLevel level) {
+  void addNotification(String message, LogLevel level, StackTrace trace) {
     // Ensure only one notification without a removal timer is active.
     // If there's an existing notification whose timer was paused (e.g., by hovering),
     // restart its timer so it eventually gets removed.
@@ -48,6 +50,7 @@ class NotificationFeedManager extends ChangeNotifier {
     final notification = NotificationMessage(
       message: message,
       level: level,
+      stackTrace: trace,
       initialSeconds: 5,
     );
     notification.startTime =
@@ -233,28 +236,52 @@ class _NotificationCardState extends State<NotificationCard> {
                   ? const Color.fromRGBO(30, 30, 30, 0.9)
                   : const Color.fromRGBO(0, 0, 0, 0.7)),
               margin: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Row(
+              child: Column(
                 children: [
-                  Container(width: 5, height: 50, color: color),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: Text(
-                        widget.notification.message,
-                        style: const TextStyle(color: Colors.white),
-                        maxLines: _isExpanded ? null : 4,
-                        overflow: _isExpanded ? null : TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Container(width: 5, height: 50, color: color),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          child: Text(
+                            widget.notification.message,
+                            style: const TextStyle(color: Colors.white),
+                            maxLines: _isExpanded ? null : 4,
+                            overflow: _isExpanded
+                                ? null
+                                : TextOverflow.ellipsis,
+                          ),
+                        ),
                       ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () {
+                          manager.removeNotificationById(
+                            widget.notification.id,
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                  ),
+                  if (_isExpanded)
+                    Row(
+                      children: [
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Text(
+                              widget.notification.stackTrace.toString(),
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                      ],
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () {
-                      manager.removeNotificationById(widget.notification.id);
-                    },
-                  ),
-                  const SizedBox(width: 4),
                 ],
               ),
             ),
@@ -320,7 +347,11 @@ class _LogNotificationObserverState extends State<LogNotificationObserver> {
       if (entry.level == LogLevel.warning ||
           entry.level == LogLevel.error ||
           (kDebugMode && _currentShowDebugNotifications)) {
-        notificationFeedManager.addNotification(entry.message, entry.level);
+        notificationFeedManager.addNotification(
+          entry.message,
+          entry.level,
+          entry.stackTrace,
+        );
       }
     });
   }

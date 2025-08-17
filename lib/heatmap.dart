@@ -201,7 +201,7 @@ class HeatmapPainter extends CustomPainter {
 
     final paint = Paint();
     final List<Color> heatmapColors = [
-      Colors.black,
+      Colors.transparent,
       Colors.blue.shade300,
       Colors.green,
       Colors.yellow,

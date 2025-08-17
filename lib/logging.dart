@@ -7,8 +7,10 @@ class LogEntry {
   final LogLevel level;
   final String message;
   final DateTime timestamp;
+  final StackTrace stackTrace;
 
-  LogEntry(this.level, this.message) : timestamp = DateTime.now();
+  LogEntry(this.level, this.message, this.stackTrace)
+    : timestamp = DateTime.now();
 
   @override
   String toString() {
@@ -27,7 +29,7 @@ class Logger {
   static void error(dynamic message) => _log(LogLevel.error, message);
 
   static void _log(LogLevel level, dynamic message) {
-    final entry = LogEntry(level, message.toString());
+    final entry = LogEntry(level, "$message", StackTrace.current);
     _logStreamController.add(entry);
     if (kDebugMode) {
       // Also print to console in debug mode for convenience
