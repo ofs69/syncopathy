@@ -52,6 +52,9 @@ class Funscript {
   /// The list of actions.
   List<FunscriptAction> actions;
 
+  /// A backup copy of the original actions if actions was modified
+  List<FunscriptAction> originalActions = [];
+
   /// Optional metadata.
   final FunscriptMetadata? metadata;
 

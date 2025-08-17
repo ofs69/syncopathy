@@ -174,8 +174,9 @@ class PlayerModel extends ChangeNotifier {
       return false;
     }
 
+    funscriptFile.originalActions = List.from(funscriptFile.actions);
     funscriptFile.actions = FunscriptAlgorithms.processForHandy(
-      funscriptFile.actions,
+      List.from(funscriptFile.actions),
       _settings.slewMaxRateOfChange.value,
       _settings.rdpEpsilon.value,
       _settings.remapFullRange.value ? (0, 100) : null,

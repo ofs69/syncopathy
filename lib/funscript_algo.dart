@@ -212,8 +212,6 @@ class FunscriptAlgorithms {
       return actions;
     }
 
-    actions = List.from(actions);
-
     if (remapRange != null) {
       actions = FunscriptAlgorithms.remapRange(actions, remapRange);
     }
