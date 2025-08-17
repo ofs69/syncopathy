@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/connection_button.dart';
 import 'package:syncopathy/help_page.dart';
@@ -61,6 +62,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     _videoPlayerFocusNode = FocusNode();
     final player = context.read<PlayerModel>();
     player.currentVideo.addListener(_handleVideoChange);
+    _showDebugNotifications = ValueNotifier<bool>(false);
   }
 
   @override
@@ -68,8 +70,11 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     final player = context.read<PlayerModel>();
     player.currentVideo.removeListener(_handleVideoChange);
     _videoPlayerFocusNode.dispose();
+    _showDebugNotifications.dispose();
     super.dispose();
   }
+
+  late ValueNotifier<bool> _showDebugNotifications;
 
   void _onTabChanged(int index) {
     setState(() {
@@ -132,6 +137,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   Widget build(BuildContext context) {
     final currentVideo = context.read<PlayerModel>().currentVideo.value;
     return LogNotificationObserver(
+      showDebugNotifications: _showDebugNotifications,
       child: Stack(
         children: [
           ShortcutHandler(
@@ -248,6 +254,25 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                     padding: EdgeInsets.only(right: 20.0),
                     child: ConnectionButton(),
                   ),
+                  if (kDebugMode)
+                    Row(
+                      children: [
+                        Tooltip(
+                          message: 'Toggle debug notifications',
+                          child: ValueListenableBuilder<bool>(
+                            valueListenable: _showDebugNotifications,
+                            builder: (context, value, child) {
+                              return Switch(
+                                value: value,
+                                onChanged: (newValue) {
+                                  _showDebugNotifications.value = newValue;
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                 ],
               ),
               body: Row(

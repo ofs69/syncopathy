@@ -282,8 +282,9 @@ class _NotificationCardState extends State<NotificationCard> {
 
 class LogNotificationObserver extends StatefulWidget {
   final Widget child;
+  final ValueListenable<bool> showDebugNotifications;
 
-  const LogNotificationObserver({super.key, required this.child});
+  const LogNotificationObserver({super.key, required this.child, required this.showDebugNotifications});
 
   @override
   State<LogNotificationObserver> createState() =>
@@ -292,23 +293,49 @@ class LogNotificationObserver extends StatefulWidget {
 
 class _LogNotificationObserverState extends State<LogNotificationObserver> {
   StreamSubscription? _logSubscription;
+  late bool _currentShowDebugNotifications;
 
   @override
   void initState() {
     super.initState();
+    _currentShowDebugNotifications = widget.showDebugNotifications.value;
+    widget.showDebugNotifications.addListener(_onShowDebugNotificationsChanged);
+    _startLogSubscription();
+  }
+
+  void _onShowDebugNotificationsChanged() {
+    setState(() {
+      _currentShowDebugNotifications = widget.showDebugNotifications.value;
+    });
+  }
+
+  void _startLogSubscription() {
+    _logSubscription?.cancel(); // Cancel any existing subscription
     final notificationFeedManager = context.read<NotificationFeedManager>();
     _logSubscription = logStream.listen((entry) {
-      if (kDebugMode ||
-          entry.level == LogLevel.warning ||
-          entry.level == LogLevel.error) {
+      if (entry.level == LogLevel.warning ||
+          entry.level == LogLevel.error ||
+          (kDebugMode && _currentShowDebugNotifications)) {
         notificationFeedManager.addNotification(entry.message, entry.level);
       }
     });
   }
 
   @override
+  void didUpdateWidget(covariant LogNotificationObserver oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.showDebugNotifications != widget.showDebugNotifications) {
+      oldWidget.showDebugNotifications.removeListener(_onShowDebugNotificationsChanged);
+      widget.showDebugNotifications.addListener(_onShowDebugNotificationsChanged);
+      _currentShowDebugNotifications = widget.showDebugNotifications.value;
+      _startLogSubscription(); // Restart subscription with new value
+    }
+  }
+
+  @override
   void dispose() {
     _logSubscription?.cancel();
+    widget.showDebugNotifications.removeListener(_onShowDebugNotificationsChanged);
     super.dispose();
   }
 
