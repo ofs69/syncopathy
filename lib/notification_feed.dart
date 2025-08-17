@@ -284,7 +284,11 @@ class LogNotificationObserver extends StatefulWidget {
   final Widget child;
   final ValueListenable<bool> showDebugNotifications;
 
-  const LogNotificationObserver({super.key, required this.child, required this.showDebugNotifications});
+  const LogNotificationObserver({
+    super.key,
+    required this.child,
+    required this.showDebugNotifications,
+  });
 
   @override
   State<LogNotificationObserver> createState() =>
@@ -325,8 +329,12 @@ class _LogNotificationObserverState extends State<LogNotificationObserver> {
   void didUpdateWidget(covariant LogNotificationObserver oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.showDebugNotifications != widget.showDebugNotifications) {
-      oldWidget.showDebugNotifications.removeListener(_onShowDebugNotificationsChanged);
-      widget.showDebugNotifications.addListener(_onShowDebugNotificationsChanged);
+      oldWidget.showDebugNotifications.removeListener(
+        _onShowDebugNotificationsChanged,
+      );
+      widget.showDebugNotifications.addListener(
+        _onShowDebugNotificationsChanged,
+      );
       _currentShowDebugNotifications = widget.showDebugNotifications.value;
       _startLogSubscription(); // Restart subscription with new value
     }
@@ -335,7 +343,9 @@ class _LogNotificationObserverState extends State<LogNotificationObserver> {
   @override
   void dispose() {
     _logSubscription?.cancel();
-    widget.showDebugNotifications.removeListener(_onShowDebugNotificationsChanged);
+    widget.showDebugNotifications.removeListener(
+      _onShowDebugNotificationsChanged,
+    );
     super.dispose();
   }
 
