@@ -168,6 +168,17 @@ class _HeatmapState extends State<Heatmap> {
   }
 }
 
+class _SegmentData {
+  double totalSpeed = 0.0;
+  int speedCount = 0;
+  double totalPos = 0.0;
+  int posCount = 0;
+
+  double get averageSpeed => speedCount > 0 ? totalSpeed / speedCount : 0.0;
+  double get averagePos =>
+      posCount > 0 ? totalPos / posCount : 50.0; // Default to middle
+}
+
 /// A [CustomPainter] that draws the heatmap based on movement speed.
 class HeatmapPainter extends CustomPainter {
   final Funscript funscript;
@@ -183,23 +194,10 @@ class HeatmapPainter extends CustomPainter {
       return;
     }
 
-    final speeds = <double>[];
-    for (int i = 0; i < funscript.actions.length - 1; i++) {
-      final p1 = funscript.actions[i];
-      final p2 = funscript.actions[i + 1];
-      final timeDiff = p2.at - p1.at;
-      if (timeDiff > 0) {
-        final posDiff = (p2.pos - p1.pos).abs();
-        final speed = posDiff / timeDiff; // % per millisecond
-        speeds.add(speed);
-      } else {
-        speeds.add(0.0);
-      }
-    }
-
-    if (speeds.isEmpty) {
-      return;
-    }
+    final int numSegments = size.width.toInt();
+    final double totalMs = totalDuration.inMilliseconds.toDouble();
+    final double segmentMs = totalMs / numSegments;
+    final double segmentPxWidth = size.width / numSegments;
 
     final paint = Paint();
     final List<Color> heatmapColors = [
@@ -210,27 +208,62 @@ class HeatmapPainter extends CustomPainter {
       Colors.red.shade600,
     ];
 
-    for (int i = 0; i < funscript.actions.length - 1; i++) {
-      final p1 = funscript.actions[i];
-      final p2 = funscript.actions[i + 1];
-      final speed = speeds[i];
+    // Pre-aggregate data into segments using a two-pointer approach
+    final List<_SegmentData> segments = List.generate(
+      numSegments,
+      (_) => _SegmentData(),
+    );
+    int currentActionIndex = 0;
 
-      final startX = (p1.at / totalDuration.inMilliseconds) * size.width;
-      final endX = (p2.at / totalDuration.inMilliseconds) * size.width;
-      final rectWidth = endX - startX;
+    for (int i = 0; i < numSegments; i++) {
+      final double segmentStartTimeMs = i * segmentMs;
+      final double segmentEndTimeMs = (i + 1) * segmentMs;
 
-      final y1 = (100 - p1.pos) / 100.0 * size.height;
-      final y2 = (100 - p2.pos) / 100.0 * size.height;
-      final rectTop = min(y1, y2);
-      final rectHeight = (y1 - y2).abs();
-
-      if (rectWidth < 0.5 && rectHeight < 0.5) {
-        // Don't draw rects that are too small to see
-        continue;
+      // Advance currentActionIndex to the first action that starts within or after segmentStartTimeMs
+      while (currentActionIndex < funscript.actions.length - 1 &&
+          funscript.actions[currentActionIndex + 1].at < segmentStartTimeMs) {
+        currentActionIndex++;
       }
 
-      // Normalize speed and apply sqrt to get a better color distribution
-      final normalizedSpeed = min(speed / speedNormalizationValue, 1.0);
+      // Iterate through actions that overlap with the current segment
+      int tempActionIndex = currentActionIndex;
+      while (tempActionIndex < funscript.actions.length - 1) {
+        final p1 = funscript.actions[tempActionIndex];
+        final p2 = funscript.actions[tempActionIndex + 1];
+
+        // If the current action interval starts after the segment ends, break
+        if (p1.at >= segmentEndTimeMs) {
+          break;
+        }
+
+        // If the action interval [p1.at, p2.at] overlaps with the current segment [segmentStartTimeMs, segmentEndTimeMs]
+        if (max(p1.at.toDouble(), segmentStartTimeMs) <
+            min(p2.at.toDouble(), segmentEndTimeMs)) {
+          final timeDiff = (p2.at - p1.at).toDouble();
+          if (timeDiff > 0) {
+            final posDiff = (p2.pos - p1.pos).abs().toDouble();
+            final speed = posDiff / timeDiff;
+            segments[i].totalSpeed += speed;
+            segments[i].speedCount++;
+          }
+          segments[i].totalPos += p1.pos; // Use p1.pos as representative
+          segments[i].posCount++;
+        }
+        tempActionIndex++;
+      }
+    }
+
+    // Draw each segment
+    for (int i = 0; i < numSegments; i++) {
+      final _SegmentData segmentData = segments[i];
+
+      final startX = i * segmentPxWidth;
+      final rectWidth = segmentPxWidth;
+
+      final normalizedSpeed = min(
+        segmentData.averageSpeed / speedNormalizationValue,
+        1.0,
+      );
 
       final double colorPosition = normalizedSpeed * (heatmapColors.length - 1);
       final int fromIndex = colorPosition.floor().clamp(
@@ -249,8 +282,14 @@ class HeatmapPainter extends CustomPainter {
         t,
       )!;
 
+      final barHeight = size.height * 0.8; // Example fixed height
+      final barTop =
+          (100 - segmentData.averagePos) / 100.0 * size.height -
+          (barHeight / 2);
+      final clampedBarTop = barTop.clamp(0.0, size.height - barHeight);
+
       canvas.drawRect(
-        Rect.fromLTWH(startX, rectTop, rectWidth, max(0.5, rectHeight)),
+        Rect.fromLTWH(startX, clampedBarTop, rectWidth, barHeight),
         paint,
       );
     }
