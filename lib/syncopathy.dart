@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/connection_button.dart';
 import 'package:syncopathy/help_page.dart';
-import 'package:syncopathy/logging.dart';
+
 import 'package:syncopathy/media_page.dart';
 import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/playlist_controls.dart';
 
 import 'package:syncopathy/settings_page.dart';
@@ -20,17 +21,20 @@ class Syncopathy extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Syncopathy',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blueAccent,
-          brightness: Brightness.dark,
+    return ChangeNotifierProvider(
+      create: (_) => NotificationFeedManager(),
+      child: MaterialApp(
+        title: 'Syncopathy',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blueAccent,
+            brightness: Brightness.dark,
+          ),
         ),
+        home: const SyncopathyHomePage(title: 'Syncopathy'),
       ),
-      home: const SyncopathyHomePage(title: 'Syncopathy'),
     );
   }
 }
@@ -127,137 +131,152 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   @override
   Widget build(BuildContext context) {
     final currentVideo = context.read<PlayerModel>().currentVideo.value;
-    return ShortcutHandler(
-      pageController: _pageController,
-      onTabChanged: _onTabChanged,
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Row(
-            children: [
-              Text(widget.title),
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return FadeTransition(opacity: animation, child: child);
+    return LogNotificationObserver(
+      child: Stack(
+        children: [
+          ShortcutHandler(
+            pageController: _pageController,
+            onTabChanged: _onTabChanged,
+            child: Scaffold(
+              appBar: AppBar(
+                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+                title: Row(
+                  children: [
+                    Text(widget.title),
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        transitionBuilder:
+                            (Widget child, Animation<double> animation) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              );
+                            },
+                        child: Align(
+                          key: ValueKey<bool>(currentVideo != null),
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            currentVideo?.title != null
+                                ? " - ${currentVideo?.title}"
+                                : "",
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            softWrap: false,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
+                        },
+                    child: currentVideo != null
+                        ? Row(
+                            key: const ValueKey<bool>(true),
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  currentVideo.isFavorite
+                                      ? Icons.star
+                                      : Icons.star_border,
+                                  color: currentVideo.isFavorite
+                                      ? Colors.yellow.shade600
+                                      : null,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    currentVideo.isFavorite =
+                                        !currentVideo.isFavorite;
+                                    if (currentVideo.isFavorite) {
+                                      currentVideo.isDislike = false;
+                                    }
+                                  });
+                                  context
+                                      .read<SyncopathyModel>()
+                                      .mediaManager
+                                      .saveFavorite(currentVideo);
+                                },
+                                tooltip: currentVideo.isFavorite
+                                    ? 'Remove from Favorites'
+                                    : 'Add to Favorites',
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  currentVideo.isDislike
+                                      ? Icons.thumb_down
+                                      : Icons.thumb_down_off_alt,
+                                  color: currentVideo.isDislike
+                                      ? Colors.blue.shade300
+                                      : null,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    currentVideo.isDislike =
+                                        !currentVideo.isDislike;
+                                    if (currentVideo.isDislike) {
+                                      currentVideo.isFavorite = false;
+                                    }
+                                  });
+                                  context
+                                      .read<SyncopathyModel>()
+                                      .mediaManager
+                                      .saveDislike(currentVideo);
+                                },
+                                tooltip: currentVideo.isDislike
+                                    ? 'Remove Dislike'
+                                    : 'Dislike Video',
+                              ),
+                              const SizedBox(width: 20),
+                            ],
+                          )
+                        : const SizedBox.shrink(key: ValueKey<bool>(false)),
+                  ),
+                  const PlaylistControls(),
+                  const SizedBox(width: 20),
+                  const UpdateCheckerWidget(),
+                  const SizedBox(width: 20),
+                  const Padding(
+                    padding: EdgeInsets.only(right: 20.0),
+                    child: ConnectionButton(),
+                  ),
+                ],
+              ),
+              body: Row(
+                children: <Widget>[
+                  NavigationRail(
+                    selectedIndex: _selectedIndex,
+                    onDestinationSelected: _onTabChanged,
+                    labelType: NavigationRailLabelType.all,
+                    destinations: _destinations,
+                  ),
+                  const VerticalDivider(thickness: 1, width: 1),
+                  Expanded(
+                    child: PageContent(
+                      selectedIndex: _selectedIndex,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _selectedIndex = index;
+                        });
                       },
-                  child: Align(
-                    key: ValueKey<bool>(currentVideo != null),
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      currentVideo?.title != null
-                          ? " - ${currentVideo?.title}"
-                          : "",
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                      softWrap: false,
+                      pageController: _pageController,
+                      videoPlayerFocusNode: _videoPlayerFocusNode,
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-          actions: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-              child: currentVideo != null
-                  ? Row(
-                      key: const ValueKey<bool>(true),
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            currentVideo.isFavorite
-                                ? Icons.star
-                                : Icons.star_border,
-                            color: currentVideo.isFavorite
-                                ? Colors.yellow.shade600
-                                : null,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              currentVideo.isFavorite =
-                                  !currentVideo.isFavorite;
-                              if (currentVideo.isFavorite) {
-                                currentVideo.isDislike = false;
-                              }
-                            });
-                            context
-                                .read<SyncopathyModel>()
-                                .mediaManager
-                                .saveFavorite(currentVideo);
-                          },
-                          tooltip: currentVideo.isFavorite
-                              ? 'Remove from Favorites'
-                              : 'Add to Favorites',
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            currentVideo.isDislike
-                                ? Icons.thumb_down
-                                : Icons.thumb_down_off_alt,
-                            color: currentVideo.isDislike
-                                ? Colors.blue.shade300
-                                : null,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              currentVideo.isDislike = !currentVideo.isDislike;
-                              if (currentVideo.isDislike) {
-                                currentVideo.isFavorite = false;
-                              }
-                            });
-                            context
-                                .read<SyncopathyModel>()
-                                .mediaManager
-                                .saveDislike(currentVideo);
-                          },
-                          tooltip: currentVideo.isDislike
-                              ? 'Remove Dislike'
-                              : 'Dislike Video',
-                        ),
-                        const SizedBox(width: 20),
-                      ],
-                    )
-                  : const SizedBox.shrink(key: ValueKey<bool>(false)),
-            ),
-            const PlaylistControls(),
-            const SizedBox(width: 20),
-            const UpdateCheckerWidget(),
-            const SizedBox(width: 20),
-            const Padding(
-              padding: EdgeInsets.only(right: 20.0),
-              child: ConnectionButton(),
-            ),
-          ],
-        ),
-        body: Row(
-          children: <Widget>[
-            NavigationRail(
-              selectedIndex: _selectedIndex,
-              onDestinationSelected: _onTabChanged,
-              labelType: NavigationRailLabelType.all,
-              destinations: _destinations,
-            ),
-            const VerticalDivider(thickness: 1, width: 1),
-            Expanded(
-              child: PageContent(
-                selectedIndex: _selectedIndex,
-                onPageChanged: (index) {
-                  setState(() {
-                    _selectedIndex = index;
-                  });
-                },
-                pageController: _pageController,
-                videoPlayerFocusNode: _videoPlayerFocusNode,
-              ),
-            ),
-          ],
-        ),
+          const NotificationFeed(),
+        ],
       ),
     );
   }
@@ -282,8 +301,6 @@ class PageContent extends StatefulWidget {
 }
 
 class _PageContentState extends State<PageContent> {
-  bool _isLogVisible = true;
-
   @override
   void didUpdateWidget(covariant PageContent oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -294,57 +311,15 @@ class _PageContentState extends State<PageContent> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // We need the total width to calculate the position of the button.
-        // The log panel takes up 1/5th of the space when visible.
-        final logPanelWidth = _isLogVisible ? constraints.maxWidth / 5 : 0;
-        // We want to center the button on the divider. The button is 48px wide,
-        // so we offset it by half its width (30px) from the divider.
-        final buttonRightOffset = logPanelWidth - 30.0;
-
-        return Stack(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  flex: 4,
-                  child: PageView(
-                    controller: widget.pageController,
-                    onPageChanged: widget.onPageChanged,
-                    children: <Widget>[
-                      MediaPage(
-                        mediaManager: context
-                            .read<SyncopathyModel>()
-                            .mediaManager,
-                      ),
-                      VideoPlayerPage(focusNode: widget.videoPlayerFocusNode),
-                      SettingsPage(),
-                      HelpPage(),
-                    ],
-                  ),
-                ),
-                if (_isLogVisible) Expanded(flex: 1, child: LoggingPanel()),
-              ],
-            ),
-            Positioned(
-              top: 0,
-              bottom: 0,
-              right: buttonRightOffset,
-              child: IconButton(
-                icon: Icon(
-                  _isLogVisible ? Icons.chevron_right : Icons.chevron_left,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isLogVisible = !_isLogVisible;
-                  });
-                },
-              ),
-            ),
-          ],
-        );
-      },
+    return PageView(
+      controller: widget.pageController,
+      onPageChanged: widget.onPageChanged,
+      children: <Widget>[
+        MediaPage(mediaManager: context.read<SyncopathyModel>().mediaManager),
+        VideoPlayerPage(focusNode: widget.videoPlayerFocusNode),
+        SettingsPage(),
+        HelpPage(),
+      ],
     );
   }
 }
