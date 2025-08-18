@@ -23,27 +23,37 @@ const MediaLibrarySettingsEntitySchema = CollectionSchema(
       name: r'isSortAscending',
       type: IsarType.bool,
     ),
-    r'showVideoTitles': PropertySchema(
+    r'showAverageMinMax': PropertySchema(
       id: 1,
+      name: r'showAverageMinMax',
+      type: IsarType.bool,
+    ),
+    r'showAverageSpeed': PropertySchema(
+      id: 2,
+      name: r'showAverageSpeed',
+      type: IsarType.bool,
+    ),
+    r'showVideoTitles': PropertySchema(
+      id: 3,
       name: r'showVideoTitles',
       type: IsarType.bool,
     ),
     r'sortOption': PropertySchema(
-      id: 2,
+      id: 4,
       name: r'sortOption',
       type: IsarType.byte,
       enumMap: _MediaLibrarySettingsEntitysortOptionEnumValueMap,
     ),
     r'videosPerRow': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'videosPerRow',
       type: IsarType.long,
     ),
     r'visibilityFilters': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'visibilityFilters',
       type: IsarType.stringList,
-    )
+    ),
   },
   estimateSize: _mediaLibrarySettingsEntityEstimateSize,
   serialize: _mediaLibrarySettingsEntitySerialize,
@@ -82,10 +92,12 @@ void _mediaLibrarySettingsEntitySerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeBool(offsets[0], object.isSortAscending);
-  writer.writeBool(offsets[1], object.showVideoTitles);
-  writer.writeByte(offsets[2], object.sortOption.index);
-  writer.writeLong(offsets[3], object.videosPerRow);
-  writer.writeStringList(offsets[4], object.visibilityFilters);
+  writer.writeBool(offsets[1], object.showAverageMinMax);
+  writer.writeBool(offsets[2], object.showAverageSpeed);
+  writer.writeBool(offsets[3], object.showVideoTitles);
+  writer.writeByte(offsets[4], object.sortOption.index);
+  writer.writeLong(offsets[5], object.videosPerRow);
+  writer.writeStringList(offsets[6], object.visibilityFilters);
 }
 
 MediaLibrarySettingsEntity _mediaLibrarySettingsEntityDeserialize(
@@ -97,12 +109,16 @@ MediaLibrarySettingsEntity _mediaLibrarySettingsEntityDeserialize(
   final object = MediaLibrarySettingsEntity();
   object.id = id;
   object.isSortAscending = reader.readBool(offsets[0]);
-  object.showVideoTitles = reader.readBool(offsets[1]);
-  object.sortOption = _MediaLibrarySettingsEntitysortOptionValueEnumMap[
-          reader.readByteOrNull(offsets[2])] ??
+  object.showAverageMinMax = reader.readBool(offsets[1]);
+  object.showAverageSpeed = reader.readBool(offsets[2]);
+  object.showVideoTitles = reader.readBool(offsets[3]);
+  object.sortOption =
+      _MediaLibrarySettingsEntitysortOptionValueEnumMap[reader.readByteOrNull(
+        offsets[4],
+      )] ??
       SortOption.title;
-  object.videosPerRow = reader.readLong(offsets[3]);
-  object.visibilityFilters = reader.readStringList(offsets[4]) ?? [];
+  object.videosPerRow = reader.readLong(offsets[5]);
+  object.visibilityFilters = reader.readStringList(offsets[6]) ?? [];
   return object;
 }
 
@@ -118,12 +134,17 @@ P _mediaLibrarySettingsEntityDeserializeProp<P>(
     case 1:
       return (reader.readBool(offset)) as P;
     case 2:
-      return (_MediaLibrarySettingsEntitysortOptionValueEnumMap[
-              reader.readByteOrNull(offset)] ??
-          SortOption.title) as P;
+      return (reader.readBool(offset)) as P;
     case 3:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 4:
+      return (_MediaLibrarySettingsEntitysortOptionValueEnumMap[reader
+                  .readByteOrNull(offset)] ??
+              SortOption.title)
+          as P;
+    case 5:
+      return (reader.readLong(offset)) as P;
+    case 6:
       return (reader.readStringList(offset) ?? []) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -150,39 +171,62 @@ Id _mediaLibrarySettingsEntityGetId(MediaLibrarySettingsEntity object) {
 }
 
 List<IsarLinkBase<dynamic>> _mediaLibrarySettingsEntityGetLinks(
-    MediaLibrarySettingsEntity object) {
+  MediaLibrarySettingsEntity object,
+) {
   return [];
 }
 
 void _mediaLibrarySettingsEntityAttach(
-    IsarCollection<dynamic> col, Id id, MediaLibrarySettingsEntity object) {
+  IsarCollection<dynamic> col,
+  Id id,
+  MediaLibrarySettingsEntity object,
+) {
   object.id = id;
 }
 
-extension MediaLibrarySettingsEntityQueryWhereSort on QueryBuilder<
-    MediaLibrarySettingsEntity, MediaLibrarySettingsEntity, QWhere> {
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterWhere> anyId() {
+extension MediaLibrarySettingsEntityQueryWhereSort
+    on
+        QueryBuilder<
+          MediaLibrarySettingsEntity,
+          MediaLibrarySettingsEntity,
+          QWhere
+        > {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterWhere
+  >
+  anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension MediaLibrarySettingsEntityQueryWhere on QueryBuilder<
-    MediaLibrarySettingsEntity, MediaLibrarySettingsEntity, QWhereClause> {
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterWhereClause> idEqualTo(Id id) {
+extension MediaLibrarySettingsEntityQueryWhere
+    on
+        QueryBuilder<
+          MediaLibrarySettingsEntity,
+          MediaLibrarySettingsEntity,
+          QWhereClause
+        > {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterWhereClause
+  >
+  idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterWhereClause> idNotEqualTo(Id id) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterWhereClause
+  >
+  idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -204,8 +248,12 @@ extension MediaLibrarySettingsEntityQueryWhere on QueryBuilder<
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterWhereClause> idGreaterThan(Id id, {bool include = false}) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterWhereClause
+  >
+  idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -213,8 +261,12 @@ extension MediaLibrarySettingsEntityQueryWhere on QueryBuilder<
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterWhereClause> idLessThan(Id id, {bool include = false}) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterWhereClause
+  >
+  idLessThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -222,262 +274,369 @@ extension MediaLibrarySettingsEntityQueryWhere on QueryBuilder<
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterWhereClause> idBetween(
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterWhereClause
+  >
+  idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }
 
-extension MediaLibrarySettingsEntityQueryFilter on QueryBuilder<
-    MediaLibrarySettingsEntity, MediaLibrarySettingsEntity, QFilterCondition> {
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> idEqualTo(Id value) {
+extension MediaLibrarySettingsEntityQueryFilter
+    on
+        QueryBuilder<
+          MediaLibrarySettingsEntity,
+          MediaLibrarySettingsEntity,
+          QFilterCondition
+        > {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  idGreaterThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  idLessThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> idBetween(
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> isSortAscendingEqualTo(bool value) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  isSortAscendingEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isSortAscending',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'isSortAscending', value: value),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> showVideoTitlesEqualTo(bool value) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  showAverageMinMaxEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'showVideoTitles',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'showAverageMinMax', value: value),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> sortOptionEqualTo(SortOption value) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  showAverageSpeedEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'sortOption',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'showAverageSpeed', value: value),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> sortOptionGreaterThan(
-    SortOption value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  showVideoTitlesEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'sortOption',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'showVideoTitles', value: value),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> sortOptionLessThan(
-    SortOption value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  sortOptionEqualTo(SortOption value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'sortOption',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'sortOption', value: value),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> sortOptionBetween(
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  sortOptionGreaterThan(SortOption value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'sortOption',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  sortOptionLessThan(SortOption value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'sortOption',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  sortOptionBetween(
     SortOption lower,
     SortOption upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'sortOption',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'sortOption',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> videosPerRowEqualTo(int value) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  videosPerRowEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'videosPerRow',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'videosPerRow', value: value),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> videosPerRowGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  videosPerRowGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'videosPerRow',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'videosPerRow',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> videosPerRowLessThan(
-    int value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  videosPerRowLessThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'videosPerRow',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'videosPerRow',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> videosPerRowBetween(
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  videosPerRowBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'videosPerRow',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'videosPerRow',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersElementEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersElementEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'visibilityFilters',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'visibilityFilters',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersElementGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'visibilityFilters',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersElementLessThan(
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersElementGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'visibilityFilters',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'visibilityFilters',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersElementBetween(
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersElementLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'visibilityFilters',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersElementBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -485,164 +644,183 @@ extension MediaLibrarySettingsEntityQueryFilter on QueryBuilder<
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'visibilityFilters',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersElementStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'visibilityFilters',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersElementEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'visibilityFilters',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-          QAfterFilterCondition>
-      visibilityFiltersElementContains(String value,
-          {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'visibilityFilters',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-          QAfterFilterCondition>
-      visibilityFiltersElementMatches(String pattern,
-          {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'visibilityFilters',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersElementIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'visibilityFilters',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersElementIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'visibilityFilters',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'visibilityFilters',
-        length,
-        true,
-        length,
-        true,
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'visibilityFilters',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
       );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersIsEmpty() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersElementStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'visibilityFilters',
-        0,
-        true,
-        0,
-        true,
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'visibilityFilters',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
       );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersIsNotEmpty() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersElementEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'visibilityFilters',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersElementContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'visibilityFilters',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersElementMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'visibilityFilters',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersElementIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'visibilityFilters', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersElementIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'visibilityFilters', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'visibilityFilters', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'visibilityFilters', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'visibilityFilters', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersLengthLessThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'visibilityFilters', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersLengthGreaterThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
         r'visibilityFilters',
-        0,
-        false,
+        length,
+        include,
         999999,
         true,
       );
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'visibilityFilters',
-        0,
-        true,
-        length,
-        include,
-      );
-    });
-  }
-
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'visibilityFilters',
-        length,
-        include,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterFilterCondition> visibilityFiltersLengthBetween(
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  visibilityFiltersLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -660,184 +838,416 @@ extension MediaLibrarySettingsEntityQueryFilter on QueryBuilder<
   }
 }
 
-extension MediaLibrarySettingsEntityQueryObject on QueryBuilder<
-    MediaLibrarySettingsEntity, MediaLibrarySettingsEntity, QFilterCondition> {}
+extension MediaLibrarySettingsEntityQueryObject
+    on
+        QueryBuilder<
+          MediaLibrarySettingsEntity,
+          MediaLibrarySettingsEntity,
+          QFilterCondition
+        > {}
 
-extension MediaLibrarySettingsEntityQueryLinks on QueryBuilder<
-    MediaLibrarySettingsEntity, MediaLibrarySettingsEntity, QFilterCondition> {}
+extension MediaLibrarySettingsEntityQueryLinks
+    on
+        QueryBuilder<
+          MediaLibrarySettingsEntity,
+          MediaLibrarySettingsEntity,
+          QFilterCondition
+        > {}
 
-extension MediaLibrarySettingsEntityQuerySortBy on QueryBuilder<
-    MediaLibrarySettingsEntity, MediaLibrarySettingsEntity, QSortBy> {
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> sortByIsSortAscending() {
+extension MediaLibrarySettingsEntityQuerySortBy
+    on
+        QueryBuilder<
+          MediaLibrarySettingsEntity,
+          MediaLibrarySettingsEntity,
+          QSortBy
+        > {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  sortByIsSortAscending() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isSortAscending', Sort.asc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> sortByIsSortAscendingDesc() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  sortByIsSortAscendingDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isSortAscending', Sort.desc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> sortByShowVideoTitles() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  sortByShowAverageMinMax() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'showAverageMinMax', Sort.asc);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  sortByShowAverageMinMaxDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'showAverageMinMax', Sort.desc);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  sortByShowAverageSpeed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'showAverageSpeed', Sort.asc);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  sortByShowAverageSpeedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'showAverageSpeed', Sort.desc);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  sortByShowVideoTitles() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'showVideoTitles', Sort.asc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> sortByShowVideoTitlesDesc() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  sortByShowVideoTitlesDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'showVideoTitles', Sort.desc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> sortBySortOption() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  sortBySortOption() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sortOption', Sort.asc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> sortBySortOptionDesc() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  sortBySortOptionDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sortOption', Sort.desc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> sortByVideosPerRow() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  sortByVideosPerRow() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'videosPerRow', Sort.asc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> sortByVideosPerRowDesc() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  sortByVideosPerRowDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'videosPerRow', Sort.desc);
     });
   }
 }
 
-extension MediaLibrarySettingsEntityQuerySortThenBy on QueryBuilder<
-    MediaLibrarySettingsEntity, MediaLibrarySettingsEntity, QSortThenBy> {
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> thenById() {
+extension MediaLibrarySettingsEntityQuerySortThenBy
+    on
+        QueryBuilder<
+          MediaLibrarySettingsEntity,
+          MediaLibrarySettingsEntity,
+          QSortThenBy
+        > {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> thenByIsSortAscending() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenByIsSortAscending() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isSortAscending', Sort.asc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> thenByIsSortAscendingDesc() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenByIsSortAscendingDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isSortAscending', Sort.desc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> thenByShowVideoTitles() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenByShowAverageMinMax() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'showAverageMinMax', Sort.asc);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenByShowAverageMinMaxDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'showAverageMinMax', Sort.desc);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenByShowAverageSpeed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'showAverageSpeed', Sort.asc);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenByShowAverageSpeedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'showAverageSpeed', Sort.desc);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenByShowVideoTitles() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'showVideoTitles', Sort.asc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> thenByShowVideoTitlesDesc() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenByShowVideoTitlesDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'showVideoTitles', Sort.desc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> thenBySortOption() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenBySortOption() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sortOption', Sort.asc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> thenBySortOptionDesc() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenBySortOptionDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sortOption', Sort.desc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> thenByVideosPerRow() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenByVideosPerRow() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'videosPerRow', Sort.asc);
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QAfterSortBy> thenByVideosPerRowDesc() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenByVideosPerRowDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'videosPerRow', Sort.desc);
     });
   }
 }
 
-extension MediaLibrarySettingsEntityQueryWhereDistinct on QueryBuilder<
-    MediaLibrarySettingsEntity, MediaLibrarySettingsEntity, QDistinct> {
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QDistinct> distinctByIsSortAscending() {
+extension MediaLibrarySettingsEntityQueryWhereDistinct
+    on
+        QueryBuilder<
+          MediaLibrarySettingsEntity,
+          MediaLibrarySettingsEntity,
+          QDistinct
+        > {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QDistinct
+  >
+  distinctByIsSortAscending() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isSortAscending');
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QDistinct> distinctByShowVideoTitles() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QDistinct
+  >
+  distinctByShowAverageMinMax() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'showAverageMinMax');
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QDistinct
+  >
+  distinctByShowAverageSpeed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'showAverageSpeed');
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QDistinct
+  >
+  distinctByShowVideoTitles() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'showVideoTitles');
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QDistinct> distinctBySortOption() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QDistinct
+  >
+  distinctBySortOption() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'sortOption');
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QDistinct> distinctByVideosPerRow() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QDistinct
+  >
+  distinctByVideosPerRow() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'videosPerRow');
     });
   }
 
-  QueryBuilder<MediaLibrarySettingsEntity, MediaLibrarySettingsEntity,
-      QDistinct> distinctByVisibilityFilters() {
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QDistinct
+  >
+  distinctByVisibilityFilters() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'visibilityFilters');
     });
   }
 }
 
-extension MediaLibrarySettingsEntityQueryProperty on QueryBuilder<
-    MediaLibrarySettingsEntity, MediaLibrarySettingsEntity, QQueryProperty> {
+extension MediaLibrarySettingsEntityQueryProperty
+    on
+        QueryBuilder<
+          MediaLibrarySettingsEntity,
+          MediaLibrarySettingsEntity,
+          QQueryProperty
+        > {
   QueryBuilder<MediaLibrarySettingsEntity, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
@@ -845,35 +1255,49 @@ extension MediaLibrarySettingsEntityQueryProperty on QueryBuilder<
   }
 
   QueryBuilder<MediaLibrarySettingsEntity, bool, QQueryOperations>
-      isSortAscendingProperty() {
+  isSortAscendingProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isSortAscending');
     });
   }
 
   QueryBuilder<MediaLibrarySettingsEntity, bool, QQueryOperations>
-      showVideoTitlesProperty() {
+  showAverageMinMaxProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'showAverageMinMax');
+    });
+  }
+
+  QueryBuilder<MediaLibrarySettingsEntity, bool, QQueryOperations>
+  showAverageSpeedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'showAverageSpeed');
+    });
+  }
+
+  QueryBuilder<MediaLibrarySettingsEntity, bool, QQueryOperations>
+  showVideoTitlesProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'showVideoTitles');
     });
   }
 
   QueryBuilder<MediaLibrarySettingsEntity, SortOption, QQueryOperations>
-      sortOptionProperty() {
+  sortOptionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'sortOption');
     });
   }
 
   QueryBuilder<MediaLibrarySettingsEntity, int, QQueryOperations>
-      videosPerRowProperty() {
+  videosPerRowProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'videosPerRow');
     });
   }
 
   QueryBuilder<MediaLibrarySettingsEntity, List<String>, QQueryOperations>
-      visibilityFiltersProperty() {
+  visibilityFiltersProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'visibilityFilters');
     });

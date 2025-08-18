@@ -36,16 +36,6 @@ class _MediaPageState extends State<MediaPage>
               onVideoTapped: (v) => player.openVideoAndScript(v, false),
             ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              ElevatedButton.icon(
-                onPressed: () => player.closeVideo(),
-                icon: const Icon(Icons.close),
-                label: const Text('Close Video'),
-              ),
-            ],
-          ),
         ],
       ),
     );

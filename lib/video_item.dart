@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/user_category.dart';
 import 'package:syncopathy/model/video_model.dart';
 import 'package:syncopathy/video_thumbnail.dart';
@@ -17,6 +18,8 @@ class VideoItem extends StatefulWidget {
     this.showTitle = true,
     this.isSelected = false,
     this.onLongPress,
+    this.showAverageSpeed = false,
+    this.showAverageMinMax = false,
   });
 
   final Video video;
@@ -27,6 +30,8 @@ class VideoItem extends StatefulWidget {
   final bool showTitle;
   final bool isSelected;
   final VoidCallback? onLongPress;
+  final bool showAverageSpeed;
+  final bool showAverageMinMax;
 
   @override
   State<VideoItem> createState() => _VideoItemState();
@@ -105,9 +110,9 @@ class _VideoItemState extends State<VideoItem> {
         if (widget.video.id == playerModel.currentVideo.value?.id) {
           borderSide = BorderSide(color: Colors.green, width: 6.0);
         } else if (widget.video.isFavorite) {
-          borderSide = BorderSide(color: Colors.yellow.shade600, width: 3.0);
+          borderSide = BorderSide(color: favoriteColor, width: 3.0);
         } else if (widget.video.isDislike) {
-          borderSide = BorderSide(color: Colors.blue.shade300, width: 3.0);
+          borderSide = BorderSide(color: dislikeColor, width: 3.0);
         } else {
           borderSide = BorderSide.none;
         }
@@ -151,11 +156,13 @@ class _VideoItemState extends State<VideoItem> {
                           size: iconSize,
                         ),
                       ),
-                    if (widget.showTitle)
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: AnimatedOpacity(
+                        opacity: widget.showTitle || _isHovering ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 200),
                         child: Container(
                           decoration: const BoxDecoration(
                             gradient: LinearGradient(
@@ -178,6 +185,7 @@ class _VideoItemState extends State<VideoItem> {
                           ),
                         ),
                       ),
+                    ),
                     Positioned(
                       top: 8.0,
                       right: 8.0,
@@ -205,105 +213,119 @@ class _VideoItemState extends State<VideoItem> {
                             ),
                           ),
                           const SizedBox(height: 4.0),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                              vertical: 4.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                            child: Tooltip(
-                              message: "Average Speed",
-                              child: Text(
-                                '${widget.video.averageSpeed.round()}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                          if (widget.showAverageSpeed)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 4.0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(4.0),
+                              ),
+                              child: Tooltip(
+                                message: "Average Speed",
+                                child: Text(
+                                  '${widget.video.averageSpeed.round()}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
                           const SizedBox(height: 4.0),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                              vertical: 4.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                            child: Tooltip(
-                              message: "Average Min / Max",
-                              child: Text(
-                                '${widget.video.averageMin.round()}-${widget.video.averageMax.round()}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                          if (widget.showAverageMinMax)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 4.0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(4.0),
+                              ),
+                              child: Tooltip(
+                                message: "Average Min / Max",
+                                child: Text(
+                                  '${widget.video.averageMin.round()}-${widget.video.averageMax.round()}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ),
                     Positioned(
                       top: 0,
                       left: 0,
-                      child: Column(
-                        children: [
-                          IconButton(
-                            padding: EdgeInsets.all(padding),
-                            constraints: const BoxConstraints(),
-                            onPressed: () {
-                              setState(() {
-                                widget.video.isFavorite =
-                                    !widget.video.isFavorite;
-                                // If we just favorited it, it can't be disliked.
-                                if (widget.video.isFavorite) {
-                                  widget.video.isDislike = false;
-                                }
-                              });
-                              widget.onFavoriteChanged(widget.video);
-                            },
-                            icon: Icon(
-                              widget.video.isFavorite
-                                  ? Icons.star
-                                  : Icons.star_border,
-                              shadows: const [
-                                Shadow(blurRadius: 3, color: Colors.black87),
-                              ],
-                            ),
-                            color: Colors.yellow.shade600,
-                            iconSize: iconSize,
-                          ),
-                          if (!widget.video.isFavorite)
+                      child: AnimatedOpacity(
+                        opacity:
+                            _isHovering ||
+                                widget.video.isFavorite ||
+                                widget.video.isDislike
+                            ? 1.0
+                            : 0.0,
+                        duration: const Duration(milliseconds: 200),
+                        child: Column(
+                          children: [
                             IconButton(
                               padding: EdgeInsets.all(padding),
                               constraints: const BoxConstraints(),
                               onPressed: () {
                                 setState(() {
-                                  widget.video.isDislike =
-                                      !widget.video.isDislike;
+                                  widget.video.isFavorite =
+                                      !widget.video.isFavorite;
+                                  // If we just favorited it, it can't be disliked.
+                                  if (widget.video.isFavorite) {
+                                    widget.video.isDislike = false;
+                                  }
                                 });
-                                widget.onDislikeChanged(widget.video);
+                                widget.onFavoriteChanged(widget.video);
                               },
                               icon: Icon(
-                                widget.video.isDislike
-                                    ? Icons.thumb_down
-                                    : Icons.thumb_down_outlined,
+                                widget.video.isFavorite
+                                    ? Icons.star
+                                    : Icons.star_border,
                                 shadows: const [
                                   Shadow(blurRadius: 3, color: Colors.black87),
                                 ],
                               ),
-                              color: Colors.blue.shade300,
+                              color: favoriteColor,
                               iconSize: iconSize,
                             ),
-                        ],
+                            if (!widget.video.isFavorite)
+                              IconButton(
+                                padding: EdgeInsets.all(padding),
+                                constraints: const BoxConstraints(),
+                                onPressed: () {
+                                  setState(() {
+                                    widget.video.isDislike =
+                                        !widget.video.isDislike;
+                                  });
+                                  widget.onDislikeChanged(widget.video);
+                                },
+                                icon: Icon(
+                                  widget.video.isDislike
+                                      ? Icons.thumb_down
+                                      : Icons.thumb_down_outlined,
+                                  shadows: const [
+                                    Shadow(
+                                      blurRadius: 3,
+                                      color: Colors.black87,
+                                    ),
+                                  ],
+                                ),
+                                color: dislikeColor,
+                                iconSize: iconSize,
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -317,9 +339,6 @@ class _VideoItemState extends State<VideoItem> {
   }
 
   String getVideoTooltip(Video video) {
-    if (video.funscriptMetadata?.tags.isNotEmpty ?? false) {
-      return "${video.title}\n${video.funscriptMetadata!.tags.join(', ')}";
-    }
     return video.title;
   }
 }

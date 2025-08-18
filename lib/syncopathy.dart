@@ -15,6 +15,7 @@ import 'package:syncopathy/update_checker_widget.dart';
 import 'package:syncopathy/video_player_page.dart';
 
 import 'package:syncopathy/shortcut_handler.dart';
+import 'package:syncopathy/helper/constants.dart';
 
 class Syncopathy extends StatelessWidget {
   const Syncopathy({super.key});
@@ -195,7 +196,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                                       ? Icons.star
                                       : Icons.star_border,
                                   color: currentVideo.isFavorite
-                                      ? Colors.yellow.shade600
+                                      ? favoriteColor
                                       : null,
                                 ),
                                 onPressed: () {
@@ -221,7 +222,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                                       ? Icons.thumb_down
                                       : Icons.thumb_down_off_alt,
                                   color: currentVideo.isDislike
-                                      ? Colors.blue.shade300
+                                      ? dislikeColor
                                       : null,
                                 ),
                                 onPressed: () {
@@ -241,7 +242,14 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                                     ? 'Remove Dislike'
                                     : 'Dislike Video',
                               ),
-                              const SizedBox(width: 20),
+                              const SizedBox(width: 16),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () {
+                                  context.read<PlayerModel>().closeVideo();
+                                },
+                                tooltip: 'Close Video',
+                              ),
                             ],
                           )
                         : const SizedBox.shrink(key: ValueKey<bool>(false)),

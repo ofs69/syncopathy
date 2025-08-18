@@ -156,6 +156,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
   void _updateDisplayedVideos() {
     if (!mounted) return;
+    if (_isLoading) return;
 
     final query = _searchController.text.toLowerCase();
     List<Video> videos = _mediaManager.allVideos.where((video) {
@@ -262,8 +263,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
     });
     await _mediaManager.refreshVideos();
     if (mounted) {
-      _updateDisplayedVideos();
       setState(() => _isLoading = false);
+      _updateDisplayedVideos();
     }
   }
 
@@ -698,7 +699,19 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
   AppBar _buildDefaultAppBar() {
     return AppBar(
-      title: const Text('Media Library'),
+      title: Row(
+        children: [
+          const Text('Media Library'),
+          const SizedBox(width: 8),
+          Tooltip(
+            message: 'Long-press or right-click an item for more options.',
+            child: IconButton(
+              icon: const Icon(Icons.info_outline),
+              onPressed: () {},
+            ),
+          ),
+        ],
+      ),
       actions: [
         TextButton.icon(
           label: const Text("Surprise Me!"),
@@ -765,6 +778,14 @@ class _MediaLibraryState extends State<MediaLibrary> {
               _mediaLibrarySettings.setShowVideoTitles(
                 !_mediaLibrarySettings.showVideoTitles.value,
               );
+            } else if (value == 'show_average_speed') {
+              _mediaLibrarySettings.setShowAverageSpeed(
+                !_mediaLibrarySettings.showAverageSpeed.value,
+              );
+            } else if (value == 'show_average_min_max') {
+              _mediaLibrarySettings.setShowAverageMinMax(
+                !_mediaLibrarySettings.showAverageMinMax.value,
+              );
             }
           },
           itemBuilder: (BuildContext context) {
@@ -783,6 +804,16 @@ class _MediaLibraryState extends State<MediaLibrary> {
                 checked: _mediaLibrarySettings.showVideoTitles.value,
                 child: const Text('Show Titles'),
               ),
+              CheckedPopupMenuItem<String>(
+                value: 'show_average_speed',
+                checked: _mediaLibrarySettings.showAverageSpeed.value,
+                child: const Text('Show Average Speed'),
+              ),
+              CheckedPopupMenuItem<String>(
+                value: 'show_average_min_max',
+                checked: _mediaLibrarySettings.showAverageMinMax.value,
+                child: const Text('Show Average Min/Max'),
+              ),
             ];
           },
         ),
@@ -798,14 +829,6 @@ class _MediaLibraryState extends State<MediaLibrary> {
           avatar: const Icon(Icons.category_outlined),
           label: Text(_selectedCategory?.name ?? 'Category'),
           onPressed: _showCategoryDialog,
-        ),
-        const SizedBox(width: 8),
-        Tooltip(
-          message: 'Long-press or right-click an item for more options.',
-          child: IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {},
-          ),
         ),
         const SizedBox(width: 8),
         // Videos Per Row Dropdown)
@@ -935,6 +958,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
                           isSelected: isSelected,
                           showTitle:
                               _mediaLibrarySettings.showVideoTitles.value,
+                          showAverageSpeed:
+                              _mediaLibrarySettings.showAverageSpeed.value,
+                          showAverageMinMax:
+                              _mediaLibrarySettings.showAverageMinMax.value,
                           onVideoTapped: (video) {
                             if (_isSelectionMode) {
                               setState(() {
