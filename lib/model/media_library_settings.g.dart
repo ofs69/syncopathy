@@ -33,24 +33,29 @@ const MediaLibrarySettingsEntitySchema = CollectionSchema(
       name: r'showAverageSpeed',
       type: IsarType.bool,
     ),
-    r'showVideoTitles': PropertySchema(
+    r'showDuration': PropertySchema(
       id: 3,
+      name: r'showDuration',
+      type: IsarType.bool,
+    ),
+    r'showVideoTitles': PropertySchema(
+      id: 4,
       name: r'showVideoTitles',
       type: IsarType.bool,
     ),
     r'sortOption': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'sortOption',
       type: IsarType.byte,
       enumMap: _MediaLibrarySettingsEntitysortOptionEnumValueMap,
     ),
     r'videosPerRow': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'videosPerRow',
       type: IsarType.long,
     ),
     r'visibilityFilters': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'visibilityFilters',
       type: IsarType.stringList,
     ),
@@ -94,10 +99,11 @@ void _mediaLibrarySettingsEntitySerialize(
   writer.writeBool(offsets[0], object.isSortAscending);
   writer.writeBool(offsets[1], object.showAverageMinMax);
   writer.writeBool(offsets[2], object.showAverageSpeed);
-  writer.writeBool(offsets[3], object.showVideoTitles);
-  writer.writeByte(offsets[4], object.sortOption.index);
-  writer.writeLong(offsets[5], object.videosPerRow);
-  writer.writeStringList(offsets[6], object.visibilityFilters);
+  writer.writeBool(offsets[3], object.showDuration);
+  writer.writeBool(offsets[4], object.showVideoTitles);
+  writer.writeByte(offsets[5], object.sortOption.index);
+  writer.writeLong(offsets[6], object.videosPerRow);
+  writer.writeStringList(offsets[7], object.visibilityFilters);
 }
 
 MediaLibrarySettingsEntity _mediaLibrarySettingsEntityDeserialize(
@@ -111,14 +117,15 @@ MediaLibrarySettingsEntity _mediaLibrarySettingsEntityDeserialize(
   object.isSortAscending = reader.readBool(offsets[0]);
   object.showAverageMinMax = reader.readBool(offsets[1]);
   object.showAverageSpeed = reader.readBool(offsets[2]);
-  object.showVideoTitles = reader.readBool(offsets[3]);
+  object.showDuration = reader.readBool(offsets[3]);
+  object.showVideoTitles = reader.readBool(offsets[4]);
   object.sortOption =
       _MediaLibrarySettingsEntitysortOptionValueEnumMap[reader.readByteOrNull(
-        offsets[4],
+        offsets[5],
       )] ??
       SortOption.title;
-  object.videosPerRow = reader.readLong(offsets[5]);
-  object.visibilityFilters = reader.readStringList(offsets[6]) ?? [];
+  object.videosPerRow = reader.readLong(offsets[6]);
+  object.visibilityFilters = reader.readStringList(offsets[7]) ?? [];
   return object;
 }
 
@@ -138,13 +145,15 @@ P _mediaLibrarySettingsEntityDeserializeProp<P>(
     case 3:
       return (reader.readBool(offset)) as P;
     case 4:
+      return (reader.readBool(offset)) as P;
+    case 5:
       return (_MediaLibrarySettingsEntitysortOptionValueEnumMap[reader
                   .readByteOrNull(offset)] ??
               SortOption.title)
           as P;
-    case 5:
-      return (reader.readLong(offset)) as P;
     case 6:
+      return (reader.readLong(offset)) as P;
+    case 7:
       return (reader.readStringList(offset) ?? []) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -411,6 +420,19 @@ extension MediaLibrarySettingsEntityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'showAverageSpeed', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterFilterCondition
+  >
+  showDurationEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'showDuration', value: value),
       );
     });
   }
@@ -932,6 +954,28 @@ extension MediaLibrarySettingsEntityQuerySortBy
     MediaLibrarySettingsEntity,
     QAfterSortBy
   >
+  sortByShowDuration() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'showDuration', Sort.asc);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  sortByShowDurationDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'showDuration', Sort.desc);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
   sortByShowVideoTitles() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'showVideoTitles', Sort.asc);
@@ -1094,6 +1138,28 @@ extension MediaLibrarySettingsEntityQuerySortThenBy
     MediaLibrarySettingsEntity,
     QAfterSortBy
   >
+  thenByShowDuration() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'showDuration', Sort.asc);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
+  thenByShowDurationDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'showDuration', Sort.desc);
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QAfterSortBy
+  >
   thenByShowVideoTitles() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'showVideoTitles', Sort.asc);
@@ -1201,6 +1267,17 @@ extension MediaLibrarySettingsEntityQueryWhereDistinct
     MediaLibrarySettingsEntity,
     QDistinct
   >
+  distinctByShowDuration() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'showDuration');
+    });
+  }
+
+  QueryBuilder<
+    MediaLibrarySettingsEntity,
+    MediaLibrarySettingsEntity,
+    QDistinct
+  >
   distinctByShowVideoTitles() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'showVideoTitles');
@@ -1272,6 +1349,13 @@ extension MediaLibrarySettingsEntityQueryProperty
   showAverageSpeedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'showAverageSpeed');
+    });
+  }
+
+  QueryBuilder<MediaLibrarySettingsEntity, bool, QQueryOperations>
+  showDurationProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'showDuration');
     });
   }
 

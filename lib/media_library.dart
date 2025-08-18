@@ -786,6 +786,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
               _mediaLibrarySettings.setShowAverageMinMax(
                 !_mediaLibrarySettings.showAverageMinMax.value,
               );
+            } else if (value == 'show_duration') {
+              _mediaLibrarySettings.setShowDuration(
+                !_mediaLibrarySettings.showDuration.value,
+              );
             }
           },
           itemBuilder: (BuildContext context) {
@@ -813,6 +817,11 @@ class _MediaLibraryState extends State<MediaLibrary> {
                 value: 'show_average_min_max',
                 checked: _mediaLibrarySettings.showAverageMinMax.value,
                 child: const Text('Show Average Min/Max'),
+              ),
+              CheckedPopupMenuItem<String>(
+                value: 'show_duration',
+                checked: _mediaLibrarySettings.showDuration.value,
+                child: const Text('Show Duration'),
               ),
             ];
           },
@@ -962,6 +971,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
                               _mediaLibrarySettings.showAverageSpeed.value,
                           showAverageMinMax:
                               _mediaLibrarySettings.showAverageMinMax.value,
+                          showDuration:
+                              _mediaLibrarySettings.showDuration.value,
                           onVideoTapped: (video) {
                             if (_isSelectionMode) {
                               setState(() {

@@ -18,8 +18,9 @@ class VideoItem extends StatefulWidget {
     this.showTitle = true,
     this.isSelected = false,
     this.onLongPress,
-    this.showAverageSpeed = false,
-    this.showAverageMinMax = false,
+    this.showAverageSpeed = true,
+    this.showAverageMinMax = true,
+    this.showDuration = true,
   });
 
   final Video video;
@@ -32,6 +33,7 @@ class VideoItem extends StatefulWidget {
   final VoidCallback? onLongPress;
   final bool showAverageSpeed;
   final bool showAverageMinMax;
+  final bool showDuration;
 
   @override
   State<VideoItem> createState() => _VideoItemState();
@@ -191,28 +193,29 @@ class _VideoItemState extends State<VideoItem> {
                       right: 8.0,
                       child: Column(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                              vertical: 4.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                            child: Tooltip(
-                              message: "Duration",
-                              child: Text(
-                                _formatDuration(widget.video.duration),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                          if (widget.showDuration)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 4.0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(4.0),
+                              ),
+                              child: Tooltip(
+                                message: "Duration",
+                                child: Text(
+                                  _formatDuration(widget.video.duration),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 4.0),
+                          if (widget.showDuration) const SizedBox(height: 4.0),
                           if (widget.showAverageSpeed)
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -235,7 +238,8 @@ class _VideoItemState extends State<VideoItem> {
                                 ),
                               ),
                             ),
-                          const SizedBox(height: 4.0),
+                          if (widget.showAverageSpeed)
+                            const SizedBox(height: 4.0),
                           if (widget.showAverageMinMax)
                             Container(
                               padding: const EdgeInsets.symmetric(
