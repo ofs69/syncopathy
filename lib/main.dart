@@ -4,6 +4,7 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/model/app_model.dart';
+import 'package:syncopathy/model/media_library_settings.dart';
 import 'package:syncopathy/model/settings.dart';
 import 'package:syncopathy/model/user_category.dart';
 import 'package:syncopathy/syncopathy.dart';
@@ -20,7 +21,12 @@ void main() async {
   // Open the Isar instance
   final dir = await getApplicationSupportDirectory();
   isar = await Isar.open(
-    [SettingsEntitySchema, VideoSchema, UserCategorySchema],
+    [
+      SettingsEntitySchema,
+      VideoSchema,
+      UserCategorySchema,
+      MediaLibrarySettingsEntitySchema,
+    ],
     name: 'syncopathyDB',
     directory: dir.path,
     // ignore: dead_code

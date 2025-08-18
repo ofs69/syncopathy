@@ -12,6 +12,7 @@ import 'package:syncopathy/model/video_model.dart';
 import 'package:syncopathy/wheel_of_fortune.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/model/media_library_settings.dart';
 
 enum SortOption {
   title('Title'),
@@ -78,29 +79,33 @@ final _uncategorized = UserCategory(name: 'Uncategorized');
 
 class _MediaLibraryState extends State<MediaLibrary> {
   late final MediaManager _mediaManager;
+  late final MediaLibrarySettings _mediaLibrarySettings;
   late List<Video> _filteredVideos;
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
-  SortOption _currentSortOption = SortOption.title;
-  bool _isSortAscending = true;
+  UserCategory? _selectedCategory;
   String? _selectedAuthor;
   String? _selectedTag;
   String? _selectedPerformer;
-  UserCategory? _selectedCategory;
   bool _isLoading = false;
-  int videosPerRow = 6;
-  final Set<VideoFilter> _currentVisibilityFilters = {};
-  bool _showVideoTitles = true;
 
   final Set<Video> _selectedVideos = {};
   bool get _isSelectionMode => _selectedVideos.isNotEmpty;
 
   StreamSubscription? _videoUpdateSubscription;
+  StreamSubscription? _settingsSaveSubscription;
 
   @override
   void initState() {
     super.initState();
     _mediaManager = widget.mediaManager;
+    _mediaLibrarySettings = MediaLibrarySettings();
+    _mediaLibrarySettings.load().then((_) {
+      _updateDisplayedVideos();
+      _settingsSaveSubscription = _mediaLibrarySettings.saveNotifier.stream
+          .listen((_) => _updateDisplayedVideos());
+    });
+
     _refreshVideos();
 
     _filteredVideos = [];
@@ -116,6 +121,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     _videoUpdateSubscription?.cancel();
+    _settingsSaveSubscription?.cancel();
     super.dispose();
   }
 
@@ -181,17 +187,23 @@ class _MediaLibraryState extends State<MediaLibrary> {
         }
       }
 
-      if (_currentVisibilityFilters.contains(VideoFilter.hideFavorite) &&
+      if (_mediaLibrarySettings.visibilityFilters.value.contains(
+            VideoFilter.hideFavorite,
+          ) &&
           video.isFavorite) {
         return false;
       }
 
-      if (_currentVisibilityFilters.contains(VideoFilter.hideDisliked) &&
+      if (_mediaLibrarySettings.visibilityFilters.value.contains(
+            VideoFilter.hideDisliked,
+          ) &&
           video.isDislike) {
         return false;
       }
 
-      if (_currentVisibilityFilters.contains(VideoFilter.hideUnrated) &&
+      if (_mediaLibrarySettings.visibilityFilters.value.contains(
+            VideoFilter.hideUnrated,
+          ) &&
           !video.isFavorite &&
           !video.isDislike) {
         return false;
@@ -213,7 +225,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
       // Within each group (favorites, normal, disliked), sort by the selected option.
       int compareResult = 0;
-      switch (_currentSortOption) {
+      switch (_mediaLibrarySettings.sortOption.value) {
         case SortOption.title:
           compareResult = a.title.compareTo(b.title);
           break;
@@ -233,7 +245,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
           break;
       }
 
-      return _isSortAscending ? compareResult : -compareResult;
+      return _mediaLibrarySettings.isSortAscending.value
+          ? compareResult
+          : -compareResult;
     });
 
     setState(() {
@@ -279,7 +293,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
   void _showRandomVideoPicker() {
     var availableVideos = _filteredVideos.where((v) {
       bool shouldHideUnrated =
-          _currentVisibilityFilters.contains(VideoFilter.hideUnrated) &&
+          _mediaLibrarySettings.visibilityFilters.value.contains(
+            VideoFilter.hideUnrated,
+          ) &&
           !v.isFavorite &&
           !v.isDislike;
       return !v.isDislike && !shouldHideUnrated;
@@ -698,15 +714,12 @@ class _MediaLibraryState extends State<MediaLibrary> {
         const SizedBox(width: 8),
         // Sorting Dropdown
         DropdownButton<SortOption>(
-          value: _currentSortOption,
+          value: _mediaLibrarySettings.sortOption.value,
           icon: const Icon(Icons.sort),
           underline: const SizedBox.shrink(), // Hides the default underline
           onChanged: (SortOption? newValue) {
             if (newValue != null) {
-              setState(() {
-                _currentSortOption = newValue;
-              });
-              _updateDisplayedVideos();
+              _mediaLibrarySettings.setSortOption(newValue);
             }
           },
           items: SortOption.values.map((SortOption option) {
@@ -719,15 +732,18 @@ class _MediaLibraryState extends State<MediaLibrary> {
         const SizedBox(width: 8),
         IconButton(
           icon: Icon(
-            _isSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+            _mediaLibrarySettings.isSortAscending.value
+                ? Icons.arrow_upward
+                : Icons.arrow_downward,
           ),
           onPressed: () {
-            setState(() {
-              _isSortAscending = !_isSortAscending;
-            });
-            _updateDisplayedVideos();
+            _mediaLibrarySettings.setIsSortAscending(
+              !_mediaLibrarySettings.isSortAscending.value,
+            );
           },
-          tooltip: _isSortAscending ? 'Sort Descending' : 'Sort Ascending',
+          tooltip: _mediaLibrarySettings.isSortAscending.value
+              ? 'Sort Descending'
+              : 'Sort Ascending',
         ),
         const SizedBox(width: 8),
         PopupMenuButton<dynamic>(
@@ -735,18 +751,20 @@ class _MediaLibraryState extends State<MediaLibrary> {
           tooltip: 'View Options',
           onSelected: (dynamic value) {
             if (value is VideoFilter) {
-              setState(() {
-                if (_currentVisibilityFilters.contains(value)) {
-                  _currentVisibilityFilters.remove(value);
-                } else {
-                  _currentVisibilityFilters.add(value);
-                }
-              });
-              _updateDisplayedVideos();
+              final currentFilters = _mediaLibrarySettings
+                  .visibilityFilters
+                  .value
+                  .toSet();
+              if (currentFilters.contains(value)) {
+                currentFilters.remove(value);
+              } else {
+                currentFilters.add(value);
+              }
+              _mediaLibrarySettings.setVisibilityFilters(currentFilters);
             } else if (value == 'toggle_titles') {
-              setState(() {
-                _showVideoTitles = !_showVideoTitles;
-              });
+              _mediaLibrarySettings.setShowVideoTitles(
+                !_mediaLibrarySettings.showVideoTitles.value,
+              );
             }
           },
           itemBuilder: (BuildContext context) {
@@ -754,14 +772,15 @@ class _MediaLibraryState extends State<MediaLibrary> {
               ...VideoFilter.values.map((VideoFilter filter) {
                 return CheckedPopupMenuItem<VideoFilter>(
                   value: filter,
-                  checked: _currentVisibilityFilters.contains(filter),
+                  checked: _mediaLibrarySettings.visibilityFilters.value
+                      .contains(filter),
                   child: Text(filter.label),
                 );
               }),
               const PopupMenuDivider(),
               CheckedPopupMenuItem<String>(
                 value: 'toggle_titles',
-                checked: _showVideoTitles,
+                checked: _mediaLibrarySettings.showVideoTitles.value,
                 child: const Text('Show Titles'),
               ),
             ];
@@ -793,12 +812,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
         Tooltip(
           message: 'Videos per row',
           child: DropdownButton<int>(
-            value: videosPerRow,
+            value: _mediaLibrarySettings.videosPerRow.value,
             onChanged: (int? newValue) {
               if (newValue != null) {
-                setState(() {
-                  videosPerRow = newValue;
-                });
+                _mediaLibrarySettings.setVideosPerRow(newValue);
               }
             },
             items:
@@ -902,7 +919,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
                       key: ValueKey(_filteredVideos.length),
                       padding: const EdgeInsets.all(8.0),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: videosPerRow,
+                        crossAxisCount:
+                            _mediaLibrarySettings.videosPerRow.value,
                         crossAxisSpacing: 8.0,
                         mainAxisSpacing: 8.0,
                         childAspectRatio:
@@ -915,7 +933,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
                         return VideoItem(
                           video: video,
                           isSelected: isSelected,
-                          showTitle: _showVideoTitles,
+                          showTitle:
+                              _mediaLibrarySettings.showVideoTitles.value,
                           onVideoTapped: (video) {
                             if (_isSelectionMode) {
                               setState(() {
