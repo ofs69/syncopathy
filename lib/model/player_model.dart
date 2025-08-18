@@ -218,8 +218,9 @@ class PlayerModel extends ChangeNotifier {
       }
 
       return;
-    } catch (e) {
-      Logger.error(e.toString());
+    } on Exception catch (ex, trace) {
+      Logger.error(ex);
+      Logger.error(trace);
       currentVideo.value = null;
     }
   }
@@ -285,7 +286,6 @@ class PlayerModel extends ChangeNotifier {
   void clearPlaylist() {
     playlist.value?.removeListener(_handlePlaylistChange);
     playlist.value = null;
-    _setLooping(true);
   }
 
   void setPlaylist(List<Video> videos, int initialIndex) {
