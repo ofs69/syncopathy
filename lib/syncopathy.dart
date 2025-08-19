@@ -136,7 +136,9 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final currentVideo = context.read<PlayerModel>().currentVideo.value;
+    final player = context.read<PlayerModel>();
+    final currentVideo = player.currentVideo.value;
+
     return LogNotificationObserver(
       showDebugNotifications: _showDebugNotifications,
       child: Stack(
@@ -245,15 +247,14 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                               const SizedBox(width: 16),
                               IconButton(
                                 icon: const Icon(Icons.close),
-                                onPressed: () {
-                                  context.read<PlayerModel>().closeVideo();
-                                },
+                                onPressed: () => player.closeVideo(),
                                 tooltip: 'Close Video',
                               ),
                             ],
                           )
                         : const SizedBox.shrink(key: ValueKey<bool>(false)),
                   ),
+                  if (player.playlist.value != null) const SizedBox(width: 16),
                   const PlaylistControls(),
                   const SizedBox(width: 20),
                   const UpdateCheckerWidget(),
