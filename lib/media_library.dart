@@ -2,9 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
 import 'package:syncopathy/funscript_metadata_filter_bottom_sheet.dart';
-import 'package:syncopathy/main.dart';
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/model/user_category.dart';
 import 'package:syncopathy/video_item.dart';
@@ -13,6 +11,7 @@ import 'package:syncopathy/wheel_of_fortune.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/media_library_settings.dart';
+import 'package:syncopathy/category_selection_dialog.dart';
 
 enum SortOption {
   title('Title'),
@@ -360,153 +359,11 @@ class _MediaLibraryState extends State<MediaLibrary> {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        final searchController = TextEditingController();
-        final newCategoryController = TextEditingController();
-
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return DraggableScrollableSheet(
-              expand: false,
-              builder: (BuildContext context, ScrollController scrollController) {
-                final filteredItems = isar.userCategorys
-                    .where()
-                    .findAllSync()
-                    .where(
-                      (item) => item.name.toLowerCase().contains(
-                        searchController.text.toLowerCase(),
-                      ),
-                    )
-                    .toList();
-
-                return Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        controller: searchController,
-                        onChanged: (value) => setState(() {}),
-                        decoration: InputDecoration(
-                          labelText: 'Search Categories',
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        controller: scrollController,
-                        itemCount: filteredItems.length + 2,
-                        itemBuilder: (context, index) {
-                          if (index == 0) {
-                            return ListTile(
-                              title: const Text('All Categories'),
-                              onTap: () => Navigator.of(context).pop(null),
-                            );
-                          }
-                          if (index == 1) {
-                            return ListTile(
-                              title: const Text('Uncategorized'),
-                              onTap: () =>
-                                  Navigator.of(context).pop(_uncategorized),
-                            );
-                          }
-                          final item = filteredItems[index - 2];
-                          return ListTile(
-                            title: Text(item.name),
-                            onTap: () => Navigator.of(context).pop(item),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete),
-                              tooltip: "Delete Category",
-                              onPressed: () async {
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (BuildContext dialogContext) {
-                                    return AlertDialog(
-                                      title: const Text('Confirm Delete'),
-                                      content: Text(
-                                        'Are you sure you want to delete the category "${item.name}"? Videos in this category will become uncategorized.',
-                                      ),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          onPressed: () => Navigator.of(
-                                            dialogContext,
-                                          ).pop(false),
-                                          child: const Text('Cancel'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => Navigator.of(
-                                            dialogContext,
-                                          ).pop(true),
-                                          child: const Text('Delete'),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-
-                                if (confirm == true) {
-                                  await _mediaManager.deleteCategory(item);
-                                  if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Category "${item.name}" deleted',
-                                      ),
-                                    ),
-                                  );
-                                  setState(() {});
-                                }
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: newCategoryController,
-                              decoration: const InputDecoration(
-                                labelText: 'New Category Name',
-                                border: OutlineInputBorder(),
-                              ),
-                              onSubmitted: (value) async {
-                                if (value.isNotEmpty) {
-                                  await _mediaManager.createCategory(value);
-                                  newCategoryController.clear();
-                                  searchController.clear();
-                                  setState(() {});
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.add),
-                            onPressed: () async {
-                              if (newCategoryController.text.isNotEmpty) {
-                                await _mediaManager.createCategory(
-                                  newCategoryController.text,
-                                );
-                                newCategoryController.clear();
-                                searchController.clear();
-                                setState(() {});
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
+        return CategorySelectionDialog(
+          mediaManager: _mediaManager,
+          uncategorized: _uncategorized,
+          showAllCategoriesOption: true,
+          showUncategorizedOption: true,
         );
       },
     );
@@ -554,100 +411,12 @@ class _MediaLibraryState extends State<MediaLibrary> {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        final searchController = TextEditingController();
-        final newCategoryController = TextEditingController();
-
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return DraggableScrollableSheet(
-              expand: false,
-              builder:
-                  (BuildContext context, ScrollController scrollController) {
-                    final filteredItems = isar.userCategorys
-                        .where()
-                        .findAllSync()
-                        .where(
-                          (item) => item.name.toLowerCase().contains(
-                            searchController.text.toLowerCase(),
-                          ),
-                        )
-                        .toList();
-
-                    return Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: TextField(
-                            controller: searchController,
-                            onChanged: (value) => setState(() {}),
-                            decoration: InputDecoration(
-                              labelText: 'Search Categories',
-                              prefixIcon: const Icon(Icons.search),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: ListView.builder(
-                            controller: scrollController,
-                            itemCount: filteredItems.length,
-                            itemBuilder: (context, index) {
-                              final item = filteredItems[index];
-                              return ListTile(
-                                title: Text(item.name),
-                                onTap: () => Navigator.of(context).pop(item),
-                              );
-                            },
-                          ),
-                        ),
-                        if (showAddCategory)
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: newCategoryController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'New Category Name',
-                                      border: OutlineInputBorder(),
-                                    ),
-                                    onSubmitted: (value) async {
-                                      if (value.isNotEmpty) {
-                                        await _mediaManager.createCategory(
-                                          value,
-                                        );
-                                        newCategoryController.clear();
-                                        searchController.clear();
-                                        setState(() {});
-                                      }
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                IconButton(
-                                  icon: const Icon(Icons.add),
-                                  onPressed: () async {
-                                    if (newCategoryController.text.isNotEmpty) {
-                                      await _mediaManager.createCategory(
-                                        newCategoryController.text,
-                                      );
-                                      newCategoryController.clear();
-                                      searchController.clear();
-                                      setState(() {});
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    );
-                  },
-            );
-          },
+        return CategorySelectionDialog(
+          mediaManager: _mediaManager,
+          uncategorized: _uncategorized,
+          showAddCategory: showAddCategory,
+          showAllCategoriesOption: false,
+          showUncategorizedOption: false,
         );
       },
     );
