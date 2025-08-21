@@ -4,18 +4,24 @@ class FunscriptMetadataFilterBottomSheet extends StatefulWidget {
   final List<String> allAuthors;
   final List<String> allTags;
   final List<String> allPerformers;
-  final String? initialAuthor;
-  final String? initialTag;
-  final String? initialPerformer;
+  final Set<String> initialAuthors;
+  final Set<String> initialTags;
+  final Set<String> initialPerformers;
+  final ValueChanged<Set<String>>? onAuthorsChanged;
+  final ValueChanged<Set<String>>? onTagsChanged;
+  final ValueChanged<Set<String>>? onPerformersChanged;
 
   const FunscriptMetadataFilterBottomSheet({
     super.key,
     required this.allAuthors,
     required this.allTags,
     required this.allPerformers,
-    this.initialAuthor,
-    this.initialTag,
-    this.initialPerformer,
+    this.initialAuthors = const {},
+    this.initialTags = const {},
+    this.initialPerformers = const {},
+    this.onAuthorsChanged,
+    this.onTagsChanged,
+    this.onPerformersChanged,
   });
 
   @override
@@ -31,9 +37,9 @@ class _FunscriptMetadataFilterBottomSheetState
   late TextEditingController _tagSearchController;
   late TextEditingController _performerSearchController;
 
-  String? _selectedAuthor;
-  String? _selectedTag;
-  String? _selectedPerformer;
+  Set<String> _selectedAuthors = {};
+  Set<String> _selectedTags = {};
+  Set<String> _selectedPerformers = {};
 
   @override
   void initState() {
@@ -43,9 +49,9 @@ class _FunscriptMetadataFilterBottomSheetState
     _tagSearchController = TextEditingController();
     _performerSearchController = TextEditingController();
 
-    _selectedAuthor = widget.initialAuthor;
-    _selectedTag = widget.initialTag;
-    _selectedPerformer = widget.initialPerformer;
+    _selectedAuthors = Set.from(widget.initialAuthors);
+    _selectedTags = Set.from(widget.initialTags);
+    _selectedPerformers = Set.from(widget.initialPerformers);
   }
 
   @override
@@ -61,8 +67,9 @@ class _FunscriptMetadataFilterBottomSheetState
     required String title,
     required List<String> items,
     required TextEditingController searchController,
-    required String? currentSelectedItem,
-    required ValueChanged<String?> onItemSelected,
+    required Set<String> currentSelectedItems,
+    required ValueChanged<String> onItemToggled,
+    required VoidCallback onAllSelected,
   }) {
     final filteredItems = items
         .where(
@@ -94,19 +101,23 @@ class _FunscriptMetadataFilterBottomSheetState
               if (index == 0) {
                 return ListTile(
                   title: const Text('All'),
+                  trailing: currentSelectedItems.isEmpty
+                      ? const Icon(Icons.check)
+                      : null,
                   onTap: () {
-                    onItemSelected(null);
+                    onAllSelected();
                   },
-                  selected: currentSelectedItem == null,
                 );
               }
               final item = filteredItems[index - 1];
               return ListTile(
                 title: Text(item),
+                trailing: currentSelectedItems.contains(item)
+                    ? const Icon(Icons.check)
+                    : null,
                 onTap: () {
-                  onItemSelected(item);
+                  onItemToggled(item);
                 },
-                selected: item == currentSelectedItem,
               );
             },
           ),
@@ -138,33 +149,66 @@ class _FunscriptMetadataFilterBottomSheetState
                     title: 'Author',
                     items: widget.allAuthors,
                     searchController: _authorSearchController,
-                    currentSelectedItem: _selectedAuthor,
-                    onItemSelected: (value) {
+                    currentSelectedItems: _selectedAuthors,
+                    onItemToggled: (value) {
                       setState(() {
-                        _selectedAuthor = value;
+                        if (_selectedAuthors.contains(value)) {
+                          _selectedAuthors.remove(value);
+                        } else {
+                          _selectedAuthors.add(value);
+                        }
                       });
+                      widget.onAuthorsChanged?.call(_selectedAuthors);
+                    },
+                    onAllSelected: () {
+                      setState(() {
+                        _selectedAuthors.clear();
+                      });
+                      widget.onAuthorsChanged?.call(_selectedAuthors);
                     },
                   ),
                   _buildSearchableList(
                     title: 'Tag',
                     items: widget.allTags,
                     searchController: _tagSearchController,
-                    currentSelectedItem: _selectedTag,
-                    onItemSelected: (value) {
+                    currentSelectedItems: _selectedTags,
+                    onItemToggled: (value) {
                       setState(() {
-                        _selectedTag = value;
+                        if (_selectedTags.contains(value)) {
+                          _selectedTags.remove(value);
+                        } else {
+                          _selectedTags.add(value);
+                        }
                       });
+                      widget.onTagsChanged?.call(_selectedTags);
+                    },
+                    onAllSelected: () {
+                      setState(() {
+                        _selectedTags.clear();
+                      });
+                      widget.onTagsChanged?.call(_selectedTags);
                     },
                   ),
                   _buildSearchableList(
                     title: 'Performer',
                     items: widget.allPerformers,
                     searchController: _performerSearchController,
-                    currentSelectedItem: _selectedPerformer,
-                    onItemSelected: (value) {
+                    currentSelectedItems: _selectedPerformers,
+                    onItemToggled: (value) {
                       setState(() {
-                        _selectedPerformer = value;
+                        if (_selectedPerformers.contains(value)) {
+                          _selectedPerformers.remove(value);
+                        } else {
+                          _selectedPerformers.add(value);
+                        }
                       });
+                      widget.onPerformersChanged?.call(_selectedPerformers);
+                    },
+                    onAllSelected: () {
+                      setState(() {
+                        _selectedPerformers.clear();
+                      });
+                      widget.onPerformersChanged?.call(_selectedPerformers);
                     },
                   ),
                 ],
@@ -182,28 +226,6 @@ class _FunscriptMetadataFilterBottomSheetState
                       icon: const Icon(Icons.info_outline),
                       onPressed: () {}, // No action needed for info icon
                     ),
-                  ),
-                  Row(
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(
-                            context,
-                          ).pop(null); // Dismiss without applying
-                        },
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop({
-                            'author': _selectedAuthor,
-                            'tag': _selectedTag,
-                            'performer': _selectedPerformer,
-                          });
-                        },
-                        child: const Text('Apply'),
-                      ),
-                    ],
                   ),
                 ],
               ),

@@ -83,9 +83,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
   UserCategory? _selectedCategory;
-  String? _selectedAuthor;
-  String? _selectedTag;
-  String? _selectedPerformer;
+  Set<String> _selectedAuthors = {};
+  Set<String> _selectedTags = {};
+  Set<String> _selectedPerformers = {};
   bool _isLoading = false;
 
   final Set<Video> _selectedVideos = {};
@@ -160,19 +160,28 @@ class _MediaLibraryState extends State<MediaLibrary> {
     final query = _searchController.text.toLowerCase();
     List<Video> videos = _mediaManager.allVideos.where((video) {
       final authorMatch =
-          _selectedAuthor == null ||
-          video.funscriptMetadata?.creator == _selectedAuthor;
+          _selectedAuthors.isEmpty ||
+          (_selectedAuthors.isNotEmpty &&
+              video.funscriptMetadata?.creator != null &&
+              _selectedAuthors.contains(video.funscriptMetadata!.creator));
       if (!authorMatch) return false;
 
       final tagMatch =
-          _selectedTag == null ||
-          video.funscriptMetadata?.tags.contains(_selectedTag) == true;
+          _selectedTags.isEmpty ||
+          (_selectedTags.isNotEmpty &&
+              video.funscriptMetadata?.tags != null &&
+              video.funscriptMetadata!.tags.any(
+                (tag) => _selectedTags.contains(tag),
+              ));
       if (!tagMatch) return false;
 
       final performerMatch =
-          _selectedPerformer == null ||
-          video.funscriptMetadata?.performers.contains(_selectedPerformer) ==
-              true;
+          _selectedPerformers.isEmpty ||
+          (_selectedPerformers.isNotEmpty &&
+              video.funscriptMetadata?.performers != null &&
+              video.funscriptMetadata!.performers.any(
+                (performer) => _selectedPerformers.contains(performer),
+              ));
       if (!performerMatch) return false;
 
       if (_selectedCategory != null) {
@@ -329,7 +338,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
   }
 
   Future<void> _showFunscriptMetadataFilterDialog() async {
-    final selectedFilters = await showModalBottomSheet<Map<String, String?>?>(
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
@@ -337,21 +346,30 @@ class _MediaLibraryState extends State<MediaLibrary> {
           allAuthors: _allAuthors,
           allTags: _allTags,
           allPerformers: _allPerformers,
-          initialAuthor: _selectedAuthor,
-          initialTag: _selectedTag,
-          initialPerformer: _selectedPerformer,
+          initialAuthors: _selectedAuthors,
+          initialTags: _selectedTags,
+          initialPerformers: _selectedPerformers,
+          onAuthorsChanged: (selectedAuthors) {
+            setState(() {
+              _selectedAuthors = selectedAuthors;
+            });
+            _updateDisplayedVideos();
+          },
+          onTagsChanged: (selectedTags) {
+            setState(() {
+              _selectedTags = selectedTags;
+            });
+            _updateDisplayedVideos();
+          },
+          onPerformersChanged: (selectedPerformers) {
+            setState(() {
+              _selectedPerformers = selectedPerformers;
+            });
+            _updateDisplayedVideos();
+          },
         );
       },
     );
-
-    if (selectedFilters != null) {
-      setState(() {
-        _selectedAuthor = selectedFilters['author'];
-        _selectedTag = selectedFilters['tag'];
-        _selectedPerformer = selectedFilters['performer'];
-      });
-      _updateDisplayedVideos();
-    }
   }
 
   Future<void> _showCategoryDialog() async {

@@ -3,7 +3,6 @@ import 'package:isar/isar.dart';
 import 'package:syncopathy/main.dart';
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/model/user_category.dart';
-import 'package:syncopathy/model/video_model.dart'; // For Video, if needed for deleteCategory
 
 class CategorySelectionDialog extends StatefulWidget {
   final UserCategory? initialSelectedCategory;
