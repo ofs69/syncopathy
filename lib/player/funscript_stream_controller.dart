@@ -87,8 +87,7 @@ class FunscriptStreamController {
     try {
       bufferLock.cancelAll();
       await bufferLock.acquire();
-    } on LockAcquireFailureException catch (e) {
-      Logger.debug("Lock acquire was cancelled: $e");
+    } on LockAcquireFailureException catch (_) {
       return false;
     }
 

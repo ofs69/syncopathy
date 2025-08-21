@@ -78,6 +78,10 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   late ValueNotifier<bool> _showDebugNotifications;
 
   void _onTabChanged(int index) {
+    if (_selectedIndex == index) {
+      return;
+    }
+
     setState(() {
       _selectedIndex = index;
     });
@@ -85,7 +89,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     final int pageDelta = (index - currentPage).abs();
     _pageController.animateToPage(
       index,
-      duration: Duration(milliseconds: 300 * pageDelta),
+      duration: Duration(milliseconds: 300 * (pageDelta == 0 ? 1 : pageDelta)),
       curve: Curves.ease,
     );
   }
