@@ -422,6 +422,11 @@ class _MediaLibraryState extends State<MediaLibrary> {
     }
   }
 
+  Future<void> _deleteVideo(Video video) async {
+    await _mediaManager.deleteVideo(video);
+    _updateDisplayedVideos();
+  }
+
   Future<UserCategory?> _showCategorySelectionDialog({
     bool showAddCategory = true,
   }) async {
@@ -801,6 +806,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
                             }
                             _updateDisplayedVideos();
                           },
+                          onDelete: _deleteVideo,
                         );
                       },
                     ),

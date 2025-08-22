@@ -342,4 +342,29 @@ class MediaManager {
   Future<Video?> getVideoByPath(String path) async {
     return _allVideos.firstWhereOrNull((video) => video.videoPath == path);
   }
+
+  Future<void> deleteVideo(Video video) async {
+    try {
+      final videoFile = File(video.videoPath);
+      if (await videoFile.exists()) {
+        await videoFile.delete();
+      }
+
+      if (video.funscriptPath.isNotEmpty) {
+        final scriptFile = File(video.funscriptPath);
+        if (await scriptFile.exists()) {
+          await scriptFile.delete();
+        }
+      }
+
+      await isar.writeTxn(() async {
+        await isar.videos.delete(video.id);
+      });
+
+      _allVideos.removeWhere((v) => v.id == video.id);
+      _videoUpdateController.add(video);
+    } catch (e) {
+      Logger.error('Error deleting video ${video.title}: $e');
+    }
+  }
 }

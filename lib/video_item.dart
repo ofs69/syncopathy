@@ -15,6 +15,7 @@ class VideoItem extends StatefulWidget {
     required this.onFavoriteChanged,
     required this.onDislikeChanged,
     required this.onCategoryChanged,
+    required this.onDelete,
     this.showTitle = true,
     this.isSelected = false,
     this.onLongPress,
@@ -28,6 +29,7 @@ class VideoItem extends StatefulWidget {
   final void Function(Video) onFavoriteChanged;
   final void Function(Video) onDislikeChanged;
   final void Function(Video, UserCategory, bool) onCategoryChanged;
+  final void Function(Video) onDelete;
   final bool showTitle;
   final bool isSelected;
   final VoidCallback? onLongPress;
@@ -55,6 +57,45 @@ class _VideoItemState extends State<VideoItem> {
     await PlatformUtils.openFileExplorer(path);
   }
 
+  void _showDeleteConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                const Text(
+                  'Are you sure you want to delete the following files?',
+                ),
+                const SizedBox(height: 16),
+                Text('Video: ${widget.video.videoPath}'),
+                if (widget.video.funscriptPath.isNotEmpty)
+                  Text('Script: ${widget.video.funscriptPath}'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                widget.onDelete(widget.video);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showContextMenu(BuildContext context, TapUpDetails details) async {
     final List<PopupMenuEntry<String>> menuItems = [
       const PopupMenuItem<String>(
@@ -76,6 +117,17 @@ class _VideoItemState extends State<VideoItem> {
       );
     }
 
+    menuItems.add(const PopupMenuDivider());
+    menuItems.add(
+      const PopupMenuItem<String>(
+        value: 'delete',
+        child: Text(
+          'Delete Script & Video',
+          style: TextStyle(color: Colors.red),
+        ),
+      ),
+    );
+
     final result = await showMenu<String>(
       context: context,
       position: RelativeRect.fromLTRB(
@@ -94,6 +146,8 @@ class _VideoItemState extends State<VideoItem> {
         _openFileDirectory(widget.video.videoPath);
       } else if (result == 'open_script_dir') {
         _openFileDirectory(widget.video.funscriptPath);
+      } else if (result == 'delete') {
+        _showDeleteConfirmationDialog();
       }
     }
   }
