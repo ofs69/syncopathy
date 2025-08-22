@@ -153,34 +153,25 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
             child: Scaffold(
               appBar: AppBar(
                 backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-                title: Row(
-                  children: [
-                    Text(widget.title),
-                    Expanded(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        transitionBuilder:
-                            (Widget child, Animation<double> animation) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              );
-                            },
-                        child: Align(
-                          key: ValueKey<bool>(currentVideo != null),
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            currentVideo?.title != null
-                                ? " - ${currentVideo?.title}"
-                                : "",
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                            softWrap: false,
-                          ),
-                        ),
-                      ),
+                title: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder:
+                      (Widget child, Animation<double> animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    );
+                  },
+                  child: Align(
+                    key: ValueKey<String>(currentVideo?.title ?? widget.title),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      currentVideo?.title ?? widget.title,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      softWrap: false,
                     ),
-                  ],
+                  ),
                 ),
                 actions: [
                   AnimatedSwitcher(
