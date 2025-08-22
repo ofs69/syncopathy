@@ -113,28 +113,31 @@ class FunscriptAlgorithms {
   }
 
   /// Calculates the average speed of the actions in position units per second.
+  /// This excludes periods of no movement from the calculation.
   static double averageSpeed(List<FunscriptAction> actions) {
     if (actions.length < 2) {
       return 0.0;
     }
 
-    double speedTotal = 0.0;
-    int count = 0;
+    double totalDistance = 0;
+    int totalTime = 0;
+
     for (int i = 1; i < actions.length; i++) {
       final from = actions[i - 1];
       final to = actions[i];
-      final diff = (to.pos - from.pos).toDouble().abs();
-      if (diff >= 10.0) {
-        final speed = diff / (to.at - from.at);
-        speedTotal += speed;
-        count++;
+      final posDiff = (to.pos - from.pos).abs();
+
+      if (posDiff > 0) {
+        totalDistance += posDiff;
+        totalTime += to.at - from.at;
       }
     }
-    if (count == 0) {
+
+    if (totalTime == 0) {
       return 0.0;
     }
-    var speed = (speedTotal / count) * 1000.0;
-    return speed;
+
+    return (totalDistance / totalTime) * 1000.0;
   }
 
   static double averageMin(List<FunscriptAction> actions) {
