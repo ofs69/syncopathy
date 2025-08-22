@@ -33,12 +33,15 @@ class HandyBle extends FunscriptDevice {
   final _pendingRequests = <int, Completer<RpcMessage>>{};
 
   int _currentStreamId = 0;
-  int _lastPosition = -1;
-  int _lastPosDelta = -1;
   final Debouncer _syncTimeDebouncer = Debouncer(milliseconds: 300);
   final Throttler _syncTimeThrottler = Throttler(milliseconds: 2000);
 
   bool _isPaused = true;
+  int _lastPositionMs = 0; // Keep track of the last reported position
+  final int _skipThresholdMs = 1000; // 1 second threshold for large skips
+  DateTime _lastUpdateTime = DateTime.now(); // To track time between updates
+  final int _timeDeviationThresholdMs =
+      500; // Max allowed deviation between expected and actual position based on real time
 
   static final _connectSemaphore = Semaphore(1);
   final Settings _settings;
@@ -199,6 +202,7 @@ class HandyBle extends FunscriptDevice {
 
   @override
   Future<void> initStream() async {
+    _lastPositionMs = 0; // Reset position on new stream initialization
     await _createStream();
   }
 
@@ -208,17 +212,40 @@ class HandyBle extends FunscriptDevice {
     bool paused,
     double playbackRate,
   ) async {
-    var posDelta = (positionMs - _lastPosition).abs();
-    var largeSkip = posDelta > (_lastPosDelta * 3);
-    _lastPosDelta = posDelta;
-    var backSkip = positionMs < _lastPosition;
-    _lastPosition = positionMs;
+    bool shouldSkip = false;
 
-    if ((largeSkip || backSkip) && !_isPaused) {
+    // Condition 1: Going back in time (position skip)
+    if (_lastPositionMs > positionMs) {
+      shouldSkip = true;
+    }
+    // Condition 2: Larger than normal position skip (forward or backward)
+    else if ((positionMs - _lastPositionMs).abs() > _skipThresholdMs) {
+      shouldSkip = true;
+    }
+    // Condition 3: Deviation from expected time (new logic)
+    else if (!paused) {
+      // Only check for time skips if not paused
+      final currentUpdateTime = DateTime.now();
+      final expectedPositionMs =
+          _lastPositionMs +
+          currentUpdateTime.difference(_lastUpdateTime).inMilliseconds;
+      final deviation = (positionMs - expectedPositionMs).abs();
+
+      if (deviation > _timeDeviationThresholdMs) {
+        // Using _timeDeviationThresholdMs
+        shouldSkip = true;
+      }
+      _lastUpdateTime = currentUpdateTime; // Update _lastUpdateTime
+    }
+
+    if (shouldSkip && !_isPaused) {
+      Logger.warning("skip occured!");
       await stopPlayback();
       await startPlayback(positionMs, playbackRate);
     }
     await _syncTime(positionMs, paused);
+
+    _lastPositionMs = positionMs; // Update last position for next call
   }
 
   @override
@@ -233,8 +260,6 @@ class HandyBle extends FunscriptDevice {
 
   @override
   Future<void> deinitStream() async {
-    _lastPosition = -1;
-    _lastPosDelta = -1;
     await stopPlayback();
   }
 

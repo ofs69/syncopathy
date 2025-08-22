@@ -157,11 +157,8 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                   duration: const Duration(milliseconds: 300),
                   transitionBuilder:
                       (Widget child, Animation<double> animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: child,
-                    );
-                  },
+                        return FadeTransition(opacity: animation, child: child);
+                      },
                   child: Align(
                     key: ValueKey<String>(currentVideo?.title ?? widget.title),
                     alignment: Alignment.centerLeft,

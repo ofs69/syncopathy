@@ -63,7 +63,7 @@ class _PlaylistControlsState extends State<PlaylistControls> {
                       Tooltip(
                         message: 'Loop',
                         child: Icon(
-                          isLooping ? Icons.repeat_on_outlined : Icons.repeat,
+                          isLooping ? Icons.repeat_outlined : Icons.repeat,
                         ),
                       ),
                     ],
