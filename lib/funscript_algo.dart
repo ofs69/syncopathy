@@ -112,32 +112,71 @@ class FunscriptAlgorithms {
     return numerator / denominator;
   }
 
-  /// Calculates the average speed of the actions in position units per second.
-  /// This excludes periods of no movement from the calculation.
   static double averageSpeed(List<FunscriptAction> actions) {
     if (actions.length < 2) {
       return 0.0;
     }
 
-    double totalDistance = 0;
-    int totalTime = 0;
-
+    final List<({double speed, double weight})> segments = [];
     for (int i = 1; i < actions.length; i++) {
-      final from = actions[i - 1];
-      final to = actions[i];
-      final posDiff = (to.pos - from.pos).abs();
+      final p1 = actions[i - 1];
+      final p2 = actions[i];
 
-      if (posDiff > 0) {
-        totalDistance += posDiff;
-        totalTime += to.at - from.at;
-      }
+      final timeDiff = (p2.at - p1.at).toDouble();
+      if (timeDiff <= 0) continue;
+
+      final posDiff = (p2.pos - p1.pos).abs().toDouble();
+
+      final speed = posDiff / timeDiff * 1000; // pos per second
+      segments.add((speed: speed, weight: timeDiff));
     }
 
-    if (totalTime == 0) {
+    if (segments.isEmpty) {
       return 0.0;
     }
 
-    return (totalDistance / totalTime) * 1000.0;
+    // Outlier filtering using IQR.
+    // We need at least 4 data points for this to be meaningful.
+    if (segments.length < 4) {
+      double totalSpeed = 0;
+      double totalWeight = 0;
+      for (final s in segments) {
+        totalSpeed += s.speed * s.weight;
+        totalWeight += s.weight;
+      }
+      return totalWeight > 0 ? totalSpeed / totalWeight : 0.0;
+    }
+
+    final sortedSpeeds = segments.map((s) => s.speed).toList()..sort();
+
+    final q1Index = (sortedSpeeds.length * 0.25).round();
+    final q3Index = (sortedSpeeds.length * 0.75).round();
+    final q1 = sortedSpeeds[q1Index];
+    final q3 = sortedSpeeds[q3Index];
+    final iqr = q3 - q1;
+
+    // Values outside of this range are considered outliers.
+    final lowerBound = q1 - 1.5 * iqr;
+    final upperBound = q3 + 1.5 * iqr;
+
+    final filteredSegments = segments
+        .where((s) => s.speed >= lowerBound && s.speed <= upperBound)
+        .toList();
+
+    // If all segments were filtered, it's better to return the unfiltered average.
+    final segmentsToAverage = filteredSegments.isNotEmpty
+        ? filteredSegments
+        : segments;
+
+    // Weighted average of filtered speeds
+    double totalSpeed = 0;
+    double totalWeight = 0;
+    for (final s in segmentsToAverage) {
+      totalSpeed += s.speed * s.weight;
+      totalWeight += s.weight;
+    }
+
+    return totalWeight > 0 ? totalSpeed / totalWeight : 0.0;
   }
 
   static double averageMin(List<FunscriptAction> actions) {
