@@ -117,6 +117,6 @@ class MpvVideoplayer {
   }
 
   void setVolume(double volume) {
-    _player.setPropertyDouble('volume', volume.clamp(0, 100));
+    _player.setPropertyDouble('volume', volume.clamp(0, 130));
   }
 }

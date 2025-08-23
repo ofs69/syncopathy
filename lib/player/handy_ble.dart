@@ -239,7 +239,7 @@ class HandyBle extends FunscriptDevice {
     }
 
     if (shouldSkip && !_isPaused) {
-      Logger.warning("skip occured!");
+      Logger.info("skip occured!");
       await stopPlayback();
       await startPlayback(positionMs, playbackRate);
     }

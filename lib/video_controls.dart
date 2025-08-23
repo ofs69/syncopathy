@@ -118,8 +118,8 @@ class _VideoControlsState extends State<VideoControls> {
                                     child: Slider(
                                       value: volume,
                                       min: 0,
-                                      max: 100,
-                                      divisions: 100,
+                                      max: 130,
+                                      divisions: 130 ~/ 5,
                                       label: '${volume.round()}%',
                                       onChanged: player.setVolume,
                                       onChangeStart: (_) =>

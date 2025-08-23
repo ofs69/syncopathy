@@ -422,6 +422,13 @@ class _MediaLibraryState extends State<MediaLibrary> {
     }
   }
 
+  void _selectAllVideos() {
+    setState(() {
+      _selectedVideos.clear();
+      _selectedVideos.addAll(_filteredVideos);
+    });
+  }
+
   Future<void> _deleteVideo(Video video) async {
     await _mediaManager.deleteVideo(video);
     _updateDisplayedVideos();
@@ -475,6 +482,14 @@ class _MediaLibraryState extends State<MediaLibrary> {
         },
       ),
       actions: [
+        Tooltip(
+          message: 'Selects all currently displayed videos.',
+          child: TextButton.icon(
+            icon: const Icon(Icons.select_all),
+            label: const Text('Select All'),
+            onPressed: _selectAllVideos,
+          ),
+        ),
         TextButton.icon(
           icon: const Icon(Icons.category),
           label: const Text('Add to category'),
