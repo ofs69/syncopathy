@@ -9,7 +9,7 @@ import 'package:syncopathy/update_checker_widget.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:window_manager/window_manager.dart';
 
-class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   const CustomAppBar({
     super.key,
     required this.currentVideoTitle,
@@ -27,8 +27,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final ValueNotifier<bool> showDebugNotifications;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  _CustomAppBarState createState() => _CustomAppBarState();
 
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -40,10 +45,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             return FadeTransition(opacity: animation, child: child);
           },
           child: Align(
-            key: ValueKey<String>(currentVideoTitle ?? widgetTitle),
+            key: ValueKey<String>(
+              widget.currentVideoTitle ?? widget.widgetTitle,
+            ),
             alignment: Alignment.centerLeft,
             child: Text(
-              currentVideoTitle ?? widgetTitle,
+              widget.currentVideoTitle ?? widget.widgetTitle,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
               softWrap: false,
@@ -57,63 +64,73 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           transitionBuilder: (Widget child, Animation<double> animation) {
             return FadeTransition(opacity: animation, child: child);
           },
-          child: currentVideo != null
+          child: widget.currentVideo != null
               ? Row(
                   key: const ValueKey<bool>(true),
                   children: [
                     IconButton(
                       icon: Icon(
-                        currentVideo.isFavorite
+                        widget.currentVideo.isFavorite
                             ? Icons.star
                             : Icons.star_border,
-                        color: currentVideo.isFavorite ? favoriteColor : null,
+                        color: widget.currentVideo.isFavorite
+                            ? favoriteColor
+                            : null,
                       ),
                       onPressed: () {
-                        currentVideo.isFavorite = !currentVideo.isFavorite;
-                        if (currentVideo.isFavorite) {
-                          currentVideo.isDislike = false;
-                        }
+                        setState(() {
+                          widget.currentVideo.isFavorite =
+                              !widget.currentVideo.isFavorite;
+                          if (widget.currentVideo.isFavorite) {
+                            widget.currentVideo.isDislike = false;
+                          }
+                        });
                         context
                             .read<SyncopathyModel>()
                             .mediaManager
-                            .saveFavorite(currentVideo);
+                            .saveFavorite(widget.currentVideo);
                       },
-                      tooltip: currentVideo.isFavorite
+                      tooltip: widget.currentVideo.isFavorite
                           ? 'Remove from Favorites'
                           : 'Add to Favorites',
                     ),
                     IconButton(
                       icon: Icon(
-                        currentVideo.isDislike
+                        widget.currentVideo.isDislike
                             ? Icons.thumb_down
                             : Icons.thumb_down_off_alt,
-                        color: currentVideo.isDislike ? dislikeColor : null,
+                        color: widget.currentVideo.isDislike
+                            ? dislikeColor
+                            : null,
                       ),
                       onPressed: () {
-                        currentVideo.isDislike = !currentVideo.isDislike;
-                        if (currentVideo.isDislike) {
-                          currentVideo.isFavorite = false;
-                        }
+                        setState(() {
+                          widget.currentVideo.isDislike =
+                              !widget.currentVideo.isDislike;
+                          if (widget.currentVideo.isDislike) {
+                            widget.currentVideo.isFavorite = false;
+                          }
+                        });
                         context
                             .read<SyncopathyModel>()
                             .mediaManager
-                            .saveDislike(currentVideo);
+                            .saveDislike(widget.currentVideo);
                       },
-                      tooltip: currentVideo.isDislike
+                      tooltip: widget.currentVideo.isDislike
                           ? 'Remove Dislike'
                           : 'Dislike Video',
                     ),
                     const SizedBox(width: 16),
                     IconButton(
                       icon: const Icon(Icons.close),
-                      onPressed: () => player.closeVideo(),
+                      onPressed: () => widget.player.closeVideo(),
                       tooltip: 'Close Video',
                     ),
                   ],
                 )
               : const SizedBox.shrink(key: ValueKey<bool>(false)),
         ),
-        if (player.playlist.value != null) const SizedBox(width: 16),
+        if (widget.player.playlist.value != null) const SizedBox(width: 16),
         const PlaylistControls(),
         const SizedBox(width: 20),
         const UpdateCheckerWidget(),
@@ -128,12 +145,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               Tooltip(
                 message: 'Toggle debug notifications',
                 child: ValueListenableBuilder<bool>(
-                  valueListenable: showDebugNotifications,
+                  valueListenable: widget.showDebugNotifications,
                   builder: (context, value, child) {
                     return Switch(
                       value: value,
                       onChanged: (newValue) {
-                        showDebugNotifications.value = newValue;
+                        widget.showDebugNotifications.value = newValue;
                       },
                     );
                   },
