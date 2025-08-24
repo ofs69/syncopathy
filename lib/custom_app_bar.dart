@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:syncopathy/connection_button.dart';
 import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/model/video_model.dart';
 import 'package:syncopathy/playlist_controls.dart';
 import 'package:syncopathy/update_checker_widget.dart';
 import 'package:syncopathy/helper/constants.dart';
@@ -21,19 +22,18 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
 
   final String? currentVideoTitle;
   final String widgetTitle;
-  final dynamic
-  currentVideo; // Using dynamic as the type is not fully known here
+  final Video? currentVideo;
   final PlayerModel player;
   final ValueNotifier<bool> showDebugNotifications;
 
   @override
-  _CustomAppBarState createState() => _CustomAppBarState();
+  CustomAppBarState createState() => CustomAppBarState();
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
-class _CustomAppBarState extends State<CustomAppBar> {
+class CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -70,53 +70,53 @@ class _CustomAppBarState extends State<CustomAppBar> {
                   children: [
                     IconButton(
                       icon: Icon(
-                        widget.currentVideo.isFavorite
+                        widget.currentVideo!.isFavorite
                             ? Icons.star
                             : Icons.star_border,
-                        color: widget.currentVideo.isFavorite
+                        color: widget.currentVideo!.isFavorite
                             ? favoriteColor
                             : null,
                       ),
                       onPressed: () {
                         setState(() {
-                          widget.currentVideo.isFavorite =
-                              !widget.currentVideo.isFavorite;
-                          if (widget.currentVideo.isFavorite) {
-                            widget.currentVideo.isDislike = false;
+                          widget.currentVideo!.isFavorite =
+                              !widget.currentVideo!.isFavorite;
+                          if (widget.currentVideo!.isFavorite) {
+                            widget.currentVideo!.isDislike = false;
                           }
                         });
                         context
                             .read<SyncopathyModel>()
                             .mediaManager
-                            .saveFavorite(widget.currentVideo);
+                            .saveFavorite(widget.currentVideo!);
                       },
-                      tooltip: widget.currentVideo.isFavorite
+                      tooltip: widget.currentVideo!.isFavorite
                           ? 'Remove from Favorites'
                           : 'Add to Favorites',
                     ),
                     IconButton(
                       icon: Icon(
-                        widget.currentVideo.isDislike
+                        widget.currentVideo!.isDislike
                             ? Icons.thumb_down
                             : Icons.thumb_down_off_alt,
-                        color: widget.currentVideo.isDislike
+                        color: widget.currentVideo!.isDislike
                             ? dislikeColor
                             : null,
                       ),
                       onPressed: () {
                         setState(() {
-                          widget.currentVideo.isDislike =
-                              !widget.currentVideo.isDislike;
-                          if (widget.currentVideo.isDislike) {
-                            widget.currentVideo.isFavorite = false;
+                          widget.currentVideo!.isDislike =
+                              !widget.currentVideo!.isDislike;
+                          if (widget.currentVideo!.isDislike) {
+                            widget.currentVideo!.isFavorite = false;
                           }
                         });
                         context
                             .read<SyncopathyModel>()
                             .mediaManager
-                            .saveDislike(widget.currentVideo);
+                            .saveDislike(widget.currentVideo!);
                       },
-                      tooltip: widget.currentVideo.isDislike
+                      tooltip: widget.currentVideo!.isDislike
                           ? 'Remove Dislike'
                           : 'Dislike Video',
                     ),
