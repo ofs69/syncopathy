@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/media_library_settings.dart';
 import 'package:syncopathy/category_selection_dialog.dart';
+import 'package:syncopathy/notification_feed.dart';
 
 enum SortOption {
   title('Title'),
@@ -281,10 +282,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
         .where((video) => !video.isDislike)
         .toList();
     if (playlistVideos.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No non-disliked videos to create a playlist!'),
-        ),
+      NotificationFeedManager.showErrorNotification(
+        context,
+        'No non-disliked videos to create a playlist!',
       );
       return;
     }
@@ -292,10 +292,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
       context,
       listen: false,
     ).setPlaylist(playlistVideos, 0);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Playlist created with ${playlistVideos.length} videos!'),
-      ),
+    NotificationFeedManager.showSuccessNotification(
+      context,
+      'Playlist created with ${playlistVideos.length} videos!',
     );
   }
 
@@ -312,8 +311,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
     if (availableVideos.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No videos available to choose from!')),
+        NotificationFeedManager.showErrorNotification(
+          context,
+          'No videos available to choose from!',
         );
       }
       return;

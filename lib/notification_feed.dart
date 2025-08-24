@@ -139,6 +139,20 @@ class NotificationFeedManager extends ChangeNotifier {
       _startRemovalTimer(notification);
     }
   }
+
+  static void showSuccessNotification(BuildContext context, String message) {
+    Provider.of<NotificationFeedManager>(
+      context,
+      listen: false,
+    ).addNotification(message, LogLevel.info, StackTrace.current);
+  }
+
+  static void showErrorNotification(BuildContext context, String message) {
+    Provider.of<NotificationFeedManager>(
+      context,
+      listen: false,
+    ).addNotification(message, LogLevel.error, StackTrace.current);
+  }
 }
 
 class NotificationFeed extends StatelessWidget {

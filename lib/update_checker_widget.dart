@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/update_checker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:syncopathy/notification_feed.dart';
 
 class UpdateCheckerWidget extends StatefulWidget {
   const UpdateCheckerWidget({super.key});
@@ -31,8 +32,9 @@ class _UpdateCheckerWidgetState extends State<UpdateCheckerWidget> {
         }
       });
       if (version != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('New version $version available!')),
+        NotificationFeedManager.showSuccessNotification(
+          context,
+          'New version $version available!',
         );
       } else {
         // Optionally, show a temporary green checkmark or a subtle animation
@@ -52,8 +54,9 @@ class _UpdateCheckerWidgetState extends State<UpdateCheckerWidget> {
     if (!await launchUrl(url)) {
       Logger.error('Could not launch $url');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open the release page.')),
+        NotificationFeedManager.showErrorNotification(
+          context,
+          'Could not open the release page.',
         );
       }
     }

@@ -12,6 +12,7 @@ import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:syncopathy/video_thumbnail.dart';
+import 'package:syncopathy/notification_feed.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -111,9 +112,10 @@ class _SettingsPageState extends State<SettingsPage>
     if (selectedDirectory != null) {
       await _model.settings.addPath(selectedDirectory);
       if (!mounted) return;
-      ScaffoldMessenger.of(
+      NotificationFeedManager.showSuccessNotification(
         context,
-      ).showSnackBar(SnackBar(content: Text('Added path: $selectedDirectory')));
+        'Added path: $selectedDirectory',
+      );
     }
   }
 
@@ -672,9 +674,9 @@ class _SettingsPageState extends State<SettingsPage>
             } catch (e) {
               Logger.error('Error opening app data directory: $e');
               if (!context.mounted) return;
-              final messenger = ScaffoldMessenger.of(context);
-              messenger.showSnackBar(
-                SnackBar(content: Text('Error opening directory: $e')),
+              NotificationFeedManager.showErrorNotification(
+                context,
+                'Error opening directory: $e',
               );
             }
           },
@@ -785,10 +787,9 @@ class _SettingsPageState extends State<SettingsPage>
       },
     ).then((count) {
       if (context.mounted && count != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Thumbnail generation complete. Generated: $count'),
-          ),
+        NotificationFeedManager.showSuccessNotification(
+          context,
+          'Thumbnail generation complete. Generated: $count',
         );
       }
     });

@@ -3,6 +3,7 @@ import 'package:isar/isar.dart';
 import 'package:syncopathy/main.dart';
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/model/user_category.dart';
+import 'package:syncopathy/notification_feed.dart';
 
 class CategorySelectionDialog extends StatefulWidget {
   final UserCategory? initialSelectedCategory;
@@ -144,12 +145,9 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                                       item,
                                     );
                                     if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Category "${item.name}" deleted',
-                                        ),
-                                      ),
+                                    NotificationFeedManager.showSuccessNotification(
+                                      context,
+                                      'Category "${item.name}" deleted',
                                     );
                                     setState(() {}); // Refresh the list
                                   }
