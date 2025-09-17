@@ -1,4 +1,4 @@
-// Auto-generated on 2025-08-01 10:24:23
+// Auto-generated on 2025-09-17 09:14:18
 syntax = "proto3";
 package hdy_rpc;
 import "notifications.proto";
@@ -30,6 +30,7 @@ message Notification{
         NotificationButtonEvent notification_button_event = 703;
         NotificationBatteryChanged notification_battery_changed = 705;
         NotificationError notification_error = 706;
+        NotificationIdleTimeout notification_idle_timeout = 707; //Added in FW4.0.19
         NotificationHampChanged notification_hamp_changed = 720;
         NotificationHdspChanged notification_hdsp_changed = 740;
         NotificationHspThresholdReached notification_hsp_threshold_reached = 860;
@@ -182,7 +183,6 @@ message Response {
         ResponseHrppPatternsGet response_hrpp_patterns_get = 926;
     }
     Error error = 2;
-    Transportation transport = 3; //optional - internal use only
 }
 enum MessageType{
     MESSAGE_TYPE_UNKNOWN = 0; //Must be there since enum starts with 0

@@ -479,3 +479,26 @@ final $typed_data.Uint8List notificationWifiScanCompleteDescriptor =
     $convert.base64Decode(
         'ChxOb3RpZmljYXRpb25XaWZpU2NhbkNvbXBsZXRlEiQKDm5yX29mX25ldHdvcmtzGAEgASgNUg'
         'xuck9mTmV0d29ya3M=');
+
+@$core.Deprecated('Use notificationIdleTimeoutDescriptor instead')
+const NotificationIdleTimeout$json = {
+  '1': 'NotificationIdleTimeout',
+  '2': [
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.IdleTimeoutState',
+      '10': 'state'
+    },
+    {'1': 'idle_time', '3': 2, '4': 1, '5': 13, '10': 'idleTime'},
+    {'1': 'warning_time', '3': 3, '4': 1, '5': 13, '10': 'warningTime'},
+  ],
+};
+
+/// Descriptor for `NotificationIdleTimeout`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List notificationIdleTimeoutDescriptor = $convert.base64Decode(
+    'ChdOb3RpZmljYXRpb25JZGxlVGltZW91dBIvCgVzdGF0ZRgBIAEoDjIZLmhkeV9ycGMuSWRsZV'
+    'RpbWVvdXRTdGF0ZVIFc3RhdGUSGwoJaWRsZV90aW1lGAIgASgNUghpZGxlVGltZRIhCgx3YXJu'
+    'aW5nX3RpbWUYAyABKA1SC3dhcm5pbmdUaW1l');

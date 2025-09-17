@@ -1560,6 +1560,7 @@ class NotificationError extends $pb.GeneratedMessage {
   void clearMessage() => $_clearField(2);
 }
 
+/// Triggered when a wifi scan is completed
 class NotificationWifiScanComplete extends $pb.GeneratedMessage {
   factory NotificationWifiScanComplete({
     $core.int? nrOfNetworks,
@@ -1619,6 +1620,95 @@ class NotificationWifiScanComplete extends $pb.GeneratedMessage {
   $core.bool hasNrOfNetworks() => $_has(0);
   @$pb.TagNumber(1)
   void clearNrOfNetworks() => $_clearField(1);
+}
+
+/// Triggers when the motor has been inactive for a while (configurable) - Battery devices will shut down and non-battery devices will disconnect WiFi
+/// Will go to sleep after 60 seconds after this notification
+/// Added in FW4.0.19
+class NotificationIdleTimeout extends $pb.GeneratedMessage {
+  factory NotificationIdleTimeout({
+    $0.IdleTimeoutState? state,
+    $core.int? idleTime,
+    $core.int? warningTime,
+  }) {
+    final result = create();
+    if (state != null) result.state = state;
+    if (idleTime != null) result.idleTime = idleTime;
+    if (warningTime != null) result.warningTime = warningTime;
+    return result;
+  }
+
+  NotificationIdleTimeout._();
+
+  factory NotificationIdleTimeout.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory NotificationIdleTimeout.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'NotificationIdleTimeout',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..e<$0.IdleTimeoutState>(
+        1, _omitFieldNames ? '' : 'state', $pb.PbFieldType.OE,
+        defaultOrMaker: $0.IdleTimeoutState.IDLE_TIMEOUT_STATE_WARNING,
+        valueOf: $0.IdleTimeoutState.valueOf,
+        enumValues: $0.IdleTimeoutState.values)
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'idleTime', $pb.PbFieldType.OU3)
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'warningTime', $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationIdleTimeout clone() =>
+      NotificationIdleTimeout()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationIdleTimeout copyWith(
+          void Function(NotificationIdleTimeout) updates) =>
+      super.copyWith((message) => updates(message as NotificationIdleTimeout))
+          as NotificationIdleTimeout;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static NotificationIdleTimeout create() => NotificationIdleTimeout._();
+  @$core.override
+  NotificationIdleTimeout createEmptyInstance() => create();
+  static $pb.PbList<NotificationIdleTimeout> createRepeated() =>
+      $pb.PbList<NotificationIdleTimeout>();
+  @$core.pragma('dart2js:noInline')
+  static NotificationIdleTimeout getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<NotificationIdleTimeout>(create);
+  static NotificationIdleTimeout? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.IdleTimeoutState get state => $_getN(0);
+  @$pb.TagNumber(1)
+  set state($0.IdleTimeoutState value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasState() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearState() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get idleTime => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set idleTime($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasIdleTime() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearIdleTime() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get warningTime => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set warningTime($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasWarningTime() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearWarningTime() => $_clearField(3);
 }
 
 const $core.bool _omitFieldNames =

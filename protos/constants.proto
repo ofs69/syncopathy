@@ -1,4 +1,4 @@
-// Auto-generated on 2025-08-01 10:24:23
+// Auto-generated on 2025-09-17 09:14:18
 syntax = "proto3";
 package hdy_rpc;
 //NB! The codes are not in order, but in groups
@@ -28,10 +28,14 @@ enum HandyErrorCodes{
     ERROR_RPC_FAILED_TO_UNPACK = 100020;                        //Failed to unpack the RPC message
     ERROR_RPC_NOT_ALLOWED_WITH_THIS_TRANSPORT_MODE = 100021;    //RPC is not allowed with this transport mode
     ERROR_RPC_NETWORK_DELAY_TOO_BIG = 100022;                   //Network delay is too big. Max allowed is 24h == 86400s == 86400000ms
-    ERROR_FAIL = 100023;                                        //ESP_FAIL is -1 -> This will be converted to this error
+    ERROR_RPC_NOT_INITIALIZED = 100029;                         //RPC is not initialized -> RPC is not allowed to proceed - Added in FW 4.0.16
+    ERROR_RPC_HANDLER_QUEUE_FULL = 100030;                      //RPC handler queue is full -> RPC is not allowed to proceed - Added in FW 4.0.16
+    ERROR_RPC_SEND_TIMEOUT = 100031;                            //RPC send timeout (5s) -> RPC is not allowed to proceed - Added in FW 4.0.16
+    ERROR_FAIL = 100023;                                        //Generic error - ESP_FAIL -> This will be converted to this error - ESP_FAIL is -1, negative values are not supported
     ERROR_HALL_SENSOR_ERROR = 100026;                           //Hall sensor error
-    ERROR_OVERCLOCKING_NOT_SUPPORTED = 100027;                   //Added in 4.0.15 - Overclocking is not supported on this device
-    ERROR_OVERCLOCKING_IS_NOT_ENABLED = 100028;                //Added in 4.0.15 - Trying to overclock, but overclocking is not enabled in the FW
+    ERROR_OVERCLOCKING_NOT_SUPPORTED = 100027;                  //Added in 4.0.15 - Overclocking is not supported on this device
+    ERROR_OVERCLOCKING_IS_NOT_ENABLED = 100028;                 //Added in 4.0.15 - Trying to overclock, but overclocking is not enabled in the FW
+    ERROR_MODE_CHANGE_NOT_ALLOWED_WHEN_DISABLED = 100032;       //When in mode DISABLED, mode change is not allowed. - Added in FW 4.0.16
     //Power OTA errors
     ERROR_OTA_ERR_NO_OTA_PARTITION = 200001;
     ERROR_OTA_ERR_INVALID_BIN = 20000;
@@ -51,6 +55,7 @@ enum Mode{
     MODE_IDLE = 7;          //Nothing is running -> when changing online mode this state is set to allocated correct memory pool in mode (HSP)
     MODE_HVP = 8;
     MODE_HRPP = 9;
+    MODE_DISABLED = 10; //Nothing works in this mode. Mode change is not possible externally or from buttons. Can only be set in the FW, not externally. Used before shutdown or in critical errors. - Added in FW 4.0.16
 }
 enum HampPlayState{
     HAMP_STATE_STOPPED = 0;
@@ -294,12 +299,6 @@ enum BleState{
     BLE_STATE_CONNECTED = 3;
 }
 // There is no need to set the transportation. This is handled in the FW.
-enum Transportation{
-    TRANSPORTATION_WIFI = 0;
-    TRANSPORTATION_BLE = 1;
-    TRANSPORTATION_EXTERNAL = 3; //Websocket, BLE & AP (use for notifications -> sends to BLE, Wifi & AP if connected)
-    TRANSPORTATION_AP = 4;       //Direct AP connection (NB! not implemented)
-}
 ///////////////////////// Div constants /////////////////////////
 message BatteryState{
     uint32 level = 1; //0-100
@@ -311,4 +310,14 @@ message BatteryState{
     uint32 battery_adc_value = 7; //0-4095
     float battery_temperature = 8; //in C //Added in FW 4.0.16
     uint32 battery_temperature_adc_value = 9; //0-4095 //Added in FW 4.0.16
+    bool not_supported_charger = 10; //Handy 2 only - If the charger is not supported by the device (ex: <15V) - Added in FW 4.0.16
+    bool shut_down_voltage_detected = 11; //If the device is shutting down due to low battery voltage - Added in FW 4.0.16
+    bool charger_fault_detected = 12; //Handy 2 only - If the charger is faulty (Most likely high temperature) - Added in FW 4.0.16
+}
+// The 3 different potential Idle timeout states
+//Added in FW4.0.19
+enum IdleTimeoutState{
+    IDLE_TIMEOUT_STATE_WARNING = 0; //Idle timeout warning - will go to sleep in 60 seconds if no interaction
+    IDLE_TIMEOUT_STATE_CANCELLED = 1; //Idle timeout cancelled - will not go to sleep
+    IDLE_TIMEOUT_STATE_SLEEPING = 2; //Idle timeout sleeping - device is now sleeping
 }

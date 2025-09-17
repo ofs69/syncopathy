@@ -1,4 +1,4 @@
-// Auto-generated on 2025-08-01 10:24:23
+// Auto-generated on 2025-09-17 09:14:18
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
@@ -104,6 +104,15 @@ message NotificationError{
     int32 code = 1;
     string message = 2;
 }
+//Triggered when a wifi scan is completed
 message NotificationWifiScanComplete{
     uint32 nr_of_networks = 1;
+}
+//Triggers when the motor has been inactive for a while (configurable) - Battery devices will shut down and non-battery devices will disconnect WiFi
+//Will go to sleep after 60 seconds after this notification
+//Added in FW4.0.19
+message NotificationIdleTimeout{
+    IdleTimeoutState state = 1;
+    uint32 idle_time = 2; //[ms] The time the device has been idle
+    uint32 warning_time = 3; //[ms] The time until the device will go to sleep (hardcoded to 60 seconds) 
 }

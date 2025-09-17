@@ -43,10 +43,14 @@ const HandyErrorCodes$json = {
     {'1': 'ERROR_RPC_FAILED_TO_UNPACK', '2': 100020},
     {'1': 'ERROR_RPC_NOT_ALLOWED_WITH_THIS_TRANSPORT_MODE', '2': 100021},
     {'1': 'ERROR_RPC_NETWORK_DELAY_TOO_BIG', '2': 100022},
+    {'1': 'ERROR_RPC_NOT_INITIALIZED', '2': 100029},
+    {'1': 'ERROR_RPC_HANDLER_QUEUE_FULL', '2': 100030},
+    {'1': 'ERROR_RPC_SEND_TIMEOUT', '2': 100031},
     {'1': 'ERROR_FAIL', '2': 100023},
     {'1': 'ERROR_HALL_SENSOR_ERROR', '2': 100026},
     {'1': 'ERROR_OVERCLOCKING_NOT_SUPPORTED', '2': 100027},
     {'1': 'ERROR_OVERCLOCKING_IS_NOT_ENABLED', '2': 100028},
+    {'1': 'ERROR_MODE_CHANGE_NOT_ALLOWED_WHEN_DISABLED', '2': 100032},
     {'1': 'ERROR_OTA_ERR_NO_OTA_PARTITION', '2': 200001},
     {'1': 'ERROR_OTA_ERR_INVALID_BIN', '2': 20000},
     {'1': 'ERROR_OTA_ERR_INVALID_PARAM', '2': 200003},
@@ -72,13 +76,15 @@ final $typed_data.Uint8List handyErrorCodesDescriptor = $convert.base64Decode(
     'VElPTl9OT1RfU1VQUE9SVEVEELGNBhIdChdFUlJPUl9SUENfTVNHX1BPT0xfRlVMTBCzjQYSIA'
     'oaRVJST1JfUlBDX0ZBSUxFRF9UT19VTlBBQ0sQtI0GEjQKLkVSUk9SX1JQQ19OT1RfQUxMT1dF'
     'RF9XSVRIX1RISVNfVFJBTlNQT1JUX01PREUQtY0GEiUKH0VSUk9SX1JQQ19ORVRXT1JLX0RFTE'
-    'FZX1RPT19CSUcQto0GEhAKCkVSUk9SX0ZBSUwQt40GEh0KF0VSUk9SX0hBTExfU0VOU09SX0VS'
-    'Uk9SELqNBhImCiBFUlJPUl9PVkVSQ0xPQ0tJTkdfTk9UX1NVUFBPUlRFRBC7jQYSJwohRVJST1'
-    'JfT1ZFUkNMT0NLSU5HX0lTX05PVF9FTkFCTEVEELyNBhIkCh5FUlJPUl9PVEFfRVJSX05PX09U'
-    'QV9QQVJUSVRJT04QwZoMEh8KGUVSUk9SX09UQV9FUlJfSU5WQUxJRF9CSU4QoJwBEiEKG0VSUk'
-    '9SX09UQV9FUlJfSU5WQUxJRF9QQVJBTRDDmgwSMQorRVJST1JfT1RBX0VSUl9ORVdfT1RBX0hB'
-    'U19QUkVWSU9VU0xZX0ZBSUxFRBDEmgwSKwolRVJST1JfT1RBX0VSUl9ORVdfT1RBX1NBTUVfQV'
-    'NfQ1VSUkVOVBDFmgw=');
+    'FZX1RPT19CSUcQto0GEh8KGUVSUk9SX1JQQ19OT1RfSU5JVElBTElaRUQQvY0GEiIKHEVSUk9S'
+    'X1JQQ19IQU5ETEVSX1FVRVVFX0ZVTEwQvo0GEhwKFkVSUk9SX1JQQ19TRU5EX1RJTUVPVVQQv4'
+    '0GEhAKCkVSUk9SX0ZBSUwQt40GEh0KF0VSUk9SX0hBTExfU0VOU09SX0VSUk9SELqNBhImCiBF'
+    'UlJPUl9PVkVSQ0xPQ0tJTkdfTk9UX1NVUFBPUlRFRBC7jQYSJwohRVJST1JfT1ZFUkNMT0NLSU'
+    '5HX0lTX05PVF9FTkFCTEVEELyNBhIxCitFUlJPUl9NT0RFX0NIQU5HRV9OT1RfQUxMT1dFRF9X'
+    'SEVOX0RJU0FCTEVEEMCNBhIkCh5FUlJPUl9PVEFfRVJSX05PX09UQV9QQVJUSVRJT04QwZoMEh'
+    '8KGUVSUk9SX09UQV9FUlJfSU5WQUxJRF9CSU4QoJwBEiEKG0VSUk9SX09UQV9FUlJfSU5WQUxJ'
+    'RF9QQVJBTRDDmgwSMQorRVJST1JfT1RBX0VSUl9ORVdfT1RBX0hBU19QUkVWSU9VU0xZX0ZBSU'
+    'xFRBDEmgwSKwolRVJST1JfT1RBX0VSUl9ORVdfT1RBX1NBTUVfQVNfQ1VSUkVOVBDFmgw=');
 
 @$core.Deprecated('Use modeDescriptor instead')
 const Mode$json = {
@@ -94,6 +100,7 @@ const Mode$json = {
     {'1': 'MODE_IDLE', '2': 7},
     {'1': 'MODE_HVP', '2': 8},
     {'1': 'MODE_HRPP', '2': 9},
+    {'1': 'MODE_DISABLED', '2': 10},
   ],
 };
 
@@ -101,7 +108,8 @@ const Mode$json = {
 final $typed_data.Uint8List modeDescriptor = $convert.base64Decode(
     'CgRNb2RlEg0KCU1PREVfSEFNUBAAEg0KCU1PREVfSFNTUBABEg0KCU1PREVfSERTUBACEhQKEE'
     '1PREVfTUFJTlRFTkFOQ0UQAxIMCghNT0RFX0hTUBAEEgwKCE1PREVfT1RBEAUSDwoLTU9ERV9C'
-    'VVRUT04QBhINCglNT0RFX0lETEUQBxIMCghNT0RFX0hWUBAIEg0KCU1PREVfSFJQUBAJ');
+    'VVRUT04QBhINCglNT0RFX0lETEUQBxIMCghNT0RFX0hWUBAIEg0KCU1PREVfSFJQUBAJEhEKDU'
+    '1PREVfRElTQUJMRUQQCg==');
 
 @$core.Deprecated('Use hampPlayStateDescriptor instead')
 const HampPlayState$json = {
@@ -409,22 +417,21 @@ final $typed_data.Uint8List bleStateDescriptor = $convert.base64Decode(
     'lOSVRJQUxJWklORxABEhkKFUJMRV9TVEFURV9BRFZFUlRJU0lORxACEhcKE0JMRV9TVEFURV9D'
     'T05ORUNURUQQAw==');
 
-@$core.Deprecated('Use transportationDescriptor instead')
-const Transportation$json = {
-  '1': 'Transportation',
+@$core.Deprecated('Use idleTimeoutStateDescriptor instead')
+const IdleTimeoutState$json = {
+  '1': 'IdleTimeoutState',
   '2': [
-    {'1': 'TRANSPORTATION_WIFI', '2': 0},
-    {'1': 'TRANSPORTATION_BLE', '2': 1},
-    {'1': 'TRANSPORTATION_EXTERNAL', '2': 3},
-    {'1': 'TRANSPORTATION_AP', '2': 4},
+    {'1': 'IDLE_TIMEOUT_STATE_WARNING', '2': 0},
+    {'1': 'IDLE_TIMEOUT_STATE_CANCELLED', '2': 1},
+    {'1': 'IDLE_TIMEOUT_STATE_SLEEPING', '2': 2},
   ],
 };
 
-/// Descriptor for `Transportation`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List transportationDescriptor = $convert.base64Decode(
-    'Cg5UcmFuc3BvcnRhdGlvbhIXChNUUkFOU1BPUlRBVElPTl9XSUZJEAASFgoSVFJBTlNQT1JUQV'
-    'RJT05fQkxFEAESGwoXVFJBTlNQT1JUQVRJT05fRVhURVJOQUwQAxIVChFUUkFOU1BPUlRBVElP'
-    'Tl9BUBAE');
+/// Descriptor for `IdleTimeoutState`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List idleTimeoutStateDescriptor = $convert.base64Decode(
+    'ChBJZGxlVGltZW91dFN0YXRlEh4KGklETEVfVElNRU9VVF9TVEFURV9XQVJOSU5HEAASIAocSU'
+    'RMRV9USU1FT1VUX1NUQVRFX0NBTkNFTExFRBABEh8KG0lETEVfVElNRU9VVF9TVEFURV9TTEVF'
+    'UElORxAC');
 
 @$core.Deprecated('Use hampStateDescriptor instead')
 const HampState$json = {
@@ -672,6 +679,27 @@ const BatteryState$json = {
       '5': 13,
       '10': 'batteryTemperatureAdcValue'
     },
+    {
+      '1': 'not_supported_charger',
+      '3': 10,
+      '4': 1,
+      '5': 8,
+      '10': 'notSupportedCharger'
+    },
+    {
+      '1': 'shut_down_voltage_detected',
+      '3': 11,
+      '4': 1,
+      '5': 8,
+      '10': 'shutDownVoltageDetected'
+    },
+    {
+      '1': 'charger_fault_detected',
+      '3': 12,
+      '4': 1,
+      '5': 8,
+      '10': 'chargerFaultDetected'
+    },
   ],
 };
 
@@ -684,4 +712,7 @@ final $typed_data.Uint8List batteryStateDescriptor = $convert.base64Decode(
     'DVILdXNiQWRjVmFsdWUSKgoRYmF0dGVyeV9hZGNfdmFsdWUYByABKA1SD2JhdHRlcnlBZGNWYW'
     'x1ZRIvChNiYXR0ZXJ5X3RlbXBlcmF0dXJlGAggASgCUhJiYXR0ZXJ5VGVtcGVyYXR1cmUSQQod'
     'YmF0dGVyeV90ZW1wZXJhdHVyZV9hZGNfdmFsdWUYCSABKA1SGmJhdHRlcnlUZW1wZXJhdHVyZU'
-    'FkY1ZhbHVl');
+    'FkY1ZhbHVlEjIKFW5vdF9zdXBwb3J0ZWRfY2hhcmdlchgKIAEoCFITbm90U3VwcG9ydGVkQ2hh'
+    'cmdlchI7ChpzaHV0X2Rvd25fdm9sdGFnZV9kZXRlY3RlZBgLIAEoCFIXc2h1dERvd25Wb2x0YW'
+    'dlRGV0ZWN0ZWQSNAoWY2hhcmdlcl9mYXVsdF9kZXRlY3RlZBgMIAEoCFIUY2hhcmdlckZhdWx0'
+    'RGV0ZWN0ZWQ=');

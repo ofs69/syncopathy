@@ -77,6 +77,12 @@ class HandyErrorCodes extends $pb.ProtobufEnum {
   static const HandyErrorCodes ERROR_RPC_NETWORK_DELAY_TOO_BIG =
       HandyErrorCodes._(
           100022, _omitEnumNames ? '' : 'ERROR_RPC_NETWORK_DELAY_TOO_BIG');
+  static const HandyErrorCodes ERROR_RPC_NOT_INITIALIZED = HandyErrorCodes._(
+      100029, _omitEnumNames ? '' : 'ERROR_RPC_NOT_INITIALIZED');
+  static const HandyErrorCodes ERROR_RPC_HANDLER_QUEUE_FULL = HandyErrorCodes._(
+      100030, _omitEnumNames ? '' : 'ERROR_RPC_HANDLER_QUEUE_FULL');
+  static const HandyErrorCodes ERROR_RPC_SEND_TIMEOUT =
+      HandyErrorCodes._(100031, _omitEnumNames ? '' : 'ERROR_RPC_SEND_TIMEOUT');
   static const HandyErrorCodes ERROR_FAIL =
       HandyErrorCodes._(100023, _omitEnumNames ? '' : 'ERROR_FAIL');
   static const HandyErrorCodes ERROR_HALL_SENSOR_ERROR = HandyErrorCodes._(
@@ -87,6 +93,9 @@ class HandyErrorCodes extends $pb.ProtobufEnum {
   static const HandyErrorCodes ERROR_OVERCLOCKING_IS_NOT_ENABLED =
       HandyErrorCodes._(
           100028, _omitEnumNames ? '' : 'ERROR_OVERCLOCKING_IS_NOT_ENABLED');
+  static const HandyErrorCodes ERROR_MODE_CHANGE_NOT_ALLOWED_WHEN_DISABLED =
+      HandyErrorCodes._(100032,
+          _omitEnumNames ? '' : 'ERROR_MODE_CHANGE_NOT_ALLOWED_WHEN_DISABLED');
 
   /// Power OTA errors
   static const HandyErrorCodes ERROR_OTA_ERR_NO_OTA_PARTITION =
@@ -129,10 +138,14 @@ class HandyErrorCodes extends $pb.ProtobufEnum {
     ERROR_RPC_FAILED_TO_UNPACK,
     ERROR_RPC_NOT_ALLOWED_WITH_THIS_TRANSPORT_MODE,
     ERROR_RPC_NETWORK_DELAY_TOO_BIG,
+    ERROR_RPC_NOT_INITIALIZED,
+    ERROR_RPC_HANDLER_QUEUE_FULL,
+    ERROR_RPC_SEND_TIMEOUT,
     ERROR_FAIL,
     ERROR_HALL_SENSOR_ERROR,
     ERROR_OVERCLOCKING_NOT_SUPPORTED,
     ERROR_OVERCLOCKING_IS_NOT_ENABLED,
+    ERROR_MODE_CHANGE_NOT_ALLOWED_WHEN_DISABLED,
     ERROR_OTA_ERR_NO_OTA_PARTITION,
     ERROR_OTA_ERR_INVALID_BIN,
     ERROR_OTA_ERR_INVALID_PARAM,
@@ -161,6 +174,8 @@ class Mode extends $pb.ProtobufEnum {
   static const Mode MODE_IDLE = Mode._(7, _omitEnumNames ? '' : 'MODE_IDLE');
   static const Mode MODE_HVP = Mode._(8, _omitEnumNames ? '' : 'MODE_HVP');
   static const Mode MODE_HRPP = Mode._(9, _omitEnumNames ? '' : 'MODE_HRPP');
+  static const Mode MODE_DISABLED =
+      Mode._(10, _omitEnumNames ? '' : 'MODE_DISABLED');
 
   static const $core.List<Mode> values = <Mode>[
     MODE_HAMP,
@@ -173,10 +188,11 @@ class Mode extends $pb.ProtobufEnum {
     MODE_IDLE,
     MODE_HVP,
     MODE_HRPP,
+    MODE_DISABLED,
   ];
 
   static final $core.List<Mode?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 9);
+      $pb.ProtobufEnum.$_initByValueList(values, 10);
   static Mode? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
@@ -730,30 +746,30 @@ class BleState extends $pb.ProtobufEnum {
   const BleState._(super.value, super.name);
 }
 
-/// There is no need to set the transportation. This is handled in the FW.
-class Transportation extends $pb.ProtobufEnum {
-  static const Transportation TRANSPORTATION_WIFI =
-      Transportation._(0, _omitEnumNames ? '' : 'TRANSPORTATION_WIFI');
-  static const Transportation TRANSPORTATION_BLE =
-      Transportation._(1, _omitEnumNames ? '' : 'TRANSPORTATION_BLE');
-  static const Transportation TRANSPORTATION_EXTERNAL =
-      Transportation._(3, _omitEnumNames ? '' : 'TRANSPORTATION_EXTERNAL');
-  static const Transportation TRANSPORTATION_AP =
-      Transportation._(4, _omitEnumNames ? '' : 'TRANSPORTATION_AP');
+///  The 3 different potential Idle timeout states
+/// Added in FW4.0.19
+class IdleTimeoutState extends $pb.ProtobufEnum {
+  static const IdleTimeoutState IDLE_TIMEOUT_STATE_WARNING =
+      IdleTimeoutState._(0, _omitEnumNames ? '' : 'IDLE_TIMEOUT_STATE_WARNING');
+  static const IdleTimeoutState IDLE_TIMEOUT_STATE_CANCELLED =
+      IdleTimeoutState._(
+          1, _omitEnumNames ? '' : 'IDLE_TIMEOUT_STATE_CANCELLED');
+  static const IdleTimeoutState IDLE_TIMEOUT_STATE_SLEEPING =
+      IdleTimeoutState._(
+          2, _omitEnumNames ? '' : 'IDLE_TIMEOUT_STATE_SLEEPING');
 
-  static const $core.List<Transportation> values = <Transportation>[
-    TRANSPORTATION_WIFI,
-    TRANSPORTATION_BLE,
-    TRANSPORTATION_EXTERNAL,
-    TRANSPORTATION_AP,
+  static const $core.List<IdleTimeoutState> values = <IdleTimeoutState>[
+    IDLE_TIMEOUT_STATE_WARNING,
+    IDLE_TIMEOUT_STATE_CANCELLED,
+    IDLE_TIMEOUT_STATE_SLEEPING,
   ];
 
-  static final $core.List<Transportation?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 4);
-  static Transportation? valueOf($core.int value) =>
+  static final $core.List<IdleTimeoutState?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static IdleTimeoutState? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
-  const Transportation._(super.value, super.name);
+  const IdleTimeoutState._(super.value, super.name);
 }
 
 const $core.bool _omitEnumNames =

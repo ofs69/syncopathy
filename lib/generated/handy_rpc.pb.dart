@@ -14,7 +14,6 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'constants.pbenum.dart' as $2;
 import 'handy_rpc.pbenum.dart';
 import 'messages.pb.dart' as $1;
 import 'notifications.pb.dart' as $0;
@@ -33,6 +32,7 @@ enum Notification_Notification {
   notificationButtonEvent,
   notificationBatteryChanged,
   notificationError,
+  notificationIdleTimeout,
   notificationHampChanged,
   notificationHdspChanged,
   notificationHspThresholdReached,
@@ -76,6 +76,7 @@ class Notification extends $pb.GeneratedMessage {
     $0.NotificationButtonEvent? notificationButtonEvent,
     $0.NotificationBatteryChanged? notificationBatteryChanged,
     $0.NotificationError? notificationError,
+    $0.NotificationIdleTimeout? notificationIdleTimeout,
     $0.NotificationHampChanged? notificationHampChanged,
     $0.NotificationHdspChanged? notificationHdspChanged,
     $0.NotificationHspThresholdReached? notificationHspThresholdReached,
@@ -112,6 +113,8 @@ class Notification extends $pb.GeneratedMessage {
     if (notificationBatteryChanged != null)
       result.notificationBatteryChanged = notificationBatteryChanged;
     if (notificationError != null) result.notificationError = notificationError;
+    if (notificationIdleTimeout != null)
+      result.notificationIdleTimeout = notificationIdleTimeout;
     if (notificationHampChanged != null)
       result.notificationHampChanged = notificationHampChanged;
     if (notificationHdspChanged != null)
@@ -168,6 +171,7 @@ class Notification extends $pb.GeneratedMessage {
     703: Notification_Notification.notificationButtonEvent,
     705: Notification_Notification.notificationBatteryChanged,
     706: Notification_Notification.notificationError,
+    707: Notification_Notification.notificationIdleTimeout,
     720: Notification_Notification.notificationHampChanged,
     740: Notification_Notification.notificationHdspChanged,
     860: Notification_Notification.notificationHspThresholdReached,
@@ -200,6 +204,7 @@ class Notification extends $pb.GeneratedMessage {
       703,
       705,
       706,
+      707,
       720,
       740,
       860,
@@ -244,6 +249,9 @@ class Notification extends $pb.GeneratedMessage {
         subBuilder: $0.NotificationBatteryChanged.create)
     ..aOM<$0.NotificationError>(706, _omitFieldNames ? '' : 'notificationError',
         subBuilder: $0.NotificationError.create)
+    ..aOM<$0.NotificationIdleTimeout>(
+        707, _omitFieldNames ? '' : 'notificationIdleTimeout',
+        subBuilder: $0.NotificationIdleTimeout.create)
     ..aOM<$0.NotificationHampChanged>(
         720, _omitFieldNames ? '' : 'notificationHampChanged',
         subBuilder: $0.NotificationHampChanged.create)
@@ -442,215 +450,227 @@ class Notification extends $pb.GeneratedMessage {
   @$pb.TagNumber(706)
   $0.NotificationError ensureNotificationError() => $_ensure(9);
 
+  @$pb.TagNumber(707)
+  $0.NotificationIdleTimeout get notificationIdleTimeout => $_getN(10);
+  @$pb.TagNumber(707)
+  set notificationIdleTimeout($0.NotificationIdleTimeout value) =>
+      $_setField(707, value);
+  @$pb.TagNumber(707)
+  $core.bool hasNotificationIdleTimeout() => $_has(10);
+  @$pb.TagNumber(707)
+  void clearNotificationIdleTimeout() => $_clearField(707);
+  @$pb.TagNumber(707)
+  $0.NotificationIdleTimeout ensureNotificationIdleTimeout() => $_ensure(10);
+
   @$pb.TagNumber(720)
-  $0.NotificationHampChanged get notificationHampChanged => $_getN(10);
+  $0.NotificationHampChanged get notificationHampChanged => $_getN(11);
   @$pb.TagNumber(720)
   set notificationHampChanged($0.NotificationHampChanged value) =>
       $_setField(720, value);
   @$pb.TagNumber(720)
-  $core.bool hasNotificationHampChanged() => $_has(10);
+  $core.bool hasNotificationHampChanged() => $_has(11);
   @$pb.TagNumber(720)
   void clearNotificationHampChanged() => $_clearField(720);
   @$pb.TagNumber(720)
-  $0.NotificationHampChanged ensureNotificationHampChanged() => $_ensure(10);
+  $0.NotificationHampChanged ensureNotificationHampChanged() => $_ensure(11);
 
   @$pb.TagNumber(740)
-  $0.NotificationHdspChanged get notificationHdspChanged => $_getN(11);
+  $0.NotificationHdspChanged get notificationHdspChanged => $_getN(12);
   @$pb.TagNumber(740)
   set notificationHdspChanged($0.NotificationHdspChanged value) =>
       $_setField(740, value);
   @$pb.TagNumber(740)
-  $core.bool hasNotificationHdspChanged() => $_has(11);
+  $core.bool hasNotificationHdspChanged() => $_has(12);
   @$pb.TagNumber(740)
   void clearNotificationHdspChanged() => $_clearField(740);
   @$pb.TagNumber(740)
-  $0.NotificationHdspChanged ensureNotificationHdspChanged() => $_ensure(11);
+  $0.NotificationHdspChanged ensureNotificationHdspChanged() => $_ensure(12);
 
   @$pb.TagNumber(860)
   $0.NotificationHspThresholdReached get notificationHspThresholdReached =>
-      $_getN(12);
+      $_getN(13);
   @$pb.TagNumber(860)
   set notificationHspThresholdReached(
           $0.NotificationHspThresholdReached value) =>
       $_setField(860, value);
   @$pb.TagNumber(860)
-  $core.bool hasNotificationHspThresholdReached() => $_has(12);
+  $core.bool hasNotificationHspThresholdReached() => $_has(13);
   @$pb.TagNumber(860)
   void clearNotificationHspThresholdReached() => $_clearField(860);
   @$pb.TagNumber(860)
   $0.NotificationHspThresholdReached ensureNotificationHspThresholdReached() =>
-      $_ensure(12);
+      $_ensure(13);
 
   @$pb.TagNumber(861)
-  $0.NotificationHspStateChanged get notificationHspStateChanged => $_getN(13);
+  $0.NotificationHspStateChanged get notificationHspStateChanged => $_getN(14);
   @$pb.TagNumber(861)
   set notificationHspStateChanged($0.NotificationHspStateChanged value) =>
       $_setField(861, value);
   @$pb.TagNumber(861)
-  $core.bool hasNotificationHspStateChanged() => $_has(13);
+  $core.bool hasNotificationHspStateChanged() => $_has(14);
   @$pb.TagNumber(861)
   void clearNotificationHspStateChanged() => $_clearField(861);
   @$pb.TagNumber(861)
   $0.NotificationHspStateChanged ensureNotificationHspStateChanged() =>
-      $_ensure(13);
+      $_ensure(14);
 
   @$pb.TagNumber(862)
-  $0.NotificationHspLooping get notificationHspLooping => $_getN(14);
+  $0.NotificationHspLooping get notificationHspLooping => $_getN(15);
   @$pb.TagNumber(862)
   set notificationHspLooping($0.NotificationHspLooping value) =>
       $_setField(862, value);
   @$pb.TagNumber(862)
-  $core.bool hasNotificationHspLooping() => $_has(14);
+  $core.bool hasNotificationHspLooping() => $_has(15);
   @$pb.TagNumber(862)
   void clearNotificationHspLooping() => $_clearField(862);
   @$pb.TagNumber(862)
-  $0.NotificationHspLooping ensureNotificationHspLooping() => $_ensure(14);
+  $0.NotificationHspLooping ensureNotificationHspLooping() => $_ensure(15);
 
   @$pb.TagNumber(863)
-  $0.NotificationHspStarving get notificationHspStarving => $_getN(15);
+  $0.NotificationHspStarving get notificationHspStarving => $_getN(16);
   @$pb.TagNumber(863)
   set notificationHspStarving($0.NotificationHspStarving value) =>
       $_setField(863, value);
   @$pb.TagNumber(863)
-  $core.bool hasNotificationHspStarving() => $_has(15);
+  $core.bool hasNotificationHspStarving() => $_has(16);
   @$pb.TagNumber(863)
   void clearNotificationHspStarving() => $_clearField(863);
   @$pb.TagNumber(863)
-  $0.NotificationHspStarving ensureNotificationHspStarving() => $_ensure(15);
+  $0.NotificationHspStarving ensureNotificationHspStarving() => $_ensure(16);
 
   @$pb.TagNumber(864)
   $0.NotificationHspResumedOnNonStarving
-      get notificationHspResumedOnNonStarving => $_getN(16);
+      get notificationHspResumedOnNonStarving => $_getN(17);
   @$pb.TagNumber(864)
   set notificationHspResumedOnNonStarving(
           $0.NotificationHspResumedOnNonStarving value) =>
       $_setField(864, value);
   @$pb.TagNumber(864)
-  $core.bool hasNotificationHspResumedOnNonStarving() => $_has(16);
+  $core.bool hasNotificationHspResumedOnNonStarving() => $_has(17);
   @$pb.TagNumber(864)
   void clearNotificationHspResumedOnNonStarving() => $_clearField(864);
   @$pb.TagNumber(864)
   $0.NotificationHspResumedOnNonStarving
-      ensureNotificationHspResumedOnNonStarving() => $_ensure(16);
+      ensureNotificationHspResumedOnNonStarving() => $_ensure(17);
 
   @$pb.TagNumber(865)
   $0.NotificationHspPausedOnStarving get notificationHspPausedOnStarving =>
-      $_getN(17);
+      $_getN(18);
   @$pb.TagNumber(865)
   set notificationHspPausedOnStarving(
           $0.NotificationHspPausedOnStarving value) =>
       $_setField(865, value);
   @$pb.TagNumber(865)
-  $core.bool hasNotificationHspPausedOnStarving() => $_has(17);
+  $core.bool hasNotificationHspPausedOnStarving() => $_has(18);
   @$pb.TagNumber(865)
   void clearNotificationHspPausedOnStarving() => $_clearField(865);
   @$pb.TagNumber(865)
   $0.NotificationHspPausedOnStarving ensureNotificationHspPausedOnStarving() =>
-      $_ensure(17);
+      $_ensure(18);
 
   /// 900 - HVP
   @$pb.TagNumber(900)
-  $0.NotificationHvpChanged get notificationHvpChanged => $_getN(18);
+  $0.NotificationHvpChanged get notificationHvpChanged => $_getN(19);
   @$pb.TagNumber(900)
   set notificationHvpChanged($0.NotificationHvpChanged value) =>
       $_setField(900, value);
   @$pb.TagNumber(900)
-  $core.bool hasNotificationHvpChanged() => $_has(18);
+  $core.bool hasNotificationHvpChanged() => $_has(19);
   @$pb.TagNumber(900)
   void clearNotificationHvpChanged() => $_clearField(900);
   @$pb.TagNumber(900)
-  $0.NotificationHvpChanged ensureNotificationHvpChanged() => $_ensure(18);
+  $0.NotificationHvpChanged ensureNotificationHvpChanged() => $_ensure(19);
 
   /// HRPP - 920
   @$pb.TagNumber(920)
-  $0.NotificationHrppChanged get notificationHrppChanged => $_getN(19);
+  $0.NotificationHrppChanged get notificationHrppChanged => $_getN(20);
   @$pb.TagNumber(920)
   set notificationHrppChanged($0.NotificationHrppChanged value) =>
       $_setField(920, value);
   @$pb.TagNumber(920)
-  $core.bool hasNotificationHrppChanged() => $_has(19);
+  $core.bool hasNotificationHrppChanged() => $_has(20);
   @$pb.TagNumber(920)
   void clearNotificationHrppChanged() => $_clearField(920);
   @$pb.TagNumber(920)
-  $0.NotificationHrppChanged ensureNotificationHrppChanged() => $_ensure(19);
+  $0.NotificationHrppChanged ensureNotificationHrppChanged() => $_ensure(20);
 
   /// Handy error notifications starts with 1000
   @$pb.TagNumber(1000)
-  $0.NotificationTempHigh get notificationTempHigh => $_getN(20);
+  $0.NotificationTempHigh get notificationTempHigh => $_getN(21);
   @$pb.TagNumber(1000)
   set notificationTempHigh($0.NotificationTempHigh value) =>
       $_setField(1000, value);
   @$pb.TagNumber(1000)
-  $core.bool hasNotificationTempHigh() => $_has(20);
+  $core.bool hasNotificationTempHigh() => $_has(21);
   @$pb.TagNumber(1000)
   void clearNotificationTempHigh() => $_clearField(1000);
   @$pb.TagNumber(1000)
-  $0.NotificationTempHigh ensureNotificationTempHigh() => $_ensure(20);
+  $0.NotificationTempHigh ensureNotificationTempHigh() => $_ensure(21);
 
   @$pb.TagNumber(1001)
-  $0.NotificationTempOk get notificationTempOk => $_getN(21);
+  $0.NotificationTempOk get notificationTempOk => $_getN(22);
   @$pb.TagNumber(1001)
   set notificationTempOk($0.NotificationTempOk value) =>
       $_setField(1001, value);
   @$pb.TagNumber(1001)
-  $core.bool hasNotificationTempOk() => $_has(21);
+  $core.bool hasNotificationTempOk() => $_has(22);
   @$pb.TagNumber(1001)
   void clearNotificationTempOk() => $_clearField(1001);
   @$pb.TagNumber(1001)
-  $0.NotificationTempOk ensureNotificationTempOk() => $_ensure(21);
+  $0.NotificationTempOk ensureNotificationTempOk() => $_ensure(22);
 
   @$pb.TagNumber(1002)
-  $0.NotificationSliderBlocked get notificationSliderBlocked => $_getN(22);
+  $0.NotificationSliderBlocked get notificationSliderBlocked => $_getN(23);
   @$pb.TagNumber(1002)
   set notificationSliderBlocked($0.NotificationSliderBlocked value) =>
       $_setField(1002, value);
   @$pb.TagNumber(1002)
-  $core.bool hasNotificationSliderBlocked() => $_has(22);
+  $core.bool hasNotificationSliderBlocked() => $_has(23);
   @$pb.TagNumber(1002)
   void clearNotificationSliderBlocked() => $_clearField(1002);
   @$pb.TagNumber(1002)
   $0.NotificationSliderBlocked ensureNotificationSliderBlocked() =>
-      $_ensure(22);
+      $_ensure(23);
 
   @$pb.TagNumber(1003)
-  $0.NotificationSliderUnblocked get notificationSliderUnblocked => $_getN(23);
+  $0.NotificationSliderUnblocked get notificationSliderUnblocked => $_getN(24);
   @$pb.TagNumber(1003)
   set notificationSliderUnblocked($0.NotificationSliderUnblocked value) =>
       $_setField(1003, value);
   @$pb.TagNumber(1003)
-  $core.bool hasNotificationSliderUnblocked() => $_has(23);
+  $core.bool hasNotificationSliderUnblocked() => $_has(24);
   @$pb.TagNumber(1003)
   void clearNotificationSliderUnblocked() => $_clearField(1003);
   @$pb.TagNumber(1003)
   $0.NotificationSliderUnblocked ensureNotificationSliderUnblocked() =>
-      $_ensure(23);
+      $_ensure(24);
 
   @$pb.TagNumber(1004)
-  $0.NotificationLowMemoryError get notificationLowMemoryError => $_getN(24);
+  $0.NotificationLowMemoryError get notificationLowMemoryError => $_getN(25);
   @$pb.TagNumber(1004)
   set notificationLowMemoryError($0.NotificationLowMemoryError value) =>
       $_setField(1004, value);
   @$pb.TagNumber(1004)
-  $core.bool hasNotificationLowMemoryError() => $_has(24);
+  $core.bool hasNotificationLowMemoryError() => $_has(25);
   @$pb.TagNumber(1004)
   void clearNotificationLowMemoryError() => $_clearField(1004);
   @$pb.TagNumber(1004)
   $0.NotificationLowMemoryError ensureNotificationLowMemoryError() =>
-      $_ensure(24);
+      $_ensure(25);
 
   @$pb.TagNumber(1005)
   $0.NotificationLowMemoryWarning get notificationLowMemoryWarning =>
-      $_getN(25);
+      $_getN(26);
   @$pb.TagNumber(1005)
   set notificationLowMemoryWarning($0.NotificationLowMemoryWarning value) =>
       $_setField(1005, value);
   @$pb.TagNumber(1005)
-  $core.bool hasNotificationLowMemoryWarning() => $_has(25);
+  $core.bool hasNotificationLowMemoryWarning() => $_has(26);
   @$pb.TagNumber(1005)
   void clearNotificationLowMemoryWarning() => $_clearField(1005);
   @$pb.TagNumber(1005)
   $0.NotificationLowMemoryWarning ensureNotificationLowMemoryWarning() =>
-      $_ensure(25);
+      $_ensure(26);
 }
 
 enum Request_Params {
@@ -1953,7 +1973,6 @@ class Response extends $pb.GeneratedMessage {
   factory Response({
     $core.int? id,
     Error? error,
-    $2.Transportation? transport,
     $1.ResponseConnectionKeyGet? responseConnectionKeyGet,
     $1.ResponseWifiStatusGet? responseWifiStatusGet,
     $1.ResponseWifiScanResultsGet? responseWifiScanResultsGet,
@@ -2000,7 +2019,6 @@ class Response extends $pb.GeneratedMessage {
     final result = create();
     if (id != null) result.id = id;
     if (error != null) result.error = error;
-    if (transport != null) result.transport = transport;
     if (responseConnectionKeyGet != null)
       result.responseConnectionKeyGet = responseConnectionKeyGet;
     if (responseWifiStatusGet != null)
@@ -2176,11 +2194,6 @@ class Response extends $pb.GeneratedMessage {
     ])
     ..a<$core.int>(1, _omitFieldNames ? '' : 'id', $pb.PbFieldType.OU3)
     ..aOM<Error>(2, _omitFieldNames ? '' : 'error', subBuilder: Error.create)
-    ..e<$2.Transportation>(
-        3, _omitFieldNames ? '' : 'transport', $pb.PbFieldType.OE,
-        defaultOrMaker: $2.Transportation.TRANSPORTATION_WIFI,
-        valueOf: $2.Transportation.valueOf,
-        enumValues: $2.Transportation.values)
     ..aOM<$1.ResponseConnectionKeyGet>(
         606, _omitFieldNames ? '' : 'responseConnectionKeyGet',
         subBuilder: $1.ResponseConnectionKeyGet.create)
@@ -2335,516 +2348,507 @@ class Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   Error ensureError() => $_ensure(1);
 
-  @$pb.TagNumber(3)
-  $2.Transportation get transport => $_getN(2);
-  @$pb.TagNumber(3)
-  set transport($2.Transportation value) => $_setField(3, value);
-  @$pb.TagNumber(3)
-  $core.bool hasTransport() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearTransport() => $_clearField(3);
-
   @$pb.TagNumber(606)
-  $1.ResponseConnectionKeyGet get responseConnectionKeyGet => $_getN(3);
+  $1.ResponseConnectionKeyGet get responseConnectionKeyGet => $_getN(2);
   @$pb.TagNumber(606)
   set responseConnectionKeyGet($1.ResponseConnectionKeyGet value) =>
       $_setField(606, value);
   @$pb.TagNumber(606)
-  $core.bool hasResponseConnectionKeyGet() => $_has(3);
+  $core.bool hasResponseConnectionKeyGet() => $_has(2);
   @$pb.TagNumber(606)
   void clearResponseConnectionKeyGet() => $_clearField(606);
   @$pb.TagNumber(606)
-  $1.ResponseConnectionKeyGet ensureResponseConnectionKeyGet() => $_ensure(3);
+  $1.ResponseConnectionKeyGet ensureResponseConnectionKeyGet() => $_ensure(2);
 
   @$pb.TagNumber(620)
-  $1.ResponseWifiStatusGet get responseWifiStatusGet => $_getN(4);
+  $1.ResponseWifiStatusGet get responseWifiStatusGet => $_getN(3);
   @$pb.TagNumber(620)
   set responseWifiStatusGet($1.ResponseWifiStatusGet value) =>
       $_setField(620, value);
   @$pb.TagNumber(620)
-  $core.bool hasResponseWifiStatusGet() => $_has(4);
+  $core.bool hasResponseWifiStatusGet() => $_has(3);
   @$pb.TagNumber(620)
   void clearResponseWifiStatusGet() => $_clearField(620);
   @$pb.TagNumber(620)
-  $1.ResponseWifiStatusGet ensureResponseWifiStatusGet() => $_ensure(4);
+  $1.ResponseWifiStatusGet ensureResponseWifiStatusGet() => $_ensure(3);
 
   @$pb.TagNumber(624)
-  $1.ResponseWifiScanResultsGet get responseWifiScanResultsGet => $_getN(5);
+  $1.ResponseWifiScanResultsGet get responseWifiScanResultsGet => $_getN(4);
   @$pb.TagNumber(624)
   set responseWifiScanResultsGet($1.ResponseWifiScanResultsGet value) =>
       $_setField(624, value);
   @$pb.TagNumber(624)
-  $core.bool hasResponseWifiScanResultsGet() => $_has(5);
+  $core.bool hasResponseWifiScanResultsGet() => $_has(4);
   @$pb.TagNumber(624)
   void clearResponseWifiScanResultsGet() => $_clearField(624);
   @$pb.TagNumber(624)
   $1.ResponseWifiScanResultsGet ensureResponseWifiScanResultsGet() =>
-      $_ensure(5);
+      $_ensure(4);
 
   /// client public responses starts at 700 // [PRIVATE]
   @$pb.TagNumber(700)
-  $1.ResponseModeGet get responseModeGet => $_getN(6);
+  $1.ResponseModeGet get responseModeGet => $_getN(5);
   @$pb.TagNumber(700)
   set responseModeGet($1.ResponseModeGet value) => $_setField(700, value);
   @$pb.TagNumber(700)
-  $core.bool hasResponseModeGet() => $_has(6);
+  $core.bool hasResponseModeGet() => $_has(5);
   @$pb.TagNumber(700)
   void clearResponseModeGet() => $_clearField(700);
   @$pb.TagNumber(700)
-  $1.ResponseModeGet ensureResponseModeGet() => $_ensure(6);
+  $1.ResponseModeGet ensureResponseModeGet() => $_ensure(5);
 
   @$pb.TagNumber(701)
-  $1.ResponseModeSet get responseModeSet => $_getN(7);
+  $1.ResponseModeSet get responseModeSet => $_getN(6);
   @$pb.TagNumber(701)
   set responseModeSet($1.ResponseModeSet value) => $_setField(701, value);
   @$pb.TagNumber(701)
-  $core.bool hasResponseModeSet() => $_has(7);
+  $core.bool hasResponseModeSet() => $_has(6);
   @$pb.TagNumber(701)
   void clearResponseModeSet() => $_clearField(701);
   @$pb.TagNumber(701)
-  $1.ResponseModeSet ensureResponseModeSet() => $_ensure(7);
+  $1.ResponseModeSet ensureResponseModeSet() => $_ensure(6);
 
   @$pb.TagNumber(709)
-  $1.ResponseClockOffsetSet get responseClockOffsetSet => $_getN(8);
+  $1.ResponseClockOffsetSet get responseClockOffsetSet => $_getN(7);
   @$pb.TagNumber(709)
   set responseClockOffsetSet($1.ResponseClockOffsetSet value) =>
       $_setField(709, value);
   @$pb.TagNumber(709)
-  $core.bool hasResponseClockOffsetSet() => $_has(8);
+  $core.bool hasResponseClockOffsetSet() => $_has(7);
   @$pb.TagNumber(709)
   void clearResponseClockOffsetSet() => $_clearField(709);
   @$pb.TagNumber(709)
-  $1.ResponseClockOffsetSet ensureResponseClockOffsetSet() => $_ensure(8);
+  $1.ResponseClockOffsetSet ensureResponseClockOffsetSet() => $_ensure(7);
 
   @$pb.TagNumber(710)
-  $1.ResponseBatteryGet get responseBatteryGet => $_getN(9);
+  $1.ResponseBatteryGet get responseBatteryGet => $_getN(8);
   @$pb.TagNumber(710)
   set responseBatteryGet($1.ResponseBatteryGet value) => $_setField(710, value);
   @$pb.TagNumber(710)
-  $core.bool hasResponseBatteryGet() => $_has(9);
+  $core.bool hasResponseBatteryGet() => $_has(8);
   @$pb.TagNumber(710)
   void clearResponseBatteryGet() => $_clearField(710);
   @$pb.TagNumber(710)
-  $1.ResponseBatteryGet ensureResponseBatteryGet() => $_ensure(9);
+  $1.ResponseBatteryGet ensureResponseBatteryGet() => $_ensure(8);
 
   @$pb.TagNumber(712)
-  $1.ResponseClockOffsetGet get responseClockOffsetGet => $_getN(10);
+  $1.ResponseClockOffsetGet get responseClockOffsetGet => $_getN(9);
   @$pb.TagNumber(712)
   set responseClockOffsetGet($1.ResponseClockOffsetGet value) =>
       $_setField(712, value);
   @$pb.TagNumber(712)
-  $core.bool hasResponseClockOffsetGet() => $_has(10);
+  $core.bool hasResponseClockOffsetGet() => $_has(9);
   @$pb.TagNumber(712)
   void clearResponseClockOffsetGet() => $_clearField(712);
   @$pb.TagNumber(712)
-  $1.ResponseClockOffsetGet ensureResponseClockOffsetGet() => $_ensure(10);
+  $1.ResponseClockOffsetGet ensureResponseClockOffsetGet() => $_ensure(9);
 
   @$pb.TagNumber(713)
-  $1.ResponseCapabilitiesGet get responseCapabilitiesGet => $_getN(11);
+  $1.ResponseCapabilitiesGet get responseCapabilitiesGet => $_getN(10);
   @$pb.TagNumber(713)
   set responseCapabilitiesGet($1.ResponseCapabilitiesGet value) =>
       $_setField(713, value);
   @$pb.TagNumber(713)
-  $core.bool hasResponseCapabilitiesGet() => $_has(11);
+  $core.bool hasResponseCapabilitiesGet() => $_has(10);
   @$pb.TagNumber(713)
   void clearResponseCapabilitiesGet() => $_clearField(713);
   @$pb.TagNumber(713)
-  $1.ResponseCapabilitiesGet ensureResponseCapabilitiesGet() => $_ensure(11);
+  $1.ResponseCapabilitiesGet ensureResponseCapabilitiesGet() => $_ensure(10);
 
   @$pb.TagNumber(714)
-  $1.ResponseSessionIdsGet get responseSessionIdsGet => $_getN(12);
+  $1.ResponseSessionIdsGet get responseSessionIdsGet => $_getN(11);
   @$pb.TagNumber(714)
   set responseSessionIdsGet($1.ResponseSessionIdsGet value) =>
       $_setField(714, value);
   @$pb.TagNumber(714)
-  $core.bool hasResponseSessionIdsGet() => $_has(12);
+  $core.bool hasResponseSessionIdsGet() => $_has(11);
   @$pb.TagNumber(714)
   void clearResponseSessionIdsGet() => $_clearField(714);
   @$pb.TagNumber(714)
-  $1.ResponseSessionIdsGet ensureResponseSessionIdsGet() => $_ensure(12);
+  $1.ResponseSessionIdsGet ensureResponseSessionIdsGet() => $_ensure(11);
 
   @$pb.TagNumber(717)
-  $1.ResponseConnectionModeGet get responseConnectionModeGet => $_getN(13);
+  $1.ResponseConnectionModeGet get responseConnectionModeGet => $_getN(12);
   @$pb.TagNumber(717)
   set responseConnectionModeGet($1.ResponseConnectionModeGet value) =>
       $_setField(717, value);
   @$pb.TagNumber(717)
-  $core.bool hasResponseConnectionModeGet() => $_has(13);
+  $core.bool hasResponseConnectionModeGet() => $_has(12);
   @$pb.TagNumber(717)
   void clearResponseConnectionModeGet() => $_clearField(717);
   @$pb.TagNumber(717)
   $1.ResponseConnectionModeGet ensureResponseConnectionModeGet() =>
-      $_ensure(13);
+      $_ensure(12);
 
   /// HAMP - 720
   @$pb.TagNumber(720)
-  $1.ResponseHampStart get responseHampStart => $_getN(14);
+  $1.ResponseHampStart get responseHampStart => $_getN(13);
   @$pb.TagNumber(720)
   set responseHampStart($1.ResponseHampStart value) => $_setField(720, value);
   @$pb.TagNumber(720)
-  $core.bool hasResponseHampStart() => $_has(14);
+  $core.bool hasResponseHampStart() => $_has(13);
   @$pb.TagNumber(720)
   void clearResponseHampStart() => $_clearField(720);
   @$pb.TagNumber(720)
-  $1.ResponseHampStart ensureResponseHampStart() => $_ensure(14);
+  $1.ResponseHampStart ensureResponseHampStart() => $_ensure(13);
 
   @$pb.TagNumber(721)
-  $1.ResponseHampStop get responseHampStop => $_getN(15);
+  $1.ResponseHampStop get responseHampStop => $_getN(14);
   @$pb.TagNumber(721)
   set responseHampStop($1.ResponseHampStop value) => $_setField(721, value);
   @$pb.TagNumber(721)
-  $core.bool hasResponseHampStop() => $_has(15);
+  $core.bool hasResponseHampStop() => $_has(14);
   @$pb.TagNumber(721)
   void clearResponseHampStop() => $_clearField(721);
   @$pb.TagNumber(721)
-  $1.ResponseHampStop ensureResponseHampStop() => $_ensure(15);
+  $1.ResponseHampStop ensureResponseHampStop() => $_ensure(14);
 
   @$pb.TagNumber(723)
-  $1.ResponseHampVelocitySet get responseHampVelocitySet => $_getN(16);
+  $1.ResponseHampVelocitySet get responseHampVelocitySet => $_getN(15);
   @$pb.TagNumber(723)
   set responseHampVelocitySet($1.ResponseHampVelocitySet value) =>
       $_setField(723, value);
   @$pb.TagNumber(723)
-  $core.bool hasResponseHampVelocitySet() => $_has(16);
+  $core.bool hasResponseHampVelocitySet() => $_has(15);
   @$pb.TagNumber(723)
   void clearResponseHampVelocitySet() => $_clearField(723);
   @$pb.TagNumber(723)
-  $1.ResponseHampVelocitySet ensureResponseHampVelocitySet() => $_ensure(16);
+  $1.ResponseHampVelocitySet ensureResponseHampVelocitySet() => $_ensure(15);
 
   @$pb.TagNumber(724)
-  $1.ResponseHampStateGet get responseHampStateGet => $_getN(17);
+  $1.ResponseHampStateGet get responseHampStateGet => $_getN(16);
   @$pb.TagNumber(724)
   set responseHampStateGet($1.ResponseHampStateGet value) =>
       $_setField(724, value);
   @$pb.TagNumber(724)
-  $core.bool hasResponseHampStateGet() => $_has(17);
+  $core.bool hasResponseHampStateGet() => $_has(16);
   @$pb.TagNumber(724)
   void clearResponseHampStateGet() => $_clearField(724);
   @$pb.TagNumber(724)
-  $1.ResponseHampStateGet ensureResponseHampStateGet() => $_ensure(17);
+  $1.ResponseHampStateGet ensureResponseHampStateGet() => $_ensure(16);
 
   @$pb.TagNumber(725)
-  $1.ResponseHampZoneSet get responseHampZoneSet => $_getN(18);
+  $1.ResponseHampZoneSet get responseHampZoneSet => $_getN(17);
   @$pb.TagNumber(725)
   set responseHampZoneSet($1.ResponseHampZoneSet value) =>
       $_setField(725, value);
   @$pb.TagNumber(725)
-  $core.bool hasResponseHampZoneSet() => $_has(18);
+  $core.bool hasResponseHampZoneSet() => $_has(17);
   @$pb.TagNumber(725)
   void clearResponseHampZoneSet() => $_clearField(725);
   @$pb.TagNumber(725)
-  $1.ResponseHampZoneSet ensureResponseHampZoneSet() => $_ensure(18);
+  $1.ResponseHampZoneSet ensureResponseHampZoneSet() => $_ensure(17);
 
   /// HDSP - 740
   /// Replies OK or ERROR only
   /// Slide - 840
   @$pb.TagNumber(840)
-  $1.ResponseSliderStrokeGet get responseSliderStrokeGet => $_getN(19);
+  $1.ResponseSliderStrokeGet get responseSliderStrokeGet => $_getN(18);
   @$pb.TagNumber(840)
   set responseSliderStrokeGet($1.ResponseSliderStrokeGet value) =>
       $_setField(840, value);
   @$pb.TagNumber(840)
-  $core.bool hasResponseSliderStrokeGet() => $_has(19);
+  $core.bool hasResponseSliderStrokeGet() => $_has(18);
   @$pb.TagNumber(840)
   void clearResponseSliderStrokeGet() => $_clearField(840);
   @$pb.TagNumber(840)
-  $1.ResponseSliderStrokeGet ensureResponseSliderStrokeGet() => $_ensure(19);
+  $1.ResponseSliderStrokeGet ensureResponseSliderStrokeGet() => $_ensure(18);
 
   @$pb.TagNumber(841)
-  $1.ResponseSliderStrokeSet get responseSliderStrokeSet => $_getN(20);
+  $1.ResponseSliderStrokeSet get responseSliderStrokeSet => $_getN(19);
   @$pb.TagNumber(841)
   set responseSliderStrokeSet($1.ResponseSliderStrokeSet value) =>
       $_setField(841, value);
   @$pb.TagNumber(841)
-  $core.bool hasResponseSliderStrokeSet() => $_has(20);
+  $core.bool hasResponseSliderStrokeSet() => $_has(19);
   @$pb.TagNumber(841)
   void clearResponseSliderStrokeSet() => $_clearField(841);
   @$pb.TagNumber(841)
-  $1.ResponseSliderStrokeSet ensureResponseSliderStrokeSet() => $_ensure(20);
+  $1.ResponseSliderStrokeSet ensureResponseSliderStrokeSet() => $_ensure(19);
 
   @$pb.TagNumber(842)
-  $1.ResponseSliderStateGet get responseSliderStateGet => $_getN(21);
+  $1.ResponseSliderStateGet get responseSliderStateGet => $_getN(20);
   @$pb.TagNumber(842)
   set responseSliderStateGet($1.ResponseSliderStateGet value) =>
       $_setField(842, value);
   @$pb.TagNumber(842)
-  $core.bool hasResponseSliderStateGet() => $_has(21);
+  $core.bool hasResponseSliderStateGet() => $_has(20);
   @$pb.TagNumber(842)
   void clearResponseSliderStateGet() => $_clearField(842);
   @$pb.TagNumber(842)
-  $1.ResponseSliderStateGet ensureResponseSliderStateGet() => $_ensure(21);
+  $1.ResponseSliderStateGet ensureResponseSliderStateGet() => $_ensure(20);
 
   @$pb.TagNumber(843)
-  $1.ResponseSliderCalibrate get responseSliderCalibrate => $_getN(22);
+  $1.ResponseSliderCalibrate get responseSliderCalibrate => $_getN(21);
   @$pb.TagNumber(843)
   set responseSliderCalibrate($1.ResponseSliderCalibrate value) =>
       $_setField(843, value);
   @$pb.TagNumber(843)
-  $core.bool hasResponseSliderCalibrate() => $_has(22);
+  $core.bool hasResponseSliderCalibrate() => $_has(21);
   @$pb.TagNumber(843)
   void clearResponseSliderCalibrate() => $_clearField(843);
   @$pb.TagNumber(843)
-  $1.ResponseSliderCalibrate ensureResponseSliderCalibrate() => $_ensure(22);
+  $1.ResponseSliderCalibrate ensureResponseSliderCalibrate() => $_ensure(21);
 
   /// HSP - 860
   @$pb.TagNumber(860)
-  $1.ResponseHspSetup get responseHspSetup => $_getN(23);
+  $1.ResponseHspSetup get responseHspSetup => $_getN(22);
   @$pb.TagNumber(860)
   set responseHspSetup($1.ResponseHspSetup value) => $_setField(860, value);
   @$pb.TagNumber(860)
-  $core.bool hasResponseHspSetup() => $_has(23);
+  $core.bool hasResponseHspSetup() => $_has(22);
   @$pb.TagNumber(860)
   void clearResponseHspSetup() => $_clearField(860);
   @$pb.TagNumber(860)
-  $1.ResponseHspSetup ensureResponseHspSetup() => $_ensure(23);
+  $1.ResponseHspSetup ensureResponseHspSetup() => $_ensure(22);
 
   @$pb.TagNumber(861)
-  $1.ResponseHspAdd get responseHspAdd => $_getN(24);
+  $1.ResponseHspAdd get responseHspAdd => $_getN(23);
   @$pb.TagNumber(861)
   set responseHspAdd($1.ResponseHspAdd value) => $_setField(861, value);
   @$pb.TagNumber(861)
-  $core.bool hasResponseHspAdd() => $_has(24);
+  $core.bool hasResponseHspAdd() => $_has(23);
   @$pb.TagNumber(861)
   void clearResponseHspAdd() => $_clearField(861);
   @$pb.TagNumber(861)
-  $1.ResponseHspAdd ensureResponseHspAdd() => $_ensure(24);
+  $1.ResponseHspAdd ensureResponseHspAdd() => $_ensure(23);
 
   @$pb.TagNumber(862)
-  $1.ResponseHspFlush get responseHspFlush => $_getN(25);
+  $1.ResponseHspFlush get responseHspFlush => $_getN(24);
   @$pb.TagNumber(862)
   set responseHspFlush($1.ResponseHspFlush value) => $_setField(862, value);
   @$pb.TagNumber(862)
-  $core.bool hasResponseHspFlush() => $_has(25);
+  $core.bool hasResponseHspFlush() => $_has(24);
   @$pb.TagNumber(862)
   void clearResponseHspFlush() => $_clearField(862);
   @$pb.TagNumber(862)
-  $1.ResponseHspFlush ensureResponseHspFlush() => $_ensure(25);
+  $1.ResponseHspFlush ensureResponseHspFlush() => $_ensure(24);
 
   @$pb.TagNumber(863)
-  $1.ResponseHspPlay get responseHspPlay => $_getN(26);
+  $1.ResponseHspPlay get responseHspPlay => $_getN(25);
   @$pb.TagNumber(863)
   set responseHspPlay($1.ResponseHspPlay value) => $_setField(863, value);
   @$pb.TagNumber(863)
-  $core.bool hasResponseHspPlay() => $_has(26);
+  $core.bool hasResponseHspPlay() => $_has(25);
   @$pb.TagNumber(863)
   void clearResponseHspPlay() => $_clearField(863);
   @$pb.TagNumber(863)
-  $1.ResponseHspPlay ensureResponseHspPlay() => $_ensure(26);
+  $1.ResponseHspPlay ensureResponseHspPlay() => $_ensure(25);
 
   @$pb.TagNumber(864)
-  $1.ResponseHspStop get responseHspStop => $_getN(27);
+  $1.ResponseHspStop get responseHspStop => $_getN(26);
   @$pb.TagNumber(864)
   set responseHspStop($1.ResponseHspStop value) => $_setField(864, value);
   @$pb.TagNumber(864)
-  $core.bool hasResponseHspStop() => $_has(27);
+  $core.bool hasResponseHspStop() => $_has(26);
   @$pb.TagNumber(864)
   void clearResponseHspStop() => $_clearField(864);
   @$pb.TagNumber(864)
-  $1.ResponseHspStop ensureResponseHspStop() => $_ensure(27);
+  $1.ResponseHspStop ensureResponseHspStop() => $_ensure(26);
 
   @$pb.TagNumber(865)
-  $1.ResponseHspPause get responseHspPause => $_getN(28);
+  $1.ResponseHspPause get responseHspPause => $_getN(27);
   @$pb.TagNumber(865)
   set responseHspPause($1.ResponseHspPause value) => $_setField(865, value);
   @$pb.TagNumber(865)
-  $core.bool hasResponseHspPause() => $_has(28);
+  $core.bool hasResponseHspPause() => $_has(27);
   @$pb.TagNumber(865)
   void clearResponseHspPause() => $_clearField(865);
   @$pb.TagNumber(865)
-  $1.ResponseHspPause ensureResponseHspPause() => $_ensure(28);
+  $1.ResponseHspPause ensureResponseHspPause() => $_ensure(27);
 
   @$pb.TagNumber(866)
-  $1.ResponseHspResume get responseHspResume => $_getN(29);
+  $1.ResponseHspResume get responseHspResume => $_getN(28);
   @$pb.TagNumber(866)
   set responseHspResume($1.ResponseHspResume value) => $_setField(866, value);
   @$pb.TagNumber(866)
-  $core.bool hasResponseHspResume() => $_has(29);
+  $core.bool hasResponseHspResume() => $_has(28);
   @$pb.TagNumber(866)
   void clearResponseHspResume() => $_clearField(866);
   @$pb.TagNumber(866)
-  $1.ResponseHspResume ensureResponseHspResume() => $_ensure(29);
+  $1.ResponseHspResume ensureResponseHspResume() => $_ensure(28);
 
   @$pb.TagNumber(867)
-  $1.ResponseHspStateGet get responseHspStateGet => $_getN(30);
+  $1.ResponseHspStateGet get responseHspStateGet => $_getN(29);
   @$pb.TagNumber(867)
   set responseHspStateGet($1.ResponseHspStateGet value) =>
       $_setField(867, value);
   @$pb.TagNumber(867)
-  $core.bool hasResponseHspStateGet() => $_has(30);
+  $core.bool hasResponseHspStateGet() => $_has(29);
   @$pb.TagNumber(867)
   void clearResponseHspStateGet() => $_clearField(867);
   @$pb.TagNumber(867)
-  $1.ResponseHspStateGet ensureResponseHspStateGet() => $_ensure(30);
+  $1.ResponseHspStateGet ensureResponseHspStateGet() => $_ensure(29);
 
   @$pb.TagNumber(868)
-  $1.ResponseHspCurrentTimeSet get responseHspCurrentTimeSet => $_getN(31);
+  $1.ResponseHspCurrentTimeSet get responseHspCurrentTimeSet => $_getN(30);
   @$pb.TagNumber(868)
   set responseHspCurrentTimeSet($1.ResponseHspCurrentTimeSet value) =>
       $_setField(868, value);
   @$pb.TagNumber(868)
-  $core.bool hasResponseHspCurrentTimeSet() => $_has(31);
+  $core.bool hasResponseHspCurrentTimeSet() => $_has(30);
   @$pb.TagNumber(868)
   void clearResponseHspCurrentTimeSet() => $_clearField(868);
   @$pb.TagNumber(868)
   $1.ResponseHspCurrentTimeSet ensureResponseHspCurrentTimeSet() =>
-      $_ensure(31);
+      $_ensure(30);
 
   @$pb.TagNumber(869)
-  $1.ResponseHspThresholdSet get responseHspThresholdSet => $_getN(32);
+  $1.ResponseHspThresholdSet get responseHspThresholdSet => $_getN(31);
   @$pb.TagNumber(869)
   set responseHspThresholdSet($1.ResponseHspThresholdSet value) =>
       $_setField(869, value);
   @$pb.TagNumber(869)
-  $core.bool hasResponseHspThresholdSet() => $_has(32);
+  $core.bool hasResponseHspThresholdSet() => $_has(31);
   @$pb.TagNumber(869)
   void clearResponseHspThresholdSet() => $_clearField(869);
   @$pb.TagNumber(869)
-  $1.ResponseHspThresholdSet ensureResponseHspThresholdSet() => $_ensure(32);
+  $1.ResponseHspThresholdSet ensureResponseHspThresholdSet() => $_ensure(31);
 
   @$pb.TagNumber(870)
   $1.ResponseHspPauseOnStarvingSet get responseHspPauseOnStarvingSet =>
-      $_getN(33);
+      $_getN(32);
   @$pb.TagNumber(870)
   set responseHspPauseOnStarvingSet($1.ResponseHspPauseOnStarvingSet value) =>
       $_setField(870, value);
   @$pb.TagNumber(870)
-  $core.bool hasResponseHspPauseOnStarvingSet() => $_has(33);
+  $core.bool hasResponseHspPauseOnStarvingSet() => $_has(32);
   @$pb.TagNumber(870)
   void clearResponseHspPauseOnStarvingSet() => $_clearField(870);
   @$pb.TagNumber(870)
   $1.ResponseHspPauseOnStarvingSet ensureResponseHspPauseOnStarvingSet() =>
-      $_ensure(33);
+      $_ensure(32);
 
   /// HVP - 900 (Vibration)
   @$pb.TagNumber(900)
-  $1.ResponseHvpSet get responseHvpSet => $_getN(34);
+  $1.ResponseHvpSet get responseHvpSet => $_getN(33);
   @$pb.TagNumber(900)
   set responseHvpSet($1.ResponseHvpSet value) => $_setField(900, value);
   @$pb.TagNumber(900)
-  $core.bool hasResponseHvpSet() => $_has(34);
+  $core.bool hasResponseHvpSet() => $_has(33);
   @$pb.TagNumber(900)
   void clearResponseHvpSet() => $_clearField(900);
   @$pb.TagNumber(900)
-  $1.ResponseHvpSet ensureResponseHvpSet() => $_ensure(34);
+  $1.ResponseHvpSet ensureResponseHvpSet() => $_ensure(33);
 
   @$pb.TagNumber(901)
-  $1.ResponseHvpStop get responseHvpStop => $_getN(35);
+  $1.ResponseHvpStop get responseHvpStop => $_getN(34);
   @$pb.TagNumber(901)
   set responseHvpStop($1.ResponseHvpStop value) => $_setField(901, value);
   @$pb.TagNumber(901)
-  $core.bool hasResponseHvpStop() => $_has(35);
+  $core.bool hasResponseHvpStop() => $_has(34);
   @$pb.TagNumber(901)
   void clearResponseHvpStop() => $_clearField(901);
   @$pb.TagNumber(901)
-  $1.ResponseHvpStop ensureResponseHvpStop() => $_ensure(35);
+  $1.ResponseHvpStop ensureResponseHvpStop() => $_ensure(34);
 
   @$pb.TagNumber(902)
-  $1.ResponseHvpStart get responseHvpStart => $_getN(36);
+  $1.ResponseHvpStart get responseHvpStart => $_getN(35);
   @$pb.TagNumber(902)
   set responseHvpStart($1.ResponseHvpStart value) => $_setField(902, value);
   @$pb.TagNumber(902)
-  $core.bool hasResponseHvpStart() => $_has(36);
+  $core.bool hasResponseHvpStart() => $_has(35);
   @$pb.TagNumber(902)
   void clearResponseHvpStart() => $_clearField(902);
   @$pb.TagNumber(902)
-  $1.ResponseHvpStart ensureResponseHvpStart() => $_ensure(36);
+  $1.ResponseHvpStart ensureResponseHvpStart() => $_ensure(35);
 
   @$pb.TagNumber(903)
-  $1.ResponseHvpStateGet get responseHvpStateGet => $_getN(37);
+  $1.ResponseHvpStateGet get responseHvpStateGet => $_getN(36);
   @$pb.TagNumber(903)
   set responseHvpStateGet($1.ResponseHvpStateGet value) =>
       $_setField(903, value);
   @$pb.TagNumber(903)
-  $core.bool hasResponseHvpStateGet() => $_has(37);
+  $core.bool hasResponseHvpStateGet() => $_has(36);
   @$pb.TagNumber(903)
   void clearResponseHvpStateGet() => $_clearField(903);
   @$pb.TagNumber(903)
-  $1.ResponseHvpStateGet ensureResponseHvpStateGet() => $_ensure(37);
+  $1.ResponseHvpStateGet ensureResponseHvpStateGet() => $_ensure(36);
 
   /// HRPP - 920
   @$pb.TagNumber(920)
-  $1.ResponseHrppStart get responseHrppStart => $_getN(38);
+  $1.ResponseHrppStart get responseHrppStart => $_getN(37);
   @$pb.TagNumber(920)
   set responseHrppStart($1.ResponseHrppStart value) => $_setField(920, value);
   @$pb.TagNumber(920)
-  $core.bool hasResponseHrppStart() => $_has(38);
+  $core.bool hasResponseHrppStart() => $_has(37);
   @$pb.TagNumber(920)
   void clearResponseHrppStart() => $_clearField(920);
   @$pb.TagNumber(920)
-  $1.ResponseHrppStart ensureResponseHrppStart() => $_ensure(38);
+  $1.ResponseHrppStart ensureResponseHrppStart() => $_ensure(37);
 
   @$pb.TagNumber(921)
-  $1.ResponseHrppStop get responseHrppStop => $_getN(39);
+  $1.ResponseHrppStop get responseHrppStop => $_getN(38);
   @$pb.TagNumber(921)
   set responseHrppStop($1.ResponseHrppStop value) => $_setField(921, value);
   @$pb.TagNumber(921)
-  $core.bool hasResponseHrppStop() => $_has(39);
+  $core.bool hasResponseHrppStop() => $_has(38);
   @$pb.TagNumber(921)
   void clearResponseHrppStop() => $_clearField(921);
   @$pb.TagNumber(921)
-  $1.ResponseHrppStop ensureResponseHrppStop() => $_ensure(39);
+  $1.ResponseHrppStop ensureResponseHrppStop() => $_ensure(38);
 
   @$pb.TagNumber(922)
-  $1.ResponseHrppAmplitudeSet get responseHrppAmplitudeSet => $_getN(40);
+  $1.ResponseHrppAmplitudeSet get responseHrppAmplitudeSet => $_getN(39);
   @$pb.TagNumber(922)
   set responseHrppAmplitudeSet($1.ResponseHrppAmplitudeSet value) =>
       $_setField(922, value);
   @$pb.TagNumber(922)
-  $core.bool hasResponseHrppAmplitudeSet() => $_has(40);
+  $core.bool hasResponseHrppAmplitudeSet() => $_has(39);
   @$pb.TagNumber(922)
   void clearResponseHrppAmplitudeSet() => $_clearField(922);
   @$pb.TagNumber(922)
-  $1.ResponseHrppAmplitudeSet ensureResponseHrppAmplitudeSet() => $_ensure(40);
+  $1.ResponseHrppAmplitudeSet ensureResponseHrppAmplitudeSet() => $_ensure(39);
 
   @$pb.TagNumber(923)
   $1.ResponseHrppPlaybackSpeedSet get responseHrppPlaybackSpeedSet =>
-      $_getN(41);
+      $_getN(40);
   @$pb.TagNumber(923)
   set responseHrppPlaybackSpeedSet($1.ResponseHrppPlaybackSpeedSet value) =>
       $_setField(923, value);
   @$pb.TagNumber(923)
-  $core.bool hasResponseHrppPlaybackSpeedSet() => $_has(41);
+  $core.bool hasResponseHrppPlaybackSpeedSet() => $_has(40);
   @$pb.TagNumber(923)
   void clearResponseHrppPlaybackSpeedSet() => $_clearField(923);
   @$pb.TagNumber(923)
   $1.ResponseHrppPlaybackSpeedSet ensureResponseHrppPlaybackSpeedSet() =>
-      $_ensure(41);
+      $_ensure(40);
 
   @$pb.TagNumber(924)
-  $1.ResponseHrppPatternSet get responseHrppPatternSet => $_getN(42);
+  $1.ResponseHrppPatternSet get responseHrppPatternSet => $_getN(41);
   @$pb.TagNumber(924)
   set responseHrppPatternSet($1.ResponseHrppPatternSet value) =>
       $_setField(924, value);
   @$pb.TagNumber(924)
-  $core.bool hasResponseHrppPatternSet() => $_has(42);
+  $core.bool hasResponseHrppPatternSet() => $_has(41);
   @$pb.TagNumber(924)
   void clearResponseHrppPatternSet() => $_clearField(924);
   @$pb.TagNumber(924)
-  $1.ResponseHrppPatternSet ensureResponseHrppPatternSet() => $_ensure(42);
+  $1.ResponseHrppPatternSet ensureResponseHrppPatternSet() => $_ensure(41);
 
   @$pb.TagNumber(925)
-  $1.ResponseHrppStateGet get responseHrppStateGet => $_getN(43);
+  $1.ResponseHrppStateGet get responseHrppStateGet => $_getN(42);
   @$pb.TagNumber(925)
   set responseHrppStateGet($1.ResponseHrppStateGet value) =>
       $_setField(925, value);
   @$pb.TagNumber(925)
-  $core.bool hasResponseHrppStateGet() => $_has(43);
+  $core.bool hasResponseHrppStateGet() => $_has(42);
   @$pb.TagNumber(925)
   void clearResponseHrppStateGet() => $_clearField(925);
   @$pb.TagNumber(925)
-  $1.ResponseHrppStateGet ensureResponseHrppStateGet() => $_ensure(43);
+  $1.ResponseHrppStateGet ensureResponseHrppStateGet() => $_ensure(42);
 
   @$pb.TagNumber(926)
-  $1.ResponseHrppPatternsGet get responseHrppPatternsGet => $_getN(44);
+  $1.ResponseHrppPatternsGet get responseHrppPatternsGet => $_getN(43);
   @$pb.TagNumber(926)
   set responseHrppPatternsGet($1.ResponseHrppPatternsGet value) =>
       $_setField(926, value);
   @$pb.TagNumber(926)
-  $core.bool hasResponseHrppPatternsGet() => $_has(44);
+  $core.bool hasResponseHrppPatternsGet() => $_has(43);
   @$pb.TagNumber(926)
   void clearResponseHrppPatternsGet() => $_clearField(926);
   @$pb.TagNumber(926)
-  $1.ResponseHrppPatternsGet ensureResponseHrppPatternsGet() => $_ensure(44);
+  $1.ResponseHrppPatternsGet ensureResponseHrppPatternsGet() => $_ensure(43);
 }
 
 class Error extends $pb.GeneratedMessage {

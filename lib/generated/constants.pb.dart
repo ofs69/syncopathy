@@ -896,6 +896,7 @@ class ApInfo extends $pb.GeneratedMessage {
   void clearIp() => $_clearField(6);
 }
 
+///  There is no need to set the transportation. This is handled in the FW.
 /// /////////////////////// Div constants /////////////////////////
 class BatteryState extends $pb.GeneratedMessage {
   factory BatteryState({
@@ -908,6 +909,9 @@ class BatteryState extends $pb.GeneratedMessage {
     $core.int? batteryAdcValue,
     $core.double? batteryTemperature,
     $core.int? batteryTemperatureAdcValue,
+    $core.bool? notSupportedCharger,
+    $core.bool? shutDownVoltageDetected,
+    $core.bool? chargerFaultDetected,
   }) {
     final result = create();
     if (level != null) result.level = level;
@@ -921,6 +925,12 @@ class BatteryState extends $pb.GeneratedMessage {
       result.batteryTemperature = batteryTemperature;
     if (batteryTemperatureAdcValue != null)
       result.batteryTemperatureAdcValue = batteryTemperatureAdcValue;
+    if (notSupportedCharger != null)
+      result.notSupportedCharger = notSupportedCharger;
+    if (shutDownVoltageDetected != null)
+      result.shutDownVoltageDetected = shutDownVoltageDetected;
+    if (chargerFaultDetected != null)
+      result.chargerFaultDetected = chargerFaultDetected;
     return result;
   }
 
@@ -951,6 +961,9 @@ class BatteryState extends $pb.GeneratedMessage {
         8, _omitFieldNames ? '' : 'batteryTemperature', $pb.PbFieldType.OF)
     ..a<$core.int>(9, _omitFieldNames ? '' : 'batteryTemperatureAdcValue',
         $pb.PbFieldType.OU3)
+    ..aOB(10, _omitFieldNames ? '' : 'notSupportedCharger')
+    ..aOB(11, _omitFieldNames ? '' : 'shutDownVoltageDetected')
+    ..aOB(12, _omitFieldNames ? '' : 'chargerFaultDetected')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1055,6 +1068,33 @@ class BatteryState extends $pb.GeneratedMessage {
   $core.bool hasBatteryTemperatureAdcValue() => $_has(8);
   @$pb.TagNumber(9)
   void clearBatteryTemperatureAdcValue() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.bool get notSupportedCharger => $_getBF(9);
+  @$pb.TagNumber(10)
+  set notSupportedCharger($core.bool value) => $_setBool(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasNotSupportedCharger() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearNotSupportedCharger() => $_clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.bool get shutDownVoltageDetected => $_getBF(10);
+  @$pb.TagNumber(11)
+  set shutDownVoltageDetected($core.bool value) => $_setBool(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasShutDownVoltageDetected() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearShutDownVoltageDetected() => $_clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.bool get chargerFaultDetected => $_getBF(11);
+  @$pb.TagNumber(12)
+  set chargerFaultDetected($core.bool value) => $_setBool(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasChargerFaultDetected() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearChargerFaultDetected() => $_clearField(12);
 }
 
 const $core.bool _omitFieldNames =
