@@ -19,7 +19,8 @@ enum SortOption {
   speed('Speed'),
   depth('Depth'),
   duration('Duration'),
-  lastModified('Last Modified');
+  lastModified('Last Modified'),
+  random('Random');
 
   const SortOption(this.label);
   final String label;
@@ -88,6 +89,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
   Set<String> _selectedTags = {};
   Set<String> _selectedPerformers = {};
   bool _isLoading = false;
+  SortOption? _previousSortOption; // Added field
+  int? _randomSeed; // Added field
 
   final Set<Video> _selectedVideos = {};
   bool get _isSelectionMode => _selectedVideos.isNotEmpty;
@@ -222,6 +225,14 @@ class _MediaLibraryState extends State<MediaLibrary> {
       return video.title.toLowerCase().contains(query);
     }).toList();
 
+    if (_mediaLibrarySettings.sortOption.value == SortOption.random) {
+      if (_previousSortOption != SortOption.random) {
+        _randomSeed = Random().nextInt(1000000); // Generate new seed
+      }
+      videos.shuffle(Random(_randomSeed!)); // Shuffle with seed
+    } else {
+      _randomSeed = null; // Clear seed if not random sort
+    }
     videos.sort((a, b) {
       // Favorites always come first, and disliked videos are never favorites.
       if (a.isFavorite != b.isFavorite) {
@@ -253,6 +264,13 @@ class _MediaLibraryState extends State<MediaLibrary> {
         case SortOption.lastModified:
           compareResult = a.dateFirstFound.compareTo(b.dateFirstFound);
           break;
+        case SortOption.random:
+          // If random is selected, the list was already shuffled.
+          // For elements with the same favorite/dislike status, their relative order should be preserved from the shuffle.
+          // Returning 0 indicates that the two elements are considered equal in terms of this sorting criterion,
+          // thus preserving their original relative order (which is now random due to the shuffle).
+          compareResult = 0;
+          break;
       }
 
       return _mediaLibrarySettings.isSortAscending.value
@@ -263,6 +281,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
     setState(() {
       _filteredVideos = videos;
     });
+    _previousSortOption =
+        _mediaLibrarySettings.sortOption.value; // Update previous sort option
   }
 
   Future<void> _refreshVideos() async {
