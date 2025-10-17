@@ -1711,6 +1711,71 @@ class NotificationIdleTimeout extends $pb.GeneratedMessage {
   void clearWarningTime() => $_clearField(3);
 }
 
+/// Give all the connected clients a notification when a setting is changed - Useful for the server to know that a setting has changed in the onboarding app
+///  Added in FW4.0.19
+class NotificationSettingsChanged extends $pb.GeneratedMessage {
+  factory NotificationSettingsChanged({
+    $0.SettingType? type,
+  }) {
+    final result = create();
+    if (type != null) result.type = type;
+    return result;
+  }
+
+  NotificationSettingsChanged._();
+
+  factory NotificationSettingsChanged.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory NotificationSettingsChanged.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'NotificationSettingsChanged',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..e<$0.SettingType>(1, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE,
+        defaultOrMaker: $0.SettingType.SETTINGS_NOT_SET,
+        valueOf: $0.SettingType.valueOf,
+        enumValues: $0.SettingType.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationSettingsChanged clone() =>
+      NotificationSettingsChanged()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationSettingsChanged copyWith(
+          void Function(NotificationSettingsChanged) updates) =>
+      super.copyWith(
+              (message) => updates(message as NotificationSettingsChanged))
+          as NotificationSettingsChanged;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static NotificationSettingsChanged create() =>
+      NotificationSettingsChanged._();
+  @$core.override
+  NotificationSettingsChanged createEmptyInstance() => create();
+  static $pb.PbList<NotificationSettingsChanged> createRepeated() =>
+      $pb.PbList<NotificationSettingsChanged>();
+  @$core.pragma('dart2js:noInline')
+  static NotificationSettingsChanged getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<NotificationSettingsChanged>(create);
+  static NotificationSettingsChanged? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SettingType get type => $_getN(0);
+  @$pb.TagNumber(1)
+  set type($0.SettingType value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasType() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearType() => $_clearField(1);
+}
+
 const $core.bool _omitFieldNames =
     $core.bool.fromEnvironment('protobuf.omit_field_names');
 const $core.bool _omitMessageNames =

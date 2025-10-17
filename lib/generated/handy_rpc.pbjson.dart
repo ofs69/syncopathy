@@ -270,6 +270,15 @@ const Notification$json = {
       '9': 0,
       '10': 'notificationLowMemoryWarning'
     },
+    {
+      '1': 'notification_settings_changed',
+      '3': 2000,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.NotificationSettingsChanged',
+      '9': 0,
+      '10': 'notificationSettingsChanged'
+    },
     {'1': 'id', '3': 2, '4': 1, '5': 13, '10': 'id'},
   ],
   '8': [
@@ -327,8 +336,10 @@ final $typed_data.Uint8List notificationDescriptor = $convert.base64Decode(
     '9sb3dfbWVtb3J5X2Vycm9yGOwHIAEoCzIjLmhkeV9ycGMuTm90aWZpY2F0aW9uTG93TWVtb3J5'
     'RXJyb3JIAFIabm90aWZpY2F0aW9uTG93TWVtb3J5RXJyb3ISbwofbm90aWZpY2F0aW9uX2xvd1'
     '9tZW1vcnlfd2FybmluZxjtByABKAsyJS5oZHlfcnBjLk5vdGlmaWNhdGlvbkxvd01lbW9yeVdh'
-    'cm5pbmdIAFIcbm90aWZpY2F0aW9uTG93TWVtb3J5V2FybmluZxIOCgJpZBgCIAEoDVICaWRCDg'
-    'oMbm90aWZpY2F0aW9u');
+    'cm5pbmdIAFIcbm90aWZpY2F0aW9uTG93TWVtb3J5V2FybmluZxJrCh1ub3RpZmljYXRpb25fc2'
+    'V0dGluZ3NfY2hhbmdlZBjQDyABKAsyJC5oZHlfcnBjLk5vdGlmaWNhdGlvblNldHRpbmdzQ2hh'
+    'bmdlZEgAUhtub3RpZmljYXRpb25TZXR0aW5nc0NoYW5nZWQSDgoCaWQYAiABKA1SAmlkQg4KDG'
+    '5vdGlmaWNhdGlvbg==');
 
 @$core.Deprecated('Use requestDescriptor instead')
 const Request$json = {

@@ -1,4 +1,4 @@
-// Auto-generated on 2025-09-17 09:14:18
+// Auto-generated on 2025-10-14 13:26:40
 syntax = "proto3";
 package hdy_rpc;
 import "notifications.proto";
@@ -50,6 +50,7 @@ message Notification{
         NotificationSliderUnblocked notification_slider_unblocked = 1003;
         NotificationLowMemoryError notification_low_memory_error = 1004;
         NotificationLowMemoryWarning notification_low_memory_warning = 1005;
+        NotificationSettingsChanged notification_settings_changed = 2000; //Added in FW4.0.19
     }
     uint32 id = 2; //Added in FW 4.0.14
 }

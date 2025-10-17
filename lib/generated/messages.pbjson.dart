@@ -400,6 +400,14 @@ const ResponseCapabilitiesGet$json = {
       '5': 13,
       '10': 'batteryCapacity'
     },
+    {
+      '1': 'battery_driver',
+      '3': 14,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.BatteryDriver',
+      '10': 'batteryDriver'
+    },
   ],
 };
 
@@ -413,7 +421,8 @@ final $typed_data.Uint8List responseCapabilitiesGetDescriptor = $convert.base64D
     'JpeF9sZWRzX3gYCSABKA1SDmxlZE1hdHJpeExlZHNYEikKEWxlZF9tYXRyaXhfbGVkc195GAog'
     'ASgNUg5sZWRNYXRyaXhMZWRzWRIZCghyZ2JfcmluZxgLIAEoCFIHcmdiUmluZxIiCg1yZ2Jfcm'
     'luZ19sZWRzGAwgASgNUgtyZ2JSaW5nTGVkcxIpChBiYXR0ZXJ5X2NhcGFjaXR5GA0gASgNUg9i'
-    'YXR0ZXJ5Q2FwYWNpdHk=');
+    'YXR0ZXJ5Q2FwYWNpdHkSPQoOYmF0dGVyeV9kcml2ZXIYDiABKA4yFi5oZHlfcnBjLkJhdHRlcn'
+    'lEcml2ZXJSDWJhdHRlcnlEcml2ZXI=');
 
 @$core.Deprecated('Use requestSessionIdsGetDescriptor instead')
 const RequestSessionIdsGet$json = {

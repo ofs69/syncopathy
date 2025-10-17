@@ -1501,6 +1501,7 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
     $core.bool? rgbRing,
     $core.int? rgbRingLeds,
     $core.int? batteryCapacity,
+    $0.BatteryDriver? batteryDriver,
   }) {
     final result = create();
     if (vulvaOriented != null) result.vulvaOriented = vulvaOriented;
@@ -1516,6 +1517,7 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
     if (rgbRing != null) result.rgbRing = rgbRing;
     if (rgbRingLeds != null) result.rgbRingLeds = rgbRingLeds;
     if (batteryCapacity != null) result.batteryCapacity = batteryCapacity;
+    if (batteryDriver != null) result.batteryDriver = batteryDriver;
     return result;
   }
 
@@ -1549,6 +1551,11 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
         12, _omitFieldNames ? '' : 'rgbRingLeds', $pb.PbFieldType.OU3)
     ..a<$core.int>(
         13, _omitFieldNames ? '' : 'batteryCapacity', $pb.PbFieldType.OU3)
+    ..e<$0.BatteryDriver>(
+        14, _omitFieldNames ? '' : 'batteryDriver', $pb.PbFieldType.OE,
+        defaultOrMaker: $0.BatteryDriver.BATTERY_DRIVER_NOT_SET,
+        valueOf: $0.BatteryDriver.valueOf,
+        enumValues: $0.BatteryDriver.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1690,6 +1697,15 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
   $core.bool hasBatteryCapacity() => $_has(12);
   @$pb.TagNumber(13)
   void clearBatteryCapacity() => $_clearField(13);
+
+  @$pb.TagNumber(14)
+  $0.BatteryDriver get batteryDriver => $_getN(13);
+  @$pb.TagNumber(14)
+  set batteryDriver($0.BatteryDriver value) => $_setField(14, value);
+  @$pb.TagNumber(14)
+  $core.bool hasBatteryDriver() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearBatteryDriver() => $_clearField(14);
 }
 
 ///

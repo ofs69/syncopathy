@@ -1,4 +1,4 @@
-// Auto-generated on 2025-09-17 09:14:18
+// Auto-generated on 2025-10-14 13:26:40
 syntax = "proto3";
 package hdy_rpc;
 //NB! The codes are not in order, but in groups
@@ -300,6 +300,12 @@ enum BleState{
 }
 // There is no need to set the transportation. This is handled in the FW.
 ///////////////////////// Div constants /////////////////////////
+//Added in FW4.0.19
+enum BatteryDriver{
+    BATTERY_DRIVER_NOT_SET = 0;
+    BATTERY_DRIVER_OH = 1; //Oh
+    BATTERY_DRIVER_H2 = 2; //Handy 2
+}
 message BatteryState{
     uint32 level = 1; //0-100
     bool charger_connected = 2;
@@ -313,6 +319,12 @@ message BatteryState{
     bool not_supported_charger = 10; //Handy 2 only - If the charger is not supported by the device (ex: <15V) - Added in FW 4.0.16
     bool shut_down_voltage_detected = 11; //If the device is shutting down due to low battery voltage - Added in FW 4.0.16
     bool charger_fault_detected = 12; //Handy 2 only - If the charger is faulty (Most likely high temperature) - Added in FW 4.0.16
+    float last_fully_charged_voltage = 13; //[V] when the charger cut of last time. Used as a reference for 100% battery voltage - Added in FW 4.0.19
+    bool chgr = 14; // IC chgr status - only OH - Added in FW 4.0.19
+    bool ic_done = 15; // IC done status - only OH - Added in FW 4.0.19
+    bool pg = 16; // Power good status - only H2 - Added in FW 4.0.19
+    bool charger_disabled = 17; // Only H2 (and future Oh versions) - Charger is disabled due to battery full - Added in FW 4.0.19
+    bool charging = 18; // Charger is charging the battery - Added in FW 4.0.19
 }
 // The 3 different potential Idle timeout states
 //Added in FW4.0.19
@@ -320,4 +332,14 @@ enum IdleTimeoutState{
     IDLE_TIMEOUT_STATE_WARNING = 0; //Idle timeout warning - will go to sleep in 60 seconds if no interaction
     IDLE_TIMEOUT_STATE_CANCELLED = 1; //Idle timeout cancelled - will not go to sleep
     IDLE_TIMEOUT_STATE_SLEEPING = 2; //Idle timeout sleeping - device is now sleeping
+}
+// Used for settings changed notifications
+//Added in FW4.0.19
+enum SettingType{
+    SETTINGS_NOT_SET = 0;
+    SETTINGS_BASE = 1;
+    SETTINGS_SLIDER = 2;
+    SETTINGS_LRA = 3;
+    SETTINGS_ERM = 4;
+    SETTINGS_BATTERY = 5;
 }

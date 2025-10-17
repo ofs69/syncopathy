@@ -417,6 +417,21 @@ final $typed_data.Uint8List bleStateDescriptor = $convert.base64Decode(
     'lOSVRJQUxJWklORxABEhkKFUJMRV9TVEFURV9BRFZFUlRJU0lORxACEhcKE0JMRV9TVEFURV9D'
     'T05ORUNURUQQAw==');
 
+@$core.Deprecated('Use batteryDriverDescriptor instead')
+const BatteryDriver$json = {
+  '1': 'BatteryDriver',
+  '2': [
+    {'1': 'BATTERY_DRIVER_NOT_SET', '2': 0},
+    {'1': 'BATTERY_DRIVER_OH', '2': 1},
+    {'1': 'BATTERY_DRIVER_H2', '2': 2},
+  ],
+};
+
+/// Descriptor for `BatteryDriver`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List batteryDriverDescriptor = $convert.base64Decode(
+    'Cg1CYXR0ZXJ5RHJpdmVyEhoKFkJBVFRFUllfRFJJVkVSX05PVF9TRVQQABIVChFCQVRURVJZX0'
+    'RSSVZFUl9PSBABEhUKEUJBVFRFUllfRFJJVkVSX0gyEAI=');
+
 @$core.Deprecated('Use idleTimeoutStateDescriptor instead')
 const IdleTimeoutState$json = {
   '1': 'IdleTimeoutState',
@@ -432,6 +447,25 @@ final $typed_data.Uint8List idleTimeoutStateDescriptor = $convert.base64Decode(
     'ChBJZGxlVGltZW91dFN0YXRlEh4KGklETEVfVElNRU9VVF9TVEFURV9XQVJOSU5HEAASIAocSU'
     'RMRV9USU1FT1VUX1NUQVRFX0NBTkNFTExFRBABEh8KG0lETEVfVElNRU9VVF9TVEFURV9TTEVF'
     'UElORxAC');
+
+@$core.Deprecated('Use settingTypeDescriptor instead')
+const SettingType$json = {
+  '1': 'SettingType',
+  '2': [
+    {'1': 'SETTINGS_NOT_SET', '2': 0},
+    {'1': 'SETTINGS_BASE', '2': 1},
+    {'1': 'SETTINGS_SLIDER', '2': 2},
+    {'1': 'SETTINGS_LRA', '2': 3},
+    {'1': 'SETTINGS_ERM', '2': 4},
+    {'1': 'SETTINGS_BATTERY', '2': 5},
+  ],
+};
+
+/// Descriptor for `SettingType`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List settingTypeDescriptor = $convert.base64Decode(
+    'CgtTZXR0aW5nVHlwZRIUChBTRVRUSU5HU19OT1RfU0VUEAASEQoNU0VUVElOR1NfQkFTRRABEh'
+    'MKD1NFVFRJTkdTX1NMSURFUhACEhAKDFNFVFRJTkdTX0xSQRADEhAKDFNFVFRJTkdTX0VSTRAE'
+    'EhQKEFNFVFRJTkdTX0JBVFRFUlkQBQ==');
 
 @$core.Deprecated('Use hampStateDescriptor instead')
 const HampState$json = {
@@ -700,6 +734,18 @@ const BatteryState$json = {
       '5': 8,
       '10': 'chargerFaultDetected'
     },
+    {
+      '1': 'last_fully_charged_voltage',
+      '3': 13,
+      '4': 1,
+      '5': 2,
+      '10': 'lastFullyChargedVoltage'
+    },
+    {'1': 'chgr', '3': 14, '4': 1, '5': 8, '10': 'chgr'},
+    {'1': 'ic_done', '3': 15, '4': 1, '5': 8, '10': 'icDone'},
+    {'1': 'pg', '3': 16, '4': 1, '5': 8, '10': 'pg'},
+    {'1': 'charger_disabled', '3': 17, '4': 1, '5': 8, '10': 'chargerDisabled'},
+    {'1': 'charging', '3': 18, '4': 1, '5': 8, '10': 'charging'},
   ],
 };
 
@@ -715,4 +761,7 @@ final $typed_data.Uint8List batteryStateDescriptor = $convert.base64Decode(
     'FkY1ZhbHVlEjIKFW5vdF9zdXBwb3J0ZWRfY2hhcmdlchgKIAEoCFITbm90U3VwcG9ydGVkQ2hh'
     'cmdlchI7ChpzaHV0X2Rvd25fdm9sdGFnZV9kZXRlY3RlZBgLIAEoCFIXc2h1dERvd25Wb2x0YW'
     'dlRGV0ZWN0ZWQSNAoWY2hhcmdlcl9mYXVsdF9kZXRlY3RlZBgMIAEoCFIUY2hhcmdlckZhdWx0'
-    'RGV0ZWN0ZWQ=');
+    'RGV0ZWN0ZWQSOwoabGFzdF9mdWxseV9jaGFyZ2VkX3ZvbHRhZ2UYDSABKAJSF2xhc3RGdWxseU'
+    'NoYXJnZWRWb2x0YWdlEhIKBGNoZ3IYDiABKAhSBGNoZ3ISFwoHaWNfZG9uZRgPIAEoCFIGaWNE'
+    'b25lEg4KAnBnGBAgASgIUgJwZxIpChBjaGFyZ2VyX2Rpc2FibGVkGBEgASgIUg9jaGFyZ2VyRG'
+    'lzYWJsZWQSGgoIY2hhcmdpbmcYEiABKAhSCGNoYXJnaW5n');

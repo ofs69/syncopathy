@@ -746,6 +746,31 @@ class BleState extends $pb.ProtobufEnum {
   const BleState._(super.value, super.name);
 }
 
+///  There is no need to set the transportation. This is handled in the FW.
+/// /////////////////////// Div constants /////////////////////////
+/// Added in FW4.0.19
+class BatteryDriver extends $pb.ProtobufEnum {
+  static const BatteryDriver BATTERY_DRIVER_NOT_SET =
+      BatteryDriver._(0, _omitEnumNames ? '' : 'BATTERY_DRIVER_NOT_SET');
+  static const BatteryDriver BATTERY_DRIVER_OH =
+      BatteryDriver._(1, _omitEnumNames ? '' : 'BATTERY_DRIVER_OH');
+  static const BatteryDriver BATTERY_DRIVER_H2 =
+      BatteryDriver._(2, _omitEnumNames ? '' : 'BATTERY_DRIVER_H2');
+
+  static const $core.List<BatteryDriver> values = <BatteryDriver>[
+    BATTERY_DRIVER_NOT_SET,
+    BATTERY_DRIVER_OH,
+    BATTERY_DRIVER_H2,
+  ];
+
+  static final $core.List<BatteryDriver?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static BatteryDriver? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const BatteryDriver._(super.value, super.name);
+}
+
 ///  The 3 different potential Idle timeout states
 /// Added in FW4.0.19
 class IdleTimeoutState extends $pb.ProtobufEnum {
@@ -770,6 +795,39 @@ class IdleTimeoutState extends $pb.ProtobufEnum {
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const IdleTimeoutState._(super.value, super.name);
+}
+
+///  Used for settings changed notifications
+/// Added in FW4.0.19
+class SettingType extends $pb.ProtobufEnum {
+  static const SettingType SETTINGS_NOT_SET =
+      SettingType._(0, _omitEnumNames ? '' : 'SETTINGS_NOT_SET');
+  static const SettingType SETTINGS_BASE =
+      SettingType._(1, _omitEnumNames ? '' : 'SETTINGS_BASE');
+  static const SettingType SETTINGS_SLIDER =
+      SettingType._(2, _omitEnumNames ? '' : 'SETTINGS_SLIDER');
+  static const SettingType SETTINGS_LRA =
+      SettingType._(3, _omitEnumNames ? '' : 'SETTINGS_LRA');
+  static const SettingType SETTINGS_ERM =
+      SettingType._(4, _omitEnumNames ? '' : 'SETTINGS_ERM');
+  static const SettingType SETTINGS_BATTERY =
+      SettingType._(5, _omitEnumNames ? '' : 'SETTINGS_BATTERY');
+
+  static const $core.List<SettingType> values = <SettingType>[
+    SETTINGS_NOT_SET,
+    SETTINGS_BASE,
+    SETTINGS_SLIDER,
+    SETTINGS_LRA,
+    SETTINGS_ERM,
+    SETTINGS_BATTERY,
+  ];
+
+  static final $core.List<SettingType?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 5);
+  static SettingType? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const SettingType._(super.value, super.name);
 }
 
 const $core.bool _omitEnumNames =

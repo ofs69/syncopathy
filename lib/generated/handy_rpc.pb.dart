@@ -49,6 +49,7 @@ enum Notification_Notification {
   notificationSliderUnblocked,
   notificationLowMemoryError,
   notificationLowMemoryWarning,
+  notificationSettingsChanged,
   notSet
 }
 
@@ -93,6 +94,7 @@ class Notification extends $pb.GeneratedMessage {
     $0.NotificationSliderUnblocked? notificationSliderUnblocked,
     $0.NotificationLowMemoryError? notificationLowMemoryError,
     $0.NotificationLowMemoryWarning? notificationLowMemoryWarning,
+    $0.NotificationSettingsChanged? notificationSettingsChanged,
   }) {
     final result = create();
     if (id != null) result.id = id;
@@ -148,6 +150,8 @@ class Notification extends $pb.GeneratedMessage {
       result.notificationLowMemoryError = notificationLowMemoryError;
     if (notificationLowMemoryWarning != null)
       result.notificationLowMemoryWarning = notificationLowMemoryWarning;
+    if (notificationSettingsChanged != null)
+      result.notificationSettingsChanged = notificationSettingsChanged;
     return result;
   }
 
@@ -188,6 +192,7 @@ class Notification extends $pb.GeneratedMessage {
     1003: Notification_Notification.notificationSliderUnblocked,
     1004: Notification_Notification.notificationLowMemoryError,
     1005: Notification_Notification.notificationLowMemoryWarning,
+    2000: Notification_Notification.notificationSettingsChanged,
     0: Notification_Notification.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -220,7 +225,8 @@ class Notification extends $pb.GeneratedMessage {
       1002,
       1003,
       1004,
-      1005
+      1005,
+      2000
     ])
     ..a<$core.int>(2, _omitFieldNames ? '' : 'id', $pb.PbFieldType.OU3)
     ..aOM<$0.NotificationWifiScanComplete>(
@@ -300,6 +306,9 @@ class Notification extends $pb.GeneratedMessage {
     ..aOM<$0.NotificationLowMemoryWarning>(
         1005, _omitFieldNames ? '' : 'notificationLowMemoryWarning',
         subBuilder: $0.NotificationLowMemoryWarning.create)
+    ..aOM<$0.NotificationSettingsChanged>(
+        2000, _omitFieldNames ? '' : 'notificationSettingsChanged',
+        subBuilder: $0.NotificationSettingsChanged.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -671,6 +680,19 @@ class Notification extends $pb.GeneratedMessage {
   @$pb.TagNumber(1005)
   $0.NotificationLowMemoryWarning ensureNotificationLowMemoryWarning() =>
       $_ensure(26);
+
+  @$pb.TagNumber(2000)
+  $0.NotificationSettingsChanged get notificationSettingsChanged => $_getN(27);
+  @$pb.TagNumber(2000)
+  set notificationSettingsChanged($0.NotificationSettingsChanged value) =>
+      $_setField(2000, value);
+  @$pb.TagNumber(2000)
+  $core.bool hasNotificationSettingsChanged() => $_has(27);
+  @$pb.TagNumber(2000)
+  void clearNotificationSettingsChanged() => $_clearField(2000);
+  @$pb.TagNumber(2000)
+  $0.NotificationSettingsChanged ensureNotificationSettingsChanged() =>
+      $_ensure(27);
 }
 
 enum Request_Params {

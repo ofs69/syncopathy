@@ -1,4 +1,4 @@
-// Auto-generated on 2025-09-17 09:14:18
+// Auto-generated on 2025-10-14 13:26:40
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
@@ -122,8 +122,9 @@ message ResponseCapabilitiesGet{
     uint32 led_matrix_leds_x = 9;   //[uint8]Nr of leds in X axis
     uint32 led_matrix_leds_y = 10;  //[uint8]Nr of leds in Y axis
     bool rgb_ring = 11;             //If the device has a RGB ring indicator
-    uint32 rgb_ring_leds = 12;      //Nr of leds in the RGB ring
+    uint32 rgb_ring_leds = 12;      //[uint8]Nr of leds in the RGB ring
     uint32 battery_capacity = 13;   //Battery capacity in mAh
+    BatteryDriver battery_driver = 14; //Battery driver type - Added in FW4.0.19
 }
 //714
 /*

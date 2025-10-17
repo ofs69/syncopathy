@@ -896,8 +896,6 @@ class ApInfo extends $pb.GeneratedMessage {
   void clearIp() => $_clearField(6);
 }
 
-///  There is no need to set the transportation. This is handled in the FW.
-/// /////////////////////// Div constants /////////////////////////
 class BatteryState extends $pb.GeneratedMessage {
   factory BatteryState({
     $core.int? level,
@@ -912,6 +910,12 @@ class BatteryState extends $pb.GeneratedMessage {
     $core.bool? notSupportedCharger,
     $core.bool? shutDownVoltageDetected,
     $core.bool? chargerFaultDetected,
+    $core.double? lastFullyChargedVoltage,
+    $core.bool? chgr,
+    $core.bool? icDone,
+    $core.bool? pg,
+    $core.bool? chargerDisabled,
+    $core.bool? charging,
   }) {
     final result = create();
     if (level != null) result.level = level;
@@ -931,6 +935,13 @@ class BatteryState extends $pb.GeneratedMessage {
       result.shutDownVoltageDetected = shutDownVoltageDetected;
     if (chargerFaultDetected != null)
       result.chargerFaultDetected = chargerFaultDetected;
+    if (lastFullyChargedVoltage != null)
+      result.lastFullyChargedVoltage = lastFullyChargedVoltage;
+    if (chgr != null) result.chgr = chgr;
+    if (icDone != null) result.icDone = icDone;
+    if (pg != null) result.pg = pg;
+    if (chargerDisabled != null) result.chargerDisabled = chargerDisabled;
+    if (charging != null) result.charging = charging;
     return result;
   }
 
@@ -964,6 +975,13 @@ class BatteryState extends $pb.GeneratedMessage {
     ..aOB(10, _omitFieldNames ? '' : 'notSupportedCharger')
     ..aOB(11, _omitFieldNames ? '' : 'shutDownVoltageDetected')
     ..aOB(12, _omitFieldNames ? '' : 'chargerFaultDetected')
+    ..a<$core.double>(13, _omitFieldNames ? '' : 'lastFullyChargedVoltage',
+        $pb.PbFieldType.OF)
+    ..aOB(14, _omitFieldNames ? '' : 'chgr')
+    ..aOB(15, _omitFieldNames ? '' : 'icDone')
+    ..aOB(16, _omitFieldNames ? '' : 'pg')
+    ..aOB(17, _omitFieldNames ? '' : 'chargerDisabled')
+    ..aOB(18, _omitFieldNames ? '' : 'charging')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1095,6 +1113,60 @@ class BatteryState extends $pb.GeneratedMessage {
   $core.bool hasChargerFaultDetected() => $_has(11);
   @$pb.TagNumber(12)
   void clearChargerFaultDetected() => $_clearField(12);
+
+  @$pb.TagNumber(13)
+  $core.double get lastFullyChargedVoltage => $_getN(12);
+  @$pb.TagNumber(13)
+  set lastFullyChargedVoltage($core.double value) => $_setFloat(12, value);
+  @$pb.TagNumber(13)
+  $core.bool hasLastFullyChargedVoltage() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearLastFullyChargedVoltage() => $_clearField(13);
+
+  @$pb.TagNumber(14)
+  $core.bool get chgr => $_getBF(13);
+  @$pb.TagNumber(14)
+  set chgr($core.bool value) => $_setBool(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasChgr() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearChgr() => $_clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.bool get icDone => $_getBF(14);
+  @$pb.TagNumber(15)
+  set icDone($core.bool value) => $_setBool(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasIcDone() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearIcDone() => $_clearField(15);
+
+  @$pb.TagNumber(16)
+  $core.bool get pg => $_getBF(15);
+  @$pb.TagNumber(16)
+  set pg($core.bool value) => $_setBool(15, value);
+  @$pb.TagNumber(16)
+  $core.bool hasPg() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearPg() => $_clearField(16);
+
+  @$pb.TagNumber(17)
+  $core.bool get chargerDisabled => $_getBF(16);
+  @$pb.TagNumber(17)
+  set chargerDisabled($core.bool value) => $_setBool(16, value);
+  @$pb.TagNumber(17)
+  $core.bool hasChargerDisabled() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearChargerDisabled() => $_clearField(17);
+
+  @$pb.TagNumber(18)
+  $core.bool get charging => $_getBF(17);
+  @$pb.TagNumber(18)
+  set charging($core.bool value) => $_setBool(17, value);
+  @$pb.TagNumber(18)
+  $core.bool hasCharging() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearCharging() => $_clearField(18);
 }
 
 const $core.bool _omitFieldNames =

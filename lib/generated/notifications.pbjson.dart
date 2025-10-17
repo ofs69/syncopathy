@@ -502,3 +502,24 @@ final $typed_data.Uint8List notificationIdleTimeoutDescriptor = $convert.base64D
     'ChdOb3RpZmljYXRpb25JZGxlVGltZW91dBIvCgVzdGF0ZRgBIAEoDjIZLmhkeV9ycGMuSWRsZV'
     'RpbWVvdXRTdGF0ZVIFc3RhdGUSGwoJaWRsZV90aW1lGAIgASgNUghpZGxlVGltZRIhCgx3YXJu'
     'aW5nX3RpbWUYAyABKA1SC3dhcm5pbmdUaW1l');
+
+@$core.Deprecated('Use notificationSettingsChangedDescriptor instead')
+const NotificationSettingsChanged$json = {
+  '1': 'NotificationSettingsChanged',
+  '2': [
+    {
+      '1': 'type',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.SettingType',
+      '10': 'type'
+    },
+  ],
+};
+
+/// Descriptor for `NotificationSettingsChanged`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List notificationSettingsChangedDescriptor =
+    $convert.base64Decode(
+        'ChtOb3RpZmljYXRpb25TZXR0aW5nc0NoYW5nZWQSKAoEdHlwZRgBIAEoDjIULmhkeV9ycGMuU2'
+        'V0dGluZ1R5cGVSBHR5cGU=');
