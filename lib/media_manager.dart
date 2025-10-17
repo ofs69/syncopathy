@@ -166,7 +166,7 @@ class MediaManager {
             }
             final funscriptPath = funscriptPaths.first;
             if (p.dirname(videoPath) != p.dirname(funscriptPath)) {
-              Logger.warning(
+              Logger.debug(
                 'Video and funscript not in same directory: Video: $videoPath Funscript: $funscriptPath',
               );
             }

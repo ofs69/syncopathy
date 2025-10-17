@@ -34,6 +34,14 @@ class FunscriptAction implements Comparable<FunscriptAction> {
   int compareTo(FunscriptAction other) {
     return at.compareTo(other.at);
   }
+
+  @override
+  bool operator ==(Object other) {
+      return other is FunscriptAction && other.at == at && other.pos == pos;
+  }
+
+  @override
+  int get hashCode => at.hashCode;
 }
 
 /// Represents a Funscript file.
@@ -107,9 +115,7 @@ class Funscript {
       try {
         metadata = FunscriptMetadata.fromJson(metadataMap);
       } catch (e) {
-        Logger.warning(
-          "Failed to parse Funscript metadata for '$filePath': $e",
-        );
+        Logger.debug("Failed to parse Funscript metadata for '$filePath': $e");
       }
     }
 
