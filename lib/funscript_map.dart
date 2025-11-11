@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lunaris_engine/MachineLearning/tsne.dart';
 import 'package:ml_linalg/matrix.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/logging.dart';
@@ -7,6 +6,7 @@ import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/video_model.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/tsne.dart';
 import 'package:syncopathy/video_thumbnail.dart';
 
 class FunscriptMapPage extends StatefulWidget {
@@ -102,7 +102,8 @@ class _FunscriptMapPageState extends State<FunscriptMapPage>
 
     if (vectors.isNotEmpty) {
       final data = vectors;
-      final tsneResult = tsne(data, perplexity: 20.0, iterations: 1000);
+      final tsne = TSNE(perplexity: 500.0, maxIter: 1000, dimension: 2);
+      final tsneResult = tsne.fitTransform(data);
       final matrix = Matrix.fromList(tsneResult);
       final points = matrix.rows.toList();
       final double minX = points
@@ -308,6 +309,43 @@ class _FunscriptMapPageState extends State<FunscriptMapPage>
                                         ),
                                       ),
                                     ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                      ),
+                                      child: Text(
+                                        'Avg Speed: ${_videos[_hoveredIndex!].averageSpeed.toStringAsFixed(2)}',
+                                        style: const TextStyle(fontSize: 10),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                      ),
+                                      child: Text(
+                                        'Avg Min Pos: ${_videos[_hoveredIndex!].averageMin.toStringAsFixed(2)}',
+                                        style: const TextStyle(fontSize: 10),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                      ),
+                                      child: Text(
+                                        'Avg Max Pos: ${_videos[_hoveredIndex!].averageMax.toStringAsFixed(2)}',
+                                        style: const TextStyle(fontSize: 10),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                        vertical: 4.0,
+                                      ),
+                                      child: Text(
+                                        'Duration: ${_videos[_hoveredIndex!].duration?.toStringAsFixed(2) ?? 'N/A'}s',
+                                        style: const TextStyle(fontSize: 10),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -352,9 +390,9 @@ class ScatterPainter extends CustomPainter {
       bool isHovered = i == hoveredIndex;
 
       if (isHovered) {
-        paint.color = Colors.red;
-      } else if (isHighlighted) {
         paint.color = Colors.green;
+      } else if (isHighlighted) {
+        paint.color = Colors.red;
       } else {
         paint.color = Colors.blue;
       }
