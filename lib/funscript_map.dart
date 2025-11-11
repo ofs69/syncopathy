@@ -1,12 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:ml_linalg/matrix.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:syncopathy/model/app_model.dart';
-import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/video_model.dart';
 import 'package:syncopathy/model/player_model.dart';
-import 'package:syncopathy/tsne.dart';
 import 'package:syncopathy/video_thumbnail.dart';
 
 class FunscriptMapPage extends StatefulWidget {
@@ -54,82 +55,91 @@ class _FunscriptMapPageState extends State<FunscriptMapPage>
 
     final model = context.read<SyncopathyModel>();
     final videos = model.mediaManager.allVideos;
-    final List<List<double>> vectors = [];
     final List<Video> funscriptVideos = [];
+    final List<String> funscriptPaths = [];
 
     for (final video in videos) {
-      if (video.funscriptPath.isEmpty) {
-        continue;
+      if (video.funscriptPath.isNotEmpty) {
+        funscriptVideos.add(video);
+        funscriptPaths.add(video.funscriptPath);
       }
-      Funscript? funscript;
-      try {
-        funscript = await Funscript.fromFile(video.funscriptPath);
-      } catch (e) {
-        Logger.error('Error loading funscript for ${video.funscriptPath}: $e');
-        continue;
-      }
-      if (funscript == null || funscript.actions.length < 2) {
-        continue;
+    }
+
+    if (funscriptPaths.isEmpty) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
+    final tempDir = await getTemporaryDirectory();
+    final inputFile = File('${tempDir.path}/funscript_paths.txt');
+    final outputFile = File('${tempDir.path}/funscript_embeddings.json');
+
+    await inputFile.writeAsString(funscriptPaths.join('\n'));
+
+    try {
+      final result = await Process.run(
+        'funscript-embedder',
+        ['--input', inputFile.path, '--output', outputFile.path],
+      );
+
+      if (result.exitCode != 0) {
+        Logger.error(
+            'funscript-embedder failed with exit code ${result.exitCode}: ${result.stderr}');
+        setState(() {
+          _isLoading = false;
+        });
+        return;
       }
 
-      funscriptVideos.add(video);
+      final jsonString = await outputFile.readAsString();
+      final Map<String, dynamic> embeddings = json.decode(jsonString);
 
-      final speeds = <double>[];
-      for (int i = 0; i < funscript.actions.length - 1; i++) {
-        final a1 = funscript.actions[i];
-        final a2 = funscript.actions[i + 1];
-        final timeDiff = a2.at - a1.at;
-        if (timeDiff > 0) {
-          final posDiff = (a2.pos - a1.pos).abs();
-          speeds.add(posDiff / timeDiff);
+      final List<Offset> newPoints = [];
+      final List<Video> embeddedVideos = [];
+
+      double minX = double.infinity;
+      double maxX = double.negativeInfinity;
+      double minY = double.infinity;
+      double maxY = double.negativeInfinity;
+
+      for (final video in funscriptVideos) {
+        final embedding = embeddings[video.funscriptPath];
+        if (embedding != null &&
+            embedding['x'] != null &&
+            embedding['y'] != null) {
+          final x = embedding['x'] as double;
+          final y = embedding['y'] as double;
+
+          newPoints.add(Offset(x, y));
+          embeddedVideos.add(video);
+
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
         }
       }
 
-      final positions = funscript.actions
-          .map((a) => a.pos.toDouble() / 100.0)
-          .toList();
-
-      if (speeds.isEmpty || positions.isEmpty) {
-        continue;
+      if (newPoints.isNotEmpty) {
+        setState(() {
+          _videos = embeddedVideos;
+          _points = newPoints
+              .map(
+                (p) => Offset(
+                  (p.dx - minX) / (maxX - minX),
+                  (p.dy - minY) / (maxY - minY),
+                ),
+              )
+              .toList();
+        });
       }
-
-      final speedQuantiles = _calculateQuantiles(speeds, 16);
-      final positionQuantiles = _calculateQuantiles(positions, 16);
-
-      final vector = [...speedQuantiles, ...positionQuantiles];
-      vectors.add(vector);
-    }
-
-    if (vectors.isNotEmpty) {
-      final data = vectors;
-      final tsne = TSNE(perplexity: 500.0, maxIter: 1000, dimension: 2);
-      final tsneResult = tsne.fitTransform(data);
-      final matrix = Matrix.fromList(tsneResult);
-      final points = matrix.rows.toList();
-      final double minX = points
-          .map((p) => p[0])
-          .reduce((a, b) => a < b ? a : b);
-      final double maxX = points
-          .map((p) => p[0])
-          .reduce((a, b) => a > b ? a : b);
-      final double minY = points
-          .map((p) => p[1])
-          .reduce((a, b) => a < b ? a : b);
-      final double maxY = points
-          .map((p) => p[1])
-          .reduce((a, b) => a > b ? a : b);
-
-      setState(() {
-        _videos = funscriptVideos;
-        _points = points
-            .map(
-              (p) => Offset(
-                (p[0] - minX) / (maxX - minX),
-                (p[1] - minY) / (maxY - minY),
-              ),
-            )
-            .toList();
-      });
+    } catch (e) {
+      Logger.error('Error running funscript-embedder: $e');
+    } finally {
+      await inputFile.delete();
+      await outputFile.delete();
     }
 
     setState(() {
@@ -137,28 +147,7 @@ class _FunscriptMapPageState extends State<FunscriptMapPage>
     });
   }
 
-  List<double> _calculateQuantiles(List<double> data, int numQuantiles) {
-    if (data.isEmpty) {
-      return List.filled(numQuantiles, 0.0);
-    }
-    data.sort();
-    final List<double> quantiles = [];
-    for (int i = 1; i <= numQuantiles; i++) {
-      final double quantileIndex = (data.length - 1) * (i / numQuantiles);
-      final int lowerIndex = quantileIndex.floor();
-      final int upperIndex = quantileIndex.ceil();
-      if (lowerIndex == upperIndex) {
-        quantiles.add(data[lowerIndex]);
-      } else {
-        final double interpolation = quantileIndex - lowerIndex;
-        quantiles.add(
-          data[lowerIndex] * (1.0 - interpolation) +
-              data[upperIndex] * interpolation,
-        );
-      }
-    }
-    return quantiles;
-  }
+
 
   @override
   Widget build(BuildContext context) {
