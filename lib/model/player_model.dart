@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:libmpv_dart/video/video_params.dart';
 import 'package:syncopathy/funscript_algo.dart';
+import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/playlist.dart';
@@ -25,6 +26,7 @@ class PlayerModel extends ChangeNotifier {
   late final HandyBle _handyBle;
   ValueNotifier<bool> get isScanning => _handyBle.isScanning;
   ValueNotifier<bool> get isConnected => _handyBle.isConnected;
+  ValueNotifier<BatteryState?> get batteryState => _handyBle.batteryState;
 
   final Settings _settings;
   late final FunscriptStreamController _funscriptStreamController;
