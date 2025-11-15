@@ -27,6 +27,9 @@ class HandyBle extends FunscriptDevice {
   ValueNotifier<bool> get isConnected => _isConnected;
   final ValueNotifier<bool> _isScanning = ValueNotifier(false);
   ValueNotifier<bool> get isScanning => _isScanning;
+  final ValueNotifier<BatteryState?> _batteryState = ValueNotifier(null);
+  ValueNotifier<BatteryState?> get batteryState => _batteryState;
+  ResponseCapabilitiesGet? _capabilities;
 
   int _nextRequestId = 1;
   int get nextRequestId => _nextRequestId++;
@@ -78,6 +81,11 @@ class HandyBle extends FunscriptDevice {
             _isConnected.value = isCurrentlyConnected;
             if (!isCurrentlyConnected) {
               Logger.info("Device disconnected.");
+            }
+          }
+          if (isCurrentlyConnected) {
+            if (_capabilities != null && _capabilities!.hasBattery()) {
+              await _getBattery();
             }
           }
         } catch (e) {
@@ -162,6 +170,7 @@ class HandyBle extends FunscriptDevice {
         _isScanning.value = false;
 
         await _setupDevice();
+        _capabilities = await _getCapabilities();
         await _loadSettings();
       }
     } catch (e) {
@@ -346,6 +355,52 @@ class HandyBle extends FunscriptDevice {
 
     _txWrite(message.writeToBuffer());
     await response;
+  }
+
+  Future<void> _getBattery() async {
+    if (_tx == null) return;
+    var requestId = nextRequestId;
+    var message = RpcMessage(
+      type: MessageType.MESSAGE_TYPE_REQUEST,
+      request: Request(id: requestId, requestBatteryGet: RequestBatteryGet()),
+    );
+
+    var completer = Completer<RpcMessage>();
+    _pendingRequests[requestId] = completer;
+    var response = completer.future.then((value) {
+      var response = value.response;
+      if (response.hasResponseBatteryGet()) {
+        _batteryState.value = response.responseBatteryGet.state;
+      }
+    });
+    _txWrite(message.writeToBuffer());
+    await response;
+  }
+
+  Future<ResponseCapabilitiesGet?> _getCapabilities() async {
+    if (_tx == null) return null;
+    var requestId = nextRequestId;
+    var message = RpcMessage(
+      type: MessageType.MESSAGE_TYPE_REQUEST,
+      request: Request(
+        id: requestId,
+        requestCapabilitiesGet: RequestCapabilitiesGet(),
+      ),
+    );
+
+    var completer = Completer<RpcMessage>();
+    _pendingRequests[requestId] = completer;
+    var response = completer.future.then((value) {
+      var response = value.response;
+      if (response.hasResponseCapabilitiesGet()) {
+        var caps = response.responseCapabilitiesGet;
+        return caps;
+      }
+      return null;
+    });
+    _txWrite(message.writeToBuffer());
+    var caps = await response;
+    return caps;
   }
 
   Future<void> _createStream() async {

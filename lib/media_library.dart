@@ -92,8 +92,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
   Set<String> _selectedTags = {};
   Set<String> _selectedPerformers = {};
   bool _isLoading = false;
-  SortOption? _previousSortOption; // Added field
-  int? _randomSeed; // Added field
+  SortOption? _previousSortOption;
+  int? _randomSeed;
 
   final Set<Video> _selectedVideos = {};
   bool get _isSelectionMode => _selectedVideos.isNotEmpty;

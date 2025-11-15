@@ -159,6 +159,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                 currentVideo: currentVideo,
                 player: player,
                 showDebugNotifications: _showDebugNotifications,
+                batteryState: player.batteryState,
               ),
               body: Row(
                 children: <Widget>[

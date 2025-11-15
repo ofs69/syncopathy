@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:libmpv_dart/video/video_params.dart';
 import 'package:syncopathy/funscript_algo.dart';
+import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/playlist.dart';
@@ -25,6 +26,7 @@ class PlayerModel extends ChangeNotifier {
   late final HandyBle _handyBle;
   ValueNotifier<bool> get isScanning => _handyBle.isScanning;
   ValueNotifier<bool> get isConnected => _handyBle.isConnected;
+  ValueNotifier<BatteryState?> get batteryState => _handyBle.batteryState;
 
   final Settings _settings;
   late final FunscriptStreamController _funscriptStreamController;
@@ -192,8 +194,21 @@ class PlayerModel extends ChangeNotifier {
     try {
       _hasTriggeredNextVideo = false;
       if (!isPlaylist) {
-        clearPlaylist();
-        _setLooping(true);
+        bool videoFoundInExistingPlaylist = false;
+        if (playlist.value != null) {
+          final index = playlist.value!.videos.indexWhere(
+            (v) => v.videoPath == video.videoPath,
+          );
+          if (index != -1) {
+            playlist.value!.currentIndex.value = index;
+            videoFoundInExistingPlaylist = true;
+          }
+        }
+
+        if (!videoFoundInExistingPlaylist) {
+          clearPlaylist();
+          _setLooping(true);
+        }
       } else {
         _setLooping(false);
       }
