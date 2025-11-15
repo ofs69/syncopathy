@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import 'package:syncopathy/funscript_metadata_filter_bottom_sheet.dart';
+
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/model/user_category.dart';
 import 'package:syncopathy/video_item.dart';
@@ -94,6 +95,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
   bool _isLoading = false;
   SortOption? _previousSortOption;
   int? _randomSeed;
+  Map<String, double> _pcaScoresByPath = {};
+  Set<String> _videoPathsForPca = {};
 
   final Set<Video> _selectedVideos = {};
   bool get _isSelectionMode => _selectedVideos.isNotEmpty;
@@ -230,63 +233,95 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
     final videoPcaScores = <Video, double>{};
     if (_mediaLibrarySettings.sortOption.value == SortOption.pca) {
-      print('Loading funscripts for PCA sorting...');
-      int loadedCount = 0;
-      for (var i = 0; i < videos.length; i++) {
-        await videos[i].loadFunscript();
-        loadedCount++;
-        if (loadedCount % 100 == 0) {
-          print('Loaded $loadedCount funscripts...');
+      final allVideos = _mediaManager.allVideos;
+      final allVideoPaths = allVideos.map((v) => v.videoPath).toSet();
+
+      if (!_videoPathsForPca.containsAll(allVideoPaths) ||
+          allVideoPaths.length != _videoPathsForPca.length) {
+        _videoPathsForPca = allVideoPaths;
+        _pcaScoresByPath.clear();
+
+        if (!mounted) return;
+        NotificationFeedManager.showSuccessNotification(
+          context,
+          'Loading funscripts for PCA sorting...',
+        );
+        int loadedCount = 0;
+        final videosWithFunscript = <Video>[];
+        for (var video in allVideos) {
+          await video.loadFunscript();
+          if (video.funscript != null) {
+            videosWithFunscript.add(video);
+          }
+          loadedCount++;
+          if (loadedCount % 100 == 0) {
+            if (!mounted) return;
+            NotificationFeedManager.showSuccessNotification(
+              context,
+              'Loaded $loadedCount funscripts...',
+            );
+          }
+        }
+        if (!mounted) return;
+        NotificationFeedManager.showSuccessNotification(
+          context,
+          'Finished loading funscripts for PCA sorting. Total: $loadedCount',
+        );
+
+        if (videosWithFunscript.length >= 2) {
+          final features = videosWithFunscript.map((v) {
+            final funscript = v.funscript!;
+            final positions = funscript.actions
+                .map((a) => a.pos.toDouble())
+                .toList();
+            final speeds = <double>[];
+            for (var i = 0; i < funscript.actions.length - 1; i++) {
+              final a1 = funscript.actions[i];
+              final a2 = funscript.actions[i + 1];
+              final timeDiff = a2.at - a1.at;
+              if (timeDiff > 0) {
+                speeds.add(
+                  (a2.pos.toDouble() - a1.pos.toDouble()).abs() / timeDiff,
+                );
+              }
+            }
+
+            if (positions.isEmpty) {
+              positions.add(0);
+            }
+
+            if (speeds.isEmpty) {
+              speeds.add(0);
+            }
+
+            final positionQuantiles = _calculateQuantiles(positions, 16);
+            final speedQuantiles = _calculateQuantiles(speeds, 16);
+            final positionVariance = _calculateVariance(positions);
+            final speedVariance = _calculateVariance(speeds);
+
+            return [
+              ...positionQuantiles,
+              ...speedQuantiles,
+              positionVariance,
+              speedVariance,
+            ];
+          }).toList();
+
+          final pca = PCA(components: 1);
+          final pcaResult = pca.fitTransform(features);
+          final principalComponents =
+              pcaResult['projected'] as List<List<double>>;
+
+          for (var i = 0; i < videosWithFunscript.length; i++) {
+            _pcaScoresByPath[videosWithFunscript[i].videoPath] =
+                principalComponents[i][0];
+          }
         }
       }
-      print('Finished loading funscripts for PCA sorting. Total: $loadedCount');
 
-      final videosWithFunscript =
-          videos.where((v) => v.funscript != null).toList();
-      if (videosWithFunscript.length >= 2) {
-        final features = videosWithFunscript.map((v) {
-          final funscript = v.funscript!;
-          final positions =
-              funscript.actions.map((a) => a.pos.toDouble()).toList();
-          final speeds = <double>[];
-          for (var i = 0; i < funscript.actions.length - 1; i++) {
-            final a1 = funscript.actions[i];
-            final a2 = funscript.actions[i + 1];
-            final timeDiff = a2.at - a1.at;
-            if (timeDiff > 0) {
-              speeds.add(
-                  (a2.pos.toDouble() - a1.pos.toDouble()).abs() / timeDiff);
-            }
-          }
-
-          if (positions.isEmpty) {
-            positions.add(0);
-          }
-
-          if (speeds.isEmpty) {
-            speeds.add(0);
-          }
-
-          final positionQuantiles = _calculateQuantiles(positions, 16);
-          final speedQuantiles = _calculateQuantiles(speeds, 16);
-          final positionVariance = _calculateVariance(positions);
-          final speedVariance = _calculateVariance(speeds);
-
-          return [
-            ...positionQuantiles,
-            ...speedQuantiles,
-            positionVariance,
-            speedVariance,
-          ];
-        }).toList();
-
-        final pca = PCA(components: 1);
-        final pcaResult = pca.fitTransform(features);
-        final principalComponents =
-            pcaResult['projected'] as List<List<double>>;
-
-        for (var i = 0; i < videosWithFunscript.length; i++) {
-          videoPcaScores[videosWithFunscript[i]] = principalComponents[i][0];
+      for (var video in videos) {
+        if (_pcaScoresByPath.containsKey(video.videoPath)) {
+          videoPcaScores[video] = _pcaScoresByPath[video.videoPath]!;
         }
       }
     }
@@ -363,8 +398,6 @@ class _MediaLibraryState extends State<MediaLibrary> {
     _previousSortOption =
         _mediaLibrarySettings.sortOption.value; // Update previous sort option
   }
-
-
 
   List<double> _calculateQuantiles(List<double> data, int numQuantiles) {
     if (data.isEmpty) {

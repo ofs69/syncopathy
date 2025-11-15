@@ -107,28 +107,28 @@ class PCA {
       final c = cos(theta);
       final s = sin(theta);
 
-      final App = A[p][p];
-      final Aqq = A[q][q];
-      final Apq = A[p][q];
+      final app = A[p][p];
+      final aqq = A[q][q];
+      final apq = A[p][q];
 
-      A[p][p] = c * c * App - 2 * s * c * Apq + s * s * Aqq;
-      A[q][q] = s * s * App + 2 * s * c * Apq + c * c * Aqq;
+      A[p][p] = c * c * app - 2 * s * c * apq + s * s * aqq;
+      A[q][q] = s * s * app + 2 * s * c * apq + c * c * aqq;
       A[p][q] = A[q][p] = 0.0;
 
       for (var i = 0; i < n; i++) {
         if (i != p && i != q) {
-          final Aip = A[i][p];
-          final Aiq = A[i][q];
-          A[i][p] = A[p][i] = c * Aip - s * Aiq;
-          A[i][q] = A[q][i] = s * Aip + c * Aiq;
+          final aip = A[i][p];
+          final aiq = A[i][q];
+          A[i][p] = A[p][i] = c * aip - s * aiq;
+          A[i][q] = A[q][i] = s * aip + c * aiq;
         }
       }
 
       for (var i = 0; i < n; i++) {
-        final Vip = V[i][p];
-        final Viq = V[i][q];
-        V[i][p] = c * Vip - s * Viq;
-        V[i][q] = s * Vip + c * Viq;
+        final vip = V[i][p];
+        final viq = V[i][q];
+        V[i][p] = c * vip - s * viq;
+        V[i][q] = s * vip + c * viq;
       }
     }
 

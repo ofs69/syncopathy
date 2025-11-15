@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:isar/isar.dart';
@@ -45,7 +46,7 @@ class Video {
       try {
         _funscript = await Funscript.fromFile(funscriptPath);
       } catch (e) {
-        print('Error loading funscript from $funscriptPath: $e');
+        debugPrint('Error loading funscript from $funscriptPath: $e');
         _funscript = null; // Ensure funscript is null on error
       }
     }
