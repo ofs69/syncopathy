@@ -14,7 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/media_library_settings.dart';
 import 'package:syncopathy/category_selection_dialog.dart';
-import 'package:syncopathy/notification_feed.dart'; // Added missing import
+import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/pca.dart';
 
 enum SortOption {
@@ -95,7 +95,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
   bool _isLoading = false;
   SortOption? _previousSortOption;
   int? _randomSeed;
-  Map<String, double> _pcaScoresByPath = {};
+  final Map<String, List<double>> _pcaScoresByPath = {};
+  final Map<Video, List<double>> _videoPcaScores = {};
   Set<String> _videoPathsForPca = {};
 
   final Set<Video> _selectedVideos = {};
@@ -231,7 +232,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
       return video.title.toLowerCase().contains(query);
     }).toList();
 
-    final videoPcaScores = <Video, double>{};
+    _videoPcaScores.clear();
     if (_mediaLibrarySettings.sortOption.value == SortOption.pca) {
       final allVideos = _mediaManager.allVideos;
       final allVideoPaths = allVideos.map((v) => v.videoPath).toSet();
@@ -300,28 +301,28 @@ class _MediaLibraryState extends State<MediaLibrary> {
             final speedVariance = _calculateVariance(speeds);
 
             return [
-              ...positionQuantiles,
-              ...speedQuantiles,
               positionVariance,
               speedVariance,
+              ...speedQuantiles,
+              ...positionQuantiles,
             ];
           }).toList();
 
-          final pca = PCA(components: 1);
+          final pca = PCA(components: 2);
           final pcaResult = pca.fitTransform(features);
           final principalComponents =
               pcaResult['projected'] as List<List<double>>;
 
           for (var i = 0; i < videosWithFunscript.length; i++) {
             _pcaScoresByPath[videosWithFunscript[i].videoPath] =
-                principalComponents[i][0];
+                principalComponents[i];
           }
         }
       }
 
       for (var video in videos) {
         if (_pcaScoresByPath.containsKey(video.videoPath)) {
-          videoPcaScores[video] = _pcaScoresByPath[video.videoPath]!;
+          _videoPcaScores[video] = _pcaScoresByPath[video.videoPath]!;
         }
       }
     }
@@ -372,8 +373,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
           compareResult = 0;
           break;
         case SortOption.pca:
-          final scoreA = videoPcaScores[a];
-          final scoreB = videoPcaScores[b];
+          final scoreA = _videoPcaScores[a];
+          final scoreB = _videoPcaScores[b];
 
           if (scoreA == null && scoreB == null) {
             compareResult = 0;
@@ -382,7 +383,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
           } else if (scoreB == null) {
             compareResult = -1;
           } else {
-            compareResult = scoreA.compareTo(scoreB);
+            compareResult = scoreA[0].compareTo(scoreB[0]);
           }
           break;
       }

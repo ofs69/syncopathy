@@ -8,7 +8,6 @@ import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/notification_feed.dart';
 
 import 'package:syncopathy/settings_page.dart';
-import 'package:syncopathy/funscript_map.dart';
 import 'package:syncopathy/video_player_page.dart';
 
 import 'package:syncopathy/shortcut_handler.dart';
@@ -122,11 +121,6 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
         label: Text("Video Player"),
       ),
       const NavigationRailDestination(
-        icon: Icon(Icons.scatter_plot_outlined),
-        selectedIcon: Icon(Icons.scatter_plot),
-        label: Text('Funscript Map'),
-      ),
-      const NavigationRailDestination(
         icon: Icon(Icons.settings_outlined),
         selectedIcon: Icon(Icons.settings),
         label: Text('Settings'),
@@ -228,7 +222,6 @@ class _PageContentState extends State<PageContent> {
       children: <Widget>[
         MediaPage(mediaManager: context.read<SyncopathyModel>().mediaManager),
         VideoPlayerPage(focusNode: widget.videoPlayerFocusNode),
-        const FunscriptMapPage(),
         SettingsPage(),
         HelpPage(),
       ],
