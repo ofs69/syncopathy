@@ -21,6 +21,7 @@ class MediaLibrarySettingsEntity {
   bool showAverageSpeed = true;
   bool showAverageMinMax = true;
   bool showDuration = true;
+  bool separateFavorites = true;
   List<String> visibilityFilters = [];
 }
 
@@ -35,6 +36,7 @@ class MediaLibrarySettings {
   late ValueNotifier<bool> showAverageSpeed;
   late ValueNotifier<bool> showAverageMinMax;
   late ValueNotifier<bool> showDuration;
+  late ValueNotifier<bool> separateFavorites;
   late ValueNotifier<Set<VideoFilter>> visibilityFilters;
 
   StreamController<void> get saveNotifier => _saveNotifier;
@@ -48,6 +50,7 @@ class MediaLibrarySettings {
     showAverageSpeed = ValueNotifier<bool>(true);
     showAverageMinMax = ValueNotifier<bool>(true);
     showDuration = ValueNotifier<bool>(true);
+    separateFavorites = ValueNotifier<bool>(true);
     visibilityFilters = ValueNotifier<Set<VideoFilter>>({});
   }
 
@@ -62,6 +65,7 @@ class MediaLibrarySettings {
     showAverageSpeed.value = _entity.showAverageSpeed;
     showAverageMinMax.value = _entity.showAverageMinMax;
     showDuration.value = _entity.showDuration;
+    separateFavorites.value = _entity.separateFavorites;
     visibilityFilters.value = _entity.visibilityFilters
         .map((id) => VideoFilter.values.firstWhere((f) => f.id == id))
         .toSet();
@@ -120,6 +124,12 @@ class MediaLibrarySettings {
     _entity.showDuration = value;
     await _save();
     showDuration.value = value;
+  }
+
+  Future<void> setSeparateFavorites(bool value) async {
+    _entity.separateFavorites = value;
+    await _save();
+    separateFavorites.value = value;
   }
 
   Future<void> setVisibilityFilters(Set<VideoFilter> value) async {

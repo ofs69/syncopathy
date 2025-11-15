@@ -3,6 +3,7 @@ import 'package:crypto/crypto.dart';
 import 'package:isar/isar.dart';
 import 'package:syncopathy/model/funscript_metadata.dart';
 import 'package:syncopathy/model/user_category.dart';
+import 'package:syncopathy/model/funscript.dart'; // Added import
 
 part 'video_model.g.dart';
 
@@ -21,6 +22,11 @@ class Video {
   DateTime dateFirstFound = DateTime.now();
   double? duration;
 
+  @ignore
+  Funscript? _funscript; // Added field
+  @ignore
+  Funscript? get funscript => _funscript; // Added getter
+
   final categories = IsarLinks<UserCategory>();
 
   Video({
@@ -33,6 +39,17 @@ class Video {
     this.funscriptMetadata,
     this.duration,
   });
+
+  Future<void> loadFunscript() async {
+    if (funscriptPath.isNotEmpty && _funscript == null) {
+      try {
+        _funscript = await Funscript.fromFile(funscriptPath);
+      } catch (e) {
+        print('Error loading funscript from $funscriptPath: $e');
+        _funscript = null; // Ensure funscript is null on error
+      }
+    }
+  }
 
   String get videoHash {
     final bytes = utf8.encode(videoPath);

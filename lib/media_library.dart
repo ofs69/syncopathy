@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+
 import 'package:syncopathy/funscript_metadata_filter_bottom_sheet.dart';
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/model/user_category.dart';
@@ -12,7 +13,8 @@ import 'package:provider/provider.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/media_library_settings.dart';
 import 'package:syncopathy/category_selection_dialog.dart';
-import 'package:syncopathy/notification_feed.dart';
+import 'package:syncopathy/notification_feed.dart'; // Added missing import
+import 'package:syncopathy/pca.dart';
 
 enum SortOption {
   title('Title'),
@@ -20,7 +22,8 @@ enum SortOption {
   depth('Depth'),
   duration('Duration'),
   lastModified('Last Modified'),
-  random('Random');
+  random('Random'),
+  pca('PCA');
 
   const SortOption(this.label);
   final String label;
@@ -157,7 +160,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
     return performers;
   }
 
-  void _updateDisplayedVideos() {
+  Future<void> _updateDisplayedVideos() async {
     if (!mounted) return;
     if (_isLoading) return;
 
@@ -225,6 +228,69 @@ class _MediaLibraryState extends State<MediaLibrary> {
       return video.title.toLowerCase().contains(query);
     }).toList();
 
+    final videoPcaScores = <Video, double>{};
+    if (_mediaLibrarySettings.sortOption.value == SortOption.pca) {
+      print('Loading funscripts for PCA sorting...');
+      int loadedCount = 0;
+      for (var i = 0; i < videos.length; i++) {
+        await videos[i].loadFunscript();
+        loadedCount++;
+        if (loadedCount % 100 == 0) {
+          print('Loaded $loadedCount funscripts...');
+        }
+      }
+      print('Finished loading funscripts for PCA sorting. Total: $loadedCount');
+
+      final videosWithFunscript =
+          videos.where((v) => v.funscript != null).toList();
+      if (videosWithFunscript.length >= 2) {
+        final features = videosWithFunscript.map((v) {
+          final funscript = v.funscript!;
+          final positions =
+              funscript.actions.map((a) => a.pos.toDouble()).toList();
+          final speeds = <double>[];
+          for (var i = 0; i < funscript.actions.length - 1; i++) {
+            final a1 = funscript.actions[i];
+            final a2 = funscript.actions[i + 1];
+            final timeDiff = a2.at - a1.at;
+            if (timeDiff > 0) {
+              speeds.add(
+                  (a2.pos.toDouble() - a1.pos.toDouble()).abs() / timeDiff);
+            }
+          }
+
+          if (positions.isEmpty) {
+            positions.add(0);
+          }
+
+          if (speeds.isEmpty) {
+            speeds.add(0);
+          }
+
+          final positionQuantiles = _calculateQuantiles(positions, 16);
+          final speedQuantiles = _calculateQuantiles(speeds, 16);
+          final positionVariance = _calculateVariance(positions);
+          final speedVariance = _calculateVariance(speeds);
+
+          return [
+            ...positionQuantiles,
+            ...speedQuantiles,
+            positionVariance,
+            speedVariance,
+          ];
+        }).toList();
+
+        final pca = PCA(components: 1);
+        final pcaResult = pca.fitTransform(features);
+        final principalComponents =
+            pcaResult['projected'] as List<List<double>>;
+
+        for (var i = 0; i < videosWithFunscript.length; i++) {
+          videoPcaScores[videosWithFunscript[i]] = principalComponents[i][0];
+        }
+      }
+    }
+
     if (_mediaLibrarySettings.sortOption.value == SortOption.random) {
       if (_previousSortOption != SortOption.random) {
         _randomSeed = Random().nextInt(1000000); // Generate new seed
@@ -233,15 +299,18 @@ class _MediaLibraryState extends State<MediaLibrary> {
     } else {
       _randomSeed = null; // Clear seed if not random sort
     }
-    videos.sort((a, b) {
-      // Favorites always come first, and disliked videos are never favorites.
-      if (a.isFavorite != b.isFavorite) {
-        return a.isFavorite ? -1 : 1;
-      }
 
-      // Then, sort by dislike status. Disliked videos go to the bottom.
-      if (a.isDislike != b.isDislike) {
-        return a.isDislike ? 1 : -1;
+    videos.sort((a, b) {
+      if (_mediaLibrarySettings.separateFavorites.value) {
+        // Favorites always come first, and disliked videos are never favorites.
+        if (a.isFavorite != b.isFavorite) {
+          return a.isFavorite ? -1 : 1;
+        }
+
+        // Then, sort by dislike status. Disliked videos go to the bottom.
+        if (a.isDislike != b.isDislike) {
+          return a.isDislike ? 1 : -1;
+        }
       }
 
       // Within each group (favorites, normal, disliked), sort by the selected option.
@@ -265,11 +334,21 @@ class _MediaLibraryState extends State<MediaLibrary> {
           compareResult = a.dateFirstFound.compareTo(b.dateFirstFound);
           break;
         case SortOption.random:
-          // If random is selected, the list was already shuffled.
-          // For elements with the same favorite/dislike status, their relative order should be preserved from the shuffle.
-          // Returning 0 indicates that the two elements are considered equal in terms of this sorting criterion,
-          // thus preserving their original relative order (which is now random due to the shuffle).
           compareResult = 0;
+          break;
+        case SortOption.pca:
+          final scoreA = videoPcaScores[a];
+          final scoreB = videoPcaScores[b];
+
+          if (scoreA == null && scoreB == null) {
+            compareResult = 0;
+          } else if (scoreA == null) {
+            compareResult = 1;
+          } else if (scoreB == null) {
+            compareResult = -1;
+          } else {
+            compareResult = scoreA.compareTo(scoreB);
+          }
           break;
       }
 
@@ -285,6 +364,30 @@ class _MediaLibraryState extends State<MediaLibrary> {
         _mediaLibrarySettings.sortOption.value; // Update previous sort option
   }
 
+
+
+  List<double> _calculateQuantiles(List<double> data, int numQuantiles) {
+    if (data.isEmpty) {
+      return List.filled(numQuantiles, 0.0);
+    }
+    data.sort();
+    final quantiles = <double>[];
+    for (var i = 1; i <= numQuantiles; i++) {
+      final index = (data.length * i / numQuantiles) - 1;
+      quantiles.add(data[index.round().clamp(0, data.length - 1)]);
+    }
+    return quantiles;
+  }
+
+  double _calculateVariance(List<double> data) {
+    if (data.length < 2) {
+      return 0.0;
+    }
+    final mean = data.reduce((a, b) => a + b) / data.length;
+    return data.map((x) => (x - mean) * (x - mean)).reduce((a, b) => a + b) /
+        data.length;
+  }
+
   Future<void> _refreshVideos() async {
     setState(() {
       _isLoading = true;
@@ -293,7 +396,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
     await _mediaManager.refreshVideos();
     if (mounted) {
       setState(() => _isLoading = false);
-      _updateDisplayedVideos();
+      await _updateDisplayedVideos();
     }
   }
 
@@ -617,6 +720,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
               _mediaLibrarySettings.setShowDuration(
                 !_mediaLibrarySettings.showDuration.value,
               );
+            } else if (value == 'separate_favorites') {
+              _mediaLibrarySettings.setSeparateFavorites(
+                !_mediaLibrarySettings.separateFavorites.value,
+              );
             }
           },
           itemBuilder: (BuildContext context) {
@@ -629,6 +736,12 @@ class _MediaLibraryState extends State<MediaLibrary> {
                   child: Text(filter.label),
                 );
               }),
+              const PopupMenuDivider(),
+              CheckedPopupMenuItem<String>(
+                value: 'separate_favorites',
+                checked: _mediaLibrarySettings.separateFavorites.value,
+                child: const Text('Separate Favorites/Dislikes'),
+              ),
               const PopupMenuDivider(),
               CheckedPopupMenuItem<String>(
                 value: 'toggle_titles',
