@@ -194,8 +194,24 @@ class PlayerModel extends ChangeNotifier {
     try {
       _hasTriggeredNextVideo = false;
       if (!isPlaylist) {
-        clearPlaylist();
-        _setLooping(true);
+        bool videoFoundInExistingPlaylist = false;
+        if (playlist.value != null) {
+          final index = playlist.value!.videos.indexWhere(
+            (v) => v.videoPath == video.videoPath,
+          );
+          if (index != -1) {
+            playlist.value!.currentIndex.value = index;
+            videoFoundInExistingPlaylist = true;
+            _setLooping(
+              false,
+            ); // If it's part of a playlist, don't loop the single video
+          }
+        }
+
+        if (!videoFoundInExistingPlaylist) {
+          clearPlaylist();
+          _setLooping(true);
+        }
       } else {
         _setLooping(false);
       }
