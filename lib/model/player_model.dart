@@ -202,9 +202,6 @@ class PlayerModel extends ChangeNotifier {
           if (index != -1) {
             playlist.value!.currentIndex.value = index;
             videoFoundInExistingPlaylist = true;
-            _setLooping(
-              false,
-            ); // If it's part of a playlist, don't loop the single video
           }
         }
 
