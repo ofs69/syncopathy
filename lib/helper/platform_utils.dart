@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:path/path.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PlatformUtils {
@@ -7,7 +8,8 @@ class PlatformUtils {
     if (Platform.isWindows) {
       await Process.run('explorer.exe', ['/select,', path]);
     } else {
-      await launchUrl(Uri.file(path));
+      var directory = File.fromUri(Uri.file(path)).parent.path;
+      await launchUrl(Uri.parse("file://$directory"));
     }
   }
 }

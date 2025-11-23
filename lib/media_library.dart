@@ -25,7 +25,7 @@ enum SortOption {
   duration('Duration'),
   lastModified('Last Modified'),
   random('Random'),
-  pca('PCA');
+  pca('PCA (Experimental)');
 
   const SortOption(this.label);
   final String label;

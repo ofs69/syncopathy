@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/helper/debouncer.dart';
+import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
@@ -665,12 +666,7 @@ class _SettingsPageState extends State<SettingsPage>
           onTap: () async {
             try {
               final directory = await getApplicationSupportDirectory();
-              final directoryPath = directory.path;
-              if (Platform.isWindows) {
-                await launchUrl(Uri.parse('file:///$directoryPath'));
-              } else {
-                await launchUrl(Uri.parse(directoryPath));
-              }
+              PlatformUtils.openFileExplorer(directory.path);
             } catch (e) {
               Logger.error('Error opening app data directory: $e');
               if (!context.mounted) return;
