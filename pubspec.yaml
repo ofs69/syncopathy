@@ -57,6 +57,7 @@ dependencies:
   package_info_plus: ^8.0.0
   url_launcher: ^6.3.0
   uuid: ^4.4.0
+  string_scanner: ^1.4.1
 
 dev_dependencies:
   flutter_test:
