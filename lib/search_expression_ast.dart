@@ -37,7 +37,3 @@ class ExcludeNode extends SearchExpressionNode {
 
   const ExcludeNode(this.child);
 }
-
-class WildcardNode extends SearchExpressionNode {
-  const WildcardNode();
-}
