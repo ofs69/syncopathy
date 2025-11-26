@@ -17,6 +17,7 @@ import 'package:syncopathy/category_selection_dialog.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/pca_calculator.dart';
 import 'package:syncopathy/pca_progress_dialog.dart';
+import 'package:syncopathy/search_bar.dart';
 
 enum SortOption {
   title('Title'),
@@ -87,9 +88,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
   late final PcaCalculator _pcaCalculator;
   late final MediaManager _mediaManager;
   late final MediaLibrarySettings _mediaLibrarySettings;
+  String _searchQuery = '';
   late List<Video> _filteredVideos;
-  final _searchController = TextEditingController();
-  final _searchFocusNode = FocusNode();
+
   UserCategory? _selectedCategory;
   Set<String> _selectedAuthors = {};
   Set<String> _selectedTags = {};
@@ -121,7 +122,6 @@ class _MediaLibraryState extends State<MediaLibrary> {
     _refreshVideos();
 
     _filteredVideos = [];
-    _searchController.addListener(_updateDisplayedVideos);
     _videoUpdateSubscription = _mediaManager.videoUpdates.listen((_) {
       _updateDisplayedVideos();
     });
@@ -129,9 +129,6 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
   @override
   void dispose() {
-    _searchController.removeListener(_updateDisplayedVideos);
-    _searchController.dispose();
-    _searchFocusNode.dispose();
     _videoUpdateSubscription?.cancel();
     _settingsSaveSubscription?.cancel();
     super.dispose();
@@ -170,7 +167,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
     if (!mounted) return;
     if (_isLoading) return;
 
-    final query = _searchController.text.toLowerCase();
+    final query = _searchQuery.toLowerCase();
     List<Video> videos = _mediaManager.allVideos.where((video) {
       final authorMatch =
           _selectedAuthors.isEmpty ||
@@ -770,23 +767,15 @@ class _MediaLibraryState extends State<MediaLibrary> {
           : _buildDefaultAppBar(),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: FocusScope(
-              child: TextField(
-                focusNode: _searchFocusNode, // Assign the focus node
-                controller: _searchController,
-                decoration: InputDecoration(
-                  labelText: 'Search Videos',
-                  hintText: 'What are you looking for?',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-              ),
-            ),
+          MediaSearchBar(
+            onSearchChanged: (query) {
+              setState(() {
+                _searchQuery = query;
+              });
+              _updateDisplayedVideos();
+            },
           ),
+
           if (!_isLoading)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -820,9 +809,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
                 if (!_isLoading && _filteredVideos.isEmpty)
                   Center(
                     child: Text(
-                      _searchController.text.isEmpty
+                      _searchQuery.isEmpty
                           ? 'No videos found in configured paths.'
-                          : 'No videos found for "${_searchController.text}".',
+                          : 'No videos found for "$_searchQuery".',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   )
