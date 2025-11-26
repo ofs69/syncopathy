@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:async_locks/async_locks.dart';
 import 'package:file_picker/file_picker.dart';
@@ -11,7 +10,6 @@ import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:syncopathy/video_thumbnail.dart';
 import 'package:syncopathy/notification_feed.dart';
 
