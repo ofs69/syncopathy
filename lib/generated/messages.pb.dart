@@ -5072,6 +5072,244 @@ class ResponseHspPauseOnStarvingSet extends $pb.GeneratedMessage {
   $0.HspState ensureState() => $_ensure(0);
 }
 
+/// 871 - Added in FW4.1.1
+class RequestHspPlaybackRateSet extends $pb.GeneratedMessage {
+  factory RequestHspPlaybackRateSet({
+    $core.double? playbackRate,
+  }) {
+    final result = create();
+    if (playbackRate != null) result.playbackRate = playbackRate;
+    return result;
+  }
+
+  RequestHspPlaybackRateSet._();
+
+  factory RequestHspPlaybackRateSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestHspPlaybackRateSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestHspPlaybackRateSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..a<$core.double>(
+        1, _omitFieldNames ? '' : 'playbackRate', $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHspPlaybackRateSet clone() =>
+      RequestHspPlaybackRateSet()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHspPlaybackRateSet copyWith(
+          void Function(RequestHspPlaybackRateSet) updates) =>
+      super.copyWith((message) => updates(message as RequestHspPlaybackRateSet))
+          as RequestHspPlaybackRateSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestHspPlaybackRateSet create() => RequestHspPlaybackRateSet._();
+  @$core.override
+  RequestHspPlaybackRateSet createEmptyInstance() => create();
+  static $pb.PbList<RequestHspPlaybackRateSet> createRepeated() =>
+      $pb.PbList<RequestHspPlaybackRateSet>();
+  @$core.pragma('dart2js:noInline')
+  static RequestHspPlaybackRateSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestHspPlaybackRateSet>(create);
+  static RequestHspPlaybackRateSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.double get playbackRate => $_getN(0);
+  @$pb.TagNumber(1)
+  set playbackRate($core.double value) => $_setFloat(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPlaybackRate() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPlaybackRate() => $_clearField(1);
+}
+
+class ResponseHspPlaybackRateSet extends $pb.GeneratedMessage {
+  factory ResponseHspPlaybackRateSet({
+    $0.HspState? state,
+  }) {
+    final result = create();
+    if (state != null) result.state = state;
+    return result;
+  }
+
+  ResponseHspPlaybackRateSet._();
+
+  factory ResponseHspPlaybackRateSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseHspPlaybackRateSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseHspPlaybackRateSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<$0.HspState>(1, _omitFieldNames ? '' : 'state',
+        subBuilder: $0.HspState.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHspPlaybackRateSet clone() =>
+      ResponseHspPlaybackRateSet()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHspPlaybackRateSet copyWith(
+          void Function(ResponseHspPlaybackRateSet) updates) =>
+      super.copyWith(
+              (message) => updates(message as ResponseHspPlaybackRateSet))
+          as ResponseHspPlaybackRateSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseHspPlaybackRateSet create() => ResponseHspPlaybackRateSet._();
+  @$core.override
+  ResponseHspPlaybackRateSet createEmptyInstance() => create();
+  static $pb.PbList<ResponseHspPlaybackRateSet> createRepeated() =>
+      $pb.PbList<ResponseHspPlaybackRateSet>();
+  @$core.pragma('dart2js:noInline')
+  static ResponseHspPlaybackRateSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseHspPlaybackRateSet>(create);
+  static ResponseHspPlaybackRateSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.HspState get state => $_getN(0);
+  @$pb.TagNumber(1)
+  set state($0.HspState value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasState() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearState() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $0.HspState ensureState() => $_ensure(0);
+}
+
+/// 872 - Added in FW4.1.1
+class RequestHspLoopSet extends $pb.GeneratedMessage {
+  factory RequestHspLoopSet({
+    $core.bool? loop,
+  }) {
+    final result = create();
+    if (loop != null) result.loop = loop;
+    return result;
+  }
+
+  RequestHspLoopSet._();
+
+  factory RequestHspLoopSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestHspLoopSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestHspLoopSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'loop')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHspLoopSet clone() => RequestHspLoopSet()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHspLoopSet copyWith(void Function(RequestHspLoopSet) updates) =>
+      super.copyWith((message) => updates(message as RequestHspLoopSet))
+          as RequestHspLoopSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestHspLoopSet create() => RequestHspLoopSet._();
+  @$core.override
+  RequestHspLoopSet createEmptyInstance() => create();
+  static $pb.PbList<RequestHspLoopSet> createRepeated() =>
+      $pb.PbList<RequestHspLoopSet>();
+  @$core.pragma('dart2js:noInline')
+  static RequestHspLoopSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestHspLoopSet>(create);
+  static RequestHspLoopSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get loop => $_getBF(0);
+  @$pb.TagNumber(1)
+  set loop($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasLoop() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearLoop() => $_clearField(1);
+}
+
+class ResponseHspLoopSet extends $pb.GeneratedMessage {
+  factory ResponseHspLoopSet({
+    $0.HspState? state,
+  }) {
+    final result = create();
+    if (state != null) result.state = state;
+    return result;
+  }
+
+  ResponseHspLoopSet._();
+
+  factory ResponseHspLoopSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseHspLoopSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseHspLoopSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<$0.HspState>(1, _omitFieldNames ? '' : 'state',
+        subBuilder: $0.HspState.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHspLoopSet clone() => ResponseHspLoopSet()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHspLoopSet copyWith(void Function(ResponseHspLoopSet) updates) =>
+      super.copyWith((message) => updates(message as ResponseHspLoopSet))
+          as ResponseHspLoopSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseHspLoopSet create() => ResponseHspLoopSet._();
+  @$core.override
+  ResponseHspLoopSet createEmptyInstance() => create();
+  static $pb.PbList<ResponseHspLoopSet> createRepeated() =>
+      $pb.PbList<ResponseHspLoopSet>();
+  @$core.pragma('dart2js:noInline')
+  static ResponseHspLoopSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseHspLoopSet>(create);
+  static ResponseHspLoopSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.HspState get state => $_getN(0);
+  @$pb.TagNumber(1)
+  set state($0.HspState value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasState() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearState() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $0.HspState ensureState() => $_ensure(0);
+}
+
 /// /////////////////////// HMI 880->899 /////////////////////////
 class RequestLedOverride extends $pb.GeneratedMessage {
   factory RequestLedOverride({

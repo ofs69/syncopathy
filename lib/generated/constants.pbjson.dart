@@ -391,6 +391,7 @@ const ServerEnvironment$json = {
     {'1': 'SOCKET_SERVER_ENV_PRODUCTION', '2': 0},
     {'1': 'SOCKET_SERVER_ENV_STAGING', '2': 1},
     {'1': 'SOCKET_SERVER_ENV_DEVELOPMENT', '2': 2},
+    {'1': 'SOCKET_SERVER_ENV_CUSTOM', '2': 3},
   ],
 };
 
@@ -398,7 +399,7 @@ const ServerEnvironment$json = {
 final $typed_data.Uint8List serverEnvironmentDescriptor = $convert.base64Decode(
     'ChFTZXJ2ZXJFbnZpcm9ubWVudBIgChxTT0NLRVRfU0VSVkVSX0VOVl9QUk9EVUNUSU9OEAASHQ'
     'oZU09DS0VUX1NFUlZFUl9FTlZfU1RBR0lORxABEiEKHVNPQ0tFVF9TRVJWRVJfRU5WX0RFVkVM'
-    'T1BNRU5UEAI=');
+    'T1BNRU5UEAISHAoYU09DS0VUX1NFUlZFUl9FTlZfQ1VTVE9NEAM=');
 
 @$core.Deprecated('Use bleStateDescriptor instead')
 const BleState$json = {
@@ -458,6 +459,7 @@ const SettingType$json = {
     {'1': 'SETTINGS_LRA', '2': 3},
     {'1': 'SETTINGS_ERM', '2': 4},
     {'1': 'SETTINGS_BATTERY', '2': 5},
+    {'1': 'SETTINGS_SERVER', '2': 6},
   ],
 };
 
@@ -465,7 +467,7 @@ const SettingType$json = {
 final $typed_data.Uint8List settingTypeDescriptor = $convert.base64Decode(
     'CgtTZXR0aW5nVHlwZRIUChBTRVRUSU5HU19OT1RfU0VUEAASEQoNU0VUVElOR1NfQkFTRRABEh'
     'MKD1NFVFRJTkdTX1NMSURFUhACEhAKDFNFVFRJTkdTX0xSQRADEhAKDFNFVFRJTkdTX0VSTRAE'
-    'EhQKEFNFVFRJTkdTX0JBVFRFUlkQBQ==');
+    'EhQKEFNFVFRJTkdTX0JBVFRFUlkQBRITCg9TRVRUSU5HU19TRVJWRVIQBg==');
 
 @$core.Deprecated('Use hampStateDescriptor instead')
 const HampState$json = {

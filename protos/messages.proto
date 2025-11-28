@@ -1,4 +1,4 @@
-// Auto-generated on 2025-10-14 13:26:40
+// Auto-generated on 2025-11-19 14:28:13
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
@@ -124,7 +124,7 @@ message ResponseCapabilitiesGet{
     bool rgb_ring = 11;             //If the device has a RGB ring indicator
     uint32 rgb_ring_leds = 12;      //[uint8]Nr of leds in the RGB ring
     uint32 battery_capacity = 13;   //Battery capacity in mAh
-    BatteryDriver battery_driver = 14; //Battery driver type - Added in FW4.0.19
+    BatteryDriver battery_driver = 14; //Battery driver type - Added in FW4.1.0
 }
 //714
 /*
@@ -351,6 +351,20 @@ message RequestHspPauseOnStarvingSet{
     bool pause_on_starving = 1; //If true, the stream will pause when the buffer is empty. When data is added the stream will resume without time adjustments
 }
 message ResponseHspPauseOnStarvingSet{
+    HspState state = 1;
+}
+//871 - Added in FW4.1.1
+message RequestHspPlaybackRateSet{
+    float playback_rate = 1;    //[DEFAULT 1] playback rate (1 = normal speed), < 1 = slower, > 1 = faster. Must be positive.
+}
+message ResponseHspPlaybackRateSet{
+    HspState state = 1;
+}
+//872 - Added in FW4.1.1
+message RequestHspLoopSet{
+    bool loop = 1;              //[DEFAULT false]
+}
+message ResponseHspLoopSet{
     HspState state = 1;
 }
 ///////////////////////// HMI 880->899 /////////////////////////
