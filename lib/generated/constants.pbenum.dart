@@ -704,15 +704,18 @@ class ServerEnvironment extends $pb.ProtobufEnum {
   static const ServerEnvironment SOCKET_SERVER_ENV_DEVELOPMENT =
       ServerEnvironment._(
           2, _omitEnumNames ? '' : 'SOCKET_SERVER_ENV_DEVELOPMENT');
+  static const ServerEnvironment SOCKET_SERVER_ENV_CUSTOM =
+      ServerEnvironment._(3, _omitEnumNames ? '' : 'SOCKET_SERVER_ENV_CUSTOM');
 
   static const $core.List<ServerEnvironment> values = <ServerEnvironment>[
     SOCKET_SERVER_ENV_PRODUCTION,
     SOCKET_SERVER_ENV_STAGING,
     SOCKET_SERVER_ENV_DEVELOPMENT,
+    SOCKET_SERVER_ENV_CUSTOM,
   ];
 
   static final $core.List<ServerEnvironment?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 2);
+      $pb.ProtobufEnum.$_initByValueList(values, 3);
   static ServerEnvironment? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
@@ -748,7 +751,7 @@ class BleState extends $pb.ProtobufEnum {
 
 ///  There is no need to set the transportation. This is handled in the FW.
 /// /////////////////////// Div constants /////////////////////////
-/// Added in FW4.0.19
+/// Added in FW4.1.0
 class BatteryDriver extends $pb.ProtobufEnum {
   static const BatteryDriver BATTERY_DRIVER_NOT_SET =
       BatteryDriver._(0, _omitEnumNames ? '' : 'BATTERY_DRIVER_NOT_SET');
@@ -772,7 +775,7 @@ class BatteryDriver extends $pb.ProtobufEnum {
 }
 
 ///  The 3 different potential Idle timeout states
-/// Added in FW4.0.19
+/// Added in FW4.1.0
 class IdleTimeoutState extends $pb.ProtobufEnum {
   static const IdleTimeoutState IDLE_TIMEOUT_STATE_WARNING =
       IdleTimeoutState._(0, _omitEnumNames ? '' : 'IDLE_TIMEOUT_STATE_WARNING');
@@ -798,7 +801,7 @@ class IdleTimeoutState extends $pb.ProtobufEnum {
 }
 
 ///  Used for settings changed notifications
-/// Added in FW4.0.19
+/// Added in FW4.1.0
 class SettingType extends $pb.ProtobufEnum {
   static const SettingType SETTINGS_NOT_SET =
       SettingType._(0, _omitEnumNames ? '' : 'SETTINGS_NOT_SET');
@@ -812,6 +815,8 @@ class SettingType extends $pb.ProtobufEnum {
       SettingType._(4, _omitEnumNames ? '' : 'SETTINGS_ERM');
   static const SettingType SETTINGS_BATTERY =
       SettingType._(5, _omitEnumNames ? '' : 'SETTINGS_BATTERY');
+  static const SettingType SETTINGS_SERVER =
+      SettingType._(6, _omitEnumNames ? '' : 'SETTINGS_SERVER');
 
   static const $core.List<SettingType> values = <SettingType>[
     SETTINGS_NOT_SET,
@@ -820,10 +825,11 @@ class SettingType extends $pb.ProtobufEnum {
     SETTINGS_LRA,
     SETTINGS_ERM,
     SETTINGS_BATTERY,
+    SETTINGS_SERVER,
   ];
 
   static final $core.List<SettingType?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 5);
+      $pb.ProtobufEnum.$_initByValueList(values, 6);
   static SettingType? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 

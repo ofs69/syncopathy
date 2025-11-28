@@ -1286,6 +1286,73 @@ final $typed_data.Uint8List responseHspPauseOnStarvingSetDescriptor =
         'Ch1SZXNwb25zZUhzcFBhdXNlT25TdGFydmluZ1NldBInCgVzdGF0ZRgBIAEoCzIRLmhkeV9ycG'
         'MuSHNwU3RhdGVSBXN0YXRl');
 
+@$core.Deprecated('Use requestHspPlaybackRateSetDescriptor instead')
+const RequestHspPlaybackRateSet$json = {
+  '1': 'RequestHspPlaybackRateSet',
+  '2': [
+    {'1': 'playback_rate', '3': 1, '4': 1, '5': 2, '10': 'playbackRate'},
+  ],
+};
+
+/// Descriptor for `RequestHspPlaybackRateSet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestHspPlaybackRateSetDescriptor =
+    $convert.base64Decode(
+        'ChlSZXF1ZXN0SHNwUGxheWJhY2tSYXRlU2V0EiMKDXBsYXliYWNrX3JhdGUYASABKAJSDHBsYX'
+        'liYWNrUmF0ZQ==');
+
+@$core.Deprecated('Use responseHspPlaybackRateSetDescriptor instead')
+const ResponseHspPlaybackRateSet$json = {
+  '1': 'ResponseHspPlaybackRateSet',
+  '2': [
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HspState',
+      '10': 'state'
+    },
+  ],
+};
+
+/// Descriptor for `ResponseHspPlaybackRateSet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseHspPlaybackRateSetDescriptor =
+    $convert.base64Decode(
+        'ChpSZXNwb25zZUhzcFBsYXliYWNrUmF0ZVNldBInCgVzdGF0ZRgBIAEoCzIRLmhkeV9ycGMuSH'
+        'NwU3RhdGVSBXN0YXRl');
+
+@$core.Deprecated('Use requestHspLoopSetDescriptor instead')
+const RequestHspLoopSet$json = {
+  '1': 'RequestHspLoopSet',
+  '2': [
+    {'1': 'loop', '3': 1, '4': 1, '5': 8, '10': 'loop'},
+  ],
+};
+
+/// Descriptor for `RequestHspLoopSet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestHspLoopSetDescriptor = $convert
+    .base64Decode('ChFSZXF1ZXN0SHNwTG9vcFNldBISCgRsb29wGAEgASgIUgRsb29w');
+
+@$core.Deprecated('Use responseHspLoopSetDescriptor instead')
+const ResponseHspLoopSet$json = {
+  '1': 'ResponseHspLoopSet',
+  '2': [
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HspState',
+      '10': 'state'
+    },
+  ],
+};
+
+/// Descriptor for `ResponseHspLoopSet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseHspLoopSetDescriptor = $convert.base64Decode(
+    'ChJSZXNwb25zZUhzcExvb3BTZXQSJwoFc3RhdGUYASABKAsyES5oZHlfcnBjLkhzcFN0YXRlUg'
+    'VzdGF0ZQ==');
+
 @$core.Deprecated('Use requestLedOverrideDescriptor instead')
 const RequestLedOverride$json = {
   '1': 'RequestLedOverride',

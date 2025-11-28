@@ -741,6 +741,8 @@ enum Request_Params {
   requestHspCurrentTimeSet,
   requestHspThresholdSet,
   requestHspPauseOnStarvingSet,
+  requestHspPlaybackRateSet,
+  requestHspLoopSet,
   requestLedOverride,
   requestHvpSet,
   requestHvpStop,
@@ -804,6 +806,8 @@ class Request extends $pb.GeneratedMessage {
     $1.RequestHspCurrentTimeSet? requestHspCurrentTimeSet,
     $1.RequestHspThresholdSet? requestHspThresholdSet,
     $1.RequestHspPauseOnStarvingSet? requestHspPauseOnStarvingSet,
+    $1.RequestHspPlaybackRateSet? requestHspPlaybackRateSet,
+    $1.RequestHspLoopSet? requestHspLoopSet,
     $1.RequestLedOverride? requestLedOverride,
     $1.RequestHvpSet? requestHvpSet,
     $1.RequestHvpStop? requestHvpStop,
@@ -892,6 +896,9 @@ class Request extends $pb.GeneratedMessage {
       result.requestHspThresholdSet = requestHspThresholdSet;
     if (requestHspPauseOnStarvingSet != null)
       result.requestHspPauseOnStarvingSet = requestHspPauseOnStarvingSet;
+    if (requestHspPlaybackRateSet != null)
+      result.requestHspPlaybackRateSet = requestHspPlaybackRateSet;
+    if (requestHspLoopSet != null) result.requestHspLoopSet = requestHspLoopSet;
     if (requestLedOverride != null)
       result.requestLedOverride = requestLedOverride;
     if (requestHvpSet != null) result.requestHvpSet = requestHvpSet;
@@ -969,6 +976,8 @@ class Request extends $pb.GeneratedMessage {
     868: Request_Params.requestHspCurrentTimeSet,
     869: Request_Params.requestHspThresholdSet,
     870: Request_Params.requestHspPauseOnStarvingSet,
+    871: Request_Params.requestHspPlaybackRateSet,
+    872: Request_Params.requestHspLoopSet,
     880: Request_Params.requestLedOverride,
     900: Request_Params.requestHvpSet,
     901: Request_Params.requestHvpStop,
@@ -1033,6 +1042,8 @@ class Request extends $pb.GeneratedMessage {
       868,
       869,
       870,
+      871,
+      872,
       880,
       900,
       901,
@@ -1165,6 +1176,11 @@ class Request extends $pb.GeneratedMessage {
     ..aOM<$1.RequestHspPauseOnStarvingSet>(
         870, _omitFieldNames ? '' : 'requestHspPauseOnStarvingSet',
         subBuilder: $1.RequestHspPauseOnStarvingSet.create)
+    ..aOM<$1.RequestHspPlaybackRateSet>(
+        871, _omitFieldNames ? '' : 'requestHspPlaybackRateSet',
+        subBuilder: $1.RequestHspPlaybackRateSet.create)
+    ..aOM<$1.RequestHspLoopSet>(872, _omitFieldNames ? '' : 'requestHspLoopSet',
+        subBuilder: $1.RequestHspLoopSet.create)
     ..aOM<$1.RequestLedOverride>(
         880, _omitFieldNames ? '' : 'requestLedOverride',
         subBuilder: $1.RequestLedOverride.create)
@@ -1752,146 +1768,170 @@ class Request extends $pb.GeneratedMessage {
   $1.RequestHspPauseOnStarvingSet ensureRequestHspPauseOnStarvingSet() =>
       $_ensure(45);
 
+  @$pb.TagNumber(871)
+  $1.RequestHspPlaybackRateSet get requestHspPlaybackRateSet => $_getN(46);
+  @$pb.TagNumber(871)
+  set requestHspPlaybackRateSet($1.RequestHspPlaybackRateSet value) =>
+      $_setField(871, value);
+  @$pb.TagNumber(871)
+  $core.bool hasRequestHspPlaybackRateSet() => $_has(46);
+  @$pb.TagNumber(871)
+  void clearRequestHspPlaybackRateSet() => $_clearField(871);
+  @$pb.TagNumber(871)
+  $1.RequestHspPlaybackRateSet ensureRequestHspPlaybackRateSet() =>
+      $_ensure(46);
+
+  @$pb.TagNumber(872)
+  $1.RequestHspLoopSet get requestHspLoopSet => $_getN(47);
+  @$pb.TagNumber(872)
+  set requestHspLoopSet($1.RequestHspLoopSet value) => $_setField(872, value);
+  @$pb.TagNumber(872)
+  $core.bool hasRequestHspLoopSet() => $_has(47);
+  @$pb.TagNumber(872)
+  void clearRequestHspLoopSet() => $_clearField(872);
+  @$pb.TagNumber(872)
+  $1.RequestHspLoopSet ensureRequestHspLoopSet() => $_ensure(47);
+
   /// HMI (LED, screen and so on) - 880
   @$pb.TagNumber(880)
-  $1.RequestLedOverride get requestLedOverride => $_getN(46);
+  $1.RequestLedOverride get requestLedOverride => $_getN(48);
   @$pb.TagNumber(880)
   set requestLedOverride($1.RequestLedOverride value) => $_setField(880, value);
   @$pb.TagNumber(880)
-  $core.bool hasRequestLedOverride() => $_has(46);
+  $core.bool hasRequestLedOverride() => $_has(48);
   @$pb.TagNumber(880)
   void clearRequestLedOverride() => $_clearField(880);
   @$pb.TagNumber(880)
-  $1.RequestLedOverride ensureRequestLedOverride() => $_ensure(46);
+  $1.RequestLedOverride ensureRequestLedOverride() => $_ensure(48);
 
   /// HVP (vibration) - 900
   @$pb.TagNumber(900)
-  $1.RequestHvpSet get requestHvpSet => $_getN(47);
+  $1.RequestHvpSet get requestHvpSet => $_getN(49);
   @$pb.TagNumber(900)
   set requestHvpSet($1.RequestHvpSet value) => $_setField(900, value);
   @$pb.TagNumber(900)
-  $core.bool hasRequestHvpSet() => $_has(47);
+  $core.bool hasRequestHvpSet() => $_has(49);
   @$pb.TagNumber(900)
   void clearRequestHvpSet() => $_clearField(900);
   @$pb.TagNumber(900)
-  $1.RequestHvpSet ensureRequestHvpSet() => $_ensure(47);
+  $1.RequestHvpSet ensureRequestHvpSet() => $_ensure(49);
 
   @$pb.TagNumber(901)
-  $1.RequestHvpStop get requestHvpStop => $_getN(48);
+  $1.RequestHvpStop get requestHvpStop => $_getN(50);
   @$pb.TagNumber(901)
   set requestHvpStop($1.RequestHvpStop value) => $_setField(901, value);
   @$pb.TagNumber(901)
-  $core.bool hasRequestHvpStop() => $_has(48);
+  $core.bool hasRequestHvpStop() => $_has(50);
   @$pb.TagNumber(901)
   void clearRequestHvpStop() => $_clearField(901);
   @$pb.TagNumber(901)
-  $1.RequestHvpStop ensureRequestHvpStop() => $_ensure(48);
+  $1.RequestHvpStop ensureRequestHvpStop() => $_ensure(50);
 
   @$pb.TagNumber(902)
-  $1.RequestHvpStart get requestHvpStart => $_getN(49);
+  $1.RequestHvpStart get requestHvpStart => $_getN(51);
   @$pb.TagNumber(902)
   set requestHvpStart($1.RequestHvpStart value) => $_setField(902, value);
   @$pb.TagNumber(902)
-  $core.bool hasRequestHvpStart() => $_has(49);
+  $core.bool hasRequestHvpStart() => $_has(51);
   @$pb.TagNumber(902)
   void clearRequestHvpStart() => $_clearField(902);
   @$pb.TagNumber(902)
-  $1.RequestHvpStart ensureRequestHvpStart() => $_ensure(49);
+  $1.RequestHvpStart ensureRequestHvpStart() => $_ensure(51);
 
   @$pb.TagNumber(903)
-  $1.RequestHvpStateGet get requestHvpStateGet => $_getN(50);
+  $1.RequestHvpStateGet get requestHvpStateGet => $_getN(52);
   @$pb.TagNumber(903)
   set requestHvpStateGet($1.RequestHvpStateGet value) => $_setField(903, value);
   @$pb.TagNumber(903)
-  $core.bool hasRequestHvpStateGet() => $_has(50);
+  $core.bool hasRequestHvpStateGet() => $_has(52);
   @$pb.TagNumber(903)
   void clearRequestHvpStateGet() => $_clearField(903);
   @$pb.TagNumber(903)
-  $1.RequestHvpStateGet ensureRequestHvpStateGet() => $_ensure(50);
+  $1.RequestHvpStateGet ensureRequestHvpStateGet() => $_ensure(52);
 
   /// HRPP - 920
   @$pb.TagNumber(920)
-  $1.RequestHrppStart get requestHrppStart => $_getN(51);
+  $1.RequestHrppStart get requestHrppStart => $_getN(53);
   @$pb.TagNumber(920)
   set requestHrppStart($1.RequestHrppStart value) => $_setField(920, value);
   @$pb.TagNumber(920)
-  $core.bool hasRequestHrppStart() => $_has(51);
+  $core.bool hasRequestHrppStart() => $_has(53);
   @$pb.TagNumber(920)
   void clearRequestHrppStart() => $_clearField(920);
   @$pb.TagNumber(920)
-  $1.RequestHrppStart ensureRequestHrppStart() => $_ensure(51);
+  $1.RequestHrppStart ensureRequestHrppStart() => $_ensure(53);
 
   @$pb.TagNumber(921)
-  $1.RequestHrppStop get requestHrppStop => $_getN(52);
+  $1.RequestHrppStop get requestHrppStop => $_getN(54);
   @$pb.TagNumber(921)
   set requestHrppStop($1.RequestHrppStop value) => $_setField(921, value);
   @$pb.TagNumber(921)
-  $core.bool hasRequestHrppStop() => $_has(52);
+  $core.bool hasRequestHrppStop() => $_has(54);
   @$pb.TagNumber(921)
   void clearRequestHrppStop() => $_clearField(921);
   @$pb.TagNumber(921)
-  $1.RequestHrppStop ensureRequestHrppStop() => $_ensure(52);
+  $1.RequestHrppStop ensureRequestHrppStop() => $_ensure(54);
 
   @$pb.TagNumber(922)
-  $1.RequestHrppAmplitudeSet get requestHrppAmplitudeSet => $_getN(53);
+  $1.RequestHrppAmplitudeSet get requestHrppAmplitudeSet => $_getN(55);
   @$pb.TagNumber(922)
   set requestHrppAmplitudeSet($1.RequestHrppAmplitudeSet value) =>
       $_setField(922, value);
   @$pb.TagNumber(922)
-  $core.bool hasRequestHrppAmplitudeSet() => $_has(53);
+  $core.bool hasRequestHrppAmplitudeSet() => $_has(55);
   @$pb.TagNumber(922)
   void clearRequestHrppAmplitudeSet() => $_clearField(922);
   @$pb.TagNumber(922)
-  $1.RequestHrppAmplitudeSet ensureRequestHrppAmplitudeSet() => $_ensure(53);
+  $1.RequestHrppAmplitudeSet ensureRequestHrppAmplitudeSet() => $_ensure(55);
 
   @$pb.TagNumber(923)
-  $1.RequestHrppPlaybackSpeedSet get requestHrppPlaybackSpeedSet => $_getN(54);
+  $1.RequestHrppPlaybackSpeedSet get requestHrppPlaybackSpeedSet => $_getN(56);
   @$pb.TagNumber(923)
   set requestHrppPlaybackSpeedSet($1.RequestHrppPlaybackSpeedSet value) =>
       $_setField(923, value);
   @$pb.TagNumber(923)
-  $core.bool hasRequestHrppPlaybackSpeedSet() => $_has(54);
+  $core.bool hasRequestHrppPlaybackSpeedSet() => $_has(56);
   @$pb.TagNumber(923)
   void clearRequestHrppPlaybackSpeedSet() => $_clearField(923);
   @$pb.TagNumber(923)
   $1.RequestHrppPlaybackSpeedSet ensureRequestHrppPlaybackSpeedSet() =>
-      $_ensure(54);
+      $_ensure(56);
 
   @$pb.TagNumber(924)
-  $1.RequestHrppPatternSet get requestHrppPatternSet => $_getN(55);
+  $1.RequestHrppPatternSet get requestHrppPatternSet => $_getN(57);
   @$pb.TagNumber(924)
   set requestHrppPatternSet($1.RequestHrppPatternSet value) =>
       $_setField(924, value);
   @$pb.TagNumber(924)
-  $core.bool hasRequestHrppPatternSet() => $_has(55);
+  $core.bool hasRequestHrppPatternSet() => $_has(57);
   @$pb.TagNumber(924)
   void clearRequestHrppPatternSet() => $_clearField(924);
   @$pb.TagNumber(924)
-  $1.RequestHrppPatternSet ensureRequestHrppPatternSet() => $_ensure(55);
+  $1.RequestHrppPatternSet ensureRequestHrppPatternSet() => $_ensure(57);
 
   @$pb.TagNumber(925)
-  $1.RequestHrppStateGet get requestHrppStateGet => $_getN(56);
+  $1.RequestHrppStateGet get requestHrppStateGet => $_getN(58);
   @$pb.TagNumber(925)
   set requestHrppStateGet($1.RequestHrppStateGet value) =>
       $_setField(925, value);
   @$pb.TagNumber(925)
-  $core.bool hasRequestHrppStateGet() => $_has(56);
+  $core.bool hasRequestHrppStateGet() => $_has(58);
   @$pb.TagNumber(925)
   void clearRequestHrppStateGet() => $_clearField(925);
   @$pb.TagNumber(925)
-  $1.RequestHrppStateGet ensureRequestHrppStateGet() => $_ensure(56);
+  $1.RequestHrppStateGet ensureRequestHrppStateGet() => $_ensure(58);
 
   @$pb.TagNumber(926)
-  $1.RequestHrppPatternsGet get requestHrppPatternsGet => $_getN(57);
+  $1.RequestHrppPatternsGet get requestHrppPatternsGet => $_getN(59);
   @$pb.TagNumber(926)
   set requestHrppPatternsGet($1.RequestHrppPatternsGet value) =>
       $_setField(926, value);
   @$pb.TagNumber(926)
-  $core.bool hasRequestHrppPatternsGet() => $_has(57);
+  $core.bool hasRequestHrppPatternsGet() => $_has(59);
   @$pb.TagNumber(926)
   void clearRequestHrppPatternsGet() => $_clearField(926);
   @$pb.TagNumber(926)
-  $1.RequestHrppPatternsGet ensureRequestHrppPatternsGet() => $_ensure(57);
+  $1.RequestHrppPatternsGet ensureRequestHrppPatternsGet() => $_ensure(59);
 }
 
 /// Responses are sent back individually as they are handled
@@ -1976,6 +2016,8 @@ enum Response_Result {
   responseHspCurrentTimeSet,
   responseHspThresholdSet,
   responseHspPauseOnStarvingSet,
+  responseHspPlaybackRateSet,
+  responseHspLoopSet,
   responseHvpSet,
   responseHvpStop,
   responseHvpStart,
@@ -2026,6 +2068,8 @@ class Response extends $pb.GeneratedMessage {
     $1.ResponseHspCurrentTimeSet? responseHspCurrentTimeSet,
     $1.ResponseHspThresholdSet? responseHspThresholdSet,
     $1.ResponseHspPauseOnStarvingSet? responseHspPauseOnStarvingSet,
+    $1.ResponseHspPlaybackRateSet? responseHspPlaybackRateSet,
+    $1.ResponseHspLoopSet? responseHspLoopSet,
     $1.ResponseHvpSet? responseHvpSet,
     $1.ResponseHvpStop? responseHvpStop,
     $1.ResponseHvpStart? responseHvpStart,
@@ -2092,6 +2136,10 @@ class Response extends $pb.GeneratedMessage {
       result.responseHspThresholdSet = responseHspThresholdSet;
     if (responseHspPauseOnStarvingSet != null)
       result.responseHspPauseOnStarvingSet = responseHspPauseOnStarvingSet;
+    if (responseHspPlaybackRateSet != null)
+      result.responseHspPlaybackRateSet = responseHspPlaybackRateSet;
+    if (responseHspLoopSet != null)
+      result.responseHspLoopSet = responseHspLoopSet;
     if (responseHvpSet != null) result.responseHvpSet = responseHvpSet;
     if (responseHvpStop != null) result.responseHvpStop = responseHvpStop;
     if (responseHvpStart != null) result.responseHvpStart = responseHvpStart;
@@ -2153,6 +2201,8 @@ class Response extends $pb.GeneratedMessage {
     868: Response_Result.responseHspCurrentTimeSet,
     869: Response_Result.responseHspThresholdSet,
     870: Response_Result.responseHspPauseOnStarvingSet,
+    871: Response_Result.responseHspPlaybackRateSet,
+    872: Response_Result.responseHspLoopSet,
     900: Response_Result.responseHvpSet,
     901: Response_Result.responseHvpStop,
     902: Response_Result.responseHvpStart,
@@ -2202,6 +2252,8 @@ class Response extends $pb.GeneratedMessage {
       868,
       869,
       870,
+      871,
+      872,
       900,
       901,
       902,
@@ -2298,6 +2350,12 @@ class Response extends $pb.GeneratedMessage {
     ..aOM<$1.ResponseHspPauseOnStarvingSet>(
         870, _omitFieldNames ? '' : 'responseHspPauseOnStarvingSet',
         subBuilder: $1.ResponseHspPauseOnStarvingSet.create)
+    ..aOM<$1.ResponseHspPlaybackRateSet>(
+        871, _omitFieldNames ? '' : 'responseHspPlaybackRateSet',
+        subBuilder: $1.ResponseHspPlaybackRateSet.create)
+    ..aOM<$1.ResponseHspLoopSet>(
+        872, _omitFieldNames ? '' : 'responseHspLoopSet',
+        subBuilder: $1.ResponseHspLoopSet.create)
     ..aOM<$1.ResponseHvpSet>(900, _omitFieldNames ? '' : 'responseHvpSet',
         subBuilder: $1.ResponseHvpSet.create)
     ..aOM<$1.ResponseHvpStop>(901, _omitFieldNames ? '' : 'responseHvpStop',
@@ -2741,136 +2799,160 @@ class Response extends $pb.GeneratedMessage {
   $1.ResponseHspPauseOnStarvingSet ensureResponseHspPauseOnStarvingSet() =>
       $_ensure(32);
 
+  @$pb.TagNumber(871)
+  $1.ResponseHspPlaybackRateSet get responseHspPlaybackRateSet => $_getN(33);
+  @$pb.TagNumber(871)
+  set responseHspPlaybackRateSet($1.ResponseHspPlaybackRateSet value) =>
+      $_setField(871, value);
+  @$pb.TagNumber(871)
+  $core.bool hasResponseHspPlaybackRateSet() => $_has(33);
+  @$pb.TagNumber(871)
+  void clearResponseHspPlaybackRateSet() => $_clearField(871);
+  @$pb.TagNumber(871)
+  $1.ResponseHspPlaybackRateSet ensureResponseHspPlaybackRateSet() =>
+      $_ensure(33);
+
+  @$pb.TagNumber(872)
+  $1.ResponseHspLoopSet get responseHspLoopSet => $_getN(34);
+  @$pb.TagNumber(872)
+  set responseHspLoopSet($1.ResponseHspLoopSet value) => $_setField(872, value);
+  @$pb.TagNumber(872)
+  $core.bool hasResponseHspLoopSet() => $_has(34);
+  @$pb.TagNumber(872)
+  void clearResponseHspLoopSet() => $_clearField(872);
+  @$pb.TagNumber(872)
+  $1.ResponseHspLoopSet ensureResponseHspLoopSet() => $_ensure(34);
+
   /// HVP - 900 (Vibration)
   @$pb.TagNumber(900)
-  $1.ResponseHvpSet get responseHvpSet => $_getN(33);
+  $1.ResponseHvpSet get responseHvpSet => $_getN(35);
   @$pb.TagNumber(900)
   set responseHvpSet($1.ResponseHvpSet value) => $_setField(900, value);
   @$pb.TagNumber(900)
-  $core.bool hasResponseHvpSet() => $_has(33);
+  $core.bool hasResponseHvpSet() => $_has(35);
   @$pb.TagNumber(900)
   void clearResponseHvpSet() => $_clearField(900);
   @$pb.TagNumber(900)
-  $1.ResponseHvpSet ensureResponseHvpSet() => $_ensure(33);
+  $1.ResponseHvpSet ensureResponseHvpSet() => $_ensure(35);
 
   @$pb.TagNumber(901)
-  $1.ResponseHvpStop get responseHvpStop => $_getN(34);
+  $1.ResponseHvpStop get responseHvpStop => $_getN(36);
   @$pb.TagNumber(901)
   set responseHvpStop($1.ResponseHvpStop value) => $_setField(901, value);
   @$pb.TagNumber(901)
-  $core.bool hasResponseHvpStop() => $_has(34);
+  $core.bool hasResponseHvpStop() => $_has(36);
   @$pb.TagNumber(901)
   void clearResponseHvpStop() => $_clearField(901);
   @$pb.TagNumber(901)
-  $1.ResponseHvpStop ensureResponseHvpStop() => $_ensure(34);
+  $1.ResponseHvpStop ensureResponseHvpStop() => $_ensure(36);
 
   @$pb.TagNumber(902)
-  $1.ResponseHvpStart get responseHvpStart => $_getN(35);
+  $1.ResponseHvpStart get responseHvpStart => $_getN(37);
   @$pb.TagNumber(902)
   set responseHvpStart($1.ResponseHvpStart value) => $_setField(902, value);
   @$pb.TagNumber(902)
-  $core.bool hasResponseHvpStart() => $_has(35);
+  $core.bool hasResponseHvpStart() => $_has(37);
   @$pb.TagNumber(902)
   void clearResponseHvpStart() => $_clearField(902);
   @$pb.TagNumber(902)
-  $1.ResponseHvpStart ensureResponseHvpStart() => $_ensure(35);
+  $1.ResponseHvpStart ensureResponseHvpStart() => $_ensure(37);
 
   @$pb.TagNumber(903)
-  $1.ResponseHvpStateGet get responseHvpStateGet => $_getN(36);
+  $1.ResponseHvpStateGet get responseHvpStateGet => $_getN(38);
   @$pb.TagNumber(903)
   set responseHvpStateGet($1.ResponseHvpStateGet value) =>
       $_setField(903, value);
   @$pb.TagNumber(903)
-  $core.bool hasResponseHvpStateGet() => $_has(36);
+  $core.bool hasResponseHvpStateGet() => $_has(38);
   @$pb.TagNumber(903)
   void clearResponseHvpStateGet() => $_clearField(903);
   @$pb.TagNumber(903)
-  $1.ResponseHvpStateGet ensureResponseHvpStateGet() => $_ensure(36);
+  $1.ResponseHvpStateGet ensureResponseHvpStateGet() => $_ensure(38);
 
   /// HRPP - 920
   @$pb.TagNumber(920)
-  $1.ResponseHrppStart get responseHrppStart => $_getN(37);
+  $1.ResponseHrppStart get responseHrppStart => $_getN(39);
   @$pb.TagNumber(920)
   set responseHrppStart($1.ResponseHrppStart value) => $_setField(920, value);
   @$pb.TagNumber(920)
-  $core.bool hasResponseHrppStart() => $_has(37);
+  $core.bool hasResponseHrppStart() => $_has(39);
   @$pb.TagNumber(920)
   void clearResponseHrppStart() => $_clearField(920);
   @$pb.TagNumber(920)
-  $1.ResponseHrppStart ensureResponseHrppStart() => $_ensure(37);
+  $1.ResponseHrppStart ensureResponseHrppStart() => $_ensure(39);
 
   @$pb.TagNumber(921)
-  $1.ResponseHrppStop get responseHrppStop => $_getN(38);
+  $1.ResponseHrppStop get responseHrppStop => $_getN(40);
   @$pb.TagNumber(921)
   set responseHrppStop($1.ResponseHrppStop value) => $_setField(921, value);
   @$pb.TagNumber(921)
-  $core.bool hasResponseHrppStop() => $_has(38);
+  $core.bool hasResponseHrppStop() => $_has(40);
   @$pb.TagNumber(921)
   void clearResponseHrppStop() => $_clearField(921);
   @$pb.TagNumber(921)
-  $1.ResponseHrppStop ensureResponseHrppStop() => $_ensure(38);
+  $1.ResponseHrppStop ensureResponseHrppStop() => $_ensure(40);
 
   @$pb.TagNumber(922)
-  $1.ResponseHrppAmplitudeSet get responseHrppAmplitudeSet => $_getN(39);
+  $1.ResponseHrppAmplitudeSet get responseHrppAmplitudeSet => $_getN(41);
   @$pb.TagNumber(922)
   set responseHrppAmplitudeSet($1.ResponseHrppAmplitudeSet value) =>
       $_setField(922, value);
   @$pb.TagNumber(922)
-  $core.bool hasResponseHrppAmplitudeSet() => $_has(39);
+  $core.bool hasResponseHrppAmplitudeSet() => $_has(41);
   @$pb.TagNumber(922)
   void clearResponseHrppAmplitudeSet() => $_clearField(922);
   @$pb.TagNumber(922)
-  $1.ResponseHrppAmplitudeSet ensureResponseHrppAmplitudeSet() => $_ensure(39);
+  $1.ResponseHrppAmplitudeSet ensureResponseHrppAmplitudeSet() => $_ensure(41);
 
   @$pb.TagNumber(923)
   $1.ResponseHrppPlaybackSpeedSet get responseHrppPlaybackSpeedSet =>
-      $_getN(40);
+      $_getN(42);
   @$pb.TagNumber(923)
   set responseHrppPlaybackSpeedSet($1.ResponseHrppPlaybackSpeedSet value) =>
       $_setField(923, value);
   @$pb.TagNumber(923)
-  $core.bool hasResponseHrppPlaybackSpeedSet() => $_has(40);
+  $core.bool hasResponseHrppPlaybackSpeedSet() => $_has(42);
   @$pb.TagNumber(923)
   void clearResponseHrppPlaybackSpeedSet() => $_clearField(923);
   @$pb.TagNumber(923)
   $1.ResponseHrppPlaybackSpeedSet ensureResponseHrppPlaybackSpeedSet() =>
-      $_ensure(40);
+      $_ensure(42);
 
   @$pb.TagNumber(924)
-  $1.ResponseHrppPatternSet get responseHrppPatternSet => $_getN(41);
+  $1.ResponseHrppPatternSet get responseHrppPatternSet => $_getN(43);
   @$pb.TagNumber(924)
   set responseHrppPatternSet($1.ResponseHrppPatternSet value) =>
       $_setField(924, value);
   @$pb.TagNumber(924)
-  $core.bool hasResponseHrppPatternSet() => $_has(41);
+  $core.bool hasResponseHrppPatternSet() => $_has(43);
   @$pb.TagNumber(924)
   void clearResponseHrppPatternSet() => $_clearField(924);
   @$pb.TagNumber(924)
-  $1.ResponseHrppPatternSet ensureResponseHrppPatternSet() => $_ensure(41);
+  $1.ResponseHrppPatternSet ensureResponseHrppPatternSet() => $_ensure(43);
 
   @$pb.TagNumber(925)
-  $1.ResponseHrppStateGet get responseHrppStateGet => $_getN(42);
+  $1.ResponseHrppStateGet get responseHrppStateGet => $_getN(44);
   @$pb.TagNumber(925)
   set responseHrppStateGet($1.ResponseHrppStateGet value) =>
       $_setField(925, value);
   @$pb.TagNumber(925)
-  $core.bool hasResponseHrppStateGet() => $_has(42);
+  $core.bool hasResponseHrppStateGet() => $_has(44);
   @$pb.TagNumber(925)
   void clearResponseHrppStateGet() => $_clearField(925);
   @$pb.TagNumber(925)
-  $1.ResponseHrppStateGet ensureResponseHrppStateGet() => $_ensure(42);
+  $1.ResponseHrppStateGet ensureResponseHrppStateGet() => $_ensure(44);
 
   @$pb.TagNumber(926)
-  $1.ResponseHrppPatternsGet get responseHrppPatternsGet => $_getN(43);
+  $1.ResponseHrppPatternsGet get responseHrppPatternsGet => $_getN(45);
   @$pb.TagNumber(926)
   set responseHrppPatternsGet($1.ResponseHrppPatternsGet value) =>
       $_setField(926, value);
   @$pb.TagNumber(926)
-  $core.bool hasResponseHrppPatternsGet() => $_has(43);
+  $core.bool hasResponseHrppPatternsGet() => $_has(45);
   @$pb.TagNumber(926)
   void clearResponseHrppPatternsGet() => $_clearField(926);
   @$pb.TagNumber(926)
-  $1.ResponseHrppPatternsGet ensureResponseHrppPatternsGet() => $_ensure(43);
+  $1.ResponseHrppPatternsGet ensureResponseHrppPatternsGet() => $_ensure(45);
 }
 
 class Error extends $pb.GeneratedMessage {

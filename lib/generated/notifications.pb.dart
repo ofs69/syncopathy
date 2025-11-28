@@ -1624,7 +1624,7 @@ class NotificationWifiScanComplete extends $pb.GeneratedMessage {
 
 /// Triggers when the motor has been inactive for a while (configurable) - Battery devices will shut down and non-battery devices will disconnect WiFi
 /// Will go to sleep after 60 seconds after this notification
-/// Added in FW4.0.19
+/// Added in FW4.1.0
 class NotificationIdleTimeout extends $pb.GeneratedMessage {
   factory NotificationIdleTimeout({
     $0.IdleTimeoutState? state,
@@ -1712,7 +1712,7 @@ class NotificationIdleTimeout extends $pb.GeneratedMessage {
 }
 
 /// Give all the connected clients a notification when a setting is changed - Useful for the server to know that a setting has changed in the onboarding app
-///  Added in FW4.0.19
+///  Added in FW4.1.0
 class NotificationSettingsChanged extends $pb.GeneratedMessage {
   factory NotificationSettingsChanged({
     $0.SettingType? type,

@@ -1,4 +1,4 @@
-// Auto-generated on 2025-10-14 13:26:40
+// Auto-generated on 2025-11-19 14:28:13
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
@@ -110,14 +110,14 @@ message NotificationWifiScanComplete{
 }
 //Triggers when the motor has been inactive for a while (configurable) - Battery devices will shut down and non-battery devices will disconnect WiFi
 //Will go to sleep after 60 seconds after this notification
-//Added in FW4.0.19
+//Added in FW4.1.0
 message NotificationIdleTimeout{
     IdleTimeoutState state = 1;
     uint32 idle_time = 2; //[ms] The time the device has been idle
     uint32 warning_time = 3; //[ms] The time until the device will go to sleep (hardcoded to 60 seconds) 
 }
 //Give all the connected clients a notification when a setting is changed - Useful for the server to know that a setting has changed in the onboarding app
-// Added in FW4.0.19
+// Added in FW4.1.0
 message NotificationSettingsChanged{
     SettingType type = 1; //The type of setting that has changed
 }

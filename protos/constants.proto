@@ -1,4 +1,4 @@
-// Auto-generated on 2025-10-14 13:26:40
+// Auto-generated on 2025-11-19 14:28:13
 syntax = "proto3";
 package hdy_rpc;
 //NB! The codes are not in order, but in groups
@@ -288,6 +288,7 @@ enum ServerEnvironment{
     SOCKET_SERVER_ENV_PRODUCTION = 0;
     SOCKET_SERVER_ENV_STAGING = 1;
     SOCKET_SERVER_ENV_DEVELOPMENT = 2;
+    SOCKET_SERVER_ENV_CUSTOM = 3; //Custom server (set in config) - Added in FW4.1.1 - Open certificate
 }
 /*
     Must match hdyBleConnectionStatus_t
@@ -300,7 +301,7 @@ enum BleState{
 }
 // There is no need to set the transportation. This is handled in the FW.
 ///////////////////////// Div constants /////////////////////////
-//Added in FW4.0.19
+//Added in FW4.1.0
 enum BatteryDriver{
     BATTERY_DRIVER_NOT_SET = 0;
     BATTERY_DRIVER_OH = 1; //Oh
@@ -327,14 +328,14 @@ message BatteryState{
     bool charging = 18; // Charger is charging the battery - Added in FW 4.0.19
 }
 // The 3 different potential Idle timeout states
-//Added in FW4.0.19
+//Added in FW4.1.0
 enum IdleTimeoutState{
     IDLE_TIMEOUT_STATE_WARNING = 0; //Idle timeout warning - will go to sleep in 60 seconds if no interaction
     IDLE_TIMEOUT_STATE_CANCELLED = 1; //Idle timeout cancelled - will not go to sleep
     IDLE_TIMEOUT_STATE_SLEEPING = 2; //Idle timeout sleeping - device is now sleeping
 }
 // Used for settings changed notifications
-//Added in FW4.0.19
+//Added in FW4.1.0
 enum SettingType{
     SETTINGS_NOT_SET = 0;
     SETTINGS_BASE = 1;
@@ -342,4 +343,5 @@ enum SettingType{
     SETTINGS_LRA = 3;
     SETTINGS_ERM = 4;
     SETTINGS_BATTERY = 5;
+    SETTINGS_SERVER = 6;
 }

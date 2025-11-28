@@ -1,4 +1,4 @@
-// Auto-generated on 2025-10-14 13:26:40
+// Auto-generated on 2025-11-19 14:28:13
 syntax = "proto3";
 package hdy_rpc;
 import "notifications.proto";
@@ -30,7 +30,7 @@ message Notification{
         NotificationButtonEvent notification_button_event = 703;
         NotificationBatteryChanged notification_battery_changed = 705;
         NotificationError notification_error = 706;
-        NotificationIdleTimeout notification_idle_timeout = 707; //Added in FW4.0.19
+        NotificationIdleTimeout notification_idle_timeout = 707; //Added in FW4.1.0
         NotificationHampChanged notification_hamp_changed = 720;
         NotificationHdspChanged notification_hdsp_changed = 740;
         NotificationHspThresholdReached notification_hsp_threshold_reached = 860;
@@ -50,7 +50,7 @@ message Notification{
         NotificationSliderUnblocked notification_slider_unblocked = 1003;
         NotificationLowMemoryError notification_low_memory_error = 1004;
         NotificationLowMemoryWarning notification_low_memory_warning = 1005;
-        NotificationSettingsChanged notification_settings_changed = 2000; //Added in FW4.0.19
+        NotificationSettingsChanged notification_settings_changed = 2000; //Added in FW4.1.0
     }
     uint32 id = 2; //Added in FW 4.0.14
 }
@@ -106,6 +106,8 @@ message Request {
         RequestHspCurrentTimeSet request_hsp_current_time_set = 868;
         RequestHspThresholdSet request_hsp_threshold_set = 869;
         RequestHspPauseOnStarvingSet request_hsp_pause_on_starving_set = 870; //Added in FW4.0.13
+        RequestHspPlaybackRateSet request_hsp_playback_rate_set = 871; //Added in FW4.1.1
+        RequestHspLoopSet request_hsp_loop_set = 872; //Added in FW4.1.1
         //HMI (LED, screen and so on) - 880
         RequestLedOverride request_led_override = 880;
         // HVP (vibration) - 900
@@ -169,6 +171,8 @@ message Response {
         ResponseHspCurrentTimeSet response_hsp_current_time_set = 868;
         ResponseHspThresholdSet response_hsp_threshold_set = 869;
         ResponseHspPauseOnStarvingSet response_hsp_pause_on_starving_set = 870;
+        ResponseHspPlaybackRateSet response_hsp_playback_rate_set = 871;
+        ResponseHspLoopSet response_hsp_loop_set = 872; //Added in FW4.1.1
         //HVP - 900 (Vibration)
         ResponseHvpSet response_hvp_set = 900;
         ResponseHvpStop response_hvp_stop = 901;
