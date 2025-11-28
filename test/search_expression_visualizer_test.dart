@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:syncopathy/search_expression_visualizer.dart';
-import 'package:syncopathy/search_expression_ast.dart'; // Import if needed for direct AST comparison, though TextSpan will be easier
 
 void main() {
   group('ExpressionVisualizer', () {

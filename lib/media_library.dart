@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:syncopathy/funscript_metadata_filter_bottom_sheet.dart';
 
 import 'package:syncopathy/media_manager.dart';
+import 'package:syncopathy/media_search_service.dart';
 import 'package:syncopathy/model/user_category.dart';
 import 'package:syncopathy/video_item.dart';
 import 'package:syncopathy/search_expression_visualizer.dart';
@@ -89,6 +90,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
   late final PcaCalculator _pcaCalculator;
   late final MediaManager _mediaManager;
   late final MediaLibrarySettings _mediaLibrarySettings;
+  late final MediaSearchService _mediaSearchService;
   String _searchQuery = '';
   late List<Video> _filteredVideos;
 
@@ -119,6 +121,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
           .listen((_) => _updateDisplayedVideos());
     });
     _pcaCalculator = PcaCalculator(_mediaManager);
+    _mediaSearchService = MediaSearchService();
 
     _refreshVideos();
 
@@ -168,7 +171,6 @@ class _MediaLibraryState extends State<MediaLibrary> {
     if (!mounted) return;
     if (_isLoading) return;
 
-    final query = _searchQuery.toLowerCase();
     List<Video> videos = _mediaManager.allVideos.where((video) {
       final authorMatch =
           _selectedAuthors.isEmpty ||
@@ -228,9 +230,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
           !video.isDislike) {
         return false;
       }
+      return true; // Explicitly return true if no filters exclude the video
+    }).toList(); // Convert to List after all initial filters
 
-      return video.title.toLowerCase().contains(query);
-    }).toList();
+    videos = _mediaSearchService.filterVideos(videos, _searchQuery);
 
     _videoPcaScores.clear();
     if (_mediaLibrarySettings.sortOption.value == SortOption.pca) {
@@ -768,6 +771,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
         children: [
           MediaSearchBar(
             onSearchChanged: (query) {
+              if (_searchQuery == query) {
+                return;
+              }
               setState(() {
                 _searchQuery = query;
               });
