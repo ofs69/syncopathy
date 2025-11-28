@@ -148,5 +148,98 @@ void main() {
       expect(paramNode2.value, 'another/path');
       expect((andNode2.children[1] as StringNode).value, 'term3');
     });
+
+    test('should parse date queries', () {
+      var parser = SearchExpressionParser();
+      var ast = parser.parse("date:2023-01-01");
+      expect(ast.body.length, 1);
+      expect(ast.body[0], isA<DateNode>());
+      final dateNode = ast.body[0] as DateNode;
+      expect(dateNode.operator, RelationalOperator.equal);
+      expect(dateNode.value, DateTime(2023, 1, 1));
+    });
+
+    test('should parse date queries with relational operators', () {
+      var parser = SearchExpressionParser();
+
+      var ast1 = parser.parse("date:>2023-01-01");
+      expect(ast1.body.length, 1);
+      expect(ast1.body[0], isA<DateNode>());
+      var dateNode = ast1.body[0] as DateNode;
+      expect(dateNode.operator, RelationalOperator.greater);
+      expect(dateNode.value, DateTime(2023, 1, 1));
+
+      var ast2 = parser.parse("date:<2023-01-01");
+      expect(ast2.body.length, 1);
+      expect(ast2.body[0], isA<DateNode>());
+      dateNode = ast2.body[0] as DateNode;
+      expect(dateNode.operator, RelationalOperator.less);
+      expect(dateNode.value, DateTime(2023, 1, 1));
+
+      var ast3 = parser.parse("date:>=2023-01-01");
+      expect(ast3.body.length, 1);
+      expect(ast3.body[0], isA<DateNode>());
+      dateNode = ast3.body[0] as DateNode;
+      expect(dateNode.operator, RelationalOperator.greaterOrEqual);
+      expect(dateNode.value, DateTime(2023, 1, 1));
+
+      var ast4 = parser.parse("date:<=2023-01-01");
+      expect(ast4.body.length, 1);
+      expect(ast4.body[0], isA<DateNode>());
+      dateNode = ast4.body[0] as DateNode;
+      expect(dateNode.operator, RelationalOperator.lessOrEqual);
+      expect(dateNode.value, DateTime(2023, 1, 1));
+    });
+
+    test('should return null for invalid date queries', () {
+      var parser = SearchExpressionParser();
+      var ast = parser.parse("date:2023-13-01");
+      expect(ast.body, isEmpty);
+    });
+
+    test('should parse duration queries', () {
+      var parser = SearchExpressionParser();
+
+      var ast1 = parser.parse("duration:>60s");
+      expect(ast1.body.length, 1);
+      expect(ast1.body[0], isA<DurationNode>());
+      var durationNode = ast1.body[0] as DurationNode;
+      expect(durationNode.operator, RelationalOperator.greater);
+      expect(durationNode.duration, const Duration(seconds: 60));
+
+      var ast2 = parser.parse("duration:<10m");
+      expect(ast2.body.length, 1);
+      expect(ast2.body[0], isA<DurationNode>());
+      durationNode = ast2.body[0] as DurationNode;
+      expect(durationNode.operator, RelationalOperator.less);
+      expect(durationNode.duration, const Duration(minutes: 10));
+
+      var ast3 = parser.parse("duration:>=1h");
+      expect(ast3.body.length, 1);
+      expect(ast3.body[0], isA<DurationNode>());
+      durationNode = ast3.body[0] as DurationNode;
+      expect(durationNode.operator, RelationalOperator.greaterOrEqual);
+      expect(durationNode.duration, const Duration(hours: 1));
+
+      var ast4 = parser.parse("duration:<=2h");
+      expect(ast4.body.length, 1);
+      expect(ast4.body[0], isA<DurationNode>());
+      durationNode = ast4.body[0] as DurationNode;
+      expect(durationNode.operator, RelationalOperator.lessOrEqual);
+      expect(durationNode.duration, const Duration(hours: 2));
+
+      var ast5 = parser.parse("duration:30m");
+      expect(ast5.body.length, 1);
+      expect(ast5.body[0], isA<DurationNode>());
+      durationNode = ast5.body[0] as DurationNode;
+      expect(durationNode.operator, RelationalOperator.equal);
+      expect(durationNode.duration, const Duration(minutes: 30));
+    });
+
+    test('should return null for invalid duration queries', () {
+      var parser = SearchExpressionParser();
+      var ast = parser.parse("duration:10z");
+      expect(ast.body, isEmpty);
+    });
   });
 }

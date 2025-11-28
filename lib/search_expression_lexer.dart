@@ -170,8 +170,7 @@ class SearchExpressionTokenizer {
         while (!scanner.isDone &&
             !scanner.matches(' ') &&
             !scanner.matches('&') &&
-            !scanner.matches('|') &&
-            !scanner.matches('-')) {
+            !scanner.matches('|')) {
           buffer.writeCharCode(scanner.readChar());
         }
         tokens.add(StringToken(buffer.toString()));

@@ -19,11 +19,6 @@ class TokenIterator {
 }
 
 class SearchExpressionParser {
-  // TODO
-  // Planned search parameters:
-  // date:
-  // duration:
-
   final SearchExpressionTokenizer _tokenizer = SearchExpressionTokenizer();
 
   RootNode parse(String query) {
@@ -103,18 +98,26 @@ class SearchExpressionParser {
         iterator.advance();
       }
 
-      if (iterator.current is StringToken) {
+      SearchExpressionNode? node;
+      if (keyword == KeywordEnum.date) {
+        node = _parseDate(iterator);
+      } else if (keyword == KeywordEnum.duration) {
+        node = _parseDuration(iterator);
+      } else if (iterator.current is StringToken) {
         final value = (iterator.current as StringToken).value;
         iterator.advance(); // consume value
-        final node = ParameterNode(keyword.label, value);
-        if (isExcluded) {
-          return ExcludeNode(node);
-        }
-        return node;
+        node = ParameterNode(keyword.label, value);
       } else {
         // keyword not followed by string
         return null;
       }
+
+      if (node == null) return null;
+
+      if (isExcluded) {
+        return ExcludeNode(node);
+      }
+      return node;
     }
 
     if (iterator.current is StringToken) {
@@ -126,5 +129,86 @@ class SearchExpressionParser {
     // unexpected token, advance to avoid infinite loop
     iterator.advance();
     return null;
+  }
+
+  DateNode? _parseDate(TokenIterator iterator) {
+    if (iterator.current is! StringToken) return null;
+
+    final value = (iterator.current as StringToken).value;
+    iterator.advance();
+
+    final operator = _parseRelationalOperator(value);
+    final dateValue = value.substring(
+        operator == RelationalOperator.equal
+            ? 0
+            : (operator == RelationalOperator.greaterOrEqual ||
+                    operator == RelationalOperator.lessOrEqual)
+                ? 2
+                : 1);
+
+    final parts = dateValue.split('-');
+    if (parts.length != 3) return null;
+
+    final year = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final day = int.tryParse(parts[2]);
+
+    if (year == null || month == null || day == null) return null;
+    if (month < 1 || month > 12) return null;
+    if (day < 1 || day > 31) return null;
+
+    try {
+      return DateNode(operator, DateTime(year, month, day));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  DurationNode? _parseDuration(TokenIterator iterator) {
+    if (iterator.current is! StringToken) return null;
+
+    final value = (iterator.current as StringToken).value;
+    iterator.advance();
+
+    final operator = _parseRelationalOperator(value);
+    final duration = _parseDurationValue(value);
+
+    if (duration == null) return null;
+
+    return DurationNode(operator, duration);
+  }
+
+  RelationalOperator _parseRelationalOperator(String value) {
+    if (value.startsWith('>=')) {
+      return RelationalOperator.greaterOrEqual;
+    } else if (value.startsWith('<=')) {
+      return RelationalOperator.lessOrEqual;
+    } else if (value.startsWith('>')) {
+      return RelationalOperator.greater;
+    } else if (value.startsWith('<')) {
+      return RelationalOperator.less;
+    } else {
+      return RelationalOperator.equal;
+    }
+  }
+
+  Duration? _parseDurationValue(String value) {
+    final re = RegExp(r'(\d+)([smh])');
+    final match = re.firstMatch(value);
+    if (match == null) return null;
+
+    final num = int.parse(match.group(1)!);
+    final unit = match.group(2)!;
+
+    switch (unit) {
+      case 's':
+        return Duration(seconds: num);
+      case 'm':
+        return Duration(minutes: num);
+      case 'h':
+        return Duration(hours: num);
+      default:
+        return null;
+    }
   }
 }

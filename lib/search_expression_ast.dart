@@ -37,3 +37,25 @@ class ExcludeNode extends SearchExpressionNode {
 
   const ExcludeNode(this.child);
 }
+
+class DateNode extends SearchExpressionNode {
+  final RelationalOperator operator;
+  final DateTime value;
+
+  const DateNode(this.operator, this.value);
+}
+
+enum RelationalOperator {
+  greater,
+  less,
+  equal,
+  greaterOrEqual,
+  lessOrEqual,
+}
+
+class DurationNode extends SearchExpressionNode {
+  final RelationalOperator operator;
+  final Duration duration;
+
+  const DurationNode(this.operator, this.duration);
+}

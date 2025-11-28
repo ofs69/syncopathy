@@ -8,6 +8,7 @@ import 'package:syncopathy/funscript_metadata_filter_bottom_sheet.dart';
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/model/user_category.dart';
 import 'package:syncopathy/video_item.dart';
+import 'package:syncopathy/search_expression_visualizer.dart';
 import 'package:syncopathy/model/video_model.dart';
 import 'package:syncopathy/wheel_of_fortune.dart';
 import 'package:provider/provider.dart';
@@ -577,15 +578,13 @@ class _MediaLibraryState extends State<MediaLibrary> {
     return AppBar(
       title: Row(
         children: [
-          const Text('Media Library'),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: 'Long-press or right-click an item for more options.',
-            child: IconButton(
-              icon: const Icon(Icons.info_outline),
-              onPressed: () {},
+          if (_searchQuery.isEmpty)
+            const Text('Media Library')
+          else
+            ExpressionVisualizer(
+              expression: _searchQuery,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-          ),
         ],
       ),
       actions: [
@@ -778,13 +777,25 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
           if (!_isLoading)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  'Showing ${_filteredVideos.length} of ${_mediaManager.allVideos.length} videos',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    'Showing ${_filteredVideos.length} of ${_mediaManager.allVideos.length} videos',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  Tooltip(
+                    message:
+                        'Long-press or right-click an item for more options.',
+                    child: IconButton(
+                      icon: const Icon(Icons.info_outline, size: 16),
+                      onPressed: () {},
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
               ),
             ),
           Expanded(

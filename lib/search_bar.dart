@@ -37,10 +37,10 @@ class _MediaSearchBarState<T> extends State<MediaSearchBar<T>> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(8.0),
       child: FocusScope(
         child: TextField(
-          focusNode: _searchFocusNode, // Assign the focus node
+          focusNode: _searchFocusNode,
           controller: _searchController,
           decoration: InputDecoration(
             labelText: 'Search Videos',
