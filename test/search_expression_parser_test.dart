@@ -120,8 +120,9 @@ void main() {
 
     test('should parse combination of terms', () {
       var parser = SearchExpressionParser();
-      var ast =
-          parser.parse("term1 path:some/path -term2 | -path:another/path term3");
+      var ast = parser.parse(
+        "term1 path:some/path -term2 | -path:another/path term3",
+      );
 
       expect(ast.body.length, 1);
       expect(ast.body[0], isA<OrNode>());
