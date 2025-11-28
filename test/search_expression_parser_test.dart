@@ -236,6 +236,24 @@ void main() {
       expect(durationNode.duration, const Duration(minutes: 30));
     });
 
+    test('should handle precedence of NOT, implicit AND, and OR', () {
+      var parser = SearchExpressionParser();
+      var ast = parser.parse("test | -test2 test3");
+      expect(ast.body.length, 1);
+      expect(ast.body[0], isA<OrNode>());
+      final orNode = ast.body[0] as OrNode;
+      expect(orNode.children.length, 2);
+      expect((orNode.children[0] as StringNode).value, 'test');
+
+      expect(orNode.children[1], isA<AndNode>());
+      final andNode = orNode.children[1] as AndNode;
+      expect(andNode.children.length, 2);
+      expect(andNode.children[0], isA<ExcludeNode>());
+      final excludeNode = andNode.children[0] as ExcludeNode;
+      expect((excludeNode.child as StringNode).value, 'test2');
+      expect((andNode.children[1] as StringNode).value, 'test3');
+    });
+
     test('should return null for invalid duration queries', () {
       var parser = SearchExpressionParser();
       var ast = parser.parse("duration:10z");
