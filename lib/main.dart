@@ -9,6 +9,8 @@ import 'package:syncopathy/isar/settings.dart';
 import 'package:syncopathy/isar/user_category.dart';
 import 'package:syncopathy/syncopathy.dart';
 import 'package:syncopathy/isar/video_model.dart';
+import 'dart:io';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:window_manager/window_manager.dart';
 
@@ -16,6 +18,13 @@ late Isar isar; // Global Isar instance
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize FFI for SQLite on desktop
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+  
   await windowManager.ensureInitialized();
 
   // Open the Isar instance
