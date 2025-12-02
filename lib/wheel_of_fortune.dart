@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_fortune_wheel/flutter_fortune_wheel.dart';
-import 'package:syncopathy/model/video_model.dart';
+import 'package:syncopathy/isar/video_model.dart';
 
 class WheelOfFortuneDialog extends StatefulWidget {
   final List<Video> videos;

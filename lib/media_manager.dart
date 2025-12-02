@@ -10,8 +10,8 @@ import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/main.dart';
-import 'package:syncopathy/model/user_category.dart';
-import 'package:syncopathy/model/video_model.dart';
+import 'package:syncopathy/isar/user_category.dart';
+import 'package:syncopathy/isar/video_model.dart';
 
 class MediaManager {
   final List<Video> _allVideos = List.empty(growable: true);

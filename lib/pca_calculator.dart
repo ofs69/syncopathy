@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:syncopathy/model/funscript.dart';
-import 'package:syncopathy/model/video_model.dart';
+import 'package:syncopathy/isar/video_model.dart';
 import 'package:syncopathy/pca.dart';
 import 'package:syncopathy/media_manager.dart';
 

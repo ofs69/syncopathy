@@ -5,7 +5,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:syncopathy/logging.dart';
-import 'package:syncopathy/model/funscript_metadata.dart';
+import 'package:syncopathy/isar/funscript_metadata.dart';
 
 /// Represents a single action in a Funscript file.
 class FunscriptAction implements Comparable<FunscriptAction> {

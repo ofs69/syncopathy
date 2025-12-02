@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:isar/isar.dart';
-import 'package:syncopathy/model/funscript_metadata.dart';
-import 'package:syncopathy/model/user_category.dart';
+import 'package:syncopathy/isar/funscript_metadata.dart';
+import 'package:syncopathy/isar/user_category.dart';
 import 'package:syncopathy/model/funscript.dart'; // Added import
 
 part 'video_model.g.dart';

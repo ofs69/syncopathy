@@ -1,7 +1,7 @@
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
-import 'package:syncopathy/model/video_model.dart';
+import 'package:syncopathy/isar/video_model.dart';
 
 class Playlist extends ChangeNotifier {
   final List<Video> _videos;

@@ -1,6 +1,6 @@
 import 'package:syncopathy/search_expression_parser.dart';
 import 'package:syncopathy/search_expression_ast.dart';
-import 'package:syncopathy/model/video_model.dart';
+import 'package:syncopathy/isar/video_model.dart';
 
 class MediaSearchService {
   List<Video> filterVideos(List<Video> videos, String query) {

@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/model/player_model.dart';
-import 'package:syncopathy/model/settings.dart';
-import 'package:syncopathy/model/user_category.dart';
+import 'package:syncopathy/isar/settings.dart';
+import 'package:syncopathy/isar/user_category.dart';
 
 class SyncopathyModel extends ChangeNotifier {
   final Settings settings;

@@ -4,11 +4,11 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/model/app_model.dart';
-import 'package:syncopathy/model/media_library_settings.dart';
-import 'package:syncopathy/model/settings.dart';
-import 'package:syncopathy/model/user_category.dart';
+import 'package:syncopathy/isar/media_library_settings.dart';
+import 'package:syncopathy/isar/settings.dart';
+import 'package:syncopathy/isar/user_category.dart';
 import 'package:syncopathy/syncopathy.dart';
-import 'package:syncopathy/model/video_model.dart';
+import 'package:syncopathy/isar/video_model.dart';
 
 import 'package:window_manager/window_manager.dart';
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:syncopathy/main.dart';
 import 'package:syncopathy/media_manager.dart';
-import 'package:syncopathy/model/user_category.dart';
+import 'package:syncopathy/isar/user_category.dart';
 import 'package:syncopathy/notification_feed.dart';
 
 class CategorySelectionDialog extends StatefulWidget {

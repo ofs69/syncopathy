@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:syncopathy/connection_button.dart';
 import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/player_model.dart';
-import 'package:syncopathy/model/video_model.dart';
+import 'package:syncopathy/isar/video_model.dart';
 import 'package:syncopathy/playlist_controls.dart';
 import 'package:syncopathy/update_checker_widget.dart';
 import 'package:syncopathy/helper/constants.dart';

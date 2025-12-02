@@ -7,7 +7,7 @@ import "package:async_locks/async_locks.dart";
 import 'package:path_provider/path_provider.dart';
 import 'package:syncopathy/logging.dart';
 
-import 'package:syncopathy/model/video_model.dart';
+import 'package:syncopathy/isar/video_model.dart';
 
 class VideoThumbnail extends StatefulWidget {
   final Video video;
