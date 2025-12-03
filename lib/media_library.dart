@@ -545,6 +545,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
   AppBar _buildSelectionAppBar() {
     return AppBar(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(16.0)),
+      ),
       title: Text('${_selectedVideos.length} selected'),
       leading: IconButton(
         icon: const Icon(Icons.close),
@@ -579,6 +583,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
   AppBar _buildDefaultAppBar() {
     return AppBar(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(16.0)),
+      ),
       title: Row(
         children: [
           if (_searchQuery.isEmpty)
