@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncopathy/helper/constants.dart';
-import 'package:syncopathy/isar/user_category.dart';
-import 'package:syncopathy/isar/video_model.dart';
+import 'package:syncopathy/sqlite/models/user_category.dart';
+import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/video_thumbnail.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:provider/provider.dart';

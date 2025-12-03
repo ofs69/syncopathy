@@ -6,8 +6,9 @@ import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/playlist.dart';
-import 'package:syncopathy/isar/settings.dart';
-import 'package:syncopathy/isar/video_model.dart';
+import 'package:syncopathy/model/settings_model.dart';
+
+import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/player/funscript_stream_controller.dart';
 import 'package:syncopathy/player/handy_ble.dart';
 import 'package:syncopathy/player/mpv.dart';
@@ -28,7 +29,7 @@ class PlayerModel extends ChangeNotifier {
   ValueNotifier<bool> get isConnected => _handyBle.isConnected;
   ValueNotifier<BatteryState?> get batteryState => _handyBle.batteryState;
 
-  final Settings _settings;
+  final SettingsModel _settings;
   late final FunscriptStreamController _funscriptStreamController;
 
   final ValueNotifier<Playlist?> playlist = ValueNotifier(null);

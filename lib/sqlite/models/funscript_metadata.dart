@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 // These embedded classes are simple data holders, so we can define them here.
@@ -27,7 +26,6 @@ class Chapter {
   factory Chapter.fromJson(Map<String, dynamic> json) =>
       Chapter(name: json['name'], timeMs: json['timeMs']);
 }
-
 
 class FunscriptMetadata {
   final int? id;
@@ -101,6 +99,35 @@ class FunscriptMetadata {
           .toList(),
       performers: List<String>.from(jsonDecode(map['performers'])),
       tags: List<String>.from(jsonDecode(map['tags'])),
+    );
+  }
+
+  factory FunscriptMetadata.fromJson(Map<String, dynamic> json) {
+    return FunscriptMetadata(
+      bookmarks:
+          (json['bookmarks'] as List<dynamic>?)
+              ?.map((e) => Bookmark.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      chapters:
+          (json['chapters'] as List<dynamic>?)
+              ?.map((e) => Chapter.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      creator: json['creator'] as String?,
+      description: json['description'] as String?,
+      duration: json['duration'] as int?,
+      license: json['license'] as String?,
+      notes: json['notes'] as String?,
+      performers:
+          (json['performers'] as List<dynamic>?)?.cast<String>().toList() ??
+          const [],
+      scriptUrl: json['script_url'] as String?,
+      tags:
+          (json['tags'] as List<dynamic>?)?.cast<String>().toList() ?? const [],
+      title: json['title'] as String?,
+      type: json['type'] as String?,
+      videoUrl: json['video_url'] as String?,
     );
   }
 }

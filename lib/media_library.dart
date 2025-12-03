@@ -7,14 +7,14 @@ import 'package:syncopathy/funscript_metadata_filter_bottom_sheet.dart';
 
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/media_search_service.dart';
-import 'package:syncopathy/isar/user_category.dart';
+import 'package:syncopathy/model/media_library_settings_model.dart';
+import 'package:syncopathy/sqlite/models/user_category.dart';
 import 'package:syncopathy/video_item.dart';
 import 'package:syncopathy/search_expression_visualizer.dart';
-import 'package:syncopathy/isar/video_model.dart';
+import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/wheel_of_fortune.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/model/player_model.dart';
-import 'package:syncopathy/isar/media_library_settings.dart';
 import 'package:syncopathy/category_selection_dialog.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/pca_calculator.dart';
@@ -89,7 +89,7 @@ final _uncategorized = UserCategory(name: 'Uncategorized');
 class _MediaLibraryState extends State<MediaLibrary> {
   late final PcaCalculator _pcaCalculator;
   late final MediaManager _mediaManager;
-  late final MediaLibrarySettings _mediaLibrarySettings;
+  late final MediaLibrarySettingsModel _mediaLibrarySettings;
   late final MediaSearchService _mediaSearchService;
   String _searchQuery = '';
   late List<Video> _filteredVideos;
@@ -114,7 +114,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
   void initState() {
     super.initState();
     _mediaManager = widget.mediaManager;
-    _mediaLibrarySettings = MediaLibrarySettings();
+    _mediaLibrarySettings = MediaLibrarySettingsModel();
     _mediaLibrarySettings.load().then((_) {
       _updateDisplayedVideos();
       _settingsSaveSubscription = _mediaLibrarySettings.saveNotifier.stream

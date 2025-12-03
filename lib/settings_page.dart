@@ -12,10 +12,8 @@ import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncopathy/video_thumbnail.dart';
 import 'package:syncopathy/notification_feed.dart';
-import 'dart:io';
-import 'package:path/path.dart' as path;
 
-import 'package:syncopathy/migration_progress_dialog.dart';
+
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -68,18 +66,18 @@ class _SettingsPageState extends State<SettingsPage>
   void dispose() {
     _model.settings.min.removeListener(_onSettingsChanged);
     _model.settings.max.removeListener(_onSettingsChanged);
-    _model.settings.offsetMs.removeListener(_onSettingsChanged);
-    _model.settings.mediaPaths.removeListener(_onSettingsChanged);
-    _model.settings.slewMaxRateOfChange.removeListener(_onSettingsChanged);
-    _model.settings.rdpEpsilon.removeListener(_onSettingsChanged);
-    _model.settings.remapFullRange.removeListener(_onSettingsChanged);
-    _model.settings.skipToAction.removeListener(_onSettingsChanged);
-    _model.settings.autoSwitchToVideoPlayerTab.removeListener(
-      _onSettingsChanged,
-    );
-    _model.settings.embeddedVideoPlayer.removeListener(_onSettingsChanged);
-    _model.settings.autoPlay.removeListener(_onSettingsChanged);
-    _model.settings.invert.removeListener(_onSettingsChanged);
+    // _model.settings.offsetMs.removeListener(_onSettingsChanged);
+    // _model.settings.mediaPaths.removeListener(_onSettingsChanged);
+    // _model.settings.slewMaxRateOfChange.removeListener(_onSettingsChanged);
+    // _model.settings.rdpEpsilon.removeListener(_onSettingsChanged);
+    // _model.settings.remapFullRange.removeListener(_onSettingsChanged);
+    // _model.settings.skipToAction.removeListener(_onSettingsChanged);
+    // _model.settings.autoSwitchToVideoPlayerTab.removeListener(
+    //   _onSettingsChanged,
+    // );
+    // _model.settings.embeddedVideoPlayer.removeListener(_onSettingsChanged);
+    // _model.settings.autoPlay.removeListener(_onSettingsChanged);
+    // _model.settings.invert.removeListener(_onSettingsChanged);
     super.dispose();
   }
 
@@ -714,82 +712,7 @@ class _SettingsPageState extends State<SettingsPage>
             }
           },
         ),
-        ListTile(
-          title: const Text('Migrate Isar DB to SQLite'),
-          subtitle: const Text(
-            'Copies all data from the old database format to the new one. This is a one-time operation.',
-          ),
-          trailing: const Icon(Icons.sync_alt),
-          onTap: () async {
-            // 1. Get path and check for file existence
-            final dir = await getApplicationSupportDirectory();
-            final dbFile =
-                File(path.join(dir.path, 'syncopathyDB.sqlite'));
-            final journalFile =
-                File(path.join(dir.path, 'syncopathyDB.sqlite-journal'));
-            final dbExists = await dbFile.exists();
 
-            // 2. Craft the message and show one confirmation dialog
-            String title = 'Confirm Database Migration';
-            String content =
-                'This will copy all your existing data to the new SQLite database format.';
-            if (dbExists) {
-              title = 'Overwrite Existing Database?';
-              content =
-                  'A migrated SQLite database already exists. Overwriting it will delete all its current data before starting the new migration. Are you sure you want to continue?';
-            }
-
-            final bool? shouldProceed = await showDialog<bool>(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text(title),
-                  content: Text(content),
-                  actions: <Widget>[
-                    TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Cancel')),
-                    TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text('Continue')),
-                  ],
-                );
-              },
-            );
-
-            if (shouldProceed != true) {
-              return; // User cancelled
-            }
-
-            // 3. We are confirmed. Perform pre-migration actions.
-            if (dbExists) {
-              try {
-                await dbFile.delete();
-                if (await journalFile.exists()) {
-                  await journalFile.delete();
-                }
-              } catch (e) {
-                Logger.error('Failed to delete existing database: $e');
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('Failed to delete existing database: $e')),
-                );
-                return;
-              }
-            }
-
-            // 4. Start the migration process via the progress dialog.
-            if (!mounted) return;
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext context) {
-                return const MigrationProgressDialog();
-              },
-            );
-          },
-        ),
       ],
     );
   }

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
-import 'package:syncopathy/main.dart';
 import 'package:syncopathy/media_manager.dart';
-import 'package:syncopathy/isar/user_category.dart';
+import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/sqlite/models/user_category.dart';
 import 'package:syncopathy/notification_feed.dart';
 
 class CategorySelectionDialog extends StatefulWidget {
@@ -46,15 +45,18 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
         return DraggableScrollableSheet(
           expand: false,
           builder: (BuildContext context, ScrollController scrollController) {
-            final filteredItems = isar.userCategorys
-                .where()
-                .findAllSync()
-                .where(
-                  (item) => item.name.toLowerCase().contains(
-                    _searchController.text.toLowerCase(),
-                  ),
-                )
-                .toList();
+            // TODO: perhaps use a query for this
+            final filteredCategoriesFuture = DatabaseHelper()
+                .getAllUserCategories()
+                .then((value) {
+                  return value
+                      .where(
+                        (item) => item.name.toLowerCase().contains(
+                          _searchController.text.toLowerCase(),
+                        ),
+                      )
+                      .toList();
+                });
 
             return Column(
               children: [
@@ -73,87 +75,98 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                   ),
                 ),
                 Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount:
-                        filteredItems.length +
-                        (widget.showAllCategoriesOption ? 1 : 0) +
-                        (widget.showUncategorizedOption ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      int actualIndex = index;
-
-                      if (widget.showAllCategoriesOption) {
-                        if (index == 0) {
-                          return ListTile(
-                            title: const Text('All Categories'),
-                            onTap: () => Navigator.of(context).pop(null),
-                          );
-                        }
-                        actualIndex--;
+                  child: FutureBuilder(
+                    future: filteredCategoriesFuture,
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const CircularProgressIndicator.adaptive();
                       }
 
-                      if (widget.showUncategorizedOption) {
-                        if (actualIndex == 0) {
-                          return ListTile(
-                            title: const Text('Uncategorized'),
-                            onTap: () =>
-                                Navigator.of(context).pop(widget.uncategorized),
-                          );
-                        }
-                        actualIndex--;
-                      }
+                      final filteredCategories = snapshot.data!;
 
-                      final item = filteredItems[actualIndex];
-                      return ListTile(
-                        title: Text(item.name),
-                        onTap: () => Navigator.of(context).pop(item),
-                        trailing:
-                            widget
-                                .showAddCategory // Only show delete if adding is allowed
-                            ? IconButton(
-                                icon: const Icon(Icons.delete),
-                                tooltip: "Delete Category",
-                                onPressed: () async {
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (BuildContext dialogContext) {
-                                      return AlertDialog(
-                                        title: const Text('Confirm Delete'),
-                                        content: Text(
-                                          'Are you sure you want to delete the category "${item.name}"? Videos in this category will become uncategorized.',
-                                        ),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            onPressed: () => Navigator.of(
-                                              dialogContext,
-                                            ).pop(false),
-                                            child: const Text('Cancel'),
-                                          ),
-                                          TextButton(
-                                            onPressed: () => Navigator.of(
-                                              dialogContext,
-                                            ).pop(true),
-                                            child: const Text('Delete'),
-                                          ),
-                                        ],
+                      return ListView.builder(
+                        controller: scrollController,
+                        itemCount:
+                            filteredCategories.length +
+                            (widget.showAllCategoriesOption ? 1 : 0) +
+                            (widget.showUncategorizedOption ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          int actualIndex = index;
+
+                          if (widget.showAllCategoriesOption) {
+                            if (index == 0) {
+                              return ListTile(
+                                title: const Text('All Categories'),
+                                onTap: () => Navigator.of(context).pop(null),
+                              );
+                            }
+                            actualIndex--;
+                          }
+
+                          if (widget.showUncategorizedOption) {
+                            if (actualIndex == 0) {
+                              return ListTile(
+                                title: const Text('Uncategorized'),
+                                onTap: () => Navigator.of(
+                                  context,
+                                ).pop(widget.uncategorized),
+                              );
+                            }
+                            actualIndex--;
+                          }
+
+                          final item = filteredCategories[actualIndex];
+                          return ListTile(
+                            title: Text(item.name),
+                            onTap: () => Navigator.of(context).pop(item),
+                            trailing:
+                                widget
+                                    .showAddCategory // Only show delete if adding is allowed
+                                ? IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    tooltip: "Delete Category",
+                                    onPressed: () async {
+                                      final confirm = await showDialog<bool>(
+                                        context: context,
+                                        builder: (BuildContext dialogContext) {
+                                          return AlertDialog(
+                                            title: const Text('Confirm Delete'),
+                                            content: Text(
+                                              'Are you sure you want to delete the category "${item.name}"? Videos in this category will become uncategorized.',
+                                            ),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                onPressed: () => Navigator.of(
+                                                  dialogContext,
+                                                ).pop(false),
+                                                child: const Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.of(
+                                                  dialogContext,
+                                                ).pop(true),
+                                                child: const Text('Delete'),
+                                              ),
+                                            ],
+                                          );
+                                        },
                                       );
-                                    },
-                                  );
 
-                                  if (confirm == true) {
-                                    await widget.mediaManager.deleteCategory(
-                                      item,
-                                    );
-                                    if (!context.mounted) return;
-                                    NotificationFeedManager.showSuccessNotification(
-                                      context,
-                                      'Category "${item.name}" deleted',
-                                    );
-                                    setState(() {}); // Refresh the list
-                                  }
-                                },
-                              )
-                            : null,
+                                      if (confirm == true) {
+                                        await widget.mediaManager
+                                            .deleteCategory(item);
+                                        if (!context.mounted) return;
+                                        NotificationFeedManager.showSuccessNotification(
+                                          context,
+                                          'Category "${item.name}" deleted',
+                                        );
+                                        setState(() {}); // Refresh the list
+                                      }
+                                    },
+                                  )
+                                : null,
+                          );
+                        },
                       );
                     },
                   ),

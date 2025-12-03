@@ -1,12 +1,11 @@
-
 import 'dart:convert';
 
 class Settings {
   final int id = 0; // Singleton ID
-  int min;
-  int max;
+  int min = 0;
+  int max = 100;
   int offsetMs;
-  List<String> mediaPaths;
+  List<String> mediaPaths = List.empty(growable: true);
   double? slewMaxRateOfChange;
   double? rdpEpsilon;
   bool remapFullRange;
@@ -20,7 +19,7 @@ class Settings {
     this.min = 0,
     this.max = 100,
     this.offsetMs = 25,
-    this.mediaPaths = const [],
+    List<String> mediaPaths = const [],
     this.slewMaxRateOfChange = 400,
     this.rdpEpsilon = 15,
     this.remapFullRange = true,
@@ -29,7 +28,10 @@ class Settings {
     this.autoSwitchToVideoPlayerTab = false,
     this.autoPlay = true,
     this.invert = false,
-  });
+  }) {
+    this.mediaPaths.clear();
+    this.mediaPaths.addAll(mediaPaths);
+  }
 
   Map<String, dynamic> toMap() {
     return {

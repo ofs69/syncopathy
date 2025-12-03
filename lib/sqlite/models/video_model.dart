@@ -1,4 +1,8 @@
+import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
+import 'package:flutter/material.dart';
+import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
 import 'package:syncopathy/sqlite/models/user_category.dart';
 
@@ -65,9 +69,32 @@ class Video {
       averageMax: map['averageMax'],
       isFavorite: map['isFavorite'] == 1,
       isDislike: map['isDislike'] == 1,
-      dateFirstFound: DateTime.fromMillisecondsSinceEpoch(map['dateFirstFound']),
+      dateFirstFound: DateTime.fromMillisecondsSinceEpoch(
+        map['dateFirstFound'],
+      ),
       duration: map['duration'],
       funscriptMetadataId: map['funscriptMetadataId'],
     );
+  }
+
+  String get videoHash {
+    final bytes = utf8.encode(videoPath);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  // HACK: remove this
+  Funscript? _funscript; // Added field
+  Funscript? get funscript => _funscript; // Added getter
+
+  Future<void> loadFunscript() async {
+    if (funscriptPath.isNotEmpty && _funscript == null) {
+      try {
+        _funscript = await Funscript.fromFile(funscriptPath);
+      } catch (e) {
+        debugPrint('Error loading funscript from $funscriptPath: $e');
+        _funscript = null; // Ensure funscript is null on error
+      }
+    }
   }
 }

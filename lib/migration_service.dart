@@ -53,6 +53,7 @@ class MigrationService {
     await _migrateVideos(categoryIdMap);
 
     debugPrint("Database migration completed successfully!");
+    await isar.close();
   }
 
   Future<void> _migrateSettings() async {

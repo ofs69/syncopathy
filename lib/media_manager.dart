@@ -4,14 +4,14 @@ import 'dart:io';
 import 'package:async_locks/async_locks.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-import 'package:isar/isar.dart';
 import 'package:path/path.dart' as p;
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/funscript_algo.dart';
-import 'package:syncopathy/main.dart';
-import 'package:syncopathy/isar/user_category.dart';
-import 'package:syncopathy/isar/video_model.dart';
+
+import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/sqlite/models/user_category.dart';
+import 'package:syncopathy/sqlite/models/video_model.dart';
 
 class MediaManager {
   final List<Video> _allVideos = List.empty(growable: true);
@@ -22,9 +22,11 @@ class MediaManager {
 
   Stream<Video> get videoUpdates => _videoUpdateController.stream;
 
-  MediaManager(this._paths) {
+  MediaManager(this._paths);
+
+  Future<void> load() async {
     _allVideos.clear();
-    _allVideos.addAll(isar.videos.where().findAllSync());
+    _allVideos.addAll(await DatabaseHelper().getAllVideos());
   }
 
   void dispose() {
@@ -36,10 +38,7 @@ class MediaManager {
     bool cache = true,
   }) async {
     if (cache) {
-      final existingVideo = await isar.videos
-          .filter()
-          .videoPathEqualTo(videoPath)
-          .findFirst();
+      final existingVideo = await DatabaseHelper().getVideoByPath(videoPath);
       if (existingVideo != null &&
           existingVideo.duration != null &&
           existingVideo.duration! > 0) {
@@ -206,6 +205,7 @@ class MediaManager {
                 averageMax: averageMax,
                 funscriptMetadata: funscript.metadata,
                 duration: duration,
+                dateFirstFound: DateTime.now(),
               );
 
               _allVideos.add(video);
@@ -224,87 +224,87 @@ class MediaManager {
     // add files which are currently not in the database
     var videosFoundOnDisk = _allVideos.toList();
 
-    await isar.writeTxn(() async {
-      var videosInDb = await isar.videos.where().findAll();
-      for (var video in videosInDb) {
-        if (!videosFoundOnDisk.any(
-          (element) => element.videoPath == video.videoPath,
-        )) {
-          await isar.videos.delete(video.id);
+    var videosInDb = await DatabaseHelper().getAllVideos();
+    for (var video in videosInDb) {
+      if (!videosFoundOnDisk.any(
+        (element) => element.videoPath == video.videoPath,
+      )) {
+        // TODO: look at this again
+        if (video.id != null) {
+          await DatabaseHelper().deleteVideo(video.id ?? 0);
         }
       }
+    }
 
-      for (var video in videosFoundOnDisk) {
-        var dbVideo = videosInDb.firstWhereOrNull(
-          (element) => element.videoPath == video.videoPath,
-        );
+    for (var video in videosFoundOnDisk) {
+      var dbVideo = videosInDb.firstWhereOrNull(
+        (element) => element.videoPath == video.videoPath,
+      );
 
-        if (dbVideo == null) {
-          // add new
-          await isar.videos.put(video);
-        } else {
-          // update existing
-          dbVideo.averageSpeed = video.averageSpeed;
-          dbVideo.averageMin = video.averageMin;
-          dbVideo.averageMax = video.averageMax;
-          dbVideo.funscriptMetadata = video.funscriptMetadata;
-          dbVideo.duration = video.duration;
-          await isar.videos.put(dbVideo);
-        }
+      if (dbVideo == null) {
+        // add new
+        await DatabaseHelper().insertVideo(video);
+      } else {
+        // update existing
+        dbVideo.averageSpeed = video.averageSpeed;
+        dbVideo.averageMin = video.averageMin;
+        dbVideo.averageMax = video.averageMax;
+        dbVideo.funscriptMetadata = video.funscriptMetadata;
+        dbVideo.duration = video.duration;
+        await DatabaseHelper().updateVideo(dbVideo);
       }
-    });
+    }
 
     // display the database state
-    _allVideos.clear();
-    _allVideos.addAll(isar.videos.where().findAllSync());
+    await load();
   }
 
   void saveFavorite(Video video) async {
-    await isar.writeTxn(() async {
-      isar.videos.put(video);
-    });
+    // TODO: consider a dedicated update method instead replacing
+    await DatabaseHelper().insertVideo(video);
     _videoUpdateController.add(video);
   }
 
   void saveDislike(Video video) async {
-    await isar.writeTxn(() async {
-      isar.videos.put(video);
-    });
+    // TODO: consider a dedicated update method instead replacing
+    await DatabaseHelper().insertVideo(video);
     _videoUpdateController.add(video);
   }
 
   Future<void> createCategory(String name, {String? description}) async {
     final category = UserCategory(name: name, description: description);
-    await isar.writeTxn(() async {
-      await isar.userCategorys.put(category);
-    });
+    await DatabaseHelper().insertUserCategory(category);
   }
 
   Future<void> updateCategory(UserCategory category) async {
-    await isar.writeTxn(() async {
-      await isar.userCategorys.put(category);
-    });
+    // TODO: consider a dedicated update method instead replacing
+    await DatabaseHelper().insertUserCategory(category);
   }
 
   Future<void> deleteCategory(UserCategory category) async {
-    await isar.writeTxn(() async {
-      await isar.userCategorys.delete(category.id);
-    });
+    // TODO: check this again
+    if (category.id != null) {
+      await DatabaseHelper().deleteUserCategory(category.id ?? 0);
+    }
   }
 
   Future<void> setVideoCategory(Video video, UserCategory? category) async {
     if (category == null) return;
+    if (category.id == 0 || video.id == 0) return;
+    await DatabaseHelper().insertVideoUserCategoryLink(
+      video.id ?? 0,
+      category.id ?? 0,
+    );
     video.categories.add(category);
-    await isar.writeTxn(() async {
-      await video.categories.save();
-    });
   }
 
   Future<void> removeVideoCategory(Video video, UserCategory category) async {
+    if (category.id == 0 || video.id == 0) return;
+    await DatabaseHelper().deleteVideoUserCategoryLink(
+      video.id ?? 0,
+      category.id ?? 0,
+    );
     video.categories.remove(category);
-    await isar.writeTxn(() async {
-      await video.categories.save();
-    });
   }
 
   Future<void> addVideosToCategory(
@@ -312,16 +312,15 @@ class MediaManager {
     UserCategory category,
   ) async {
     for (var video in videos) {
-      await video.categories.load();
-    }
-    await isar.writeTxn(() async {
-      for (var video in videos) {
-        if (!video.categories.any((c) => c.id == category.id)) {
-          video.categories.add(category);
-          await video.categories.save();
-        }
+      if (!video.categories.any((c) => c.id == category.id)) {
+        if (category.id == 0 || video.id == 0) continue;
+        await DatabaseHelper().insertVideoUserCategoryLink(
+          video.id ?? 0,
+          category.id ?? 0,
+        );
+        video.categories.add(category);
       }
-    });
+    }
   }
 
   Future<void> removeVideosFromCategory(
@@ -329,14 +328,13 @@ class MediaManager {
     UserCategory category,
   ) async {
     for (var video in videos) {
-      await video.categories.load();
+      if (category.id == 0 || video.id == 0) continue;
+      await DatabaseHelper().deleteVideoUserCategoryLink(
+        video.id ?? 0,
+        category.id ?? 0,
+      );
+      video.categories.removeWhere((c) => c.id == category.id);
     }
-    await isar.writeTxn(() async {
-      for (var video in videos) {
-        video.categories.removeWhere((c) => c.id == category.id);
-        await video.categories.save();
-      }
-    });
   }
 
   Future<Video?> getVideoByPath(String path) async {
@@ -357,9 +355,9 @@ class MediaManager {
         }
       }
 
-      await isar.writeTxn(() async {
-        await isar.videos.delete(video.id);
-      });
+      if (video.id != null) {
+        DatabaseHelper().deleteVideo(video.id ?? 0);
+      }
 
       _allVideos.removeWhere((v) => v.id == video.id);
       _videoUpdateController.add(video);

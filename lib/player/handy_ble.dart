@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/model/funscript.dart';
-import 'package:syncopathy/isar/settings.dart';
+import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/funscript_stream_controller.dart';
 import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/generated/handy_rpc.pb.dart';
@@ -47,7 +47,7 @@ class HandyBle extends FunscriptDevice {
       500; // Max allowed deviation between expected and actual position based on real time
 
   static final _connectSemaphore = Semaphore(1);
-  final Settings _settings;
+  final SettingsModel _settings;
 
   HandyBle(this._settings) {
     _settings.min.addListener(setSettings);

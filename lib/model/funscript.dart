@@ -5,7 +5,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:syncopathy/logging.dart';
-import 'package:syncopathy/isar/funscript_metadata.dart';
+import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
 
 /// Represents a single action in a Funscript file.
 class FunscriptAction implements Comparable<FunscriptAction> {
@@ -37,7 +37,7 @@ class FunscriptAction implements Comparable<FunscriptAction> {
 
   @override
   bool operator ==(Object other) {
-      return other is FunscriptAction && other.at == at && other.pos == pos;
+    return other is FunscriptAction && other.at == at && other.pos == pos;
   }
 
   @override
