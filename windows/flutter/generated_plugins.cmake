@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  isar_flutter_libs
   libmpv_dart
   screen_retriever_windows
   universal_ble
