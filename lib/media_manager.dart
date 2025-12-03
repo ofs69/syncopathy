@@ -10,6 +10,7 @@ import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/funscript_algo.dart';
 
 import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
 import 'package:syncopathy/sqlite/models/user_category.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
 
@@ -229,12 +230,13 @@ class MediaManager {
       if (!videosFoundOnDisk.any(
         (element) => element.videoPath == video.videoPath,
       )) {
-        // TODO: look at this again
-        if (video.id != null) {
-          await DatabaseHelper().deleteVideo(video.id ?? 0);
-        }
+        await DatabaseHelper().deleteVideo(video.id!);
       }
     }
+
+    List<Video> insertVideoBatch = List.empty(growable: true);
+    List<Video> updateVideoBatch = List.empty(growable: true);
+    List<FunscriptMetadata> updateMetadataBatch = List.empty(growable: true);
 
     for (var video in videosFoundOnDisk) {
       var dbVideo = videosInDb.firstWhereOrNull(
@@ -243,31 +245,47 @@ class MediaManager {
 
       if (dbVideo == null) {
         // add new
-        await DatabaseHelper().insertVideo(video);
+        if (video.funscriptMetadata != null) {
+          video.funscriptMetadataId = await DatabaseHelper()
+              .insertFunscriptMetadata(video.funscriptMetadata!);
+        }
+        insertVideoBatch.add(video);
       } else {
         // update existing
         dbVideo.averageSpeed = video.averageSpeed;
         dbVideo.averageMin = video.averageMin;
         dbVideo.averageMax = video.averageMax;
-        dbVideo.funscriptMetadata = video.funscriptMetadata;
         dbVideo.duration = video.duration;
-        await DatabaseHelper().updateVideo(dbVideo);
+
+        if (dbVideo.funscriptMetadataId == null &&
+            video.funscriptMetadata != null) {
+          dbVideo.funscriptMetadataId = await DatabaseHelper()
+              .insertFunscriptMetadata(video.funscriptMetadata!);
+        } else if (dbVideo.funscriptMetadataId != null &&
+            video.funscriptMetadata != null) {
+          video.funscriptMetadata!.id = dbVideo.funscriptMetadataId!;
+          updateMetadataBatch.add(video.funscriptMetadata!);
+        }
+        dbVideo.funscriptMetadata = video.funscriptMetadata;
+        updateVideoBatch.add(dbVideo);
       }
     }
+
+    await DatabaseHelper().batchUpdateFunscriptMetadata(updateMetadataBatch);
+    await DatabaseHelper().batchInsertVideos(insertVideoBatch);
+    await DatabaseHelper().batchUpdateVideos(updateVideoBatch);
 
     // display the database state
     await load();
   }
 
   void saveFavorite(Video video) async {
-    // TODO: consider a dedicated update method instead replacing
-    await DatabaseHelper().insertVideo(video);
+    await DatabaseHelper().updateVideo(video);
     _videoUpdateController.add(video);
   }
 
   void saveDislike(Video video) async {
-    // TODO: consider a dedicated update method instead replacing
-    await DatabaseHelper().insertVideo(video);
+    await DatabaseHelper().updateVideo(video);
     _videoUpdateController.add(video);
   }
 
@@ -276,34 +294,17 @@ class MediaManager {
     await DatabaseHelper().insertUserCategory(category);
   }
 
-  Future<void> updateCategory(UserCategory category) async {
-    // TODO: consider a dedicated update method instead replacing
-    await DatabaseHelper().insertUserCategory(category);
-  }
-
   Future<void> deleteCategory(UserCategory category) async {
-    // TODO: check this again
-    if (category.id != null) {
-      await DatabaseHelper().deleteUserCategory(category.id ?? 0);
-    }
+    await DatabaseHelper().deleteUserCategory(category.id!);
   }
 
-  Future<void> setVideoCategory(Video video, UserCategory? category) async {
-    if (category == null) return;
-    if (category.id == 0 || video.id == 0) return;
-    await DatabaseHelper().insertVideoUserCategoryLink(
-      video.id ?? 0,
-      category.id ?? 0,
-    );
+  Future<void> setVideoCategory(Video video, UserCategory category) async {
+    await DatabaseHelper().insertVideoUserCategoryLink(video.id!, category.id!);
     video.categories.add(category);
   }
 
   Future<void> removeVideoCategory(Video video, UserCategory category) async {
-    if (category.id == 0 || video.id == 0) return;
-    await DatabaseHelper().deleteVideoUserCategoryLink(
-      video.id ?? 0,
-      category.id ?? 0,
-    );
+    await DatabaseHelper().deleteVideoUserCategoryLink(video.id!, category.id!);
     video.categories.remove(category);
   }
 
@@ -313,10 +314,9 @@ class MediaManager {
   ) async {
     for (var video in videos) {
       if (!video.categories.any((c) => c.id == category.id)) {
-        if (category.id == 0 || video.id == 0) continue;
         await DatabaseHelper().insertVideoUserCategoryLink(
-          video.id ?? 0,
-          category.id ?? 0,
+          video.id!,
+          category.id!,
         );
         video.categories.add(category);
       }
@@ -328,10 +328,9 @@ class MediaManager {
     UserCategory category,
   ) async {
     for (var video in videos) {
-      if (category.id == 0 || video.id == 0) continue;
       await DatabaseHelper().deleteVideoUserCategoryLink(
-        video.id ?? 0,
-        category.id ?? 0,
+        video.id!,
+        category.id!,
       );
       video.categories.removeWhere((c) => c.id == category.id);
     }
@@ -355,9 +354,7 @@ class MediaManager {
         }
       }
 
-      if (video.id != null) {
-        DatabaseHelper().deleteVideo(video.id ?? 0);
-      }
+      DatabaseHelper().deleteVideo(video.id!);
 
       _allVideos.removeWhere((v) => v.id == video.id);
       _videoUpdateController.add(video);

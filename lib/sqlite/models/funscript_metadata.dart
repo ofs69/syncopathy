@@ -28,7 +28,7 @@ class Chapter {
 }
 
 class FunscriptMetadata {
-  final int? id;
+  int? id;
   final List<Bookmark> bookmarks;
   final List<Chapter> chapters;
   final String? creator;
