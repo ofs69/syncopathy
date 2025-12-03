@@ -38,8 +38,8 @@ class Video {
     this.duration,
     this.funscriptMetadataId,
     this.funscriptMetadata,
-    this.categories = const [],
-  });
+    List<UserCategory>? categories,
+  }) : categories = categories ?? [];
 
   Map<String, dynamic> toMap() {
     return {

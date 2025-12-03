@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
 import 'package:syncopathy/sqlite/models/settings.dart';
 import 'package:syncopathy/sqlite/models/user_category.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
@@ -176,10 +177,53 @@ class DatabaseHelper {
 
   Future<List<Video>> getAllVideos() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('videos');
-    return List.generate(maps.length, (i) {
-      return Video.fromMap(maps[i]);
-    });
+
+    // 1. Fetch all videos
+    final List<Map<String, dynamic>> videoMaps = await db.query('videos');
+    if (videoMaps.isEmpty) {
+      return [];
+    }
+    final videos = videoMaps.map((map) => Video.fromMap(map)).toList();
+    final videoMap = {for (var v in videos) v.id!: v};
+
+    // 2. Fetch all funscript metadata
+    final List<Map<String, dynamic>> metadataMaps = await db.query(
+      'funscript_metadata',
+    );
+    final metadataMap = {
+      for (var map in metadataMaps)
+        map['id'] as int: FunscriptMetadata.fromMap(map),
+    };
+
+    // 3. Fetch all user categories and links
+    final List<Map<String, dynamic>> categoryLinkMaps = await db.rawQuery('''
+    SELECT vucl.videoId, uc.id, uc.name, uc.description
+    FROM user_categories uc
+    JOIN video_user_category_links vucl ON uc.id = vucl.userCategoryId
+  ''');
+
+    // 4. Link categories to videos
+    for (final linkMap in categoryLinkMaps) {
+      final video = videoMap[linkMap['videoId']];
+      if (video != null) {
+        video.categories.add(
+          UserCategory.fromMap({
+            'id': linkMap['id'],
+            'name': linkMap['name'],
+            'description': linkMap['description'],
+          }),
+        );
+      }
+    }
+
+    // 5. Link metadata to videos
+    for (final video in videos) {
+      if (video.funscriptMetadataId != null) {
+        video.funscriptMetadata = metadataMap[video.funscriptMetadataId];
+      }
+    }
+
+    return videos;
   }
 
   Future<Settings> getSettings() async {
@@ -225,6 +269,19 @@ class DatabaseHelper {
     );
   }
 
+  Future<void> batchInsertVideos(List<Video> videos) async {
+    final db = await database;
+    final batch = db.batch();
+    for (final video in videos) {
+      batch.insert(
+        'videos',
+        video.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+  }
+
   Future<int> updateVideo(Video video) async {
     final db = await database;
     return await db.update(
@@ -234,6 +291,21 @@ class DatabaseHelper {
       whereArgs: [video.id],
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  Future<void> batchUpdateVideos(List<Video> videos) async {
+    final db = await database;
+    final batch = db.batch();
+    for (final video in videos) {
+      batch.update(
+        'videos',
+        video.toMap(),
+        where: 'id = ?',
+        whereArgs: [video.id],
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
   }
 
   Future<int> deleteVideo(int id) async {
