@@ -14,11 +14,22 @@ import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/syncopathy.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'package:flutter/foundation.dart';
+
+bool isDesktop() {
+  return defaultTargetPlatform == TargetPlatform.windows ||
+      defaultTargetPlatform == TargetPlatform.macOS ||
+      defaultTargetPlatform == TargetPlatform.linux;
+}
+
 Future<Widget> _initializeAppAndRun(Directory appSupportDir) async {
   await DatabaseHelper().initDb(directory: appSupportDir.path);
   Logger.info('SQLite initialized.');
 
-  await windowManager.ensureInitialized();
+  if (isDesktop()) {
+    await windowManager.ensureInitialized();
+  }
+
   WindowOptions windowOptions = const WindowOptions(
     size: Size(1920, 1080),
     center: true,
@@ -26,10 +37,12 @@ Future<Widget> _initializeAppAndRun(Directory appSupportDir) async {
     titleBarStyle: TitleBarStyle.hidden,
   );
 
-  await windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
+  if (isDesktop()) {
+    await windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
 
   var settings = SettingsModel();
   await settings.load();

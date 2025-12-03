@@ -17,9 +17,7 @@ dart run libmpv_dart:setup --platform windows
 I forked this library because I needed some changes
 https://github.com/ofs69/libmpv_dart
 
-The project uses https://github.com/isar/isar for the database.  
-To update the models `dart run build_runner build` needs to be executed.  
-It throws some errors because the generator goes into the protobuf directory. no idea how to prevent that but it works nonetheless.
+The project uses sqflite for the database.  
 
 `ffmpeg` is expected to be available for thumbnail generation. So on windows it is best to just include it. On linux just have ffmpeg installed.
 
