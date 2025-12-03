@@ -1,9 +1,7 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
-import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -58,12 +56,10 @@ void main() async {
   }
 
   final appSupportDir = await getApplicationSupportDirectory();
-  final isarDbFile = File(path.join(appSupportDir.path, 'syncopathyDB.isar'));
   final newSqliteDbFile = File(
     path.join(appSupportDir.path, 'syncopathyDB.sqlite'),
   );
 
-  final isarDbExistsAtStart = await isarDbFile.exists();
   final newSqliteDbExists = await newSqliteDbFile.exists();
 
   if (newSqliteDbExists) {
