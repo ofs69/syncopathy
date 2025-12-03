@@ -12,6 +12,8 @@ import 'package:syncopathy/video_player_page.dart';
 
 import 'package:syncopathy/shortcut_handler.dart';
 import 'package:syncopathy/custom_app_bar.dart';
+import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/widgets/database_reset_dialog.dart';
 
 class Syncopathy extends StatelessWidget {
   const Syncopathy({super.key});
@@ -60,6 +62,19 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     final player = context.read<PlayerModel>();
     player.currentVideo.addListener(_handleVideoChange);
     _showDebugNotifications = ValueNotifier<bool>(false);
+
+    // Check for database reset and show dialog if necessary
+    if (DatabaseHelper().databaseWasReset) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Ensure context is still valid before showing dialog
+        if (mounted) {
+          showDatabaseResetDialog(
+            context,
+            DatabaseHelper().databaseWasResetName!,
+          );
+        }
+      });
+    }
   }
 
   @override
