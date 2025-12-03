@@ -175,6 +175,58 @@ class DatabaseHelper {
     return await db.delete('user_categories', where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<int> insertFunscriptMetadata(FunscriptMetadata metadata) async {
+    final db = await database;
+    return await db.insert(
+      'funscript_metadata',
+      metadata.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> batchInsertFunscriptMetadata(
+    List<FunscriptMetadata> metadatas,
+  ) async {
+    final db = await database;
+    final batch = db.batch();
+    for (final metadata in metadatas) {
+      batch.insert(
+        'funscript_metadata',
+        metadata.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+  }
+
+  Future<int> updateFunscriptMetadata(FunscriptMetadata metadata) async {
+    final db = await database;
+    return await db.update(
+      'funscript_metadata',
+      metadata.toMap(),
+      where: 'id = ?',
+      whereArgs: [metadata.id],
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> batchUpdateFunscriptMetadata(
+    List<FunscriptMetadata> metadatas,
+  ) async {
+    final db = await database;
+    final batch = db.batch();
+    for (final metadata in metadatas) {
+      batch.update(
+        'funscript_metadata',
+        metadata.toMap(),
+        where: 'id = ?',
+        whereArgs: [metadata.id],
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+  }
+
   Future<List<Video>> getAllVideos() async {
     final db = await database;
 
@@ -310,7 +362,41 @@ class DatabaseHelper {
 
   Future<int> deleteVideo(int id) async {
     final db = await database;
-    return await db.delete('videos', where: 'id = ?', whereArgs: [id]);
+    // We need to do this in a transaction to ensure both operations succeed or fail together.
+    return await db.transaction((txn) async {
+      // First, get the funscriptMetadataId from the video we are about to delete.
+      final List<Map<String, dynamic>> videoMaps = await txn.query(
+        'videos',
+        columns: ['funscriptMetadataId'],
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+
+      int? metadataId;
+      if (videoMaps.isNotEmpty &&
+          videoMaps.first['funscriptMetadataId'] != null) {
+        metadataId = videoMaps.first['funscriptMetadataId'] as int;
+      }
+
+      // Delete the video. Due to foreign key ON DELETE CASCADE,
+      // this will also delete from video_user_category_links.
+      final int deletedRows = await txn.delete(
+        'videos',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+
+      // If the video was deleted and it had associated metadata, delete the metadata.
+      if (deletedRows > 0 && metadataId != null) {
+        await txn.delete(
+          'funscript_metadata',
+          where: 'id = ?',
+          whereArgs: [metadataId],
+        );
+      }
+
+      return deletedRows;
+    });
   }
 
   Future<int> insertVideoUserCategoryLink(

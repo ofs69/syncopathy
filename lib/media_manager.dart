@@ -10,6 +10,7 @@ import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/funscript_algo.dart';
 
 import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
 import 'package:syncopathy/sqlite/models/user_category.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
 
@@ -233,8 +234,9 @@ class MediaManager {
       }
     }
 
-    List<Video> insertBatch = List.empty(growable: true);
-    List<Video> updateBatch = List.empty(growable: true);
+    List<Video> insertVideoBatch = List.empty(growable: true);
+    List<Video> updateVideoBatch = List.empty(growable: true);
+    List<FunscriptMetadata> updateMetadataBatch = List.empty(growable: true);
 
     for (var video in videosFoundOnDisk) {
       var dbVideo = videosInDb.firstWhereOrNull(
@@ -243,19 +245,28 @@ class MediaManager {
 
       if (dbVideo == null) {
         // add new
-        insertBatch.add(video);
+        await DatabaseHelper().insertVideo(video);
       } else {
         // update existing
         dbVideo.averageSpeed = video.averageSpeed;
         dbVideo.averageMin = video.averageMin;
         dbVideo.averageMax = video.averageMax;
+        dbVideo.duration = video.duration;
+
+        if (dbVideo.funscriptMetadataId == null &&
+            video.funscriptMetadata != null) {
+          dbVideo.funscriptMetadataId = await DatabaseHelper()
+              .insertFunscriptMetadata(video.funscriptMetadata!);
+        } else if (dbVideo.funscriptMetadataId != null &&
+            video.funscriptMetadata != null) {
+          video.funscriptMetadata!.id = dbVideo.funscriptMetadataId!;
+          updateMetadataBatch.add(video.funscriptMetadata!);
+        }
         dbVideo.funscriptMetadata = video.funscriptMetadata;
         dbVideo.duration = video.duration;
-        updateBatch.add(dbVideo);
+        await DatabaseHelper().updateVideo(dbVideo);
       }
     }
-    await DatabaseHelper().batchInsertVideos(insertBatch);
-    await DatabaseHelper().batchUpdateVideos(updateBatch);
 
     // display the database state
     await load();
