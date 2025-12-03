@@ -8,7 +8,7 @@
 // ignore_for_file: constant_identifier_names
 // ignore_for_file: curly_braces_in_flow_control_structures
 // ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
 
 import 'dart:core' as $core;
 
@@ -228,7 +228,7 @@ class Notification extends $pb.GeneratedMessage {
       1005,
       2000
     ])
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'id', $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'id', fieldType: $pb.PbFieldType.OU3)
     ..aOM<$0.NotificationWifiScanComplete>(
         600, _omitFieldNames ? '' : 'notificationWifiScanComplete',
         subBuilder: $0.NotificationWifiScanComplete.create)
@@ -312,7 +312,7 @@ class Notification extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Notification clone() => Notification()..mergeFromMessage(this);
+  Notification clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Notification copyWith(void Function(Notification) updates) =>
       super.copyWith((message) => updates(message as Notification))
@@ -325,15 +325,67 @@ class Notification extends $pb.GeneratedMessage {
   static Notification create() => Notification._();
   @$core.override
   Notification createEmptyInstance() => create();
-  static $pb.PbList<Notification> createRepeated() =>
-      $pb.PbList<Notification>();
   @$core.pragma('dart2js:noInline')
   static Notification getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<Notification>(create);
   static Notification? _defaultInstance;
 
+  @$pb.TagNumber(600)
+  @$pb.TagNumber(601)
+  @$pb.TagNumber(602)
+  @$pb.TagNumber(603)
+  @$pb.TagNumber(700)
+  @$pb.TagNumber(701)
+  @$pb.TagNumber(703)
+  @$pb.TagNumber(705)
+  @$pb.TagNumber(706)
+  @$pb.TagNumber(707)
+  @$pb.TagNumber(720)
+  @$pb.TagNumber(740)
+  @$pb.TagNumber(860)
+  @$pb.TagNumber(861)
+  @$pb.TagNumber(862)
+  @$pb.TagNumber(863)
+  @$pb.TagNumber(864)
+  @$pb.TagNumber(865)
+  @$pb.TagNumber(900)
+  @$pb.TagNumber(920)
+  @$pb.TagNumber(1000)
+  @$pb.TagNumber(1001)
+  @$pb.TagNumber(1002)
+  @$pb.TagNumber(1003)
+  @$pb.TagNumber(1004)
+  @$pb.TagNumber(1005)
+  @$pb.TagNumber(2000)
   Notification_Notification whichNotification() =>
       _Notification_NotificationByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(600)
+  @$pb.TagNumber(601)
+  @$pb.TagNumber(602)
+  @$pb.TagNumber(603)
+  @$pb.TagNumber(700)
+  @$pb.TagNumber(701)
+  @$pb.TagNumber(703)
+  @$pb.TagNumber(705)
+  @$pb.TagNumber(706)
+  @$pb.TagNumber(707)
+  @$pb.TagNumber(720)
+  @$pb.TagNumber(740)
+  @$pb.TagNumber(860)
+  @$pb.TagNumber(861)
+  @$pb.TagNumber(862)
+  @$pb.TagNumber(863)
+  @$pb.TagNumber(864)
+  @$pb.TagNumber(865)
+  @$pb.TagNumber(900)
+  @$pb.TagNumber(920)
+  @$pb.TagNumber(1000)
+  @$pb.TagNumber(1001)
+  @$pb.TagNumber(1002)
+  @$pb.TagNumber(1003)
+  @$pb.TagNumber(1004)
+  @$pb.TagNumber(1005)
+  @$pb.TagNumber(2000)
   void clearNotification() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(2)
@@ -1057,7 +1109,7 @@ class Request extends $pb.GeneratedMessage {
       925,
       926
     ])
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'id', $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'id', fieldType: $pb.PbFieldType.OU3)
     ..aOM<$1.RequestConnectionKeyGet>(
         606, _omitFieldNames ? '' : 'requestConnectionKeyGet',
         subBuilder: $1.RequestConnectionKeyGet.create)
@@ -1215,7 +1267,7 @@ class Request extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Request clone() => Request()..mergeFromMessage(this);
+  Request clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Request copyWith(void Function(Request) updates) =>
       super.copyWith((message) => updates(message as Request)) as Request;
@@ -1227,13 +1279,130 @@ class Request extends $pb.GeneratedMessage {
   static Request create() => Request._();
   @$core.override
   Request createEmptyInstance() => create();
-  static $pb.PbList<Request> createRepeated() => $pb.PbList<Request>();
   @$core.pragma('dart2js:noInline')
   static Request getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Request>(create);
   static Request? _defaultInstance;
 
+  @$pb.TagNumber(606)
+  @$pb.TagNumber(620)
+  @$pb.TagNumber(621)
+  @$pb.TagNumber(623)
+  @$pb.TagNumber(624)
+  @$pb.TagNumber(625)
+  @$pb.TagNumber(700)
+  @$pb.TagNumber(701)
+  @$pb.TagNumber(707)
+  @$pb.TagNumber(708)
+  @$pb.TagNumber(709)
+  @$pb.TagNumber(710)
+  @$pb.TagNumber(712)
+  @$pb.TagNumber(713)
+  @$pb.TagNumber(714)
+  @$pb.TagNumber(715)
+  @$pb.TagNumber(716)
+  @$pb.TagNumber(717)
+  @$pb.TagNumber(720)
+  @$pb.TagNumber(721)
+  @$pb.TagNumber(723)
+  @$pb.TagNumber(724)
+  @$pb.TagNumber(725)
+  @$pb.TagNumber(740)
+  @$pb.TagNumber(741)
+  @$pb.TagNumber(742)
+  @$pb.TagNumber(743)
+  @$pb.TagNumber(744)
+  @$pb.TagNumber(745)
+  @$pb.TagNumber(746)
+  @$pb.TagNumber(840)
+  @$pb.TagNumber(841)
+  @$pb.TagNumber(842)
+  @$pb.TagNumber(843)
+  @$pb.TagNumber(860)
+  @$pb.TagNumber(861)
+  @$pb.TagNumber(862)
+  @$pb.TagNumber(863)
+  @$pb.TagNumber(864)
+  @$pb.TagNumber(865)
+  @$pb.TagNumber(866)
+  @$pb.TagNumber(867)
+  @$pb.TagNumber(868)
+  @$pb.TagNumber(869)
+  @$pb.TagNumber(870)
+  @$pb.TagNumber(871)
+  @$pb.TagNumber(872)
+  @$pb.TagNumber(880)
+  @$pb.TagNumber(900)
+  @$pb.TagNumber(901)
+  @$pb.TagNumber(902)
+  @$pb.TagNumber(903)
+  @$pb.TagNumber(920)
+  @$pb.TagNumber(921)
+  @$pb.TagNumber(922)
+  @$pb.TagNumber(923)
+  @$pb.TagNumber(924)
+  @$pb.TagNumber(925)
+  @$pb.TagNumber(926)
   Request_Params whichParams() => _Request_ParamsByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(606)
+  @$pb.TagNumber(620)
+  @$pb.TagNumber(621)
+  @$pb.TagNumber(623)
+  @$pb.TagNumber(624)
+  @$pb.TagNumber(625)
+  @$pb.TagNumber(700)
+  @$pb.TagNumber(701)
+  @$pb.TagNumber(707)
+  @$pb.TagNumber(708)
+  @$pb.TagNumber(709)
+  @$pb.TagNumber(710)
+  @$pb.TagNumber(712)
+  @$pb.TagNumber(713)
+  @$pb.TagNumber(714)
+  @$pb.TagNumber(715)
+  @$pb.TagNumber(716)
+  @$pb.TagNumber(717)
+  @$pb.TagNumber(720)
+  @$pb.TagNumber(721)
+  @$pb.TagNumber(723)
+  @$pb.TagNumber(724)
+  @$pb.TagNumber(725)
+  @$pb.TagNumber(740)
+  @$pb.TagNumber(741)
+  @$pb.TagNumber(742)
+  @$pb.TagNumber(743)
+  @$pb.TagNumber(744)
+  @$pb.TagNumber(745)
+  @$pb.TagNumber(746)
+  @$pb.TagNumber(840)
+  @$pb.TagNumber(841)
+  @$pb.TagNumber(842)
+  @$pb.TagNumber(843)
+  @$pb.TagNumber(860)
+  @$pb.TagNumber(861)
+  @$pb.TagNumber(862)
+  @$pb.TagNumber(863)
+  @$pb.TagNumber(864)
+  @$pb.TagNumber(865)
+  @$pb.TagNumber(866)
+  @$pb.TagNumber(867)
+  @$pb.TagNumber(868)
+  @$pb.TagNumber(869)
+  @$pb.TagNumber(870)
+  @$pb.TagNumber(871)
+  @$pb.TagNumber(872)
+  @$pb.TagNumber(880)
+  @$pb.TagNumber(900)
+  @$pb.TagNumber(901)
+  @$pb.TagNumber(902)
+  @$pb.TagNumber(903)
+  @$pb.TagNumber(920)
+  @$pb.TagNumber(921)
+  @$pb.TagNumber(922)
+  @$pb.TagNumber(923)
+  @$pb.TagNumber(924)
+  @$pb.TagNumber(925)
+  @$pb.TagNumber(926)
   void clearParams() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(2)
@@ -1957,12 +2126,12 @@ class Requests extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'Requests',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..pc<Request>(1, _omitFieldNames ? '' : 'requests', $pb.PbFieldType.PM,
+    ..pPM<Request>(1, _omitFieldNames ? '' : 'requests',
         subBuilder: Request.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Requests clone() => Requests()..mergeFromMessage(this);
+  Requests clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Requests copyWith(void Function(Requests) updates) =>
       super.copyWith((message) => updates(message as Requests)) as Requests;
@@ -1974,7 +2143,6 @@ class Requests extends $pb.GeneratedMessage {
   static Requests create() => Requests._();
   @$core.override
   Requests createEmptyInstance() => create();
-  static $pb.PbList<Requests> createRepeated() => $pb.PbList<Requests>();
   @$core.pragma('dart2js:noInline')
   static Requests getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Requests>(create);
@@ -2266,7 +2434,7 @@ class Response extends $pb.GeneratedMessage {
       925,
       926
     ])
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'id', $pb.PbFieldType.OU3)
+    ..aI(1, _omitFieldNames ? '' : 'id', fieldType: $pb.PbFieldType.OU3)
     ..aOM<Error>(2, _omitFieldNames ? '' : 'error', subBuilder: Error.create)
     ..aOM<$1.ResponseConnectionKeyGet>(
         606, _omitFieldNames ? '' : 'responseConnectionKeyGet',
@@ -2387,7 +2555,7 @@ class Response extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Response clone() => Response()..mergeFromMessage(this);
+  Response clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Response copyWith(void Function(Response) updates) =>
       super.copyWith((message) => updates(message as Response)) as Response;
@@ -2399,13 +2567,100 @@ class Response extends $pb.GeneratedMessage {
   static Response create() => Response._();
   @$core.override
   Response createEmptyInstance() => create();
-  static $pb.PbList<Response> createRepeated() => $pb.PbList<Response>();
   @$core.pragma('dart2js:noInline')
   static Response getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Response>(create);
   static Response? _defaultInstance;
 
+  @$pb.TagNumber(606)
+  @$pb.TagNumber(620)
+  @$pb.TagNumber(624)
+  @$pb.TagNumber(700)
+  @$pb.TagNumber(701)
+  @$pb.TagNumber(709)
+  @$pb.TagNumber(710)
+  @$pb.TagNumber(712)
+  @$pb.TagNumber(713)
+  @$pb.TagNumber(714)
+  @$pb.TagNumber(717)
+  @$pb.TagNumber(720)
+  @$pb.TagNumber(721)
+  @$pb.TagNumber(723)
+  @$pb.TagNumber(724)
+  @$pb.TagNumber(725)
+  @$pb.TagNumber(840)
+  @$pb.TagNumber(841)
+  @$pb.TagNumber(842)
+  @$pb.TagNumber(843)
+  @$pb.TagNumber(860)
+  @$pb.TagNumber(861)
+  @$pb.TagNumber(862)
+  @$pb.TagNumber(863)
+  @$pb.TagNumber(864)
+  @$pb.TagNumber(865)
+  @$pb.TagNumber(866)
+  @$pb.TagNumber(867)
+  @$pb.TagNumber(868)
+  @$pb.TagNumber(869)
+  @$pb.TagNumber(870)
+  @$pb.TagNumber(871)
+  @$pb.TagNumber(872)
+  @$pb.TagNumber(900)
+  @$pb.TagNumber(901)
+  @$pb.TagNumber(902)
+  @$pb.TagNumber(903)
+  @$pb.TagNumber(920)
+  @$pb.TagNumber(921)
+  @$pb.TagNumber(922)
+  @$pb.TagNumber(923)
+  @$pb.TagNumber(924)
+  @$pb.TagNumber(925)
+  @$pb.TagNumber(926)
   Response_Result whichResult() => _Response_ResultByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(606)
+  @$pb.TagNumber(620)
+  @$pb.TagNumber(624)
+  @$pb.TagNumber(700)
+  @$pb.TagNumber(701)
+  @$pb.TagNumber(709)
+  @$pb.TagNumber(710)
+  @$pb.TagNumber(712)
+  @$pb.TagNumber(713)
+  @$pb.TagNumber(714)
+  @$pb.TagNumber(717)
+  @$pb.TagNumber(720)
+  @$pb.TagNumber(721)
+  @$pb.TagNumber(723)
+  @$pb.TagNumber(724)
+  @$pb.TagNumber(725)
+  @$pb.TagNumber(840)
+  @$pb.TagNumber(841)
+  @$pb.TagNumber(842)
+  @$pb.TagNumber(843)
+  @$pb.TagNumber(860)
+  @$pb.TagNumber(861)
+  @$pb.TagNumber(862)
+  @$pb.TagNumber(863)
+  @$pb.TagNumber(864)
+  @$pb.TagNumber(865)
+  @$pb.TagNumber(866)
+  @$pb.TagNumber(867)
+  @$pb.TagNumber(868)
+  @$pb.TagNumber(869)
+  @$pb.TagNumber(870)
+  @$pb.TagNumber(871)
+  @$pb.TagNumber(872)
+  @$pb.TagNumber(900)
+  @$pb.TagNumber(901)
+  @$pb.TagNumber(902)
+  @$pb.TagNumber(903)
+  @$pb.TagNumber(920)
+  @$pb.TagNumber(921)
+  @$pb.TagNumber(922)
+  @$pb.TagNumber(923)
+  @$pb.TagNumber(924)
+  @$pb.TagNumber(925)
+  @$pb.TagNumber(926)
   void clearResult() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -2981,13 +3236,13 @@ class Error extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'Error',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'code', $pb.PbFieldType.O3)
+    ..aI(1, _omitFieldNames ? '' : 'code')
     ..aOS(2, _omitFieldNames ? '' : 'message')
     ..aOS(3, _omitFieldNames ? '' : 'data')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Error clone() => Error()..mergeFromMessage(this);
+  Error clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Error copyWith(void Function(Error) updates) =>
       super.copyWith((message) => updates(message as Error)) as Error;
@@ -2999,7 +3254,6 @@ class Error extends $pb.GeneratedMessage {
   static Error create() => Error._();
   @$core.override
   Error createEmptyInstance() => create();
-  static $pb.PbList<Error> createRepeated() => $pb.PbList<Error>();
   @$core.pragma('dart2js:noInline')
   static Error getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Error>(create);
@@ -3074,9 +3328,7 @@ class RpcMessage extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
     ..oo(0, [2, 3, 4, 5])
-    ..e<MessageType>(1, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE,
-        defaultOrMaker: MessageType.MESSAGE_TYPE_UNKNOWN,
-        valueOf: MessageType.valueOf,
+    ..aE<MessageType>(1, _omitFieldNames ? '' : 'type',
         enumValues: MessageType.values)
     ..aOM<Request>(2, _omitFieldNames ? '' : 'request',
         subBuilder: Request.create)
@@ -3089,7 +3341,7 @@ class RpcMessage extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RpcMessage clone() => RpcMessage()..mergeFromMessage(this);
+  RpcMessage clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RpcMessage copyWith(void Function(RpcMessage) updates) =>
       super.copyWith((message) => updates(message as RpcMessage)) as RpcMessage;
@@ -3101,14 +3353,21 @@ class RpcMessage extends $pb.GeneratedMessage {
   static RpcMessage create() => RpcMessage._();
   @$core.override
   RpcMessage createEmptyInstance() => create();
-  static $pb.PbList<RpcMessage> createRepeated() => $pb.PbList<RpcMessage>();
   @$core.pragma('dart2js:noInline')
   static RpcMessage getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RpcMessage>(create);
   static RpcMessage? _defaultInstance;
 
+  @$pb.TagNumber(2)
+  @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
+  @$pb.TagNumber(5)
   RpcMessage_Message whichMessage() =>
       _RpcMessage_MessageByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(2)
+  @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
+  @$pb.TagNumber(5)
   void clearMessage() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)

@@ -8,7 +8,7 @@
 // ignore_for_file: constant_identifier_names
 // ignore_for_file: curly_braces_in_flow_control_structures
 // ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
 
 import 'dart:core' as $core;
 
@@ -39,8 +39,7 @@ class RequestConnectionKeyGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestConnectionKeyGet clone() =>
-      RequestConnectionKeyGet()..mergeFromMessage(this);
+  RequestConnectionKeyGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestConnectionKeyGet copyWith(
           void Function(RequestConnectionKeyGet) updates) =>
@@ -54,8 +53,6 @@ class RequestConnectionKeyGet extends $pb.GeneratedMessage {
   static RequestConnectionKeyGet create() => RequestConnectionKeyGet._();
   @$core.override
   RequestConnectionKeyGet createEmptyInstance() => create();
-  static $pb.PbList<RequestConnectionKeyGet> createRepeated() =>
-      $pb.PbList<RequestConnectionKeyGet>();
   @$core.pragma('dart2js:noInline')
   static RequestConnectionKeyGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestConnectionKeyGet>(create);
@@ -88,8 +85,7 @@ class ResponseConnectionKeyGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseConnectionKeyGet clone() =>
-      ResponseConnectionKeyGet()..mergeFromMessage(this);
+  ResponseConnectionKeyGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseConnectionKeyGet copyWith(
           void Function(ResponseConnectionKeyGet) updates) =>
@@ -103,8 +99,6 @@ class ResponseConnectionKeyGet extends $pb.GeneratedMessage {
   static ResponseConnectionKeyGet create() => ResponseConnectionKeyGet._();
   @$core.override
   ResponseConnectionKeyGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseConnectionKeyGet> createRepeated() =>
-      $pb.PbList<ResponseConnectionKeyGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseConnectionKeyGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseConnectionKeyGet>(create);
@@ -141,8 +135,7 @@ class RequestWifiStatusGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestWifiStatusGet clone() =>
-      RequestWifiStatusGet()..mergeFromMessage(this);
+  RequestWifiStatusGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestWifiStatusGet copyWith(void Function(RequestWifiStatusGet) updates) =>
       super.copyWith((message) => updates(message as RequestWifiStatusGet))
@@ -155,8 +148,6 @@ class RequestWifiStatusGet extends $pb.GeneratedMessage {
   static RequestWifiStatusGet create() => RequestWifiStatusGet._();
   @$core.override
   RequestWifiStatusGet createEmptyInstance() => create();
-  static $pb.PbList<RequestWifiStatusGet> createRepeated() =>
-      $pb.PbList<RequestWifiStatusGet>();
   @$core.pragma('dart2js:noInline')
   static RequestWifiStatusGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestWifiStatusGet>(create);
@@ -195,22 +186,16 @@ class ResponseWifiStatusGet extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOM<$0.ApInfo>(1, _omitFieldNames ? '' : 'apInfo',
         subBuilder: $0.ApInfo.create)
-    ..e<$0.WifiState>(2, _omitFieldNames ? '' : 'state', $pb.PbFieldType.OE,
-        defaultOrMaker: $0.WifiState.WIFI_STATE_DISCONNECTED,
-        valueOf: $0.WifiState.valueOf,
+    ..aE<$0.WifiState>(2, _omitFieldNames ? '' : 'state',
         enumValues: $0.WifiState.values)
-    ..e<$0.WifiFailedReason>(
-        3, _omitFieldNames ? '' : 'failedReason', $pb.PbFieldType.OE,
-        defaultOrMaker: $0.WifiFailedReason.WIFI_REASON_DO_NOT_USE,
-        valueOf: $0.WifiFailedReason.valueOf,
+    ..aE<$0.WifiFailedReason>(3, _omitFieldNames ? '' : 'failedReason',
         enumValues: $0.WifiFailedReason.values)
     ..aOB(4, _omitFieldNames ? '' : 'socketConnected')
     ..aOS(5, _omitFieldNames ? '' : 'ssid')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseWifiStatusGet clone() =>
-      ResponseWifiStatusGet()..mergeFromMessage(this);
+  ResponseWifiStatusGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseWifiStatusGet copyWith(
           void Function(ResponseWifiStatusGet) updates) =>
@@ -224,8 +209,6 @@ class ResponseWifiStatusGet extends $pb.GeneratedMessage {
   static ResponseWifiStatusGet create() => ResponseWifiStatusGet._();
   @$core.override
   ResponseWifiStatusGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseWifiStatusGet> createRepeated() =>
-      $pb.PbList<ResponseWifiStatusGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseWifiStatusGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseWifiStatusGet>(create);
@@ -314,7 +297,7 @@ class RequestWifiSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestWifiSet clone() => RequestWifiSet()..mergeFromMessage(this);
+  RequestWifiSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestWifiSet copyWith(void Function(RequestWifiSet) updates) =>
       super.copyWith((message) => updates(message as RequestWifiSet))
@@ -327,8 +310,6 @@ class RequestWifiSet extends $pb.GeneratedMessage {
   static RequestWifiSet create() => RequestWifiSet._();
   @$core.override
   RequestWifiSet createEmptyInstance() => create();
-  static $pb.PbList<RequestWifiSet> createRepeated() =>
-      $pb.PbList<RequestWifiSet>();
   @$core.pragma('dart2js:noInline')
   static RequestWifiSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestWifiSet>(create);
@@ -400,19 +381,18 @@ class RequestWifiScanStart extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'blocking')
     ..aOB(2, _omitFieldNames ? '' : 'passive')
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'channel', $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'channel', fieldType: $pb.PbFieldType.OU3)
     ..aOB(4, _omitFieldNames ? '' : 'showHidden')
-    ..a<$core.int>(
-        5, _omitFieldNames ? '' : 'passiveScanTime', $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        6, _omitFieldNames ? '' : 'activeScanTimeMin', $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        7, _omitFieldNames ? '' : 'activeScanTimeMax', $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'passiveScanTime',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'activeScanTimeMin',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(7, _omitFieldNames ? '' : 'activeScanTimeMax',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestWifiScanStart clone() =>
-      RequestWifiScanStart()..mergeFromMessage(this);
+  RequestWifiScanStart clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestWifiScanStart copyWith(void Function(RequestWifiScanStart) updates) =>
       super.copyWith((message) => updates(message as RequestWifiScanStart))
@@ -425,8 +405,6 @@ class RequestWifiScanStart extends $pb.GeneratedMessage {
   static RequestWifiScanStart create() => RequestWifiScanStart._();
   @$core.override
   RequestWifiScanStart createEmptyInstance() => create();
-  static $pb.PbList<RequestWifiScanStart> createRepeated() =>
-      $pb.PbList<RequestWifiScanStart>();
   @$core.pragma('dart2js:noInline')
   static RequestWifiScanStart getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestWifiScanStart>(create);
@@ -522,13 +500,13 @@ class RequestWifiScanResultsGet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestWifiScanResultsGet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'maxResults', $pb.PbFieldType.OU3)
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'offsetIndex', $pb.PbFieldType.OU3)
+    ..aI(1, _omitFieldNames ? '' : 'maxResults', fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'offsetIndex',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestWifiScanResultsGet clone() =>
-      RequestWifiScanResultsGet()..mergeFromMessage(this);
+  RequestWifiScanResultsGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestWifiScanResultsGet copyWith(
           void Function(RequestWifiScanResultsGet) updates) =>
@@ -542,8 +520,6 @@ class RequestWifiScanResultsGet extends $pb.GeneratedMessage {
   static RequestWifiScanResultsGet create() => RequestWifiScanResultsGet._();
   @$core.override
   RequestWifiScanResultsGet createEmptyInstance() => create();
-  static $pb.PbList<RequestWifiScanResultsGet> createRepeated() =>
-      $pb.PbList<RequestWifiScanResultsGet>();
   @$core.pragma('dart2js:noInline')
   static RequestWifiScanResultsGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestWifiScanResultsGet>(create);
@@ -592,15 +568,14 @@ class ResponseWifiScanResultsGet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'ResponseWifiScanResultsGet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..pc<$0.ApInfo>(1, _omitFieldNames ? '' : 'apInfo', $pb.PbFieldType.PM,
+    ..pPM<$0.ApInfo>(1, _omitFieldNames ? '' : 'apInfo',
         subBuilder: $0.ApInfo.create)
-    ..a<$core.int>(
-        2, _omitFieldNames ? '' : 'totalResults', $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'totalResults',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseWifiScanResultsGet clone() =>
-      ResponseWifiScanResultsGet()..mergeFromMessage(this);
+  ResponseWifiScanResultsGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseWifiScanResultsGet copyWith(
           void Function(ResponseWifiScanResultsGet) updates) =>
@@ -615,8 +590,6 @@ class ResponseWifiScanResultsGet extends $pb.GeneratedMessage {
   static ResponseWifiScanResultsGet create() => ResponseWifiScanResultsGet._();
   @$core.override
   ResponseWifiScanResultsGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseWifiScanResultsGet> createRepeated() =>
-      $pb.PbList<ResponseWifiScanResultsGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseWifiScanResultsGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseWifiScanResultsGet>(create);
@@ -656,7 +629,7 @@ class RequestWifiScanStop extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestWifiScanStop clone() => RequestWifiScanStop()..mergeFromMessage(this);
+  RequestWifiScanStop clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestWifiScanStop copyWith(void Function(RequestWifiScanStop) updates) =>
       super.copyWith((message) => updates(message as RequestWifiScanStop))
@@ -669,8 +642,6 @@ class RequestWifiScanStop extends $pb.GeneratedMessage {
   static RequestWifiScanStop create() => RequestWifiScanStop._();
   @$core.override
   RequestWifiScanStop createEmptyInstance() => create();
-  static $pb.PbList<RequestWifiScanStop> createRepeated() =>
-      $pb.PbList<RequestWifiScanStop>();
   @$core.pragma('dart2js:noInline')
   static RequestWifiScanStop getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestWifiScanStop>(create);
@@ -697,7 +668,7 @@ class RequestModeGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestModeGet clone() => RequestModeGet()..mergeFromMessage(this);
+  RequestModeGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestModeGet copyWith(void Function(RequestModeGet) updates) =>
       super.copyWith((message) => updates(message as RequestModeGet))
@@ -710,8 +681,6 @@ class RequestModeGet extends $pb.GeneratedMessage {
   static RequestModeGet create() => RequestModeGet._();
   @$core.override
   RequestModeGet createEmptyInstance() => create();
-  static $pb.PbList<RequestModeGet> createRepeated() =>
-      $pb.PbList<RequestModeGet>();
   @$core.pragma('dart2js:noInline')
   static RequestModeGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestModeGet>(create);
@@ -742,16 +711,13 @@ class ResponseModeGet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'ResponseModeGet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..e<$0.Mode>(1, _omitFieldNames ? '' : 'mode', $pb.PbFieldType.OE,
-        defaultOrMaker: $0.Mode.MODE_HAMP,
-        valueOf: $0.Mode.valueOf,
-        enumValues: $0.Mode.values)
-    ..a<$core.int>(
-        2, _omitFieldNames ? '' : 'modeSessionId', $pb.PbFieldType.OU3)
+    ..aE<$0.Mode>(1, _omitFieldNames ? '' : 'mode', enumValues: $0.Mode.values)
+    ..aI(2, _omitFieldNames ? '' : 'modeSessionId',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseModeGet clone() => ResponseModeGet()..mergeFromMessage(this);
+  ResponseModeGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseModeGet copyWith(void Function(ResponseModeGet) updates) =>
       super.copyWith((message) => updates(message as ResponseModeGet))
@@ -764,8 +730,6 @@ class ResponseModeGet extends $pb.GeneratedMessage {
   static ResponseModeGet create() => ResponseModeGet._();
   @$core.override
   ResponseModeGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseModeGet> createRepeated() =>
-      $pb.PbList<ResponseModeGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseModeGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseModeGet>(create);
@@ -813,14 +777,11 @@ class RequestModeSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestModeSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..e<$0.Mode>(1, _omitFieldNames ? '' : 'mode', $pb.PbFieldType.OE,
-        defaultOrMaker: $0.Mode.MODE_HAMP,
-        valueOf: $0.Mode.valueOf,
-        enumValues: $0.Mode.values)
+    ..aE<$0.Mode>(1, _omitFieldNames ? '' : 'mode', enumValues: $0.Mode.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestModeSet clone() => RequestModeSet()..mergeFromMessage(this);
+  RequestModeSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestModeSet copyWith(void Function(RequestModeSet) updates) =>
       super.copyWith((message) => updates(message as RequestModeSet))
@@ -833,8 +794,6 @@ class RequestModeSet extends $pb.GeneratedMessage {
   static RequestModeSet create() => RequestModeSet._();
   @$core.override
   RequestModeSet createEmptyInstance() => create();
-  static $pb.PbList<RequestModeSet> createRepeated() =>
-      $pb.PbList<RequestModeSet>();
   @$core.pragma('dart2js:noInline')
   static RequestModeSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestModeSet>(create);
@@ -874,16 +833,13 @@ class ResponseModeSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'ResponseModeSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..e<$0.Mode>(1, _omitFieldNames ? '' : 'mode', $pb.PbFieldType.OE,
-        defaultOrMaker: $0.Mode.MODE_HAMP,
-        valueOf: $0.Mode.valueOf,
-        enumValues: $0.Mode.values)
-    ..a<$core.int>(
-        2, _omitFieldNames ? '' : 'modeSessionId', $pb.PbFieldType.OU3)
+    ..aE<$0.Mode>(1, _omitFieldNames ? '' : 'mode', enumValues: $0.Mode.values)
+    ..aI(2, _omitFieldNames ? '' : 'modeSessionId',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseModeSet clone() => ResponseModeSet()..mergeFromMessage(this);
+  ResponseModeSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseModeSet copyWith(void Function(ResponseModeSet) updates) =>
       super.copyWith((message) => updates(message as ResponseModeSet))
@@ -896,8 +852,6 @@ class ResponseModeSet extends $pb.GeneratedMessage {
   static ResponseModeSet create() => ResponseModeSet._();
   @$core.override
   ResponseModeSet createEmptyInstance() => create();
-  static $pb.PbList<ResponseModeSet> createRepeated() =>
-      $pb.PbList<ResponseModeSet>();
   @$core.pragma('dart2js:noInline')
   static ResponseModeSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseModeSet>(create);
@@ -948,15 +902,12 @@ class RequestReboot extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestReboot',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..e<$0.ConnectionMode>(
-        3, _omitFieldNames ? '' : 'connectionMode', $pb.PbFieldType.OE,
-        defaultOrMaker: $0.ConnectionMode.CONNECTION_MODE_NOT_SET,
-        valueOf: $0.ConnectionMode.valueOf,
+    ..aE<$0.ConnectionMode>(3, _omitFieldNames ? '' : 'connectionMode',
         enumValues: $0.ConnectionMode.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestReboot clone() => RequestReboot()..mergeFromMessage(this);
+  RequestReboot clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestReboot copyWith(void Function(RequestReboot) updates) =>
       super.copyWith((message) => updates(message as RequestReboot))
@@ -969,8 +920,6 @@ class RequestReboot extends $pb.GeneratedMessage {
   static RequestReboot create() => RequestReboot._();
   @$core.override
   RequestReboot createEmptyInstance() => create();
-  static $pb.PbList<RequestReboot> createRepeated() =>
-      $pb.PbList<RequestReboot>();
   @$core.pragma('dart2js:noInline')
   static RequestReboot getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestReboot>(create);
@@ -1011,15 +960,13 @@ class RequestButtonPress extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestButtonPress',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'button', $pb.PbFieldType.OU3)
-    ..e<$0.ButtonEvent>(2, _omitFieldNames ? '' : 'event', $pb.PbFieldType.OE,
-        defaultOrMaker: $0.ButtonEvent.BUTTON_EVENT_PRESSED,
-        valueOf: $0.ButtonEvent.valueOf,
+    ..aI(1, _omitFieldNames ? '' : 'button', fieldType: $pb.PbFieldType.OU3)
+    ..aE<$0.ButtonEvent>(2, _omitFieldNames ? '' : 'event',
         enumValues: $0.ButtonEvent.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestButtonPress clone() => RequestButtonPress()..mergeFromMessage(this);
+  RequestButtonPress clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestButtonPress copyWith(void Function(RequestButtonPress) updates) =>
       super.copyWith((message) => updates(message as RequestButtonPress))
@@ -1032,8 +979,6 @@ class RequestButtonPress extends $pb.GeneratedMessage {
   static RequestButtonPress create() => RequestButtonPress._();
   @$core.override
   RequestButtonPress createEmptyInstance() => create();
-  static $pb.PbList<RequestButtonPress> createRepeated() =>
-      $pb.PbList<RequestButtonPress>();
   @$core.pragma('dart2js:noInline')
   static RequestButtonPress getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestButtonPress>(create);
@@ -1086,12 +1031,11 @@ class RequestClockOffsetSet extends $pb.GeneratedMessage {
     ..a<$fixnum.Int64>(
         1, _omitFieldNames ? '' : 'clockOffset', $pb.PbFieldType.OS6,
         defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'rtd', $pb.PbFieldType.O3)
+    ..aI(2, _omitFieldNames ? '' : 'rtd')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestClockOffsetSet clone() =>
-      RequestClockOffsetSet()..mergeFromMessage(this);
+  RequestClockOffsetSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestClockOffsetSet copyWith(
           void Function(RequestClockOffsetSet) updates) =>
@@ -1105,8 +1049,6 @@ class RequestClockOffsetSet extends $pb.GeneratedMessage {
   static RequestClockOffsetSet create() => RequestClockOffsetSet._();
   @$core.override
   RequestClockOffsetSet createEmptyInstance() => create();
-  static $pb.PbList<RequestClockOffsetSet> createRepeated() =>
-      $pb.PbList<RequestClockOffsetSet>();
   @$core.pragma('dart2js:noInline')
   static RequestClockOffsetSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestClockOffsetSet>(create);
@@ -1157,16 +1099,15 @@ class ResponseClockOffsetSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'ResponseClockOffsetSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'time', $pb.PbFieldType.OU3)
+    ..aI(1, _omitFieldNames ? '' : 'time', fieldType: $pb.PbFieldType.OU3)
     ..a<$fixnum.Int64>(
         2, _omitFieldNames ? '' : 'clockOffset', $pb.PbFieldType.OS6,
         defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'rtd', $pb.PbFieldType.O3)
+    ..aI(3, _omitFieldNames ? '' : 'rtd')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseClockOffsetSet clone() =>
-      ResponseClockOffsetSet()..mergeFromMessage(this);
+  ResponseClockOffsetSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseClockOffsetSet copyWith(
           void Function(ResponseClockOffsetSet) updates) =>
@@ -1180,8 +1121,6 @@ class ResponseClockOffsetSet extends $pb.GeneratedMessage {
   static ResponseClockOffsetSet create() => ResponseClockOffsetSet._();
   @$core.override
   ResponseClockOffsetSet createEmptyInstance() => create();
-  static $pb.PbList<ResponseClockOffsetSet> createRepeated() =>
-      $pb.PbList<ResponseClockOffsetSet>();
   @$core.pragma('dart2js:noInline')
   static ResponseClockOffsetSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseClockOffsetSet>(create);
@@ -1235,7 +1174,7 @@ class RequestBatteryGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestBatteryGet clone() => RequestBatteryGet()..mergeFromMessage(this);
+  RequestBatteryGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestBatteryGet copyWith(void Function(RequestBatteryGet) updates) =>
       super.copyWith((message) => updates(message as RequestBatteryGet))
@@ -1248,8 +1187,6 @@ class RequestBatteryGet extends $pb.GeneratedMessage {
   static RequestBatteryGet create() => RequestBatteryGet._();
   @$core.override
   RequestBatteryGet createEmptyInstance() => create();
-  static $pb.PbList<RequestBatteryGet> createRepeated() =>
-      $pb.PbList<RequestBatteryGet>();
   @$core.pragma('dart2js:noInline')
   static RequestBatteryGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestBatteryGet>(create);
@@ -1283,7 +1220,7 @@ class ResponseBatteryGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseBatteryGet clone() => ResponseBatteryGet()..mergeFromMessage(this);
+  ResponseBatteryGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseBatteryGet copyWith(void Function(ResponseBatteryGet) updates) =>
       super.copyWith((message) => updates(message as ResponseBatteryGet))
@@ -1296,8 +1233,6 @@ class ResponseBatteryGet extends $pb.GeneratedMessage {
   static ResponseBatteryGet create() => ResponseBatteryGet._();
   @$core.override
   ResponseBatteryGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseBatteryGet> createRepeated() =>
-      $pb.PbList<ResponseBatteryGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseBatteryGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseBatteryGet>(create);
@@ -1335,8 +1270,7 @@ class RequestClockOffsetGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestClockOffsetGet clone() =>
-      RequestClockOffsetGet()..mergeFromMessage(this);
+  RequestClockOffsetGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestClockOffsetGet copyWith(
           void Function(RequestClockOffsetGet) updates) =>
@@ -1350,8 +1284,6 @@ class RequestClockOffsetGet extends $pb.GeneratedMessage {
   static RequestClockOffsetGet create() => RequestClockOffsetGet._();
   @$core.override
   RequestClockOffsetGet createEmptyInstance() => create();
-  static $pb.PbList<RequestClockOffsetGet> createRepeated() =>
-      $pb.PbList<RequestClockOffsetGet>();
   @$core.pragma('dart2js:noInline')
   static RequestClockOffsetGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestClockOffsetGet>(create);
@@ -1384,16 +1316,15 @@ class ResponseClockOffsetGet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'ResponseClockOffsetGet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'time', $pb.PbFieldType.OU3)
+    ..aI(1, _omitFieldNames ? '' : 'time', fieldType: $pb.PbFieldType.OU3)
     ..a<$fixnum.Int64>(
         2, _omitFieldNames ? '' : 'clockOffset', $pb.PbFieldType.OS6,
         defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'rtd', $pb.PbFieldType.O3)
+    ..aI(3, _omitFieldNames ? '' : 'rtd')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseClockOffsetGet clone() =>
-      ResponseClockOffsetGet()..mergeFromMessage(this);
+  ResponseClockOffsetGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseClockOffsetGet copyWith(
           void Function(ResponseClockOffsetGet) updates) =>
@@ -1407,8 +1338,6 @@ class ResponseClockOffsetGet extends $pb.GeneratedMessage {
   static ResponseClockOffsetGet create() => ResponseClockOffsetGet._();
   @$core.override
   ResponseClockOffsetGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseClockOffsetGet> createRepeated() =>
-      $pb.PbList<ResponseClockOffsetGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseClockOffsetGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseClockOffsetGet>(create);
@@ -1463,8 +1392,7 @@ class RequestCapabilitiesGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestCapabilitiesGet clone() =>
-      RequestCapabilitiesGet()..mergeFromMessage(this);
+  RequestCapabilitiesGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestCapabilitiesGet copyWith(
           void Function(RequestCapabilitiesGet) updates) =>
@@ -1478,8 +1406,6 @@ class RequestCapabilitiesGet extends $pb.GeneratedMessage {
   static RequestCapabilitiesGet create() => RequestCapabilitiesGet._();
   @$core.override
   RequestCapabilitiesGet createEmptyInstance() => create();
-  static $pb.PbList<RequestCapabilitiesGet> createRepeated() =>
-      $pb.PbList<RequestCapabilitiesGet>();
   @$core.pragma('dart2js:noInline')
   static RequestCapabilitiesGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestCapabilitiesGet>(create);
@@ -1536,31 +1462,27 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'vulvaOriented')
     ..aOB(2, _omitFieldNames ? '' : 'battery')
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'slider', $pb.PbFieldType.OU3)
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'lra', $pb.PbFieldType.OU3)
-    ..a<$core.int>(5, _omitFieldNames ? '' : 'erm', $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'slider', fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'lra', fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'erm', fieldType: $pb.PbFieldType.OU3)
     ..aOB(6, _omitFieldNames ? '' : 'externalMemory')
     ..aOB(7, _omitFieldNames ? '' : 'rgbLedIndicator')
     ..aOB(8, _omitFieldNames ? '' : 'ledMatrix')
-    ..a<$core.int>(
-        9, _omitFieldNames ? '' : 'ledMatrixLedsX', $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        10, _omitFieldNames ? '' : 'ledMatrixLedsY', $pb.PbFieldType.OU3)
+    ..aI(9, _omitFieldNames ? '' : 'ledMatrixLedsX',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(10, _omitFieldNames ? '' : 'ledMatrixLedsY',
+        fieldType: $pb.PbFieldType.OU3)
     ..aOB(11, _omitFieldNames ? '' : 'rgbRing')
-    ..a<$core.int>(
-        12, _omitFieldNames ? '' : 'rgbRingLeds', $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        13, _omitFieldNames ? '' : 'batteryCapacity', $pb.PbFieldType.OU3)
-    ..e<$0.BatteryDriver>(
-        14, _omitFieldNames ? '' : 'batteryDriver', $pb.PbFieldType.OE,
-        defaultOrMaker: $0.BatteryDriver.BATTERY_DRIVER_NOT_SET,
-        valueOf: $0.BatteryDriver.valueOf,
+    ..aI(12, _omitFieldNames ? '' : 'rgbRingLeds',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(13, _omitFieldNames ? '' : 'batteryCapacity',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aE<$0.BatteryDriver>(14, _omitFieldNames ? '' : 'batteryDriver',
         enumValues: $0.BatteryDriver.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseCapabilitiesGet clone() =>
-      ResponseCapabilitiesGet()..mergeFromMessage(this);
+  ResponseCapabilitiesGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseCapabilitiesGet copyWith(
           void Function(ResponseCapabilitiesGet) updates) =>
@@ -1574,8 +1496,6 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
   static ResponseCapabilitiesGet create() => ResponseCapabilitiesGet._();
   @$core.override
   ResponseCapabilitiesGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseCapabilitiesGet> createRepeated() =>
-      $pb.PbList<ResponseCapabilitiesGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseCapabilitiesGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseCapabilitiesGet>(create);
@@ -1730,8 +1650,7 @@ class RequestSessionIdsGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestSessionIdsGet clone() =>
-      RequestSessionIdsGet()..mergeFromMessage(this);
+  RequestSessionIdsGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestSessionIdsGet copyWith(void Function(RequestSessionIdsGet) updates) =>
       super.copyWith((message) => updates(message as RequestSessionIdsGet))
@@ -1744,8 +1663,6 @@ class RequestSessionIdsGet extends $pb.GeneratedMessage {
   static RequestSessionIdsGet create() => RequestSessionIdsGet._();
   @$core.override
   RequestSessionIdsGet createEmptyInstance() => create();
-  static $pb.PbList<RequestSessionIdsGet> createRepeated() =>
-      $pb.PbList<RequestSessionIdsGet>();
   @$core.pragma('dart2js:noInline')
   static RequestSessionIdsGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestSessionIdsGet>(create);
@@ -1778,17 +1695,16 @@ class ResponseSessionIdsGet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'ResponseSessionIdsGet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.int>(
-        1, _omitFieldNames ? '' : 'bootSessionId', $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        2, _omitFieldNames ? '' : 'socketSessionId', $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        3, _omitFieldNames ? '' : 'modeSessionId', $pb.PbFieldType.OU3)
+    ..aI(1, _omitFieldNames ? '' : 'bootSessionId',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'socketSessionId',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'modeSessionId',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseSessionIdsGet clone() =>
-      ResponseSessionIdsGet()..mergeFromMessage(this);
+  ResponseSessionIdsGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseSessionIdsGet copyWith(
           void Function(ResponseSessionIdsGet) updates) =>
@@ -1802,8 +1718,6 @@ class ResponseSessionIdsGet extends $pb.GeneratedMessage {
   static ResponseSessionIdsGet create() => ResponseSessionIdsGet._();
   @$core.override
   ResponseSessionIdsGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseSessionIdsGet> createRepeated() =>
-      $pb.PbList<ResponseSessionIdsGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseSessionIdsGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseSessionIdsGet>(create);
@@ -1858,8 +1772,7 @@ class RequestStopCurrentMode extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestStopCurrentMode clone() =>
-      RequestStopCurrentMode()..mergeFromMessage(this);
+  RequestStopCurrentMode clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestStopCurrentMode copyWith(
           void Function(RequestStopCurrentMode) updates) =>
@@ -1873,8 +1786,6 @@ class RequestStopCurrentMode extends $pb.GeneratedMessage {
   static RequestStopCurrentMode create() => RequestStopCurrentMode._();
   @$core.override
   RequestStopCurrentMode createEmptyInstance() => create();
-  static $pb.PbList<RequestStopCurrentMode> createRepeated() =>
-      $pb.PbList<RequestStopCurrentMode>();
   @$core.pragma('dart2js:noInline')
   static RequestStopCurrentMode getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestStopCurrentMode>(create);
@@ -1904,15 +1815,12 @@ class RequestConnectionModeSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestConnectionModeSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..e<$0.ConnectionMode>(1, _omitFieldNames ? '' : 'mode', $pb.PbFieldType.OE,
-        defaultOrMaker: $0.ConnectionMode.CONNECTION_MODE_NOT_SET,
-        valueOf: $0.ConnectionMode.valueOf,
+    ..aE<$0.ConnectionMode>(1, _omitFieldNames ? '' : 'mode',
         enumValues: $0.ConnectionMode.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestConnectionModeSet clone() =>
-      RequestConnectionModeSet()..mergeFromMessage(this);
+  RequestConnectionModeSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestConnectionModeSet copyWith(
           void Function(RequestConnectionModeSet) updates) =>
@@ -1926,8 +1834,6 @@ class RequestConnectionModeSet extends $pb.GeneratedMessage {
   static RequestConnectionModeSet create() => RequestConnectionModeSet._();
   @$core.override
   RequestConnectionModeSet createEmptyInstance() => create();
-  static $pb.PbList<RequestConnectionModeSet> createRepeated() =>
-      $pb.PbList<RequestConnectionModeSet>();
   @$core.pragma('dart2js:noInline')
   static RequestConnectionModeSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestConnectionModeSet>(create);
@@ -1963,8 +1869,7 @@ class RequestConnectionModeGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestConnectionModeGet clone() =>
-      RequestConnectionModeGet()..mergeFromMessage(this);
+  RequestConnectionModeGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestConnectionModeGet copyWith(
           void Function(RequestConnectionModeGet) updates) =>
@@ -1978,8 +1883,6 @@ class RequestConnectionModeGet extends $pb.GeneratedMessage {
   static RequestConnectionModeGet create() => RequestConnectionModeGet._();
   @$core.override
   RequestConnectionModeGet createEmptyInstance() => create();
-  static $pb.PbList<RequestConnectionModeGet> createRepeated() =>
-      $pb.PbList<RequestConnectionModeGet>();
   @$core.pragma('dart2js:noInline')
   static RequestConnectionModeGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestConnectionModeGet>(create);
@@ -2008,15 +1911,12 @@ class ResponseConnectionModeGet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'ResponseConnectionModeGet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..e<$0.ConnectionMode>(1, _omitFieldNames ? '' : 'mode', $pb.PbFieldType.OE,
-        defaultOrMaker: $0.ConnectionMode.CONNECTION_MODE_NOT_SET,
-        valueOf: $0.ConnectionMode.valueOf,
+    ..aE<$0.ConnectionMode>(1, _omitFieldNames ? '' : 'mode',
         enumValues: $0.ConnectionMode.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseConnectionModeGet clone() =>
-      ResponseConnectionModeGet()..mergeFromMessage(this);
+  ResponseConnectionModeGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseConnectionModeGet copyWith(
           void Function(ResponseConnectionModeGet) updates) =>
@@ -2030,8 +1930,6 @@ class ResponseConnectionModeGet extends $pb.GeneratedMessage {
   static ResponseConnectionModeGet create() => ResponseConnectionModeGet._();
   @$core.override
   ResponseConnectionModeGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseConnectionModeGet> createRepeated() =>
-      $pb.PbList<ResponseConnectionModeGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseConnectionModeGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseConnectionModeGet>(create);
@@ -2068,7 +1966,7 @@ class RequestHampStart extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHampStart clone() => RequestHampStart()..mergeFromMessage(this);
+  RequestHampStart clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHampStart copyWith(void Function(RequestHampStart) updates) =>
       super.copyWith((message) => updates(message as RequestHampStart))
@@ -2081,8 +1979,6 @@ class RequestHampStart extends $pb.GeneratedMessage {
   static RequestHampStart create() => RequestHampStart._();
   @$core.override
   RequestHampStart createEmptyInstance() => create();
-  static $pb.PbList<RequestHampStart> createRepeated() =>
-      $pb.PbList<RequestHampStart>();
   @$core.pragma('dart2js:noInline')
   static RequestHampStart getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHampStart>(create);
@@ -2116,7 +2012,7 @@ class ResponseHampStart extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHampStart clone() => ResponseHampStart()..mergeFromMessage(this);
+  ResponseHampStart clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHampStart copyWith(void Function(ResponseHampStart) updates) =>
       super.copyWith((message) => updates(message as ResponseHampStart))
@@ -2129,8 +2025,6 @@ class ResponseHampStart extends $pb.GeneratedMessage {
   static ResponseHampStart create() => ResponseHampStart._();
   @$core.override
   ResponseHampStart createEmptyInstance() => create();
-  static $pb.PbList<ResponseHampStart> createRepeated() =>
-      $pb.PbList<ResponseHampStart>();
   @$core.pragma('dart2js:noInline')
   static ResponseHampStart getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHampStart>(create);
@@ -2168,7 +2062,7 @@ class RequestHampStop extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHampStop clone() => RequestHampStop()..mergeFromMessage(this);
+  RequestHampStop clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHampStop copyWith(void Function(RequestHampStop) updates) =>
       super.copyWith((message) => updates(message as RequestHampStop))
@@ -2181,8 +2075,6 @@ class RequestHampStop extends $pb.GeneratedMessage {
   static RequestHampStop create() => RequestHampStop._();
   @$core.override
   RequestHampStop createEmptyInstance() => create();
-  static $pb.PbList<RequestHampStop> createRepeated() =>
-      $pb.PbList<RequestHampStop>();
   @$core.pragma('dart2js:noInline')
   static RequestHampStop getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHampStop>(create);
@@ -2216,7 +2108,7 @@ class ResponseHampStop extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHampStop clone() => ResponseHampStop()..mergeFromMessage(this);
+  ResponseHampStop clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHampStop copyWith(void Function(ResponseHampStop) updates) =>
       super.copyWith((message) => updates(message as ResponseHampStop))
@@ -2229,8 +2121,6 @@ class ResponseHampStop extends $pb.GeneratedMessage {
   static ResponseHampStop create() => ResponseHampStop._();
   @$core.override
   ResponseHampStop createEmptyInstance() => create();
-  static $pb.PbList<ResponseHampStop> createRepeated() =>
-      $pb.PbList<ResponseHampStop>();
   @$core.pragma('dart2js:noInline')
   static ResponseHampStop getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHampStop>(create);
@@ -2271,12 +2161,11 @@ class RequestHampVelocitySet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHampVelocitySet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'velocity', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'velocity', fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHampVelocitySet clone() =>
-      RequestHampVelocitySet()..mergeFromMessage(this);
+  RequestHampVelocitySet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHampVelocitySet copyWith(
           void Function(RequestHampVelocitySet) updates) =>
@@ -2290,8 +2179,6 @@ class RequestHampVelocitySet extends $pb.GeneratedMessage {
   static RequestHampVelocitySet create() => RequestHampVelocitySet._();
   @$core.override
   RequestHampVelocitySet createEmptyInstance() => create();
-  static $pb.PbList<RequestHampVelocitySet> createRepeated() =>
-      $pb.PbList<RequestHampVelocitySet>();
   @$core.pragma('dart2js:noInline')
   static RequestHampVelocitySet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHampVelocitySet>(create);
@@ -2334,8 +2221,7 @@ class ResponseHampVelocitySet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHampVelocitySet clone() =>
-      ResponseHampVelocitySet()..mergeFromMessage(this);
+  ResponseHampVelocitySet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHampVelocitySet copyWith(
           void Function(ResponseHampVelocitySet) updates) =>
@@ -2349,8 +2235,6 @@ class ResponseHampVelocitySet extends $pb.GeneratedMessage {
   static ResponseHampVelocitySet create() => ResponseHampVelocitySet._();
   @$core.override
   ResponseHampVelocitySet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHampVelocitySet> createRepeated() =>
-      $pb.PbList<ResponseHampVelocitySet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHampVelocitySet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHampVelocitySet>(create);
@@ -2388,7 +2272,7 @@ class RequestHampStateGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHampStateGet clone() => RequestHampStateGet()..mergeFromMessage(this);
+  RequestHampStateGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHampStateGet copyWith(void Function(RequestHampStateGet) updates) =>
       super.copyWith((message) => updates(message as RequestHampStateGet))
@@ -2401,8 +2285,6 @@ class RequestHampStateGet extends $pb.GeneratedMessage {
   static RequestHampStateGet create() => RequestHampStateGet._();
   @$core.override
   RequestHampStateGet createEmptyInstance() => create();
-  static $pb.PbList<RequestHampStateGet> createRepeated() =>
-      $pb.PbList<RequestHampStateGet>();
   @$core.pragma('dart2js:noInline')
   static RequestHampStateGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHampStateGet>(create);
@@ -2436,8 +2318,7 @@ class ResponseHampStateGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHampStateGet clone() =>
-      ResponseHampStateGet()..mergeFromMessage(this);
+  ResponseHampStateGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHampStateGet copyWith(void Function(ResponseHampStateGet) updates) =>
       super.copyWith((message) => updates(message as ResponseHampStateGet))
@@ -2450,8 +2331,6 @@ class ResponseHampStateGet extends $pb.GeneratedMessage {
   static ResponseHampStateGet create() => ResponseHampStateGet._();
   @$core.override
   ResponseHampStateGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHampStateGet> createRepeated() =>
-      $pb.PbList<ResponseHampStateGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHampStateGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHampStateGet>(create);
@@ -2494,12 +2373,12 @@ class RequestHampZoneSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHampZoneSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'min', $pb.PbFieldType.OF)
-    ..a<$core.double>(2, _omitFieldNames ? '' : 'max', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'min', fieldType: $pb.PbFieldType.OF)
+    ..aD(2, _omitFieldNames ? '' : 'max', fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHampZoneSet clone() => RequestHampZoneSet()..mergeFromMessage(this);
+  RequestHampZoneSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHampZoneSet copyWith(void Function(RequestHampZoneSet) updates) =>
       super.copyWith((message) => updates(message as RequestHampZoneSet))
@@ -2512,8 +2391,6 @@ class RequestHampZoneSet extends $pb.GeneratedMessage {
   static RequestHampZoneSet create() => RequestHampZoneSet._();
   @$core.override
   RequestHampZoneSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHampZoneSet> createRepeated() =>
-      $pb.PbList<RequestHampZoneSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHampZoneSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHampZoneSet>(create);
@@ -2565,7 +2442,7 @@ class ResponseHampZoneSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHampZoneSet clone() => ResponseHampZoneSet()..mergeFromMessage(this);
+  ResponseHampZoneSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHampZoneSet copyWith(void Function(ResponseHampZoneSet) updates) =>
       super.copyWith((message) => updates(message as ResponseHampZoneSet))
@@ -2578,8 +2455,6 @@ class ResponseHampZoneSet extends $pb.GeneratedMessage {
   static ResponseHampZoneSet create() => ResponseHampZoneSet._();
   @$core.override
   ResponseHampZoneSet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHampZoneSet> createRepeated() =>
-      $pb.PbList<ResponseHampZoneSet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHampZoneSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHampZoneSet>(create);
@@ -2626,13 +2501,13 @@ class RequestHdspXaVaSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHdspXaVaSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'xa', $pb.PbFieldType.OF)
-    ..a<$core.double>(2, _omitFieldNames ? '' : 'va', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'xa', fieldType: $pb.PbFieldType.OF)
+    ..aD(2, _omitFieldNames ? '' : 'va', fieldType: $pb.PbFieldType.OF)
     ..aOB(3, _omitFieldNames ? '' : 'stopOnTarget')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHdspXaVaSet clone() => RequestHdspXaVaSet()..mergeFromMessage(this);
+  RequestHdspXaVaSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHdspXaVaSet copyWith(void Function(RequestHdspXaVaSet) updates) =>
       super.copyWith((message) => updates(message as RequestHdspXaVaSet))
@@ -2645,8 +2520,6 @@ class RequestHdspXaVaSet extends $pb.GeneratedMessage {
   static RequestHdspXaVaSet create() => RequestHdspXaVaSet._();
   @$core.override
   RequestHdspXaVaSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHdspXaVaSet> createRepeated() =>
-      $pb.PbList<RequestHdspXaVaSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHdspXaVaSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHdspXaVaSet>(create);
@@ -2707,13 +2580,13 @@ class RequestHdspXpVaSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHdspXpVaSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'xp', $pb.PbFieldType.OF)
-    ..a<$core.double>(2, _omitFieldNames ? '' : 'va', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'xp', fieldType: $pb.PbFieldType.OF)
+    ..aD(2, _omitFieldNames ? '' : 'va', fieldType: $pb.PbFieldType.OF)
     ..aOB(3, _omitFieldNames ? '' : 'stopOnTarget')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHdspXpVaSet clone() => RequestHdspXpVaSet()..mergeFromMessage(this);
+  RequestHdspXpVaSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHdspXpVaSet copyWith(void Function(RequestHdspXpVaSet) updates) =>
       super.copyWith((message) => updates(message as RequestHdspXpVaSet))
@@ -2726,8 +2599,6 @@ class RequestHdspXpVaSet extends $pb.GeneratedMessage {
   static RequestHdspXpVaSet create() => RequestHdspXpVaSet._();
   @$core.override
   RequestHdspXpVaSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHdspXpVaSet> createRepeated() =>
-      $pb.PbList<RequestHdspXpVaSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHdspXpVaSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHdspXpVaSet>(create);
@@ -2788,13 +2659,13 @@ class RequestHdspXpVpSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHdspXpVpSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'xp', $pb.PbFieldType.OF)
-    ..a<$core.double>(2, _omitFieldNames ? '' : 'vp', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'xp', fieldType: $pb.PbFieldType.OF)
+    ..aD(2, _omitFieldNames ? '' : 'vp', fieldType: $pb.PbFieldType.OF)
     ..aOB(3, _omitFieldNames ? '' : 'stopOnTarget')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHdspXpVpSet clone() => RequestHdspXpVpSet()..mergeFromMessage(this);
+  RequestHdspXpVpSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHdspXpVpSet copyWith(void Function(RequestHdspXpVpSet) updates) =>
       super.copyWith((message) => updates(message as RequestHdspXpVpSet))
@@ -2807,8 +2678,6 @@ class RequestHdspXpVpSet extends $pb.GeneratedMessage {
   static RequestHdspXpVpSet create() => RequestHdspXpVpSet._();
   @$core.override
   RequestHdspXpVpSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHdspXpVpSet> createRepeated() =>
-      $pb.PbList<RequestHdspXpVpSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHdspXpVpSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHdspXpVpSet>(create);
@@ -2869,13 +2738,13 @@ class RequestHdspXaTSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHdspXaTSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'xa', $pb.PbFieldType.OF)
-    ..a<$core.int>(2, _omitFieldNames ? '' : 't', $pb.PbFieldType.OU3)
+    ..aD(1, _omitFieldNames ? '' : 'xa', fieldType: $pb.PbFieldType.OF)
+    ..aI(2, _omitFieldNames ? '' : 't', fieldType: $pb.PbFieldType.OU3)
     ..aOB(3, _omitFieldNames ? '' : 'stopOnTarget')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHdspXaTSet clone() => RequestHdspXaTSet()..mergeFromMessage(this);
+  RequestHdspXaTSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHdspXaTSet copyWith(void Function(RequestHdspXaTSet) updates) =>
       super.copyWith((message) => updates(message as RequestHdspXaTSet))
@@ -2888,8 +2757,6 @@ class RequestHdspXaTSet extends $pb.GeneratedMessage {
   static RequestHdspXaTSet create() => RequestHdspXaTSet._();
   @$core.override
   RequestHdspXaTSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHdspXaTSet> createRepeated() =>
-      $pb.PbList<RequestHdspXaTSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHdspXaTSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHdspXaTSet>(create);
@@ -2950,13 +2817,13 @@ class RequestHdspXpTSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHdspXpTSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'xp', $pb.PbFieldType.OF)
-    ..a<$core.int>(2, _omitFieldNames ? '' : 't', $pb.PbFieldType.OU3)
+    ..aD(1, _omitFieldNames ? '' : 'xp', fieldType: $pb.PbFieldType.OF)
+    ..aI(2, _omitFieldNames ? '' : 't', fieldType: $pb.PbFieldType.OU3)
     ..aOB(3, _omitFieldNames ? '' : 'stopOnTarget')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHdspXpTSet clone() => RequestHdspXpTSet()..mergeFromMessage(this);
+  RequestHdspXpTSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHdspXpTSet copyWith(void Function(RequestHdspXpTSet) updates) =>
       super.copyWith((message) => updates(message as RequestHdspXpTSet))
@@ -2969,8 +2836,6 @@ class RequestHdspXpTSet extends $pb.GeneratedMessage {
   static RequestHdspXpTSet create() => RequestHdspXpTSet._();
   @$core.override
   RequestHdspXpTSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHdspXpTSet> createRepeated() =>
-      $pb.PbList<RequestHdspXpTSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHdspXpTSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHdspXpTSet>(create);
@@ -3031,13 +2896,13 @@ class RequestHdspXaVpSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHdspXaVpSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'xa', $pb.PbFieldType.OF)
-    ..a<$core.double>(2, _omitFieldNames ? '' : 'vp', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'xa', fieldType: $pb.PbFieldType.OF)
+    ..aD(2, _omitFieldNames ? '' : 'vp', fieldType: $pb.PbFieldType.OF)
     ..aOB(3, _omitFieldNames ? '' : 'stopOnTarget')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHdspXaVpSet clone() => RequestHdspXaVpSet()..mergeFromMessage(this);
+  RequestHdspXaVpSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHdspXaVpSet copyWith(void Function(RequestHdspXaVpSet) updates) =>
       super.copyWith((message) => updates(message as RequestHdspXaVpSet))
@@ -3050,8 +2915,6 @@ class RequestHdspXaVpSet extends $pb.GeneratedMessage {
   static RequestHdspXaVpSet create() => RequestHdspXaVpSet._();
   @$core.override
   RequestHdspXaVpSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHdspXaVpSet> createRepeated() =>
-      $pb.PbList<RequestHdspXaVpSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHdspXaVpSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHdspXaVpSet>(create);
@@ -3105,7 +2968,7 @@ class RequestHdspStop extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHdspStop clone() => RequestHdspStop()..mergeFromMessage(this);
+  RequestHdspStop clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHdspStop copyWith(void Function(RequestHdspStop) updates) =>
       super.copyWith((message) => updates(message as RequestHdspStop))
@@ -3118,8 +2981,6 @@ class RequestHdspStop extends $pb.GeneratedMessage {
   static RequestHdspStop create() => RequestHdspStop._();
   @$core.override
   RequestHdspStop createEmptyInstance() => create();
-  static $pb.PbList<RequestHdspStop> createRepeated() =>
-      $pb.PbList<RequestHdspStop>();
   @$core.pragma('dart2js:noInline')
   static RequestHdspStop getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHdspStop>(create);
@@ -3147,8 +3008,7 @@ class RequestSliderStrokeGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestSliderStrokeGet clone() =>
-      RequestSliderStrokeGet()..mergeFromMessage(this);
+  RequestSliderStrokeGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestSliderStrokeGet copyWith(
           void Function(RequestSliderStrokeGet) updates) =>
@@ -3162,8 +3022,6 @@ class RequestSliderStrokeGet extends $pb.GeneratedMessage {
   static RequestSliderStrokeGet create() => RequestSliderStrokeGet._();
   @$core.override
   RequestSliderStrokeGet createEmptyInstance() => create();
-  static $pb.PbList<RequestSliderStrokeGet> createRepeated() =>
-      $pb.PbList<RequestSliderStrokeGet>();
   @$core.pragma('dart2js:noInline')
   static RequestSliderStrokeGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestSliderStrokeGet>(create);
@@ -3198,17 +3056,14 @@ class ResponseSliderStrokeGet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'ResponseSliderStrokeGet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'min', $pb.PbFieldType.OF)
-    ..a<$core.double>(2, _omitFieldNames ? '' : 'max', $pb.PbFieldType.OF)
-    ..a<$core.double>(
-        3, _omitFieldNames ? '' : 'minAbsolute', $pb.PbFieldType.OF)
-    ..a<$core.double>(
-        4, _omitFieldNames ? '' : 'maxAbsolute', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'min', fieldType: $pb.PbFieldType.OF)
+    ..aD(2, _omitFieldNames ? '' : 'max', fieldType: $pb.PbFieldType.OF)
+    ..aD(3, _omitFieldNames ? '' : 'minAbsolute', fieldType: $pb.PbFieldType.OF)
+    ..aD(4, _omitFieldNames ? '' : 'maxAbsolute', fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseSliderStrokeGet clone() =>
-      ResponseSliderStrokeGet()..mergeFromMessage(this);
+  ResponseSliderStrokeGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseSliderStrokeGet copyWith(
           void Function(ResponseSliderStrokeGet) updates) =>
@@ -3222,8 +3077,6 @@ class ResponseSliderStrokeGet extends $pb.GeneratedMessage {
   static ResponseSliderStrokeGet create() => ResponseSliderStrokeGet._();
   @$core.override
   ResponseSliderStrokeGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseSliderStrokeGet> createRepeated() =>
-      $pb.PbList<ResponseSliderStrokeGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseSliderStrokeGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseSliderStrokeGet>(create);
@@ -3291,13 +3144,12 @@ class RequestSliderStrokeSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestSliderStrokeSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'min', $pb.PbFieldType.OF)
-    ..a<$core.double>(2, _omitFieldNames ? '' : 'max', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'min', fieldType: $pb.PbFieldType.OF)
+    ..aD(2, _omitFieldNames ? '' : 'max', fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestSliderStrokeSet clone() =>
-      RequestSliderStrokeSet()..mergeFromMessage(this);
+  RequestSliderStrokeSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestSliderStrokeSet copyWith(
           void Function(RequestSliderStrokeSet) updates) =>
@@ -3311,8 +3163,6 @@ class RequestSliderStrokeSet extends $pb.GeneratedMessage {
   static RequestSliderStrokeSet create() => RequestSliderStrokeSet._();
   @$core.override
   RequestSliderStrokeSet createEmptyInstance() => create();
-  static $pb.PbList<RequestSliderStrokeSet> createRepeated() =>
-      $pb.PbList<RequestSliderStrokeSet>();
   @$core.pragma('dart2js:noInline')
   static RequestSliderStrokeSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestSliderStrokeSet>(create);
@@ -3366,17 +3216,14 @@ class ResponseSliderStrokeSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'ResponseSliderStrokeSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'min', $pb.PbFieldType.OF)
-    ..a<$core.double>(2, _omitFieldNames ? '' : 'max', $pb.PbFieldType.OF)
-    ..a<$core.double>(
-        3, _omitFieldNames ? '' : 'minAbsolute', $pb.PbFieldType.OF)
-    ..a<$core.double>(
-        4, _omitFieldNames ? '' : 'maxAbsolute', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'min', fieldType: $pb.PbFieldType.OF)
+    ..aD(2, _omitFieldNames ? '' : 'max', fieldType: $pb.PbFieldType.OF)
+    ..aD(3, _omitFieldNames ? '' : 'minAbsolute', fieldType: $pb.PbFieldType.OF)
+    ..aD(4, _omitFieldNames ? '' : 'maxAbsolute', fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseSliderStrokeSet clone() =>
-      ResponseSliderStrokeSet()..mergeFromMessage(this);
+  ResponseSliderStrokeSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseSliderStrokeSet copyWith(
           void Function(ResponseSliderStrokeSet) updates) =>
@@ -3390,8 +3237,6 @@ class ResponseSliderStrokeSet extends $pb.GeneratedMessage {
   static ResponseSliderStrokeSet create() => ResponseSliderStrokeSet._();
   @$core.override
   ResponseSliderStrokeSet createEmptyInstance() => create();
-  static $pb.PbList<ResponseSliderStrokeSet> createRepeated() =>
-      $pb.PbList<ResponseSliderStrokeSet>();
   @$core.pragma('dart2js:noInline')
   static ResponseSliderStrokeSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseSliderStrokeSet>(create);
@@ -3454,8 +3299,7 @@ class RequestSliderStateGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestSliderStateGet clone() =>
-      RequestSliderStateGet()..mergeFromMessage(this);
+  RequestSliderStateGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestSliderStateGet copyWith(
           void Function(RequestSliderStateGet) updates) =>
@@ -3469,8 +3313,6 @@ class RequestSliderStateGet extends $pb.GeneratedMessage {
   static RequestSliderStateGet create() => RequestSliderStateGet._();
   @$core.override
   RequestSliderStateGet createEmptyInstance() => create();
-  static $pb.PbList<RequestSliderStateGet> createRepeated() =>
-      $pb.PbList<RequestSliderStateGet>();
   @$core.pragma('dart2js:noInline')
   static RequestSliderStateGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestSliderStateGet>(create);
@@ -3511,22 +3353,21 @@ class ResponseSliderStateGet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'ResponseSliderStateGet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'position', $pb.PbFieldType.OF)
-    ..a<$core.double>(
-        2, _omitFieldNames ? '' : 'positionAbsolute', $pb.PbFieldType.OF)
-    ..a<$core.double>(3, _omitFieldNames ? '' : 'motorTemp', $pb.PbFieldType.OF)
-    ..a<$core.double>(
-        4, _omitFieldNames ? '' : 'speedAbsolute', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'position', fieldType: $pb.PbFieldType.OF)
+    ..aD(2, _omitFieldNames ? '' : 'positionAbsolute',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(3, _omitFieldNames ? '' : 'motorTemp', fieldType: $pb.PbFieldType.OF)
+    ..aD(4, _omitFieldNames ? '' : 'speedAbsolute',
+        fieldType: $pb.PbFieldType.OF)
     ..aOB(5, _omitFieldNames ? '' : 'dir')
-    ..a<$core.int>(
-        6, _omitFieldNames ? '' : 'motorPosition', $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        7, _omitFieldNames ? '' : 'motorTempAdcValue', $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'motorPosition',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(7, _omitFieldNames ? '' : 'motorTempAdcValue',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseSliderStateGet clone() =>
-      ResponseSliderStateGet()..mergeFromMessage(this);
+  ResponseSliderStateGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseSliderStateGet copyWith(
           void Function(ResponseSliderStateGet) updates) =>
@@ -3540,8 +3381,6 @@ class ResponseSliderStateGet extends $pb.GeneratedMessage {
   static ResponseSliderStateGet create() => ResponseSliderStateGet._();
   @$core.override
   ResponseSliderStateGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseSliderStateGet> createRepeated() =>
-      $pb.PbList<ResponseSliderStateGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseSliderStateGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseSliderStateGet>(create);
@@ -3639,8 +3478,7 @@ class RequestSliderCalibrate extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestSliderCalibrate clone() =>
-      RequestSliderCalibrate()..mergeFromMessage(this);
+  RequestSliderCalibrate clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestSliderCalibrate copyWith(
           void Function(RequestSliderCalibrate) updates) =>
@@ -3654,8 +3492,6 @@ class RequestSliderCalibrate extends $pb.GeneratedMessage {
   static RequestSliderCalibrate create() => RequestSliderCalibrate._();
   @$core.override
   RequestSliderCalibrate createEmptyInstance() => create();
-  static $pb.PbList<RequestSliderCalibrate> createRepeated() =>
-      $pb.PbList<RequestSliderCalibrate>();
   @$core.pragma('dart2js:noInline')
   static RequestSliderCalibrate getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestSliderCalibrate>(create);
@@ -3697,8 +3533,7 @@ class ResponseSliderCalibrate extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseSliderCalibrate clone() =>
-      ResponseSliderCalibrate()..mergeFromMessage(this);
+  ResponseSliderCalibrate clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseSliderCalibrate copyWith(
           void Function(ResponseSliderCalibrate) updates) =>
@@ -3712,8 +3547,6 @@ class ResponseSliderCalibrate extends $pb.GeneratedMessage {
   static ResponseSliderCalibrate create() => ResponseSliderCalibrate._();
   @$core.override
   ResponseSliderCalibrate createEmptyInstance() => create();
-  static $pb.PbList<ResponseSliderCalibrate> createRepeated() =>
-      $pb.PbList<ResponseSliderCalibrate>();
   @$core.pragma('dart2js:noInline')
   static ResponseSliderCalibrate getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseSliderCalibrate>(create);
@@ -3753,11 +3586,11 @@ class RequestHspSetup extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHspSetup',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'streamId', $pb.PbFieldType.OU3)
+    ..aI(1, _omitFieldNames ? '' : 'streamId', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHspSetup clone() => RequestHspSetup()..mergeFromMessage(this);
+  RequestHspSetup clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHspSetup copyWith(void Function(RequestHspSetup) updates) =>
       super.copyWith((message) => updates(message as RequestHspSetup))
@@ -3770,8 +3603,6 @@ class RequestHspSetup extends $pb.GeneratedMessage {
   static RequestHspSetup create() => RequestHspSetup._();
   @$core.override
   RequestHspSetup createEmptyInstance() => create();
-  static $pb.PbList<RequestHspSetup> createRepeated() =>
-      $pb.PbList<RequestHspSetup>();
   @$core.pragma('dart2js:noInline')
   static RequestHspSetup getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHspSetup>(create);
@@ -3814,7 +3645,7 @@ class ResponseHspSetup extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHspSetup clone() => ResponseHspSetup()..mergeFromMessage(this);
+  ResponseHspSetup clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHspSetup copyWith(void Function(ResponseHspSetup) updates) =>
       super.copyWith((message) => updates(message as ResponseHspSetup))
@@ -3827,8 +3658,6 @@ class ResponseHspSetup extends $pb.GeneratedMessage {
   static ResponseHspSetup create() => ResponseHspSetup._();
   @$core.override
   ResponseHspSetup createEmptyInstance() => create();
-  static $pb.PbList<ResponseHspSetup> createRepeated() =>
-      $pb.PbList<ResponseHspSetup>();
   @$core.pragma('dart2js:noInline')
   static ResponseHspSetup getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHspSetup>(create);
@@ -3877,17 +3706,17 @@ class RequestHspAdd extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHspAdd',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..pc<$0.Point>(1, _omitFieldNames ? '' : 'points', $pb.PbFieldType.PM,
+    ..pPM<$0.Point>(1, _omitFieldNames ? '' : 'points',
         subBuilder: $0.Point.create)
     ..aOB(2, _omitFieldNames ? '' : 'flush')
-    ..a<$core.int>(
-        3, _omitFieldNames ? '' : 'tailPointStreamIndex', $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        5, _omitFieldNames ? '' : 'tailPointThreshold', $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'tailPointStreamIndex',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'tailPointThreshold',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHspAdd clone() => RequestHspAdd()..mergeFromMessage(this);
+  RequestHspAdd clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHspAdd copyWith(void Function(RequestHspAdd) updates) =>
       super.copyWith((message) => updates(message as RequestHspAdd))
@@ -3900,8 +3729,6 @@ class RequestHspAdd extends $pb.GeneratedMessage {
   static RequestHspAdd create() => RequestHspAdd._();
   @$core.override
   RequestHspAdd createEmptyInstance() => create();
-  static $pb.PbList<RequestHspAdd> createRepeated() =>
-      $pb.PbList<RequestHspAdd>();
   @$core.pragma('dart2js:noInline')
   static RequestHspAdd getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHspAdd>(create);
@@ -3965,7 +3792,7 @@ class ResponseHspAdd extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHspAdd clone() => ResponseHspAdd()..mergeFromMessage(this);
+  ResponseHspAdd clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHspAdd copyWith(void Function(ResponseHspAdd) updates) =>
       super.copyWith((message) => updates(message as ResponseHspAdd))
@@ -3978,8 +3805,6 @@ class ResponseHspAdd extends $pb.GeneratedMessage {
   static ResponseHspAdd create() => ResponseHspAdd._();
   @$core.override
   ResponseHspAdd createEmptyInstance() => create();
-  static $pb.PbList<ResponseHspAdd> createRepeated() =>
-      $pb.PbList<ResponseHspAdd>();
   @$core.pragma('dart2js:noInline')
   static ResponseHspAdd getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHspAdd>(create);
@@ -4017,7 +3842,7 @@ class RequestHspFlush extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHspFlush clone() => RequestHspFlush()..mergeFromMessage(this);
+  RequestHspFlush clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHspFlush copyWith(void Function(RequestHspFlush) updates) =>
       super.copyWith((message) => updates(message as RequestHspFlush))
@@ -4030,8 +3855,6 @@ class RequestHspFlush extends $pb.GeneratedMessage {
   static RequestHspFlush create() => RequestHspFlush._();
   @$core.override
   RequestHspFlush createEmptyInstance() => create();
-  static $pb.PbList<RequestHspFlush> createRepeated() =>
-      $pb.PbList<RequestHspFlush>();
   @$core.pragma('dart2js:noInline')
   static RequestHspFlush getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHspFlush>(create);
@@ -4065,7 +3888,7 @@ class ResponseHspFlush extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHspFlush clone() => ResponseHspFlush()..mergeFromMessage(this);
+  ResponseHspFlush clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHspFlush copyWith(void Function(ResponseHspFlush) updates) =>
       super.copyWith((message) => updates(message as ResponseHspFlush))
@@ -4078,8 +3901,6 @@ class ResponseHspFlush extends $pb.GeneratedMessage {
   static ResponseHspFlush create() => ResponseHspFlush._();
   @$core.override
   ResponseHspFlush createEmptyInstance() => create();
-  static $pb.PbList<ResponseHspFlush> createRepeated() =>
-      $pb.PbList<ResponseHspFlush>();
   @$core.pragma('dart2js:noInline')
   static ResponseHspFlush getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHspFlush>(create);
@@ -4128,18 +3949,18 @@ class RequestHspPlay extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHspPlay',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'startTime', $pb.PbFieldType.O3)
+    ..aI(1, _omitFieldNames ? '' : 'startTime')
     ..a<$fixnum.Int64>(
         2, _omitFieldNames ? '' : 'serverTime', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$core.double>(
-        3, _omitFieldNames ? '' : 'playbackRate', $pb.PbFieldType.OF)
+    ..aD(3, _omitFieldNames ? '' : 'playbackRate',
+        fieldType: $pb.PbFieldType.OF)
     ..aOB(4, _omitFieldNames ? '' : 'loop')
     ..aOB(5, _omitFieldNames ? '' : 'pauseOnStarving')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHspPlay clone() => RequestHspPlay()..mergeFromMessage(this);
+  RequestHspPlay clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHspPlay copyWith(void Function(RequestHspPlay) updates) =>
       super.copyWith((message) => updates(message as RequestHspPlay))
@@ -4152,8 +3973,6 @@ class RequestHspPlay extends $pb.GeneratedMessage {
   static RequestHspPlay create() => RequestHspPlay._();
   @$core.override
   RequestHspPlay createEmptyInstance() => create();
-  static $pb.PbList<RequestHspPlay> createRepeated() =>
-      $pb.PbList<RequestHspPlay>();
   @$core.pragma('dart2js:noInline')
   static RequestHspPlay getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHspPlay>(create);
@@ -4232,7 +4051,7 @@ class ResponseHspPlay extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHspPlay clone() => ResponseHspPlay()..mergeFromMessage(this);
+  ResponseHspPlay clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHspPlay copyWith(void Function(ResponseHspPlay) updates) =>
       super.copyWith((message) => updates(message as ResponseHspPlay))
@@ -4245,8 +4064,6 @@ class ResponseHspPlay extends $pb.GeneratedMessage {
   static ResponseHspPlay create() => ResponseHspPlay._();
   @$core.override
   ResponseHspPlay createEmptyInstance() => create();
-  static $pb.PbList<ResponseHspPlay> createRepeated() =>
-      $pb.PbList<ResponseHspPlay>();
   @$core.pragma('dart2js:noInline')
   static ResponseHspPlay getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHspPlay>(create);
@@ -4284,7 +4101,7 @@ class RequestHspStop extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHspStop clone() => RequestHspStop()..mergeFromMessage(this);
+  RequestHspStop clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHspStop copyWith(void Function(RequestHspStop) updates) =>
       super.copyWith((message) => updates(message as RequestHspStop))
@@ -4297,8 +4114,6 @@ class RequestHspStop extends $pb.GeneratedMessage {
   static RequestHspStop create() => RequestHspStop._();
   @$core.override
   RequestHspStop createEmptyInstance() => create();
-  static $pb.PbList<RequestHspStop> createRepeated() =>
-      $pb.PbList<RequestHspStop>();
   @$core.pragma('dart2js:noInline')
   static RequestHspStop getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHspStop>(create);
@@ -4332,7 +4147,7 @@ class ResponseHspStop extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHspStop clone() => ResponseHspStop()..mergeFromMessage(this);
+  ResponseHspStop clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHspStop copyWith(void Function(ResponseHspStop) updates) =>
       super.copyWith((message) => updates(message as ResponseHspStop))
@@ -4345,8 +4160,6 @@ class ResponseHspStop extends $pb.GeneratedMessage {
   static ResponseHspStop create() => ResponseHspStop._();
   @$core.override
   ResponseHspStop createEmptyInstance() => create();
-  static $pb.PbList<ResponseHspStop> createRepeated() =>
-      $pb.PbList<ResponseHspStop>();
   @$core.pragma('dart2js:noInline')
   static ResponseHspStop getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHspStop>(create);
@@ -4384,7 +4197,7 @@ class RequestHspPause extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHspPause clone() => RequestHspPause()..mergeFromMessage(this);
+  RequestHspPause clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHspPause copyWith(void Function(RequestHspPause) updates) =>
       super.copyWith((message) => updates(message as RequestHspPause))
@@ -4397,8 +4210,6 @@ class RequestHspPause extends $pb.GeneratedMessage {
   static RequestHspPause create() => RequestHspPause._();
   @$core.override
   RequestHspPause createEmptyInstance() => create();
-  static $pb.PbList<RequestHspPause> createRepeated() =>
-      $pb.PbList<RequestHspPause>();
   @$core.pragma('dart2js:noInline')
   static RequestHspPause getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHspPause>(create);
@@ -4432,7 +4243,7 @@ class ResponseHspPause extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHspPause clone() => ResponseHspPause()..mergeFromMessage(this);
+  ResponseHspPause clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHspPause copyWith(void Function(ResponseHspPause) updates) =>
       super.copyWith((message) => updates(message as ResponseHspPause))
@@ -4445,8 +4256,6 @@ class ResponseHspPause extends $pb.GeneratedMessage {
   static ResponseHspPause create() => ResponseHspPause._();
   @$core.override
   ResponseHspPause createEmptyInstance() => create();
-  static $pb.PbList<ResponseHspPause> createRepeated() =>
-      $pb.PbList<ResponseHspPause>();
   @$core.pragma('dart2js:noInline')
   static ResponseHspPause getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHspPause>(create);
@@ -4491,7 +4300,7 @@ class RequestHspResume extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHspResume clone() => RequestHspResume()..mergeFromMessage(this);
+  RequestHspResume clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHspResume copyWith(void Function(RequestHspResume) updates) =>
       super.copyWith((message) => updates(message as RequestHspResume))
@@ -4504,8 +4313,6 @@ class RequestHspResume extends $pb.GeneratedMessage {
   static RequestHspResume create() => RequestHspResume._();
   @$core.override
   RequestHspResume createEmptyInstance() => create();
-  static $pb.PbList<RequestHspResume> createRepeated() =>
-      $pb.PbList<RequestHspResume>();
   @$core.pragma('dart2js:noInline')
   static RequestHspResume getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHspResume>(create);
@@ -4548,7 +4355,7 @@ class ResponseHspResume extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHspResume clone() => ResponseHspResume()..mergeFromMessage(this);
+  ResponseHspResume clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHspResume copyWith(void Function(ResponseHspResume) updates) =>
       super.copyWith((message) => updates(message as ResponseHspResume))
@@ -4561,8 +4368,6 @@ class ResponseHspResume extends $pb.GeneratedMessage {
   static ResponseHspResume create() => ResponseHspResume._();
   @$core.override
   ResponseHspResume createEmptyInstance() => create();
-  static $pb.PbList<ResponseHspResume> createRepeated() =>
-      $pb.PbList<ResponseHspResume>();
   @$core.pragma('dart2js:noInline')
   static ResponseHspResume getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHspResume>(create);
@@ -4600,7 +4405,7 @@ class RequestHspStateGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHspStateGet clone() => RequestHspStateGet()..mergeFromMessage(this);
+  RequestHspStateGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHspStateGet copyWith(void Function(RequestHspStateGet) updates) =>
       super.copyWith((message) => updates(message as RequestHspStateGet))
@@ -4613,8 +4418,6 @@ class RequestHspStateGet extends $pb.GeneratedMessage {
   static RequestHspStateGet create() => RequestHspStateGet._();
   @$core.override
   RequestHspStateGet createEmptyInstance() => create();
-  static $pb.PbList<RequestHspStateGet> createRepeated() =>
-      $pb.PbList<RequestHspStateGet>();
   @$core.pragma('dart2js:noInline')
   static RequestHspStateGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHspStateGet>(create);
@@ -4648,7 +4451,7 @@ class ResponseHspStateGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHspStateGet clone() => ResponseHspStateGet()..mergeFromMessage(this);
+  ResponseHspStateGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHspStateGet copyWith(void Function(ResponseHspStateGet) updates) =>
       super.copyWith((message) => updates(message as ResponseHspStateGet))
@@ -4661,8 +4464,6 @@ class ResponseHspStateGet extends $pb.GeneratedMessage {
   static ResponseHspStateGet create() => ResponseHspStateGet._();
   @$core.override
   ResponseHspStateGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHspStateGet> createRepeated() =>
-      $pb.PbList<ResponseHspStateGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHspStateGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHspStateGet>(create);
@@ -4707,16 +4508,15 @@ class RequestHspCurrentTimeSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHspCurrentTimeSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'currentTime', $pb.PbFieldType.O3)
+    ..aI(1, _omitFieldNames ? '' : 'currentTime')
     ..a<$fixnum.Int64>(
         2, _omitFieldNames ? '' : 'serverTime', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$core.double>(3, _omitFieldNames ? '' : 'filter', $pb.PbFieldType.OF)
+    ..aD(3, _omitFieldNames ? '' : 'filter', fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHspCurrentTimeSet clone() =>
-      RequestHspCurrentTimeSet()..mergeFromMessage(this);
+  RequestHspCurrentTimeSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHspCurrentTimeSet copyWith(
           void Function(RequestHspCurrentTimeSet) updates) =>
@@ -4730,8 +4530,6 @@ class RequestHspCurrentTimeSet extends $pb.GeneratedMessage {
   static RequestHspCurrentTimeSet create() => RequestHspCurrentTimeSet._();
   @$core.override
   RequestHspCurrentTimeSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHspCurrentTimeSet> createRepeated() =>
-      $pb.PbList<RequestHspCurrentTimeSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHspCurrentTimeSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHspCurrentTimeSet>(create);
@@ -4792,8 +4590,7 @@ class ResponseHspCurrentTimeSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHspCurrentTimeSet clone() =>
-      ResponseHspCurrentTimeSet()..mergeFromMessage(this);
+  ResponseHspCurrentTimeSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHspCurrentTimeSet copyWith(
           void Function(ResponseHspCurrentTimeSet) updates) =>
@@ -4807,8 +4604,6 @@ class ResponseHspCurrentTimeSet extends $pb.GeneratedMessage {
   static ResponseHspCurrentTimeSet create() => ResponseHspCurrentTimeSet._();
   @$core.override
   ResponseHspCurrentTimeSet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHspCurrentTimeSet> createRepeated() =>
-      $pb.PbList<ResponseHspCurrentTimeSet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHspCurrentTimeSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHspCurrentTimeSet>(create);
@@ -4850,13 +4645,12 @@ class RequestHspThresholdSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHspThresholdSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.int>(
-        1, _omitFieldNames ? '' : 'tailPointThreshold', $pb.PbFieldType.OU3)
+    ..aI(1, _omitFieldNames ? '' : 'tailPointThreshold',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHspThresholdSet clone() =>
-      RequestHspThresholdSet()..mergeFromMessage(this);
+  RequestHspThresholdSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHspThresholdSet copyWith(
           void Function(RequestHspThresholdSet) updates) =>
@@ -4870,8 +4664,6 @@ class RequestHspThresholdSet extends $pb.GeneratedMessage {
   static RequestHspThresholdSet create() => RequestHspThresholdSet._();
   @$core.override
   RequestHspThresholdSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHspThresholdSet> createRepeated() =>
-      $pb.PbList<RequestHspThresholdSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHspThresholdSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHspThresholdSet>(create);
@@ -4914,8 +4706,7 @@ class ResponseHspThresholdSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHspThresholdSet clone() =>
-      ResponseHspThresholdSet()..mergeFromMessage(this);
+  ResponseHspThresholdSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHspThresholdSet copyWith(
           void Function(ResponseHspThresholdSet) updates) =>
@@ -4929,8 +4720,6 @@ class ResponseHspThresholdSet extends $pb.GeneratedMessage {
   static ResponseHspThresholdSet create() => ResponseHspThresholdSet._();
   @$core.override
   ResponseHspThresholdSet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHspThresholdSet> createRepeated() =>
-      $pb.PbList<ResponseHspThresholdSet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHspThresholdSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHspThresholdSet>(create);
@@ -4975,8 +4764,7 @@ class RequestHspPauseOnStarvingSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHspPauseOnStarvingSet clone() =>
-      RequestHspPauseOnStarvingSet()..mergeFromMessage(this);
+  RequestHspPauseOnStarvingSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHspPauseOnStarvingSet copyWith(
           void Function(RequestHspPauseOnStarvingSet) updates) =>
@@ -4992,8 +4780,6 @@ class RequestHspPauseOnStarvingSet extends $pb.GeneratedMessage {
       RequestHspPauseOnStarvingSet._();
   @$core.override
   RequestHspPauseOnStarvingSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHspPauseOnStarvingSet> createRepeated() =>
-      $pb.PbList<RequestHspPauseOnStarvingSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHspPauseOnStarvingSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHspPauseOnStarvingSet>(create);
@@ -5036,8 +4822,7 @@ class ResponseHspPauseOnStarvingSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHspPauseOnStarvingSet clone() =>
-      ResponseHspPauseOnStarvingSet()..mergeFromMessage(this);
+  ResponseHspPauseOnStarvingSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHspPauseOnStarvingSet copyWith(
           void Function(ResponseHspPauseOnStarvingSet) updates) =>
@@ -5053,8 +4838,6 @@ class ResponseHspPauseOnStarvingSet extends $pb.GeneratedMessage {
       ResponseHspPauseOnStarvingSet._();
   @$core.override
   ResponseHspPauseOnStarvingSet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHspPauseOnStarvingSet> createRepeated() =>
-      $pb.PbList<ResponseHspPauseOnStarvingSet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHspPauseOnStarvingSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHspPauseOnStarvingSet>(create);
@@ -5095,13 +4878,12 @@ class RequestHspPlaybackRateSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHspPlaybackRateSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(
-        1, _omitFieldNames ? '' : 'playbackRate', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'playbackRate',
+        fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHspPlaybackRateSet clone() =>
-      RequestHspPlaybackRateSet()..mergeFromMessage(this);
+  RequestHspPlaybackRateSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHspPlaybackRateSet copyWith(
           void Function(RequestHspPlaybackRateSet) updates) =>
@@ -5115,8 +4897,6 @@ class RequestHspPlaybackRateSet extends $pb.GeneratedMessage {
   static RequestHspPlaybackRateSet create() => RequestHspPlaybackRateSet._();
   @$core.override
   RequestHspPlaybackRateSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHspPlaybackRateSet> createRepeated() =>
-      $pb.PbList<RequestHspPlaybackRateSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHspPlaybackRateSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHspPlaybackRateSet>(create);
@@ -5159,8 +4939,7 @@ class ResponseHspPlaybackRateSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHspPlaybackRateSet clone() =>
-      ResponseHspPlaybackRateSet()..mergeFromMessage(this);
+  ResponseHspPlaybackRateSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHspPlaybackRateSet copyWith(
           void Function(ResponseHspPlaybackRateSet) updates) =>
@@ -5175,8 +4954,6 @@ class ResponseHspPlaybackRateSet extends $pb.GeneratedMessage {
   static ResponseHspPlaybackRateSet create() => ResponseHspPlaybackRateSet._();
   @$core.override
   ResponseHspPlaybackRateSet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHspPlaybackRateSet> createRepeated() =>
-      $pb.PbList<ResponseHspPlaybackRateSet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHspPlaybackRateSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHspPlaybackRateSet>(create);
@@ -5221,7 +4998,7 @@ class RequestHspLoopSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHspLoopSet clone() => RequestHspLoopSet()..mergeFromMessage(this);
+  RequestHspLoopSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHspLoopSet copyWith(void Function(RequestHspLoopSet) updates) =>
       super.copyWith((message) => updates(message as RequestHspLoopSet))
@@ -5234,8 +5011,6 @@ class RequestHspLoopSet extends $pb.GeneratedMessage {
   static RequestHspLoopSet create() => RequestHspLoopSet._();
   @$core.override
   RequestHspLoopSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHspLoopSet> createRepeated() =>
-      $pb.PbList<RequestHspLoopSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHspLoopSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHspLoopSet>(create);
@@ -5278,7 +5053,7 @@ class ResponseHspLoopSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHspLoopSet clone() => ResponseHspLoopSet()..mergeFromMessage(this);
+  ResponseHspLoopSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHspLoopSet copyWith(void Function(ResponseHspLoopSet) updates) =>
       super.copyWith((message) => updates(message as ResponseHspLoopSet))
@@ -5291,8 +5066,6 @@ class ResponseHspLoopSet extends $pb.GeneratedMessage {
   static ResponseHspLoopSet create() => ResponseHspLoopSet._();
   @$core.override
   ResponseHspLoopSet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHspLoopSet> createRepeated() =>
-      $pb.PbList<ResponseHspLoopSet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHspLoopSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHspLoopSet>(create);
@@ -5342,14 +5115,14 @@ class RequestLedOverride extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'override')
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'r', $pb.PbFieldType.OU3)
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'g', $pb.PbFieldType.OU3)
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'b', $pb.PbFieldType.OU3)
-    ..a<$core.int>(5, _omitFieldNames ? '' : 'intensity', $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'r', fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'g', fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'b', fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'intensity', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestLedOverride clone() => RequestLedOverride()..mergeFromMessage(this);
+  RequestLedOverride clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestLedOverride copyWith(void Function(RequestLedOverride) updates) =>
       super.copyWith((message) => updates(message as RequestLedOverride))
@@ -5362,8 +5135,6 @@ class RequestLedOverride extends $pb.GeneratedMessage {
   static RequestLedOverride create() => RequestLedOverride._();
   @$core.override
   RequestLedOverride createEmptyInstance() => create();
-  static $pb.PbList<RequestLedOverride> createRepeated() =>
-      $pb.PbList<RequestLedOverride>();
   @$core.pragma('dart2js:noInline')
   static RequestLedOverride getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestLedOverride>(create);
@@ -5444,13 +5215,13 @@ class RequestHvpSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHvpSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'amplitude', $pb.PbFieldType.OF)
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'frequency', $pb.PbFieldType.OU3)
-    ..a<$core.double>(3, _omitFieldNames ? '' : 'position', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'amplitude', fieldType: $pb.PbFieldType.OF)
+    ..aI(2, _omitFieldNames ? '' : 'frequency', fieldType: $pb.PbFieldType.OU3)
+    ..aD(3, _omitFieldNames ? '' : 'position', fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHvpSet clone() => RequestHvpSet()..mergeFromMessage(this);
+  RequestHvpSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHvpSet copyWith(void Function(RequestHvpSet) updates) =>
       super.copyWith((message) => updates(message as RequestHvpSet))
@@ -5463,8 +5234,6 @@ class RequestHvpSet extends $pb.GeneratedMessage {
   static RequestHvpSet create() => RequestHvpSet._();
   @$core.override
   RequestHvpSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHvpSet> createRepeated() =>
-      $pb.PbList<RequestHvpSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHvpSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHvpSet>(create);
@@ -5525,7 +5294,7 @@ class ResponseHvpSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHvpSet clone() => ResponseHvpSet()..mergeFromMessage(this);
+  ResponseHvpSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHvpSet copyWith(void Function(ResponseHvpSet) updates) =>
       super.copyWith((message) => updates(message as ResponseHvpSet))
@@ -5538,8 +5307,6 @@ class ResponseHvpSet extends $pb.GeneratedMessage {
   static ResponseHvpSet create() => ResponseHvpSet._();
   @$core.override
   ResponseHvpSet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHvpSet> createRepeated() =>
-      $pb.PbList<ResponseHvpSet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHvpSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHvpSet>(create);
@@ -5577,7 +5344,7 @@ class RequestHvpStop extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHvpStop clone() => RequestHvpStop()..mergeFromMessage(this);
+  RequestHvpStop clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHvpStop copyWith(void Function(RequestHvpStop) updates) =>
       super.copyWith((message) => updates(message as RequestHvpStop))
@@ -5590,8 +5357,6 @@ class RequestHvpStop extends $pb.GeneratedMessage {
   static RequestHvpStop create() => RequestHvpStop._();
   @$core.override
   RequestHvpStop createEmptyInstance() => create();
-  static $pb.PbList<RequestHvpStop> createRepeated() =>
-      $pb.PbList<RequestHvpStop>();
   @$core.pragma('dart2js:noInline')
   static RequestHvpStop getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHvpStop>(create);
@@ -5625,7 +5390,7 @@ class ResponseHvpStop extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHvpStop clone() => ResponseHvpStop()..mergeFromMessage(this);
+  ResponseHvpStop clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHvpStop copyWith(void Function(ResponseHvpStop) updates) =>
       super.copyWith((message) => updates(message as ResponseHvpStop))
@@ -5638,8 +5403,6 @@ class ResponseHvpStop extends $pb.GeneratedMessage {
   static ResponseHvpStop create() => ResponseHvpStop._();
   @$core.override
   ResponseHvpStop createEmptyInstance() => create();
-  static $pb.PbList<ResponseHvpStop> createRepeated() =>
-      $pb.PbList<ResponseHvpStop>();
   @$core.pragma('dart2js:noInline')
   static ResponseHvpStop getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHvpStop>(create);
@@ -5677,7 +5440,7 @@ class RequestHvpStart extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHvpStart clone() => RequestHvpStart()..mergeFromMessage(this);
+  RequestHvpStart clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHvpStart copyWith(void Function(RequestHvpStart) updates) =>
       super.copyWith((message) => updates(message as RequestHvpStart))
@@ -5690,8 +5453,6 @@ class RequestHvpStart extends $pb.GeneratedMessage {
   static RequestHvpStart create() => RequestHvpStart._();
   @$core.override
   RequestHvpStart createEmptyInstance() => create();
-  static $pb.PbList<RequestHvpStart> createRepeated() =>
-      $pb.PbList<RequestHvpStart>();
   @$core.pragma('dart2js:noInline')
   static RequestHvpStart getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHvpStart>(create);
@@ -5725,7 +5486,7 @@ class ResponseHvpStart extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHvpStart clone() => ResponseHvpStart()..mergeFromMessage(this);
+  ResponseHvpStart clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHvpStart copyWith(void Function(ResponseHvpStart) updates) =>
       super.copyWith((message) => updates(message as ResponseHvpStart))
@@ -5738,8 +5499,6 @@ class ResponseHvpStart extends $pb.GeneratedMessage {
   static ResponseHvpStart create() => ResponseHvpStart._();
   @$core.override
   ResponseHvpStart createEmptyInstance() => create();
-  static $pb.PbList<ResponseHvpStart> createRepeated() =>
-      $pb.PbList<ResponseHvpStart>();
   @$core.pragma('dart2js:noInline')
   static ResponseHvpStart getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHvpStart>(create);
@@ -5777,7 +5536,7 @@ class RequestHvpStateGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHvpStateGet clone() => RequestHvpStateGet()..mergeFromMessage(this);
+  RequestHvpStateGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHvpStateGet copyWith(void Function(RequestHvpStateGet) updates) =>
       super.copyWith((message) => updates(message as RequestHvpStateGet))
@@ -5790,8 +5549,6 @@ class RequestHvpStateGet extends $pb.GeneratedMessage {
   static RequestHvpStateGet create() => RequestHvpStateGet._();
   @$core.override
   RequestHvpStateGet createEmptyInstance() => create();
-  static $pb.PbList<RequestHvpStateGet> createRepeated() =>
-      $pb.PbList<RequestHvpStateGet>();
   @$core.pragma('dart2js:noInline')
   static RequestHvpStateGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHvpStateGet>(create);
@@ -5825,7 +5582,7 @@ class ResponseHvpStateGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHvpStateGet clone() => ResponseHvpStateGet()..mergeFromMessage(this);
+  ResponseHvpStateGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHvpStateGet copyWith(void Function(ResponseHvpStateGet) updates) =>
       super.copyWith((message) => updates(message as ResponseHvpStateGet))
@@ -5838,8 +5595,6 @@ class ResponseHvpStateGet extends $pb.GeneratedMessage {
   static ResponseHvpStateGet create() => ResponseHvpStateGet._();
   @$core.override
   ResponseHvpStateGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHvpStateGet> createRepeated() =>
-      $pb.PbList<ResponseHvpStateGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHvpStateGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHvpStateGet>(create);
@@ -5879,7 +5634,7 @@ class RequestHrppStart extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHrppStart clone() => RequestHrppStart()..mergeFromMessage(this);
+  RequestHrppStart clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHrppStart copyWith(void Function(RequestHrppStart) updates) =>
       super.copyWith((message) => updates(message as RequestHrppStart))
@@ -5892,8 +5647,6 @@ class RequestHrppStart extends $pb.GeneratedMessage {
   static RequestHrppStart create() => RequestHrppStart._();
   @$core.override
   RequestHrppStart createEmptyInstance() => create();
-  static $pb.PbList<RequestHrppStart> createRepeated() =>
-      $pb.PbList<RequestHrppStart>();
   @$core.pragma('dart2js:noInline')
   static RequestHrppStart getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHrppStart>(create);
@@ -5927,7 +5680,7 @@ class ResponseHrppStart extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHrppStart clone() => ResponseHrppStart()..mergeFromMessage(this);
+  ResponseHrppStart clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHrppStart copyWith(void Function(ResponseHrppStart) updates) =>
       super.copyWith((message) => updates(message as ResponseHrppStart))
@@ -5940,8 +5693,6 @@ class ResponseHrppStart extends $pb.GeneratedMessage {
   static ResponseHrppStart create() => ResponseHrppStart._();
   @$core.override
   ResponseHrppStart createEmptyInstance() => create();
-  static $pb.PbList<ResponseHrppStart> createRepeated() =>
-      $pb.PbList<ResponseHrppStart>();
   @$core.pragma('dart2js:noInline')
   static ResponseHrppStart getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHrppStart>(create);
@@ -5979,7 +5730,7 @@ class RequestHrppStop extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHrppStop clone() => RequestHrppStop()..mergeFromMessage(this);
+  RequestHrppStop clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHrppStop copyWith(void Function(RequestHrppStop) updates) =>
       super.copyWith((message) => updates(message as RequestHrppStop))
@@ -5992,8 +5743,6 @@ class RequestHrppStop extends $pb.GeneratedMessage {
   static RequestHrppStop create() => RequestHrppStop._();
   @$core.override
   RequestHrppStop createEmptyInstance() => create();
-  static $pb.PbList<RequestHrppStop> createRepeated() =>
-      $pb.PbList<RequestHrppStop>();
   @$core.pragma('dart2js:noInline')
   static RequestHrppStop getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHrppStop>(create);
@@ -6027,7 +5776,7 @@ class ResponseHrppStop extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHrppStop clone() => ResponseHrppStop()..mergeFromMessage(this);
+  ResponseHrppStop clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHrppStop copyWith(void Function(ResponseHrppStop) updates) =>
       super.copyWith((message) => updates(message as ResponseHrppStop))
@@ -6040,8 +5789,6 @@ class ResponseHrppStop extends $pb.GeneratedMessage {
   static ResponseHrppStop create() => ResponseHrppStop._();
   @$core.override
   ResponseHrppStop createEmptyInstance() => create();
-  static $pb.PbList<ResponseHrppStop> createRepeated() =>
-      $pb.PbList<ResponseHrppStop>();
   @$core.pragma('dart2js:noInline')
   static ResponseHrppStop getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHrppStop>(create);
@@ -6082,12 +5829,11 @@ class RequestHrppAmplitudeSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHrppAmplitudeSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'amplitude', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'amplitude', fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHrppAmplitudeSet clone() =>
-      RequestHrppAmplitudeSet()..mergeFromMessage(this);
+  RequestHrppAmplitudeSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHrppAmplitudeSet copyWith(
           void Function(RequestHrppAmplitudeSet) updates) =>
@@ -6101,8 +5847,6 @@ class RequestHrppAmplitudeSet extends $pb.GeneratedMessage {
   static RequestHrppAmplitudeSet create() => RequestHrppAmplitudeSet._();
   @$core.override
   RequestHrppAmplitudeSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHrppAmplitudeSet> createRepeated() =>
-      $pb.PbList<RequestHrppAmplitudeSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHrppAmplitudeSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHrppAmplitudeSet>(create);
@@ -6145,8 +5889,7 @@ class ResponseHrppAmplitudeSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHrppAmplitudeSet clone() =>
-      ResponseHrppAmplitudeSet()..mergeFromMessage(this);
+  ResponseHrppAmplitudeSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHrppAmplitudeSet copyWith(
           void Function(ResponseHrppAmplitudeSet) updates) =>
@@ -6160,8 +5903,6 @@ class ResponseHrppAmplitudeSet extends $pb.GeneratedMessage {
   static ResponseHrppAmplitudeSet create() => ResponseHrppAmplitudeSet._();
   @$core.override
   ResponseHrppAmplitudeSet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHrppAmplitudeSet> createRepeated() =>
-      $pb.PbList<ResponseHrppAmplitudeSet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHrppAmplitudeSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHrppAmplitudeSet>(create);
@@ -6202,12 +5943,11 @@ class RequestHrppPlaybackSpeedSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHrppPlaybackSpeedSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.double>(1, _omitFieldNames ? '' : 'speed', $pb.PbFieldType.OF)
+    ..aD(1, _omitFieldNames ? '' : 'speed', fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHrppPlaybackSpeedSet clone() =>
-      RequestHrppPlaybackSpeedSet()..mergeFromMessage(this);
+  RequestHrppPlaybackSpeedSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHrppPlaybackSpeedSet copyWith(
           void Function(RequestHrppPlaybackSpeedSet) updates) =>
@@ -6223,8 +5963,6 @@ class RequestHrppPlaybackSpeedSet extends $pb.GeneratedMessage {
       RequestHrppPlaybackSpeedSet._();
   @$core.override
   RequestHrppPlaybackSpeedSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHrppPlaybackSpeedSet> createRepeated() =>
-      $pb.PbList<RequestHrppPlaybackSpeedSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHrppPlaybackSpeedSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHrppPlaybackSpeedSet>(create);
@@ -6267,8 +6005,7 @@ class ResponseHrppPlaybackSpeedSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHrppPlaybackSpeedSet clone() =>
-      ResponseHrppPlaybackSpeedSet()..mergeFromMessage(this);
+  ResponseHrppPlaybackSpeedSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHrppPlaybackSpeedSet copyWith(
           void Function(ResponseHrppPlaybackSpeedSet) updates) =>
@@ -6284,8 +6021,6 @@ class ResponseHrppPlaybackSpeedSet extends $pb.GeneratedMessage {
       ResponseHrppPlaybackSpeedSet._();
   @$core.override
   ResponseHrppPlaybackSpeedSet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHrppPlaybackSpeedSet> createRepeated() =>
-      $pb.PbList<ResponseHrppPlaybackSpeedSet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHrppPlaybackSpeedSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHrppPlaybackSpeedSet>(create);
@@ -6326,12 +6061,11 @@ class RequestHrppPatternSet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestHrppPatternSet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'patternNr', $pb.PbFieldType.OU3)
+    ..aI(1, _omitFieldNames ? '' : 'patternNr', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHrppPatternSet clone() =>
-      RequestHrppPatternSet()..mergeFromMessage(this);
+  RequestHrppPatternSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHrppPatternSet copyWith(
           void Function(RequestHrppPatternSet) updates) =>
@@ -6345,8 +6079,6 @@ class RequestHrppPatternSet extends $pb.GeneratedMessage {
   static RequestHrppPatternSet create() => RequestHrppPatternSet._();
   @$core.override
   RequestHrppPatternSet createEmptyInstance() => create();
-  static $pb.PbList<RequestHrppPatternSet> createRepeated() =>
-      $pb.PbList<RequestHrppPatternSet>();
   @$core.pragma('dart2js:noInline')
   static RequestHrppPatternSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHrppPatternSet>(create);
@@ -6389,8 +6121,7 @@ class ResponseHrppPatternSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHrppPatternSet clone() =>
-      ResponseHrppPatternSet()..mergeFromMessage(this);
+  ResponseHrppPatternSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHrppPatternSet copyWith(
           void Function(ResponseHrppPatternSet) updates) =>
@@ -6404,8 +6135,6 @@ class ResponseHrppPatternSet extends $pb.GeneratedMessage {
   static ResponseHrppPatternSet create() => ResponseHrppPatternSet._();
   @$core.override
   ResponseHrppPatternSet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHrppPatternSet> createRepeated() =>
-      $pb.PbList<ResponseHrppPatternSet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHrppPatternSet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHrppPatternSet>(create);
@@ -6443,7 +6172,7 @@ class RequestHrppStateGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHrppStateGet clone() => RequestHrppStateGet()..mergeFromMessage(this);
+  RequestHrppStateGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHrppStateGet copyWith(void Function(RequestHrppStateGet) updates) =>
       super.copyWith((message) => updates(message as RequestHrppStateGet))
@@ -6456,8 +6185,6 @@ class RequestHrppStateGet extends $pb.GeneratedMessage {
   static RequestHrppStateGet create() => RequestHrppStateGet._();
   @$core.override
   RequestHrppStateGet createEmptyInstance() => create();
-  static $pb.PbList<RequestHrppStateGet> createRepeated() =>
-      $pb.PbList<RequestHrppStateGet>();
   @$core.pragma('dart2js:noInline')
   static RequestHrppStateGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHrppStateGet>(create);
@@ -6491,8 +6218,7 @@ class ResponseHrppStateGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHrppStateGet clone() =>
-      ResponseHrppStateGet()..mergeFromMessage(this);
+  ResponseHrppStateGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHrppStateGet copyWith(void Function(ResponseHrppStateGet) updates) =>
       super.copyWith((message) => updates(message as ResponseHrppStateGet))
@@ -6505,8 +6231,6 @@ class ResponseHrppStateGet extends $pb.GeneratedMessage {
   static ResponseHrppStateGet create() => ResponseHrppStateGet._();
   @$core.override
   ResponseHrppStateGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHrppStateGet> createRepeated() =>
-      $pb.PbList<ResponseHrppStateGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHrppStateGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHrppStateGet>(create);
@@ -6544,8 +6268,7 @@ class RequestHrppPatternsGet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHrppPatternsGet clone() =>
-      RequestHrppPatternsGet()..mergeFromMessage(this);
+  RequestHrppPatternsGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestHrppPatternsGet copyWith(
           void Function(RequestHrppPatternsGet) updates) =>
@@ -6559,8 +6282,6 @@ class RequestHrppPatternsGet extends $pb.GeneratedMessage {
   static RequestHrppPatternsGet create() => RequestHrppPatternsGet._();
   @$core.override
   RequestHrppPatternsGet createEmptyInstance() => create();
-  static $pb.PbList<RequestHrppPatternsGet> createRepeated() =>
-      $pb.PbList<RequestHrppPatternsGet>();
   @$core.pragma('dart2js:noInline')
   static RequestHrppPatternsGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestHrppPatternsGet>(create);
@@ -6593,14 +6314,12 @@ class ResponseHrppPatternsGet extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOM<$0.HrppState>(1, _omitFieldNames ? '' : 'state',
         subBuilder: $0.HrppState.create)
-    ..pc<$0.HrppPattern>(
-        2, _omitFieldNames ? '' : 'patterns', $pb.PbFieldType.PM,
+    ..pPM<$0.HrppPattern>(2, _omitFieldNames ? '' : 'patterns',
         subBuilder: $0.HrppPattern.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHrppPatternsGet clone() =>
-      ResponseHrppPatternsGet()..mergeFromMessage(this);
+  ResponseHrppPatternsGet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ResponseHrppPatternsGet copyWith(
           void Function(ResponseHrppPatternsGet) updates) =>
@@ -6614,8 +6333,6 @@ class ResponseHrppPatternsGet extends $pb.GeneratedMessage {
   static ResponseHrppPatternsGet create() => ResponseHrppPatternsGet._();
   @$core.override
   ResponseHrppPatternsGet createEmptyInstance() => create();
-  static $pb.PbList<ResponseHrppPatternsGet> createRepeated() =>
-      $pb.PbList<ResponseHrppPatternsGet>();
   @$core.pragma('dart2js:noInline')
   static ResponseHrppPatternsGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<ResponseHrppPatternsGet>(create);
