@@ -71,7 +71,6 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   protoc_plugin: ^25.0.0 # run: dart pub global activate protoc_plugin when updating
   flutter_launcher_icons: "^0.14.4"
-  build_runner: ^2.4.0 # run: dart run build_runner build
 
 # run: dart run flutter_launcher_icons
 flutter_launcher_icons:

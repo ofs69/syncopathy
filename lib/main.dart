@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -69,19 +68,6 @@ void main() async {
   }
 
   final appSupportDir = await getApplicationSupportDirectory();
-  final newSqliteDbFile = File(
-    path.join(appSupportDir.path, 'syncopathyDB.sqlite'),
-  );
-
-  final newSqliteDbExists = await newSqliteDbFile.exists();
-
-  if (newSqliteDbExists) {
-    // New SQLite DB already exists, proceed directly to main app
-    Logger.info('New SQLite database already exists, skipping migration.');
-    final mainApp = await _initializeAppAndRun(appSupportDir);
-    runApp(mainApp);
-    return;
-  }
 
   final mainApp = await _initializeAppAndRun(appSupportDir);
   runApp(mainApp);
