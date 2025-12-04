@@ -245,7 +245,11 @@ class MediaManager {
 
       if (dbVideo == null) {
         // add new
-        await DatabaseHelper().insertVideo(video);
+        if (video.funscriptMetadata != null) {
+          video.funscriptMetadataId = await DatabaseHelper()
+              .insertFunscriptMetadata(video.funscriptMetadata!);
+        }
+        insertVideoBatch.add(video);
       } else {
         // update existing
         dbVideo.averageSpeed = video.averageSpeed;
@@ -263,10 +267,13 @@ class MediaManager {
           updateMetadataBatch.add(video.funscriptMetadata!);
         }
         dbVideo.funscriptMetadata = video.funscriptMetadata;
-        dbVideo.duration = video.duration;
-        await DatabaseHelper().updateVideo(dbVideo);
+        updateVideoBatch.add(dbVideo);
       }
     }
+
+    await DatabaseHelper().batchUpdateFunscriptMetadata(updateMetadataBatch);
+    await DatabaseHelper().batchInsertVideos(insertVideoBatch);
+    await DatabaseHelper().batchUpdateVideos(updateVideoBatch);
 
     // display the database state
     await load();
