@@ -149,7 +149,14 @@ class DatabaseHelper {
       'lib/sqlite/migrations/$fileName',
     );
     await db.transaction((txn) async {
-      await txn.execute(migrationSql);
+      final statements = migrationSql
+          .split(';')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      for (final statement in statements) {
+        await txn.execute(statement);
+      }
     });
   }
 
