@@ -160,10 +160,11 @@ class _VideoItemState extends State<VideoItem> {
         final double iconSize = (constraints.maxHeight / 7).clamp(16.0, 32.0);
         final double padding = (iconSize / 4).clamp(4.0, 16.0);
 
-        final playerModel = Provider.of<PlayerModel>(context);
+        final currentVideoId =
+            context.select<PlayerModel, int?>((p) => p.currentVideo.value?.id);
 
         final BorderSide borderSide;
-        if (widget.video.id == playerModel.currentVideo.value?.id) {
+        if (widget.video.id == currentVideoId) {
           borderSide = BorderSide(color: Colors.green, width: 6.0);
         } else if (widget.video.isFavorite) {
           borderSide = BorderSide(color: favoriteColor, width: 3.0);

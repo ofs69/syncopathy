@@ -66,6 +66,7 @@ class PreviousPlaylistEntryAction extends Action<PreviousPlaylistEntryIntent> {
 class _VideoPlayerPageState extends State<VideoPlayerPage>
     with AutomaticKeepAliveClientMixin {
   final FocusNode _focusNode = FocusNode();
+  late final ValueNotifier<bool> _showFunscriptGraphNotifier;
 
   @override
   bool get wantKeepAlive => true;
@@ -74,13 +75,19 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   void initState() {
     super.initState();
     _focusNode.requestFocus();
+    _showFunscriptGraphNotifier = ValueNotifier<bool>(true);
   }
 
   @override
   void dispose() {
     _focusNode.dispose();
+    _showFunscriptGraphNotifier.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
+  }
+
+  void _onToggleFunscriptGraph(bool value) {
+    _showFunscriptGraphNotifier.value = value;
   }
 
   @override
@@ -145,22 +152,35 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                               ),
                             ),
                     ),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 8.0,
-                        ),
-                        child: InteractiveScrollingGraph(
-                          funscript: funscript,
-                          videoPosition: player.positionNoOffset,
-                        ),
-                      ),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: _showFunscriptGraphNotifier,
+                      builder: (context, showGraph, child) {
+                        if (showGraph) {
+                          return Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 4.0,
+                              ),
+                              child: InteractiveScrollingGraph(
+                                funscript: funscript,
+                                videoPosition: player.positionNoOffset,
+                              ),
+                            ),
+                          );
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
                     ),
                     Hero(
                       tag: 'videoControls',
-                      child: VideoControls(onFullscreenToggle: enterFullscreen),
+                      child: VideoControls(
+                        onFullscreenToggle: enterFullscreen,
+                        onToggleFunscriptGraph: _onToggleFunscriptGraph,
+                        showFunscriptGraphNotifier: _showFunscriptGraphNotifier,
+                      ),
                     ),
                   ],
                 ),

@@ -577,6 +577,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
           label: const Text('Remove from category'),
           onPressed: _showBulkRemoveCategoryDialog,
         ),
+        const SizedBox(width: 8),
       ],
     );
   }
@@ -616,6 +617,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
           value: _mediaLibrarySettings.sortOption.value,
           icon: const Icon(Icons.sort),
           underline: const SizedBox.shrink(), // Hides the default underline
+          isDense: true,
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+          borderRadius: BorderRadius.circular(16.0),
           onChanged: (SortOption? newValue) {
             if (newValue != null) {
               _mediaLibrarySettings.setSortOption(newValue);
@@ -741,6 +745,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
           message: 'Videos per row',
           child: DropdownButton<int>(
             value: _mediaLibrarySettings.videosPerRow.value,
+            isDense: true,
+            underline: const SizedBox.shrink(), // Hides the default underline
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            borderRadius: BorderRadius.circular(16.0),
             onChanged: (int? newValue) {
               if (newValue != null) {
                 _mediaLibrarySettings.setVideosPerRow(newValue);
