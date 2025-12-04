@@ -1,20 +1,25 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/heatmap.dart';
 import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/funscript.dart';
-import 'package:syncopathy/helper/debouncer.dart';
+import 'package:syncopathy/settings_popup_menu.dart';
 
 class VideoControls extends StatefulWidget {
   final VoidCallback onFullscreenToggle;
   final VoidCallback? onInteractionStart;
   final VoidCallback? onInteractionEnd;
+  final ValueChanged<bool>? onToggleFunscriptGraph;
+  final ValueNotifier<bool> showFunscriptGraphNotifier;
 
   const VideoControls({
     super.key,
     required this.onFullscreenToggle,
     this.onInteractionStart,
     this.onInteractionEnd,
+    this.onToggleFunscriptGraph,
+    required this.showFunscriptGraphNotifier,
   });
 
   @override
@@ -22,50 +27,24 @@ class VideoControls extends StatefulWidget {
 }
 
 class _VideoControlsState extends State<VideoControls> {
-  RangeValues minMax = RangeValues(0, 100);
-  final _debouncer = Debouncer(milliseconds: 500);
   late final SyncopathyModel _model;
+  bool _hovering = false;
+  Timer? _hoverExitTimer;
 
   @override
   void initState() {
     _model = context.read<SyncopathyModel>();
-    minMax = RangeValues(
-      _model.settings.min.value.toDouble(),
-      _model.settings.max.value.toDouble(),
-    );
-
-    _model.settings.min.addListener(_handleMinMaxValueChange);
-    _model.settings.max.addListener(_handleMinMaxValueChange);
-
     super.initState();
-  }
-
-  void _handleMinMaxValueChange() {
-    if (mounted) {
-      setState(() {
-        minMax = RangeValues(
-          _model.settings.min.value.toDouble(),
-          _model.settings.max.value.toDouble(),
-        );
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _model.settings.min.removeListener(_handleMinMaxValueChange);
-    _model.settings.max.removeListener(_handleMinMaxValueChange);
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final player = _model.player;
-
-    const sliderHeight = 30.0;
+    final iconSize = Theme.of(context).iconTheme.size ?? 24.0;
 
     return Material(
       type: MaterialType.transparency,
+
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -76,11 +55,61 @@ class _VideoControlsState extends State<VideoControls> {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
           child: Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Heatmap
+                  Expanded(
+                    child: MouseRegion(
+                      onEnter: (_) {
+                        _hoverExitTimer?.cancel();
+                        setState(() => _hovering = true);
+                      },
+                      onExit: (_) {
+                        _hoverExitTimer = Timer(
+                          const Duration(milliseconds: 1000),
+                          () {
+                            if (mounted) {
+                              setState(() => _hovering = false);
+                            }
+                          },
+                        );
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        height: _hovering ? iconSize * 2.5 : iconSize * 1.0,
+                        child: ValueListenableBuilder<Funscript?>(
+                          valueListenable: player.currentFunscript,
+                          builder: (context, funscript, child) {
+                            if (funscript == null) {
+                              return const Center(
+                                child: Text("No funscript loaded"),
+                              );
+                            }
+                            return Heatmap(
+                              funscript: funscript,
+                              totalDuration: player.duration,
+                              videoPosition: player.positionNoOffset,
+                              onClick: (d) =>
+                                  player.seekTo(d.inSeconds.toDouble()),
+                              onInteractionStart: widget.onInteractionStart,
+                              onInteractionEnd: widget.onInteractionEnd,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Play/Pause Button
@@ -89,169 +118,60 @@ class _VideoControlsState extends State<VideoControls> {
                     builder: (context, isPaused, child) {
                       return IconButton(
                         icon: Icon(isPaused ? Icons.play_arrow : Icons.pause),
-                        iconSize: 48.0,
+                        iconSize:
+                            (Theme.of(context).iconTheme.size ?? 24.0) * 1.5,
                         onPressed: player.togglePause,
                       );
                     },
                   ),
-                  const SizedBox(width: 16),
-                  SizedBox(
-                    width: 200, // Smaller width for sliders
-                    child: Column(
-                      children: [
-                        // Volume Slider
-                        Row(
-                          children: [
-                            const Tooltip(
-                              message: "Volume",
-                              child: Text(
-                                "Vol",
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ),
-                            Expanded(
-                              child: ValueListenableBuilder<double>(
-                                valueListenable: player.volume,
-                                builder: (context, volume, child) {
-                                  return SizedBox(
-                                    height: sliderHeight,
-                                    child: Slider(
-                                      value: volume,
-                                      min: 0,
-                                      max: 130,
-                                      divisions: 130 ~/ 5,
-                                      label: '${volume.round()}%',
-                                      onChanged: player.setVolume,
-                                      onChangeStart: (_) =>
-                                          widget.onInteractionStart?.call(),
-                                      onChangeEnd: (_) =>
-                                          widget.onInteractionEnd?.call(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
+                  // Volume Slider
+                  ValueListenableBuilder<double>(
+                    valueListenable: player.volume,
+                    builder: (context, volume, child) {
+                      return SizedBox(
+                        width: 200, // Adjust width as needed
+                        height: Theme.of(context).iconTheme.size ?? 24.0,
+                        child: Slider(
+                          value: volume,
+                          min: 0,
+                          max: 130,
+                          divisions: 130 ~/ 5,
+                          label: '${volume.round()}%',
+                          onChanged: player.setVolume,
+                          onChangeStart: (_) =>
+                              widget.onInteractionStart?.call(),
+                          onChangeEnd: (_) => widget.onInteractionEnd?.call(),
                         ),
-                        // Playback Speed Controls
-                        ValueListenableBuilder<bool>(
-                          valueListenable: player.paused,
-                          builder: (context, isPaused, child) {
-                            return Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Tooltip(
-                                  message: "Playback Speed",
-                                  child: Text(
-                                    "Spd",
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: ValueListenableBuilder<double>(
-                                    valueListenable: player.playbackSpeed,
-                                    builder: (context, speed, child) {
-                                      return SizedBox(
-                                        height: sliderHeight,
-                                        child: Slider(
-                                          value: speed,
-                                          min: 0.5,
-                                          max: 2.0,
-                                          divisions: 15,
-                                          label: '${speed.toStringAsFixed(1)}x',
-                                          onChanged: isPaused
-                                              ? player.setPlaybackSpeed
-                                              : null, // Disable when not paused
-                                          onChangeStart: (_) =>
-                                              widget.onInteractionStart?.call(),
-                                          onChangeEnd: (_) =>
-                                              widget.onInteractionEnd?.call(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                        // Min/Max Range Slider
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Tooltip(
-                              message: "Min/Max Stroke Range",
-                              child: Text(
-                                "Rng",
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ),
-                            Expanded(
-                              child: SizedBox(
-                                height: sliderHeight,
-                                child: RangeSlider(
-                                  values: minMax,
-                                  min: 0,
-                                  max: 100,
-                                  divisions: 100,
-                                  labels: RangeLabels(
-                                    minMax.start.round().toString(),
-                                    minMax.end.round().toString(),
-                                  ),
-                                  onChanged: (values) {
-                                    setState(() {
-                                      minMax = values;
-                                      _debouncer.run(() {
-                                        _model.settings.setMinMax(
-                                          values.start.round(),
-                                          values.end.round(),
-                                        );
-                                      });
-                                    });
-                                  },
-                                  onChangeStart: (_) =>
-                                      widget.onInteractionStart?.call(),
-                                  onChangeEnd: (_) =>
-                                      widget.onInteractionEnd?.call(),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                  const SizedBox(width: 16),
-                  // Heatmap
-                  Expanded(
-                    child: SizedBox(
-                      height: 50,
-                      child: ValueListenableBuilder<Funscript?>(
-                        valueListenable: player.currentFunscript,
-                        builder: (context, funscript, child) {
-                          if (funscript == null) {
-                            return const Center(
-                              child: Text("No funscript loaded"),
-                            );
-                          }
-                          return Heatmap(
-                            funscript: funscript,
-                            totalDuration: player.duration,
-                            videoPosition: player.positionNoOffset,
-                            onClick: (d) =>
-                                player.seekTo(d.inSeconds.toDouble()),
-                            onInteractionStart: widget.onInteractionStart,
-                            onInteractionEnd: widget.onInteractionEnd,
-                          );
-                        },
-                      ),
-                    ),
+                  const Spacer(),
+                  // Toggle Graph Button
+                  ValueListenableBuilder<bool>(
+                    valueListenable: widget.showFunscriptGraphNotifier,
+                    builder: (context, showGraph, child) {
+                      return IconButton(
+                        icon: Icon(
+                          showGraph ? Icons.timeline : Icons.timeline_sharp,
+                        ),
+                        tooltip: showGraph ? "Hide Graph" : "Show Graph",
+                        onPressed: () =>
+                            widget.onToggleFunscriptGraph?.call(!showGraph),
+                      );
+                    },
                   ),
-                  const SizedBox(width: 16),
+                  // Settings
+                  SettingsPopupMenu(
+                    onInteractionStart: widget.onInteractionStart,
+                    onInteractionEnd: widget.onInteractionEnd,
+                  ),
+                  const SizedBox(width: 8.0),
                   // Fullscreen Button
                   IconButton(
                     icon: const Icon(Icons.fullscreen),
+                    tooltip: "Fullscreen",
                     onPressed: widget.onFullscreenToggle,
+                    alignment: AlignmentDirectional.centerEnd,
                   ),
                 ],
               ),
@@ -260,5 +180,11 @@ class _VideoControlsState extends State<VideoControls> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _hoverExitTimer?.cancel();
+    super.dispose();
   }
 }

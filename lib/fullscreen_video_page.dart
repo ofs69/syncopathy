@@ -27,6 +27,7 @@ class FullscreenVideoPage extends StatefulWidget {
 class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
   bool _showControls = true;
   Timer? _hideControlsTimer;
+  late final ValueNotifier<bool> _showFunscriptGraphNotifier;
 
   @override
   void initState() {
@@ -37,6 +38,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
       DeviceOrientation.landscapeRight,
     ]);
     _startHideControlsTimer();
+    _showFunscriptGraphNotifier = ValueNotifier<bool>(true);
   }
 
   @override
@@ -49,6 +51,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+    _showFunscriptGraphNotifier.dispose();
     super.dispose();
   }
 
@@ -174,6 +177,10 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                             onInteractionEnd: () {
                               _startHideControlsTimer();
                             },
+                            showFunscriptGraphNotifier:
+                                _showFunscriptGraphNotifier,
+                            onToggleFunscriptGraph: (value) =>
+                                _showFunscriptGraphNotifier.value = value,
                           ),
                         ),
                       ),
