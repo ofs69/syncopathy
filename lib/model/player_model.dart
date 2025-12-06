@@ -34,6 +34,7 @@ class PlayerModel extends ChangeNotifier {
 
   final ValueNotifier<Playlist?> playlist = ValueNotifier(null);
   bool _hasTriggeredNextVideo = false;
+  bool _playlistTriggeredNextShouldPlay = false;
 
   ValueNotifier<Video?> currentVideo = ValueNotifier(null);
   ValueNotifier<Funscript?> currentFunscript = ValueNotifier(null);
@@ -129,6 +130,7 @@ class PlayerModel extends ChangeNotifier {
           playlist.value!.videos.length - 1) {
         _hasTriggeredNextVideo =
             true; // Prevent multiple triggers for the same video
+        _playlistTriggeredNextShouldPlay = !paused.value;
         playlist.value!.next();
       }
     }
@@ -229,7 +231,8 @@ class PlayerModel extends ChangeNotifier {
       }
       await _handlePositionChanged();
 
-      if (_settings.autoPlay.value) {
+      if (_settings.autoPlay.value || _playlistTriggeredNextShouldPlay) {
+        _playlistTriggeredNextShouldPlay = false;
         play();
       }
 
