@@ -134,9 +134,9 @@ class CustomAppBarState extends State<CustomAppBar> {
         ),
         if (widget.player.playlist.value != null) const SizedBox(width: 16),
         const PlaylistControls(),
-        const SizedBox(width: 20),
+        const SizedBox(width: 24),
         const UpdateCheckerWidget(),
-        const SizedBox(width: 20),
+        const SizedBox(width: 8),
         ValueListenableBuilder<BatteryState?>(
           valueListenable: widget.batteryState,
           builder: (context, batteryState, child) {
@@ -162,7 +162,7 @@ class CustomAppBarState extends State<CustomAppBar> {
           },
         ),
         const Padding(
-          padding: EdgeInsets.only(right: 20.0),
+          padding: EdgeInsets.only(right: 8.0),
           child: ConnectionButton(),
         ),
         // Window control buttons
