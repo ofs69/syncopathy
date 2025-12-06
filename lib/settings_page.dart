@@ -12,8 +12,7 @@ import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncopathy/video_thumbnail.dart';
 import 'package:syncopathy/notification_feed.dart';
-
-
+import 'package:flutter/foundation.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -151,7 +150,7 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Call super.build(context)
+    super.build(context);
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -226,6 +225,12 @@ class _SettingsPageState extends State<SettingsPage>
         title: 'Data Management',
         children: [_buildAppDataSettings(context)],
       ),
+      if (kDebugMode)
+        _buildSettingsCard(
+          context,
+          title: 'Debug',
+          children: [_buildDebugSettings(context)],
+        ),
     ];
   }
 
@@ -255,6 +260,10 @@ class _SettingsPageState extends State<SettingsPage>
       allCards[0], // Media Library Paths
       allCards[1], // Funscript Processing
     ];
+
+    if (allCards.length > 6) {
+      column1Cards.add(allCards[6]); // Debug Card
+    }
 
     final List<Widget> column2Cards = [
       allCards[2], // Stroke Range
@@ -712,7 +721,26 @@ class _SettingsPageState extends State<SettingsPage>
             }
           },
         ),
+      ],
+    );
+  }
 
+  Widget _buildDebugSettings(BuildContext context) {
+    return Column(
+      children: [
+        SwitchListTile(
+          title: const Text('Toggle debug notifications'),
+          subtitle: const Text(
+            'Shows extra notifications with debug information.',
+          ),
+          value: _model.showDebugNotifications.value,
+          onChanged: (value) {
+            setState(() {
+              _model.showDebugNotifications.value = value;
+            });
+          },
+          secondary: const Icon(Icons.bug_report),
+        ),
       ],
     );
   }

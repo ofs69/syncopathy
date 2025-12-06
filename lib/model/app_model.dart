@@ -9,6 +9,7 @@ class SyncopathyModel extends ChangeNotifier {
   final MediaManager mediaManager;
   late final PlayerModel player;
   ValueNotifier<UserCategory?> selectedCategory = ValueNotifier(null);
+  ValueNotifier<bool> showDebugNotifications = ValueNotifier(false);
 
   SyncopathyModel(this.settings, this.mediaManager) {
     player = PlayerModel(settings);

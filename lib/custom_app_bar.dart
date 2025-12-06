@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/connection_button.dart';
 import 'package:syncopathy/model/app_model.dart';
@@ -18,7 +17,6 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
     required this.widgetTitle,
     required this.currentVideo,
     required this.player,
-    required this.showDebugNotifications,
     required this.batteryState,
   });
 
@@ -26,7 +24,6 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String widgetTitle;
   final Video? currentVideo;
   final PlayerModel player;
-  final ValueNotifier<bool> showDebugNotifications;
   final ValueNotifier<BatteryState?> batteryState;
 
   @override
@@ -168,25 +165,6 @@ class CustomAppBarState extends State<CustomAppBar> {
           padding: EdgeInsets.only(right: 20.0),
           child: ConnectionButton(),
         ),
-        if (kDebugMode)
-          Row(
-            children: [
-              Tooltip(
-                message: 'Toggle debug notifications',
-                child: ValueListenableBuilder<bool>(
-                  valueListenable: widget.showDebugNotifications,
-                  builder: (context, value, child) {
-                    return Switch(
-                      value: value,
-                      onChanged: (newValue) {
-                        widget.showDebugNotifications.value = newValue;
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
         // Window control buttons
         WindowCaptionButton.minimize(
           brightness: Theme.of(context).brightness,

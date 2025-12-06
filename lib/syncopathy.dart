@@ -61,7 +61,6 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     _videoPlayerFocusNode = FocusNode();
     final player = context.read<PlayerModel>();
     player.currentVideo.addListener(_handleVideoChange);
-    _showDebugNotifications = ValueNotifier<bool>(false);
 
     // Check for database reset and show dialog if necessary
     if (DatabaseHelper().databaseWasReset) {
@@ -82,11 +81,8 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     final player = context.read<PlayerModel>();
     player.currentVideo.removeListener(_handleVideoChange);
     _videoPlayerFocusNode.dispose();
-    _showDebugNotifications.dispose();
     super.dispose();
   }
-
-  late ValueNotifier<bool> _showDebugNotifications;
 
   void _onTabChanged(int index) {
     if (_selectedIndex == index) {
@@ -155,7 +151,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     final currentVideo = player.currentVideo.value;
 
     return LogNotificationObserver(
-      showDebugNotifications: _showDebugNotifications,
+      showDebugNotifications: context.watch<SyncopathyModel>().showDebugNotifications,
       child: Stack(
         children: [
           ShortcutHandler(
@@ -167,7 +163,6 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                 widgetTitle: widget.title,
                 currentVideo: currentVideo,
                 player: player,
-                showDebugNotifications: _showDebugNotifications,
                 batteryState: player.batteryState,
               ),
               body: Row(
