@@ -109,7 +109,10 @@ class ExpressionVisualizer extends StatelessWidget {
         break;
       case ParameterNode(name: final name, value: final value):
         spans.add(TextSpan(
-            text: '$name:',
+            text: name,
+            style: TextStyle(color: theme.colorScheme.secondary)));
+        spans.add(TextSpan(
+            text: ':',
             style: TextStyle(color: theme.colorScheme.secondary)));
         spans.add(TextSpan(
             text: value,

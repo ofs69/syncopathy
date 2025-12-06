@@ -104,5 +104,15 @@ void main() {
         const EOFToken(),
       ]);
     });
+
+    test('should tokenize date string with hyphens as a single token', () {
+      final tokenizer = SearchExpressionTokenizer();
+      final tokens = tokenizer.tokenize('date:2023-01-15');
+      expect(tokens, [
+        const KeywordToken(KeywordEnum.date),
+        const StringToken('2023-01-15'),
+        const EOFToken(),
+      ]);
+    });
   });
 }

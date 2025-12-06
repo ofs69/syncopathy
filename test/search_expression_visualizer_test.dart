@@ -76,5 +76,119 @@ void main() {
       // ')'
       expect((children[7] as TextSpan).text, ')');
     });
+
+    testWidgets('should visualize an empty expression', (WidgetTester tester) async {
+      final theme = ThemeData(colorScheme: ColorScheme.fromSwatch());
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(
+            body: ExpressionVisualizer(expression: ''),
+          ),
+        ),
+      );
+
+      final richTextFinder = find.byType(RichText);
+      expect(richTextFinder, findsOneWidget);
+      final RichText richText = tester.widget(richTextFinder);
+      final TextSpan textSpan = richText.text as TextSpan;
+
+      expect(textSpan.children, isEmpty);
+    });
+
+    testWidgets('should visualize a single word', (WidgetTester tester) async {
+      final theme = ThemeData(colorScheme: ColorScheme.fromSwatch());
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(
+            body: ExpressionVisualizer(expression: 'hello'),
+          ),
+        ),
+      );
+
+      final richTextFinder = find.byType(RichText);
+      expect(richTextFinder, findsOneWidget);
+      final RichText richText = tester.widget(richTextFinder);
+      final TextSpan textSpan = richText.text as TextSpan;
+
+      expect(textSpan.children, isA<List<InlineSpan>>());
+      final children = textSpan.children!;
+      expect(children.length, 1);
+      expect((children[0] as TextSpan).text, 'hello');
+    });
+
+    testWidgets('should visualize multiple words as implicit AND', (WidgetTester tester) async {
+      final theme = ThemeData(colorScheme: ColorScheme.fromSwatch());
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(
+            body: ExpressionVisualizer(expression: 'hello world'),
+          ),
+        ),
+      );
+
+      final richTextFinder = find.byType(RichText);
+      expect(richTextFinder, findsOneWidget);
+      final RichText richText = tester.widget(richTextFinder);
+      final TextSpan textSpan = richText.text as TextSpan;
+
+      expect(textSpan.children, isA<List<InlineSpan>>());
+      final children = textSpan.children!;
+      expect(children.length, 3); // hello, ' AND ', world
+      expect((children[0] as TextSpan).text, 'hello');
+      expect((children[1] as TextSpan).text, ' AND ');
+      expect((children[1] as TextSpan).style?.color, theme.colorScheme.primary);
+      expect((children[2] as TextSpan).text, 'world');
+    });
+
+    testWidgets('should visualize a simple exclude', (WidgetTester tester) async {
+      final theme = ThemeData(colorScheme: ColorScheme.fromSwatch());
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(
+            body: ExpressionVisualizer(expression: '-exclude'),
+          ),
+        ),
+      );
+
+      final richTextFinder = find.byType(RichText);
+      expect(richTextFinder, findsOneWidget);
+      final RichText richText = tester.widget(richTextFinder);
+      final TextSpan textSpan = richText.text as TextSpan;
+
+      expect(textSpan.children, isA<List<InlineSpan>>());
+      final children = textSpan.children!;
+      expect(children.length, 2); // 'NOT ', exclude
+      expect((children[0] as TextSpan).text, 'NOT ');
+      expect((children[0] as TextSpan).style?.color, theme.colorScheme.error);
+      expect((children[1] as TextSpan).text, 'exclude');
+    });
+
+    testWidgets('should visualize a simple path keyword', (WidgetTester tester) async {
+      final theme = ThemeData(colorScheme: ColorScheme.fromSwatch());
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(
+            body: ExpressionVisualizer(expression: 'path:some/path'),
+          ),
+        ),
+      );
+
+      final richTextFinder = find.byType(RichText);
+      expect(richTextFinder, findsOneWidget);
+      final RichText richText = tester.widget(richTextFinder);
+      final TextSpan textSpan = richText.text as TextSpan;
+
+      expect(textSpan.children, isA<List<InlineSpan>>());
+      final children = textSpan.children!;
+      expect(children.length, 3); // path, ':', some/path
+      expect((children[0] as TextSpan).text, 'path');
+      expect((children[1] as TextSpan).text, ':');
+      expect((children[2] as TextSpan).text, 'some/path');
+    });
   });
 }
