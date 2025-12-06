@@ -39,6 +39,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
 class CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
+    var playerModel = context.read<SyncopathyModel>();
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: DragToMoveArea(
@@ -88,10 +89,9 @@ class CustomAppBarState extends State<CustomAppBar> {
                             widget.currentVideo!.isDislike = false;
                           }
                         });
-                        context
-                            .read<SyncopathyModel>()
-                            .mediaManager
-                            .saveFavorite(widget.currentVideo!);
+                        playerModel.mediaManager.saveFavorite(
+                          widget.currentVideo!,
+                        );
                       },
                       tooltip: widget.currentVideo!.isFavorite
                           ? 'Remove from Favorites'
@@ -114,10 +114,9 @@ class CustomAppBarState extends State<CustomAppBar> {
                             widget.currentVideo!.isFavorite = false;
                           }
                         });
-                        context
-                            .read<SyncopathyModel>()
-                            .mediaManager
-                            .saveDislike(widget.currentVideo!);
+                        playerModel.mediaManager.saveDislike(
+                          widget.currentVideo!,
+                        );
                       },
                       tooltip: widget.currentVideo!.isDislike
                           ? 'Remove Dislike'
@@ -126,8 +125,11 @@ class CustomAppBarState extends State<CustomAppBar> {
                     const SizedBox(width: 16),
                     IconButton(
                       icon: const Icon(Icons.close),
-                      onPressed: () => widget.player.closeVideo(),
-                      tooltip: 'Close Video',
+                      onPressed: () =>
+                          playerModel.player.closeVideoOrPlaylist(),
+                      tooltip: playerModel.player.playlist.value != null
+                          ? 'Close Playlist'
+                          : 'Close Video',
                     ),
                   ],
                 )

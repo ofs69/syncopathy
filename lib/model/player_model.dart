@@ -210,7 +210,6 @@ class PlayerModel extends ChangeNotifier {
 
         if (!videoFoundInExistingPlaylist) {
           clearPlaylist();
-          _setLooping(true);
         }
       } else {
         _setLooping(false);
@@ -305,6 +304,7 @@ class PlayerModel extends ChangeNotifier {
   void clearPlaylist() {
     playlist.value?.removeListener(_handlePlaylistChange);
     playlist.value = null;
+    _setLooping(true);
   }
 
   void setPlaylist(List<Video> videos, int initialIndex) {
@@ -322,5 +322,12 @@ class PlayerModel extends ChangeNotifier {
     if (newPlaylist.currentVideo != null) {
       openVideoAndScript(newPlaylist.currentVideo!, true);
     }
+  }
+
+  Future<void> closeVideoOrPlaylist() async {
+    if (playlist.value != null) {
+      clearPlaylist();
+    }
+    await closeVideo();
   }
 }
