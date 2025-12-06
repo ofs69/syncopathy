@@ -100,9 +100,7 @@ void main() {
         const OperatorToken(OperatorEnum.and),
         const StringToken('bar'),
         const OperatorToken(OperatorEnum.or),
-        const StringToken('baz'),
-        const OperatorToken(OperatorEnum.exclude),
-        const StringToken('qux'),
+        const StringToken('baz-qux'),
         const EOFToken(),
       ]);
     });
