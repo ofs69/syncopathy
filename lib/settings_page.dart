@@ -66,18 +66,18 @@ class _SettingsPageState extends State<SettingsPage>
   void dispose() {
     _model.settings.min.removeListener(_onSettingsChanged);
     _model.settings.max.removeListener(_onSettingsChanged);
-    // _model.settings.offsetMs.removeListener(_onSettingsChanged);
-    // _model.settings.mediaPaths.removeListener(_onSettingsChanged);
-    // _model.settings.slewMaxRateOfChange.removeListener(_onSettingsChanged);
-    // _model.settings.rdpEpsilon.removeListener(_onSettingsChanged);
-    // _model.settings.remapFullRange.removeListener(_onSettingsChanged);
-    // _model.settings.skipToAction.removeListener(_onSettingsChanged);
-    // _model.settings.autoSwitchToVideoPlayerTab.removeListener(
-    //   _onSettingsChanged,
-    // );
-    // _model.settings.embeddedVideoPlayer.removeListener(_onSettingsChanged);
-    // _model.settings.autoPlay.removeListener(_onSettingsChanged);
-    // _model.settings.invert.removeListener(_onSettingsChanged);
+    _model.settings.offsetMs.removeListener(_onSettingsChanged);
+    _model.settings.mediaPaths.removeListener(_onSettingsChanged);
+    _model.settings.slewMaxRateOfChange.removeListener(_onSettingsChanged);
+    _model.settings.rdpEpsilon.removeListener(_onSettingsChanged);
+    _model.settings.remapFullRange.removeListener(_onSettingsChanged);
+    _model.settings.skipToAction.removeListener(_onSettingsChanged);
+    _model.settings.autoSwitchToVideoPlayerTab.removeListener(
+      _onSettingsChanged,
+    );
+    _model.settings.embeddedVideoPlayer.removeListener(_onSettingsChanged);
+    _model.settings.autoPlay.removeListener(_onSettingsChanged);
+    _model.settings.invert.removeListener(_onSettingsChanged);
     super.dispose();
   }
 
