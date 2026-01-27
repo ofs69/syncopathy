@@ -66,8 +66,12 @@ class Funscript {
   /// Optional metadata.
   final FunscriptMetadata? metadata;
 
+  /// The file path.
   final String filePath;
   String get fileName => p.basename(filePath);
+
+  /// If it's a script token.
+  late final bool likelyScriptToken;
 
   Funscript({
     this.version = "1.0",
@@ -76,7 +80,37 @@ class Funscript {
     required this.actions,
     this.metadata,
     required this.filePath,
-  });
+  }) {
+    // remove duplicate timestamps
+    final uniqueActions = <FunscriptAction>[];
+    final seenTimestamps = <int>{};
+    for (final action in actions) {
+      if (seenTimestamps.add(action.at)) {
+        uniqueActions.add(action);
+      }
+    }
+    likelyScriptToken = _isScriptToken(actions);
+    actions = uniqueActions;
+  }
+
+  // This determines if something is likely a script token
+  // If this is true it is highly unlikely that it isn't
+  // False positives are also unlikely
+  bool _isScriptToken(List<FunscriptAction> actions) {
+    // 'magic' number for script token
+    const magic = 136740671;
+    // Script tokens can not be empty or have more than 100 actions.
+    if (actions.isEmpty || actions.length > 100) {
+      return false;
+    }
+    // Check if the script contains the token signal marker.
+    for (final a in actions) {
+      if (a.pos == 0 && a.at == magic % actions.length) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   int getIndexBefore(int time) {
     var test = FunscriptAction(at: time, pos: 0);
@@ -100,15 +134,6 @@ class Funscript {
     actions.sort();
     actions.removeWhere((action) => action.at < 0);
 
-    // remove duplicate timestamps
-    final uniqueActions = <FunscriptAction>[];
-    final seenTimestamps = <int>{};
-    for (final action in actions) {
-      if (seenTimestamps.add(action.at)) {
-        uniqueActions.add(action);
-      }
-    }
-
     final metadataMap = json['metadata'] as Map<String, dynamic>?;
     FunscriptMetadata? metadata;
     if (metadataMap != null) {
@@ -123,7 +148,7 @@ class Funscript {
       version: json['version'] as String? ?? "1.0",
       inverted: json['inverted'] as bool? ?? false,
       range: json['range'] as int? ?? 90,
-      actions: uniqueActions,
+      actions: actions,
       metadata: metadata,
       filePath: filePath,
     );

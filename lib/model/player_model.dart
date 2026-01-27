@@ -179,6 +179,12 @@ class PlayerModel extends ChangeNotifier {
       return false;
     }
 
+    if (funscriptFile.likelyScriptToken) {
+      Logger.error("Funscript token playback is not supported!");
+      currentFunscript.value = null;
+      return false;
+    }
+
     funscriptFile.originalActions = List.from(funscriptFile.actions);
     funscriptFile.actions = FunscriptAlgorithms.processForHandy(
       List.from(funscriptFile.actions),
@@ -216,7 +222,9 @@ class PlayerModel extends ChangeNotifier {
       }
 
       await closeVideo();
-      await _loadAndProcessFunscript(video.funscriptPath);
+      if (!await _loadAndProcessFunscript(video.funscriptPath)) {
+        throw Exception("Failed to load funscript.");
+      }
       await _mpvPlayer.loadFile(video.videoPath);
       await pause();
 

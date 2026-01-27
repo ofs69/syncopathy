@@ -228,7 +228,9 @@ class MediaManager {
     var videosInDb = await DatabaseHelper().getAllVideos();
     for (var video in videosInDb) {
       if (!videosFoundOnDisk.any(
-        (element) => element.videoPath == video.videoPath,
+        (element) =>
+            element.videoPath == video.videoPath &&
+            element.funscriptPath == video.funscriptPath,
       )) {
         await DatabaseHelper().deleteVideo(video.id!);
       }
@@ -236,7 +238,6 @@ class MediaManager {
 
     // Fetch videos again after deleting
     videosInDb = await DatabaseHelper().getAllVideos();
-
 
     List<Video> insertVideoBatch = List.empty(growable: true);
     List<Video> updateVideoBatch = List.empty(growable: true);
