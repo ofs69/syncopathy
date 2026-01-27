@@ -234,6 +234,10 @@ class MediaManager {
       }
     }
 
+    // Fetch videos again after deleting
+    videosInDb = await DatabaseHelper().getAllVideos();
+
+
     List<Video> insertVideoBatch = List.empty(growable: true);
     List<Video> updateVideoBatch = List.empty(growable: true);
     List<FunscriptMetadata> updateMetadataBatch = List.empty(growable: true);
