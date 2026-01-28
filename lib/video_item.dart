@@ -22,6 +22,7 @@ class VideoItem extends StatefulWidget {
     this.showAverageSpeed = true,
     this.showAverageMinMax = true,
     this.showDuration = true,
+    this.showPlayCount = true,
   });
 
   final Video video;
@@ -36,6 +37,7 @@ class VideoItem extends StatefulWidget {
   final bool showAverageSpeed;
   final bool showAverageMinMax;
   final bool showDuration;
+  final bool showPlayCount;
 
   @override
   State<VideoItem> createState() => _VideoItemState();
@@ -249,73 +251,41 @@ class _VideoItemState extends State<VideoItem> {
                       child: Column(
                         children: [
                           if (widget.showDuration)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                                vertical: 4.0,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(4.0),
-                              ),
-                              child: Tooltip(
-                                message: "Duration",
-                                child: Text(
-                                  _formatDuration(widget.video.duration),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
+                            _buildStatisticItem(
+                              icon: Icons.timer,
+                              text: _formatDuration(widget.video.duration),
+                              tooltipMessage: "Duration",
                             ),
                           if (widget.showDuration) const SizedBox(height: 4.0),
                           if (widget.showAverageSpeed)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                                vertical: 4.0,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(4.0),
-                              ),
-                              child: Tooltip(
-                                message: "Average Speed",
-                                child: Text(
-                                  '${widget.video.averageSpeed.round()}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
+                            _buildStatisticItem(
+                              icon: Icons.speed,
+                              text: '${widget.video.averageSpeed.round()}',
+                              tooltipMessage: "Average Speed",
                             ),
                           if (widget.showAverageSpeed)
                             const SizedBox(height: 4.0),
                           if (widget.showAverageMinMax)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                                vertical: 4.0,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(4.0),
-                              ),
-                              child: Tooltip(
-                                message: "Average Min / Max",
-                                child: Text(
+                            _buildStatisticItem(
+                              icon: Icons.stacked_line_chart,
+                              text:
                                   '${widget.video.averageMin.round()}-${widget.video.averageMax.round()}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
+                              tooltipMessage: "Average Min / Max",
+                            ),
+                          if (widget.showPlayCount) const SizedBox(height: 4.0),
+                          // Play count indicator
+                          if (widget.showPlayCount)
+                            _buildStatisticItem(
+                              icon: widget.video.playCount > 0
+                                  ? Icons.play_arrow
+                                  : Icons.visibility_off,
+                              text: widget.video.playCount > 0
+                                  ? '${widget.video.playCount}'
+                                  : '',
+                              tooltipMessage: widget.video.playCount > 0
+                                  ? 'Watched ${widget.video.playCount} times'
+                                  : 'Not watched yet',
+                              color: Colors.black54,
                             ),
                         ],
                       ),
@@ -400,4 +370,41 @@ class _VideoItemState extends State<VideoItem> {
   String getVideoTooltip(Video video) {
     return video.title;
   }
+
+  Widget _buildStatisticItem({
+    required IconData icon,
+    required String text,
+    required String tooltipMessage,
+    Color color = Colors.black54, // Default to black54 for consistency
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8.0,
+        vertical: 4.0,
+      ),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(4.0),
+      ),
+      child: Tooltip(
+        message: tooltipMessage,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 12),
+            const SizedBox(width: 4.0),
+            Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }

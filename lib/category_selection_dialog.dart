@@ -200,7 +200,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
               onTap: () => Navigator.of(context).pop(widget.uncategorized),
             );
           }
-        }).toList(),
+        }),
         Expanded(
           child: ReorderableListView.builder(
             buildDefaultDragHandles: false,

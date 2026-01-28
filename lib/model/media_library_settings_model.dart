@@ -18,6 +18,7 @@ class MediaLibrarySettingsModel {
   late ValueNotifier<bool> showAverageSpeed;
   late ValueNotifier<bool> showAverageMinMax;
   late ValueNotifier<bool> showDuration;
+  late ValueNotifier<bool> showPlayCount;
   late ValueNotifier<bool> separateFavorites;
   late ValueNotifier<Set<VideoFilter>> visibilityFilters;
 
@@ -32,6 +33,7 @@ class MediaLibrarySettingsModel {
     showAverageSpeed = ValueNotifier<bool>(true);
     showAverageMinMax = ValueNotifier<bool>(true);
     showDuration = ValueNotifier<bool>(true);
+    showPlayCount = ValueNotifier<bool>(true);
     separateFavorites = ValueNotifier<bool>(true);
     visibilityFilters = ValueNotifier<Set<VideoFilter>>({});
   }
@@ -45,6 +47,7 @@ class MediaLibrarySettingsModel {
     showAverageSpeed.value = _entity.showAverageSpeed;
     showAverageMinMax.value = _entity.showAverageMinMax;
     showDuration.value = _entity.showDuration;
+    showPlayCount.value = _entity.showPlayCount;
     separateFavorites.value = _entity.separateFavorites;
     visibilityFilters.value = _entity.visibilityFilters
         .map((id) => VideoFilter.values.firstWhere((f) => f.id == id))
@@ -102,6 +105,12 @@ class MediaLibrarySettingsModel {
     _entity.showDuration = value;
     await _save();
     showDuration.value = value;
+  }
+
+  Future<void> setShowPlayCount(bool value) async {
+    _entity.showPlayCount = value;
+    await _save();
+    showPlayCount.value = value;
   }
 
   Future<void> setSeparateFavorites(bool value) async {

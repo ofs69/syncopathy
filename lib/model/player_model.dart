@@ -9,6 +9,7 @@ import 'package:syncopathy/model/playlist.dart';
 import 'package:syncopathy/model/settings_model.dart';
 
 import 'package:syncopathy/sqlite/models/video_model.dart';
+import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/player/funscript_stream_controller.dart';
 import 'package:syncopathy/player/handy_ble.dart';
 import 'package:syncopathy/player/mpv.dart';
@@ -228,6 +229,8 @@ class PlayerModel extends ChangeNotifier {
       await _mpvPlayer.loadFile(video.videoPath);
       await pause();
 
+      video.playCount++;
+      await DatabaseHelper().updateVideo(video); // Persist playCount
       currentVideo.value = video;
 
       if (_settings.skipToAction.value) {

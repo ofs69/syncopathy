@@ -27,6 +27,7 @@ enum SortOption {
   depth('Depth'),
   duration('Duration'),
   lastModified('Last Modified'),
+  playCount('Play Count'),
   random('Random'),
   pca('PCA (Experimental)');
 
@@ -303,6 +304,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
           break;
         case SortOption.lastModified:
           compareResult = a.dateFirstFound.compareTo(b.dateFirstFound);
+          break;
+        case SortOption.playCount:
+          compareResult = a.playCount.compareTo(b.playCount);
           break;
         case SortOption.random:
           compareResult = 0;
@@ -684,6 +688,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
               _mediaLibrarySettings.setSeparateFavorites(
                 !_mediaLibrarySettings.separateFavorites.value,
               );
+            } else if (value == 'show_play_count') {
+              _mediaLibrarySettings.setShowPlayCount(
+                !_mediaLibrarySettings.showPlayCount.value,
+              );
             }
           },
           itemBuilder: (BuildContext context) {
@@ -722,6 +730,11 @@ class _MediaLibraryState extends State<MediaLibrary> {
                 value: 'show_duration',
                 checked: _mediaLibrarySettings.showDuration.value,
                 child: const Text('Show Duration'),
+              ),
+              CheckedPopupMenuItem<String>(
+                value: 'show_play_count',
+                checked: _mediaLibrarySettings.showPlayCount.value,
+                child: const Text('Show Play Count'),
               ),
             ];
           },
@@ -884,6 +897,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
                               _mediaLibrarySettings.showAverageMinMax.value,
                           showDuration:
                               _mediaLibrarySettings.showDuration.value,
+                          showPlayCount:
+                              _mediaLibrarySettings.showPlayCount.value,
                           onVideoTapped: (video) {
                             if (_isSelectionMode) {
                               setState(() {

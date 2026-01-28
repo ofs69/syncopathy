@@ -11,6 +11,7 @@ class MediaLibrarySettings {
   bool showAverageSpeed;
   bool showAverageMinMax;
   bool showDuration;
+  bool showPlayCount;
   bool separateFavorites;
   List<String> visibilityFilters;
 
@@ -22,6 +23,7 @@ class MediaLibrarySettings {
     this.showAverageSpeed = true,
     this.showAverageMinMax = true,
     this.showDuration = true,
+    this.showPlayCount = true,
     this.separateFavorites = true,
     this.visibilityFilters = const [],
   });
@@ -36,6 +38,7 @@ class MediaLibrarySettings {
       'showAverageSpeed': showAverageSpeed ? 1 : 0,
       'showAverageMinMax': showAverageMinMax ? 1 : 0,
       'showDuration': showDuration ? 1 : 0,
+      'showPlayCount': showPlayCount ? 1 : 0,
       'separateFavorites': separateFavorites ? 1 : 0,
       'visibilityFilters': jsonEncode(visibilityFilters),
     };
@@ -51,6 +54,7 @@ class MediaLibrarySettings {
       showAverageSpeed: map['showAverageSpeed'] == 1,
       showAverageMinMax: map['showAverageMinMax'] == 1,
       showDuration: map['showDuration'] == 1,
+      showPlayCount: map['showPlayCount'] == 1,
       separateFavorites: map['separateFavorites'] == 1,
       visibilityFilters: List<String>.from(jsonDecode(map['visibilityFilters'])),
     );

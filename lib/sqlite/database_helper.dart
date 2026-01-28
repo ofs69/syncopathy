@@ -26,6 +26,7 @@ class DatabaseHelper {
     "000001_initialize_db.sql",
     "000002_add_play_count_to_videos.sql",
     "000003_add_sort_order_to_user_categories.sql",
+    "000004_add_show_play_count_to_media_library_settings.sql",
   ];
 
   Future<Database> get database async {
