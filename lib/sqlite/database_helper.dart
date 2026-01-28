@@ -25,6 +25,7 @@ class DatabaseHelper {
   final _migrations = [
     "000001_initialize_db.sql",
     "000002_add_play_count_to_videos.sql",
+    "000003_add_sort_order_to_user_categories.sql",
   ];
 
   Future<Database> get database async {
@@ -165,10 +166,22 @@ class DatabaseHelper {
 
   Future<List<UserCategory>> getAllUserCategories() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('user_categories');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'user_categories',
+      orderBy: 'sort_order ASC, id ASC',
+    );
     return List.generate(maps.length, (i) {
       return UserCategory.fromMap(maps[i]);
     });
+  }
+
+  Future<int> getMaxUserCategorySortOrder() async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT MAX(sort_order) as max_sort_order FROM user_categories',
+    );
+    final maxSortOrder = result.first['max_sort_order'];
+    return (maxSortOrder as int?) ?? 0;
   }
 
   Future<int> insertUserCategory(UserCategory category) async {
@@ -183,6 +196,25 @@ class DatabaseHelper {
   Future<int> deleteUserCategory(int id) async {
     final db = await database;
     return await db.delete('user_categories', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> updateUserCategorySortOrder(
+    List<UserCategory> categories,
+  ) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      final batch = txn.batch();
+      for (int i = 0; i < categories.length; i++) {
+        final category = categories[i];
+        batch.update(
+          'user_categories',
+          {'sort_order': i},
+          where: 'id = ?',
+          whereArgs: [category.id],
+        );
+      }
+      await batch.commit(noResult: true);
+    });
   }
 
   Future<int> insertFunscriptMetadata(FunscriptMetadata metadata) async {
@@ -259,9 +291,10 @@ class DatabaseHelper {
 
     // 3. Fetch all user categories and links
     final List<Map<String, dynamic>> categoryLinkMaps = await db.rawQuery('''
-    SELECT vucl.videoId, uc.id, uc.name, uc.description
+    SELECT vucl.videoId, uc.id, uc.name, uc.description, uc.sort_order
     FROM user_categories uc
     JOIN video_user_category_links vucl ON uc.id = vucl.userCategoryId
+    ORDER BY uc.sort_order ASC, uc.id ASC
   ''');
 
     // 4. Link categories to videos
@@ -273,6 +306,7 @@ class DatabaseHelper {
             'id': linkMap['id'],
             'name': linkMap['name'],
             'description': linkMap['description'],
+            'sort_order': linkMap['sort_order'],
           }),
         );
       }
@@ -437,10 +471,11 @@ class DatabaseHelper {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.rawQuery(
       '''
-      SELECT uc.id, uc.name, uc.description
+      SELECT uc.id, uc.name, uc.description, uc.sort_order
       FROM user_categories uc
       JOIN video_user_category_links vucl ON uc.id = vucl.userCategoryId
       WHERE vucl.videoId = ?
+      ORDER BY uc.sort_order ASC, uc.id ASC
     ''',
       [videoId],
     );

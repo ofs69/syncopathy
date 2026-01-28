@@ -3,11 +3,13 @@ class UserCategory {
   final int? id;
   final String name;
   final String? description;
+  final int sortOrder;
 
   UserCategory({
     this.id,
     required this.name,
     this.description,
+    this.sortOrder = 0,
   });
 
   Map<String, dynamic> toMap() {
@@ -15,6 +17,7 @@ class UserCategory {
       'id': id,
       'name': name,
       'description': description,
+      'sort_order': sortOrder,
     };
   }
 
@@ -23,6 +26,7 @@ class UserCategory {
       id: map['id'],
       name: map['name'],
       description: map['description'],
+      sortOrder: map['sort_order'] ?? 0,
     );
   }
 }

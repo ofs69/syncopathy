@@ -295,7 +295,13 @@ class MediaManager {
   }
 
   Future<void> createCategory(String name, {String? description}) async {
-    final category = UserCategory(name: name, description: description);
+    final maxSortOrder =
+        await DatabaseHelper().getMaxUserCategorySortOrder();
+    final category = UserCategory(
+      name: name,
+      description: description,
+      sortOrder: maxSortOrder + 1,
+    );
     await DatabaseHelper().insertUserCategory(category);
   }
 
