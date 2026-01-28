@@ -22,7 +22,10 @@ class DatabaseHelper {
   // Migrations must be added to this array,
   // in the order in which they should be applied
   // They must be created in lib/sqlite/migrations
-  final _migrations = ["000001_initialize_db.sql"];
+  final _migrations = [
+    "000001_initialize_db.sql",
+    "000002_add_play_count_to_videos.sql",
+  ];
 
   Future<Database> get database async {
     if (_database != null) return _database!;

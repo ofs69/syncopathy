@@ -16,6 +16,7 @@ class Video {
   double averageMax;
   bool isFavorite;
   bool isDislike;
+  int playCount;
   DateTime dateFirstFound;
   double? duration;
   int? funscriptMetadataId;
@@ -34,6 +35,7 @@ class Video {
     required this.averageMax,
     this.isFavorite = false,
     this.isDislike = false,
+    this.playCount = 0,
     required this.dateFirstFound,
     this.duration,
     this.funscriptMetadataId,
@@ -52,6 +54,7 @@ class Video {
       'averageMax': averageMax,
       'isFavorite': isFavorite ? 1 : 0,
       'isDislike': isDislike ? 1 : 0,
+      'playCount': playCount,
       'dateFirstFound': dateFirstFound.millisecondsSinceEpoch,
       'duration': duration,
       'funscriptMetadataId': funscriptMetadataId,
@@ -69,6 +72,7 @@ class Video {
       averageMax: map['averageMax'],
       isFavorite: map['isFavorite'] == 1,
       isDislike: map['isDislike'] == 1,
+      playCount: map['playCount'] ?? 0,
       dateFirstFound: DateTime.fromMillisecondsSinceEpoch(
         map['dateFirstFound'],
       ),
