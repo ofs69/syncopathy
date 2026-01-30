@@ -1,4 +1,3 @@
-import 'package:path/path.dart';
 import 'package:syncopathy/search_expression_ast.dart';
 import 'package:syncopathy/search_expression_lexer.dart';
 
