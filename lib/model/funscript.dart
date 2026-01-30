@@ -21,13 +21,13 @@ class FunscriptAction implements Comparable<FunscriptAction> {
   factory FunscriptAction.fromJson(Map<String, dynamic> json) {
     final at = json['at'];
     final pos = json['pos'];
-    if (at is! int || pos is! int) {
+    if (at is! num || pos is! num) {
       throw FormatException(
-        "Invalid Funscript action format: 'at' and 'pos' must be integers.",
+        "Invalid Funscript action format: 'at' and 'pos' must be number.",
         json,
       );
     }
-    return FunscriptAction(at: at, pos: pos.clamp(0, 100));
+    return FunscriptAction(at: at.round(), pos: pos.round().clamp(0, 100));
   }
 
   @override
