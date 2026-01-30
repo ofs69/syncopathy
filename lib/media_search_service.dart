@@ -44,6 +44,8 @@ class MediaSearchService {
       return _matchesDate(node.operator, node.value, video);
     } else if (node is DurationNode) {
       return _matchesDuration(node.operator, node.duration, video);
+    } else if (node is PlayedNode) {
+      return _matchesPlayed(node.operator, node.playedCount, video);
     }
     return false; // Should not reach here for valid nodes
   }
@@ -56,9 +58,18 @@ class MediaSearchService {
     final lowerCaseValue = value.toLowerCase();
     // Search across title, authors, tags, and performers for a general string
     return video.title.toLowerCase().contains(lowerCaseValue) ||
-        (video.funscriptMetadata?.creator?.toLowerCase().contains(lowerCaseValue) ?? false) ||
-        _checkMetadataFieldList(video.funscriptMetadata?.tags, lowerCaseValue) ||
-        _checkMetadataFieldList(video.funscriptMetadata?.performers, lowerCaseValue);
+        (video.funscriptMetadata?.creator?.toLowerCase().contains(
+              lowerCaseValue,
+            ) ??
+            false) ||
+        _checkMetadataFieldList(
+          video.funscriptMetadata?.tags,
+          lowerCaseValue,
+        ) ||
+        _checkMetadataFieldList(
+          video.funscriptMetadata?.performers,
+          lowerCaseValue,
+        );
   }
 
   bool _matchesParameter(String field, String value, Video video) {
@@ -73,12 +84,25 @@ class MediaSearchService {
     }
   }
 
-  bool _matchesDate(RelationalOperator operator, DateTime targetDate, Video video) {
-    final videoDate = video.dateFirstFound; // Assuming 'dateFirstFound' is the relevant date field for comparison
+  bool _matchesDate(
+    RelationalOperator operator,
+    DateTime targetDate,
+    Video video,
+  ) {
+    final videoDate = video
+        .dateFirstFound; // Assuming 'dateFirstFound' is the relevant date field for comparison
 
     // Extract only the date part for comparison
-    final videoDateOnly = DateTime(videoDate.year, videoDate.month, videoDate.day);
-    final targetDateOnly = DateTime(targetDate.year, targetDate.month, targetDate.day);
+    final videoDateOnly = DateTime(
+      videoDate.year,
+      videoDate.month,
+      videoDate.day,
+    );
+    final targetDateOnly = DateTime(
+      targetDate.year,
+      targetDate.month,
+      targetDate.day,
+    );
 
     switch (operator) {
       case RelationalOperator.equal:
@@ -88,14 +112,20 @@ class MediaSearchService {
       case RelationalOperator.less:
         return videoDateOnly.isBefore(targetDateOnly);
       case RelationalOperator.greaterOrEqual:
-        return videoDateOnly.isAfter(targetDateOnly) || videoDateOnly.isAtSameMomentAs(targetDateOnly);
+        return videoDateOnly.isAfter(targetDateOnly) ||
+            videoDateOnly.isAtSameMomentAs(targetDateOnly);
       case RelationalOperator.lessOrEqual:
-        return videoDateOnly.isBefore(targetDateOnly) || videoDateOnly.isAtSameMomentAs(targetDateOnly);
+        return videoDateOnly.isBefore(targetDateOnly) ||
+            videoDateOnly.isAtSameMomentAs(targetDateOnly);
     }
   }
 
-  bool _matchesDuration(RelationalOperator operator, Duration targetDuration, Video video) {
-    final actualVideoDuration = video.duration; // This is a double?
+  bool _matchesDuration(
+    RelationalOperator operator,
+    Duration targetDuration,
+    Video video,
+  ) {
+    final actualVideoDuration = video.duration;
     if (actualVideoDuration == null) {
       return false; // If video has no duration, it can't match any duration criteria
     }
@@ -114,6 +144,27 @@ class MediaSearchService {
         return actualVideoDuration >= targetDurationInSeconds;
       case RelationalOperator.lessOrEqual:
         return actualVideoDuration <= targetDurationInSeconds;
+    }
+  }
+
+  bool _matchesPlayed(
+    RelationalOperator operator,
+    int playedCount,
+    Video video,
+  ) {
+    final actualPlayCount = video.playCount; 
+
+    switch (operator) {
+      case RelationalOperator.equal:
+        return actualPlayCount == playedCount;
+      case RelationalOperator.greater:
+        return actualPlayCount > playedCount;
+      case RelationalOperator.less:
+        return actualPlayCount < playedCount;
+      case RelationalOperator.greaterOrEqual:
+        return actualPlayCount >= playedCount;
+      case RelationalOperator.lessOrEqual:
+        return actualPlayCount <= playedCount;
     }
   }
 }

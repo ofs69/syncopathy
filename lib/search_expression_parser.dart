@@ -1,3 +1,4 @@
+import 'package:path/path.dart';
 import 'package:syncopathy/search_expression_ast.dart';
 import 'package:syncopathy/search_expression_lexer.dart';
 
@@ -6,7 +7,7 @@ class TokenIterator {
   int _currentIndex = 0;
 
   TokenIterator(List<Token> tokens)
-      : _tokens = tokens.where((t) => t is! WhitespaceToken).toList();
+    : _tokens = tokens.where((t) => t is! WhitespaceToken).toList();
 
   Token get current => _tokens[_currentIndex];
   bool get isDone => current is EOFToken;
@@ -92,7 +93,8 @@ class SearchExpressionParser {
       final keyword = (iterator.current as KeywordToken).value;
       iterator.advance(); // consume keyword
 
-      final isExcluded = iterator.current is OperatorToken &&
+      final isExcluded =
+          iterator.current is OperatorToken &&
           (iterator.current as OperatorToken).value == OperatorEnum.exclude;
       if (isExcluded) {
         iterator.advance();
@@ -103,6 +105,8 @@ class SearchExpressionParser {
         node = _parseDate(iterator);
       } else if (keyword == KeywordEnum.duration) {
         node = _parseDuration(iterator);
+      } else if (keyword == KeywordEnum.played) {
+        node = _parsePlayedCount(iterator);
       } else if (iterator.current is StringToken) {
         final value = (iterator.current as StringToken).value;
         iterator.advance(); // consume value
@@ -139,12 +143,13 @@ class SearchExpressionParser {
 
     final operator = _parseRelationalOperator(value);
     final dateValue = value.substring(
-        operator == RelationalOperator.equal
-            ? 0
-            : (operator == RelationalOperator.greaterOrEqual ||
-                    operator == RelationalOperator.lessOrEqual)
-                ? 2
-                : 1);
+      operator == RelationalOperator.equal
+          ? 0
+          : (operator == RelationalOperator.greaterOrEqual ||
+                operator == RelationalOperator.lessOrEqual)
+          ? 2
+          : 1,
+    );
 
     final parts = dateValue.split('-');
     if (parts.length != 3) return null;
@@ -176,6 +181,27 @@ class SearchExpressionParser {
     if (duration == null) return null;
 
     return DurationNode(operator, duration);
+  }
+
+  PlayedNode? _parsePlayedCount(TokenIterator iterator) {
+    if (iterator.current is! StringToken) return null;
+
+    final value = (iterator.current as StringToken).value;
+    iterator.advance();
+
+    final operator = _parseRelationalOperator(value);
+    final valueInt = _parseIntegerValue(value);
+
+    if (valueInt == null) return null;
+
+    return PlayedNode(operator, valueInt);
+  }
+
+  int? _parseIntegerValue(String value) {
+    value = value.replaceAll(">", "");
+    value = value.replaceAll("<", "");
+    value = value.replaceAll("=", "");
+    return int.tryParse(value);
   }
 
   RelationalOperator _parseRelationalOperator(String value) {

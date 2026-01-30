@@ -236,6 +236,52 @@ void main() {
       expect(durationNode.duration, const Duration(minutes: 30));
     });
 
+    test('should parse played queries', () {
+      var parser = SearchExpressionParser();
+
+      var ast = parser.parse("played:1");
+      expect(ast.body.length, 1);
+      expect(ast.body[0], isA<PlayedNode>());
+      var playedNode = ast.body[0] as PlayedNode;
+      expect(playedNode.operator, RelationalOperator.equal);
+      expect(playedNode.playedCount, 1);
+
+      ast = parser.parse("played:>0");
+      expect(ast.body.length, 1);
+      expect(ast.body[0], isA<PlayedNode>());
+      playedNode = ast.body[0] as PlayedNode;
+      expect(playedNode.operator, RelationalOperator.greater);
+      expect(playedNode.playedCount, 0);
+
+      ast = parser.parse("played:<1");
+      expect(ast.body.length, 1);
+      expect(ast.body[0], isA<PlayedNode>());
+      playedNode = ast.body[0] as PlayedNode;
+      expect(playedNode.operator, RelationalOperator.less);
+      expect(playedNode.playedCount, 1);
+
+      ast = parser.parse("played:>=1");
+      expect(ast.body.length, 1);
+      expect(ast.body[0], isA<PlayedNode>());
+      playedNode = ast.body[0] as PlayedNode;
+      expect(playedNode.operator, RelationalOperator.greaterOrEqual);
+      expect(playedNode.playedCount, 1);
+
+      ast = parser.parse("played:<=1");
+      expect(ast.body.length, 1);
+      expect(ast.body[0], isA<PlayedNode>());
+      playedNode = ast.body[0] as PlayedNode;
+      expect(playedNode.operator, RelationalOperator.lessOrEqual);
+      expect(playedNode.playedCount, 1);
+
+      ast = parser.parse("played:=0");
+      expect(ast.body.length, 1);
+      expect(ast.body[0], isA<PlayedNode>());
+      playedNode = ast.body[0] as PlayedNode;
+      expect(playedNode.operator, RelationalOperator.equal);
+      expect(playedNode.playedCount, 0);
+    });
+
     test('should handle precedence of NOT, implicit AND, and OR', () {
       var parser = SearchExpressionParser();
       var ast = parser.parse("test | -test2 test3");

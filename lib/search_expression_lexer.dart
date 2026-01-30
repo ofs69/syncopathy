@@ -62,7 +62,8 @@ class OperatorToken extends Token {
 enum KeywordEnum {
   path('path'),
   date('date'),
-  duration('duration');
+  duration('duration'),
+  played('played');
 
   const KeywordEnum(this.label);
   final String label;
@@ -145,6 +146,8 @@ class SearchExpressionTokenizer {
         tokens.add(const KeywordToken(KeywordEnum.date));
       } else if (scanner.scan('duration:')) {
         tokens.add(const KeywordToken(KeywordEnum.duration));
+      } else if (scanner.scan('played:')) {
+        tokens.add(const KeywordToken(KeywordEnum.played));
       } else if (scanner.scan('"')) {
         final buffer = StringBuffer();
         while (!scanner.scan('"')) {

@@ -25,11 +25,12 @@ void main() {
 
     test('should tokenize keywords', () {
       final tokenizer = SearchExpressionTokenizer();
-      final tokens = tokenizer.tokenize('path:date:duration:');
+      final tokens = tokenizer.tokenize('path:date:duration:played:');
       expect(tokens, [
         const KeywordToken(KeywordEnum.path),
         const KeywordToken(KeywordEnum.date),
         const KeywordToken(KeywordEnum.duration),
+        const KeywordToken(KeywordEnum.played),
         const EOFToken(),
       ]);
     });

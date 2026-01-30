@@ -6,26 +6,23 @@ class ExpressionVisualizer extends StatelessWidget {
   final String expression;
   final TextStyle? style;
 
-  const ExpressionVisualizer({
-    super.key,
-    required this.expression,
-    this.style,
-  });
+  const ExpressionVisualizer({super.key, required this.expression, this.style});
 
   @override
   Widget build(BuildContext context) {
     final spans = _buildSpans(context);
     return RichText(
-      text: TextSpan(
-        style: style,
-        children: spans,
-      ),
+      text: TextSpan(style: style, children: spans),
     );
   }
 
   List<TextSpan> _buildSpans(BuildContext context) {
     final rootNode = SearchExpressionParser().parse(expression);
-    return _buildSpansFromNode(rootNode, context, 0); // 0 for root, ensuring root never gets parentheses
+    return _buildSpansFromNode(
+      rootNode,
+      context,
+      0,
+    ); // 0 for root, ensuring root never gets parentheses
   }
 
   int _getPrecedence(SearchExpressionNode node) {
@@ -36,8 +33,11 @@ class ExpressionVisualizer extends StatelessWidget {
   }
 
   List<TextSpan> _buildSpansFromNode(
-      SearchExpressionNode node, BuildContext context,
-      [int parentOperatorPrecedence = 0]) { // 0 for the initial call, meaning no parent operator.
+    SearchExpressionNode node,
+    BuildContext context, [
+    int parentOperatorPrecedence = 0,
+  ]) {
+    // 0 for the initial call, meaning no parent operator.
     final theme = Theme.of(context);
     final List<TextSpan> spans = [];
     final int currentOperatorPrecedence = _getPrecedence(node);
@@ -48,8 +48,9 @@ class ExpressionVisualizer extends StatelessWidget {
     bool needsParentheses = false;
 
     // Special case: AndNode as a child of OrNode
-    if (node is AndNode && parentOperatorPrecedence == 1) { // 1 is OrNode's precedence
-        needsParentheses = true;
+    if (node is AndNode && parentOperatorPrecedence == 1) {
+      // 1 is OrNode's precedence
+      needsParentheses = true;
     }
     // A child of ExcludeNode generally needs parentheses if its precedence is lower than Exclude's,
     // which it is (OR (1) < NOT (3), AND (2) < NOT (3)).
@@ -59,7 +60,8 @@ class ExpressionVisualizer extends StatelessWidget {
     // The current recursive call for ExcludeNode passes currentOperatorPrecedence (3) as parent,
     // so this is implicitly handled by the previous (AndNode in OrNode) rule.
 
-    if (node is RootNode) { // RootNode itself never gets parentheses
+    if (node is RootNode) {
+      // RootNode itself never gets parentheses
       needsParentheses = false;
     }
 
@@ -71,7 +73,9 @@ class ExpressionVisualizer extends StatelessWidget {
       case RootNode(body: final children):
         for (int i = 0; i < children.length; i++) {
           // Children of RootNode should not be influenced by an operator precedence from the RootNode itself.
-          spans.addAll(_buildSpansFromNode(children[i], context, 0)); // 0 represents "no operator parent"
+          spans.addAll(
+            _buildSpansFromNode(children[i], context, 0),
+          ); // 0 represents "no operator parent"
           if (i < children.length - 1) {
             spans.add(const TextSpan(text: ' '));
           }
@@ -79,60 +83,120 @@ class ExpressionVisualizer extends StatelessWidget {
         break;
       case AndNode(children: final children):
         for (int i = 0; i < children.length; i++) {
-          spans.addAll(_buildSpansFromNode(children[i], context, currentOperatorPrecedence));
+          spans.addAll(
+            _buildSpansFromNode(
+              children[i],
+              context,
+              currentOperatorPrecedence,
+            ),
+          );
           if (i < children.length - 1) {
-            spans.add(TextSpan(
+            spans.add(
+              TextSpan(
                 text: ' AND ',
-                style: TextStyle(color: theme.colorScheme.primary)));
+                style: TextStyle(color: theme.colorScheme.primary),
+              ),
+            );
           }
         }
         break;
       case OrNode(children: final children):
         for (int i = 0; i < children.length; i++) {
-          spans.addAll(_buildSpansFromNode(children[i], context, currentOperatorPrecedence));
+          spans.addAll(
+            _buildSpansFromNode(
+              children[i],
+              context,
+              currentOperatorPrecedence,
+            ),
+          );
           if (i < children.length - 1) {
-            spans.add(TextSpan(
+            spans.add(
+              TextSpan(
                 text: ' OR ',
-                style: TextStyle(color: theme.colorScheme.primary)));
+                style: TextStyle(color: theme.colorScheme.primary),
+              ),
+            );
           }
         }
         break;
       case ExcludeNode(child: final child):
-        spans.add(TextSpan(
-            text: 'NOT ', style: TextStyle(color: theme.colorScheme.error)));
+        spans.add(
+          TextSpan(
+            text: 'NOT ',
+            style: TextStyle(color: theme.colorScheme.error),
+          ),
+        );
         // Child of ExcludeNode inherits ExcludeNode's precedence for its own parentheses decision.
         // E.g., -(A | B) -> NOT (A OR B)
-        spans.addAll(_buildSpansFromNode(child, context, currentOperatorPrecedence));
+        spans.addAll(
+          _buildSpansFromNode(child, context, currentOperatorPrecedence),
+        );
         break;
       case StringNode(value: final value):
         spans.add(TextSpan(text: value));
         break;
       case ParameterNode(name: final name, value: final value):
-        spans.add(TextSpan(
+        spans.add(
+          TextSpan(
             text: name,
-            style: TextStyle(color: theme.colorScheme.secondary)));
-        spans.add(TextSpan(
+            style: TextStyle(color: theme.colorScheme.secondary),
+          ),
+        );
+        spans.add(
+          TextSpan(
             text: ':',
-            style: TextStyle(color: theme.colorScheme.secondary)));
-        spans.add(TextSpan(
+            style: TextStyle(color: theme.colorScheme.secondary),
+          ),
+        );
+        spans.add(
+          TextSpan(
             text: value,
-            style: TextStyle(color: theme.colorScheme.secondary)));
+            style: TextStyle(color: theme.colorScheme.secondary),
+          ),
+        );
         break;
       case DateNode(operator: final op, value: final date):
-        spans.add(TextSpan(
+        spans.add(
+          TextSpan(
             text: 'date:${_operatorToString(op)}',
-            style: TextStyle(color: theme.colorScheme.secondary)));
-        spans.add(TextSpan(
-            text: '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
-            style: TextStyle(color: theme.colorScheme.secondary)));
+            style: TextStyle(color: theme.colorScheme.secondary),
+          ),
+        );
+        spans.add(
+          TextSpan(
+            text:
+                '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+            style: TextStyle(color: theme.colorScheme.secondary),
+          ),
+        );
         break;
       case DurationNode(operator: final op, duration: final duration):
-        spans.add(TextSpan(
+        spans.add(
+          TextSpan(
             text: 'duration:${_operatorToString(op)}',
-            style: TextStyle(color: theme.colorScheme.secondary)));
-        spans.add(TextSpan(
+            style: TextStyle(color: theme.colorScheme.secondary),
+          ),
+        );
+        spans.add(
+          TextSpan(
             text: _formatDuration(duration),
-            style: TextStyle(color: theme.colorScheme.secondary)));
+            style: TextStyle(color: theme.colorScheme.secondary),
+          ),
+        );
+        break;
+      case PlayedNode(operator: final op, playedCount: final playedCount):
+        spans.add(
+          TextSpan(
+            text: 'played:${_operatorToString(op)}',
+            style: TextStyle(color: theme.colorScheme.secondary),
+          ),
+        );
+        spans.add(
+          TextSpan(
+            text: "$playedCount",
+            style: TextStyle(color: theme.colorScheme.secondary),
+          ),
+        );
         break;
     }
 
