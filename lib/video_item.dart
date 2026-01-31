@@ -162,8 +162,9 @@ class _VideoItemState extends State<VideoItem> {
         final double iconSize = (constraints.maxHeight / 7).clamp(16.0, 32.0);
         final double padding = (iconSize / 4).clamp(4.0, 16.0);
 
-        final currentVideoId =
-            context.select<PlayerModel, int?>((p) => p.currentVideo.value?.id);
+        final currentVideoId = context.select<PlayerModel, int?>(
+          (p) => p.currentVideo.value?.id,
+        );
 
         final BorderSide borderSide;
         if (widget.video.id == currentVideoId) {
@@ -249,6 +250,7 @@ class _VideoItemState extends State<VideoItem> {
                       top: 8.0,
                       right: 8.0,
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           if (widget.showDuration)
                             _buildStatisticItem(
@@ -280,8 +282,10 @@ class _VideoItemState extends State<VideoItem> {
                                   ? Icons.play_arrow
                                   : Icons.visibility_off,
                               text: widget.video.playCount > 0
-                                  ? '${widget.video.playCount}'
-                                  : '',
+                                  ? widget.video.playCount > 999
+                                        ? '999+'
+                                        : '${widget.video.playCount}'
+                                  : null,
                               tooltipMessage: widget.video.playCount > 0
                                   ? 'Watched ${widget.video.playCount} times'
                                   : 'Not watched yet',
@@ -373,15 +377,12 @@ class _VideoItemState extends State<VideoItem> {
 
   Widget _buildStatisticItem({
     required IconData icon,
-    required String text,
+    required String? text,
     required String tooltipMessage,
     Color color = Colors.black54, // Default to black54 for consistency
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8.0,
-        vertical: 4.0,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(4.0),
@@ -392,19 +393,19 @@ class _VideoItemState extends State<VideoItem> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, color: Colors.white, size: 12),
-            const SizedBox(width: 4.0),
-            Text(
-              text,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+            if (text != null) const SizedBox(width: 4.0),
+            if (text != null)
+              Text(
+                text,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
           ],
         ),
       ),
     );
   }
-
 }
