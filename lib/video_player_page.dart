@@ -101,7 +101,6 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
       MaterialPageRoute(
         builder: (context) => FullscreenVideoPage(
           player: player,
-          videoParamsNotifier: player.videoParams,
           isEmbeddedPlayerEnabled: settings.embeddedVideoPlayer.value,
         ),
       ),
@@ -142,7 +141,6 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                                 tag: 'videoPlayer',
                                 child: CustomMpvVideoWidget(
                                   player: player,
-                                  videoParamsNotifier: player.videoParams,
                                 ),
                               ),
                             )

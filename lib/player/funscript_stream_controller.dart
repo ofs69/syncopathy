@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:async_locks/async_locks.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/logging.dart';
@@ -28,7 +29,7 @@ class FunscriptStreamController {
 
   static const int batchSize = 50;
   final FunscriptDevice? _device;
-  ValueNotifier<bool> canPlay = ValueNotifier(false);
+  final Signal<bool> canPlay = signal(false);
   Lock bufferLock = Lock();
 
   FunscriptStreamController(this._device, this._currentFunscriptNotifier) {

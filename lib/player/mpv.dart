@@ -1,19 +1,18 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:libmpv_dart/libmpv.dart';
+import 'package:signals/signals_flutter.dart';
 
 class MpvVideoplayer {
   late Player _player;
 
-  ValueNotifier<bool> get paused => _player.paused;
-  ValueNotifier<double> get position => _player.position;
-  ValueNotifier<double> get duration => _player.duration;
-  ValueNotifier<double> get playbackSpeed => _player.speed;
-  //ValueNotifier<String> get path => _player.path;
-  ValueNotifier<double> get volume => _player.volume;
-  ValueNotifier<VideoParams> get videoParams => _player.videoParams;
-  ValueNotifier<int> get textureId => _player.id;
+  late final ReadonlySignal<int> textureId;
+  late final ReadonlySignal<double> volume;
+  late final ReadonlySignal<double> duration;
+  late final ReadonlySignal<double> playbackSpeed;
+  late final ReadonlySignal<bool> paused;
+  late final ReadonlySignal<double> position;
+  late final ReadonlySignal<VideoParams> videoParams;
 
   MpvVideoplayer({required bool videoOutput}) {
     _player = Player(
@@ -40,6 +39,14 @@ class MpvVideoplayer {
 
     _player.command(["keybind", "CLOSE_WIN", "ignore"]);
     _player.command(["keybind", "q", "ignore"]);
+
+    textureId = _player.id.toSignal();
+    volume = _player.volume.toSignal();
+    duration = _player.duration.toSignal();
+    playbackSpeed = _player.speed.toSignal();
+    paused = _player.paused.toSignal();
+    videoParams = _player.videoParams.toSignal();
+    position = _player.position.toSignal();
   }
 
   void enableLooping() {

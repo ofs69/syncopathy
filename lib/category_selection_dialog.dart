@@ -204,14 +204,31 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
         }),
         Expanded(
           child: ReorderableListView.builder(
-            buildDefaultDragHandles: false,
+            buildDefaultDragHandles: true,
             itemCount: categories.length,
+            proxyDecorator: (child, index, animation) {
+              return AnimatedBuilder(
+                animation: animation,
+                builder: (BuildContext context, Widget? child) {
+                  return Material(
+                    elevation: 1.0,
+                    color: Colors.transparent, // Keeps the background clean
+                    child: IgnorePointer(
+                      ignoring: true, // Stops the tooltip/hover crash
+                      child: child,
+                    ),
+                  );
+                },
+                child: child,
+              );
+            },
             itemBuilder: (context, index) {
               final item = categories[index];
               return ListTile(
                 key: ValueKey(item.id),
                 title: Text(item.name),
                 onTap: () => Navigator.of(context).pop(item),
+                contentPadding: EdgeInsets.fromLTRB(16.0, 0.0, 40.0, 0.0),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -255,10 +272,6 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                           }
                         },
                       ),
-                    ReorderableDragStartListener(
-                      index: index,
-                      child: const Icon(Icons.drag_handle),
-                    ),
                   ],
                 ),
               );

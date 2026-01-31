@@ -74,48 +74,36 @@ class _SettingsPopupMenuState extends State<SettingsPopupMenu> {
                     ],
                   ),
                   // Playback Speed Controls
-                  ValueListenableBuilder<bool>(
-                    valueListenable: player.paused,
-                    builder: (context, isPaused, child) {
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          const Tooltip(
-                            message: "Playback Speed",
-                            child: Text("Speed"),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      const Tooltip(
+                        message: "Playback Speed",
+                        child: Text("Speed"),
+                      ),
+                      Expanded(
+                        child: SizedBox(
+                          height:
+                              (Theme.of(context).iconTheme.size ?? 24.0) * 1.5,
+                          child: Slider(
+                            value: player.playbackSpeed.watch(context),
+                            min: 0.5,
+                            max: 2.0,
+                            divisions: 15,
+                            label:
+                                '${player.playbackSpeed.watch(context).toStringAsFixed(1)}x',
+                            onChanged: player.paused.watch(context)
+                                ? player.setPlaybackSpeed
+                                : null,
+                            onChangeStart: (_) =>
+                                widget.onInteractionStart?.call(),
+                            onChangeEnd: (_) => widget.onInteractionEnd?.call(),
                           ),
-                          Expanded(
-                            child: ValueListenableBuilder<double>(
-                              valueListenable: player.playbackSpeed,
-                              builder: (context, speed, child) {
-                                return SizedBox(
-                                  height:
-                                      (Theme.of(context).iconTheme.size ??
-                                          24.0) *
-                                      1.5,
-                                  child: Slider(
-                                    value: speed,
-                                    min: 0.5,
-                                    max: 2.0,
-                                    divisions: 15,
-                                    label: '${speed.toStringAsFixed(1)}x',
-                                    onChanged: isPaused
-                                        ? player.setPlaybackSpeed
-                                        : null,
-                                    onChangeStart: (_) =>
-                                        widget.onInteractionStart?.call(),
-                                    onChangeEnd: (_) =>
-                                        widget.onInteractionEnd?.call(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               );

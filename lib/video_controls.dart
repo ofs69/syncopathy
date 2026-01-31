@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/heatmap.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/player_model.dart';
@@ -106,9 +107,9 @@ class _VideoControlsState extends State<VideoControls> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Play/Pause Button
-                  ValueListenableBuilder<bool>(
-                    valueListenable: player.paused,
-                    builder: (context, isPaused, child) {
+                  Watch.builder(
+                    builder: (context) {
+                      final isPaused = player.paused.value;
                       return IconButton(
                         icon: Icon(isPaused ? Icons.play_arrow : Icons.pause),
                         iconSize:
@@ -118,9 +119,9 @@ class _VideoControlsState extends State<VideoControls> {
                     },
                   ),
                   // Volume Slider
-                  ValueListenableBuilder<double>(
-                    valueListenable: player.volume,
-                    builder: (context, volume, child) {
+                  Watch.builder(
+                    builder: (context) {
+                      final volume = player.volume.value;
                       return SizedBox(
                         width: 200, // Adjust width as needed
                         height: Theme.of(context).iconTheme.size ?? 24.0,

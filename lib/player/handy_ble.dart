@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
-import 'package:signals/signals.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/model/battery_model.dart';

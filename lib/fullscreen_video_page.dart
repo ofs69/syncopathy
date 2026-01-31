@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:libmpv_dart/libmpv.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/video_controls.dart';
@@ -10,13 +9,11 @@ import 'package:window_manager/window_manager.dart';
 
 class FullscreenVideoPage extends StatefulWidget {
   final PlayerModel player;
-  final ValueNotifier<VideoParams> videoParamsNotifier;
   final bool isEmbeddedPlayerEnabled;
 
   const FullscreenVideoPage({
     super.key,
     required this.player,
-    required this.videoParamsNotifier,
     required this.isEmbeddedPlayerEnabled,
   });
 
@@ -117,7 +114,6 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                       tag: 'videoPlayer',
                       child: CustomMpvVideoWidget(
                         player: widget.player,
-                        videoParamsNotifier: widget.videoParamsNotifier,
                         isFullscreen: true,
                       ),
                     ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:libmpv_dart/video/video_params.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/battery_model.dart';
@@ -17,13 +18,14 @@ import 'package:syncopathy/player/mpv.dart';
 class PlayerModel {
   late final MpvVideoplayer _mpvPlayer;
   bool _shouldPlay = false;
-  ValueNotifier<bool> get paused => _mpvPlayer.paused;
-  ValueNotifier<double> get volume => _mpvPlayer.volume;
-  ValueNotifier<double> get positionNoOffset => _mpvPlayer.position;
-  ValueNotifier<double> get duration => _mpvPlayer.duration;
-  ValueNotifier<double> get playbackSpeed => _mpvPlayer.playbackSpeed;
-  ValueNotifier<int> get textureId => _mpvPlayer.textureId;
-  ValueNotifier<VideoParams> get videoParams => _mpvPlayer.videoParams;
+
+  ReadonlySignal<int> get textureId => _mpvPlayer.textureId;
+  ReadonlySignal<double> get volume => _mpvPlayer.volume;
+  ReadonlySignal<double> get playbackSpeed => _mpvPlayer.playbackSpeed;
+  ReadonlySignal<bool> get paused => _mpvPlayer.paused;
+  ReadonlySignal<VideoParams> get videoParams => _mpvPlayer.videoParams;
+  ReadonlySignal<double> get duration => _mpvPlayer.duration;
+  ReadonlySignal<double> get positionNoOffset => _mpvPlayer.position;
 
   late final HandyBle _handyBle;
   ValueNotifier<bool> get isScanning => _handyBle.isScanning;
@@ -39,14 +41,14 @@ class PlayerModel {
   ValueNotifier<Video?> currentVideo = ValueNotifier(null);
   ValueNotifier<Funscript?> currentFunscript = ValueNotifier(null);
 
-  ValueNotifier<double> get _positionNoOffset => _mpvPlayer.position;
-
   final ValueNotifier<bool> _isLoopingVideo = ValueNotifier(false);
   ValueNotifier<bool> get isLoopingVideo => _isLoopingVideo;
 
-  int get positionMs =>
-      (_positionNoOffset.value * 1000.0).round().toInt() +
+  int get _positionMs =>
+      (positionNoOffset.value * 1000.0).round().toInt() +
       _settings.offsetMs.value;
+
+  late final Function _effectDispose;
 
   PlayerModel(this._settings, BatteryModel batteryModel) {
     _mpvPlayer = MpvVideoplayer(
@@ -59,16 +61,26 @@ class PlayerModel {
       currentFunscript,
     );
 
-    paused.addListener(_handlePausedChanged);
-    _funscriptStreamController.canPlay.addListener(_handlePausedChanged);
-    positionNoOffset.addListener(_handlePositionChanged);
+    final pauseChangeEffect = effect(() {
+      _handlePausedChanged(
+        paused.value,
+        _funscriptStreamController.canPlay.value,
+      );
+    });
+
+    final positionNoOffsetEffect = effect(() {
+      _handlePositionChanged(_positionMs);
+    });
+
+    _effectDispose = () {
+      pauseChangeEffect();
+      positionNoOffsetEffect();
+    };
   }
 
   void dispose() {
-    paused.removeListener(_handlePausedChanged);
-    _funscriptStreamController.canPlay.removeListener(_handlePausedChanged);
+    _effectDispose();
     _funscriptStreamController.dispose();
-    positionNoOffset.removeListener(_handlePositionChanged);
     _mpvPlayer.dispose();
     _handyBle.dispose();
   }
@@ -77,15 +89,15 @@ class PlayerModel {
     _handyBle.startScan();
   }
 
-  Future<void> _handlePositionChanged() async {
+  Future<void> _handlePositionChanged(int newPositionMs) async {
     if (!await _funscriptStreamController.bufferFunscript(
-      positionMs,
+      newPositionMs,
       paused.value,
       playbackSpeed.value,
     )) {
       if (!paused.value) {
         await _funscriptStreamController.positionUpdate(
-          positionMs,
+          newPositionMs,
           paused.value,
           playbackSpeed.value,
         );
@@ -109,7 +121,7 @@ class PlayerModel {
     if (currentFunscript.value != null &&
         currentFunscript.value!.actions.isNotEmpty) {
       final triggerTimeMs = currentFunscript.value!.actions.last.at - 100;
-      if (positionMs >= triggerTimeMs) {
+      if (_positionMs >= triggerTimeMs) {
         shouldPlayNext = true;
       }
     } else {
@@ -150,10 +162,9 @@ class PlayerModel {
     }
   }
 
-  Future<void> _handlePausedChanged() async {
-    if (_funscriptStreamController.canPlay.value &&
-        (_shouldPlay != !paused.value)) {
-      _shouldPlay = !paused.value;
+  Future<void> _handlePausedChanged(bool pauseState, bool canPlay) async {
+    if (canPlay && (_shouldPlay != !pauseState)) {
+      _shouldPlay = !pauseState;
     }
 
     if (_shouldPlay) {
@@ -236,7 +247,7 @@ class PlayerModel {
         );
         seekTo(startTime / 1000.0);
       }
-      await _handlePositionChanged();
+      await _handlePositionChanged(_positionMs);
 
       if (_settings.autoPlay.value || _playlistTriggeredNextShouldPlay) {
         _playlistTriggeredNextShouldPlay = false;
@@ -271,7 +282,7 @@ class PlayerModel {
     _shouldPlay = true;
     _mpvPlayer.play();
     await _funscriptStreamController.startPlayback(
-      positionMs,
+      _positionMs,
       playbackSpeed.value,
     );
   }
@@ -296,7 +307,6 @@ class PlayerModel {
 
   void seekTo(double time) {
     final posPercent = time / duration.value;
-    positionNoOffset.value = time;
     _mpvPlayer.seekTo(posPercent.clamp(0.0, 1.0));
   }
 

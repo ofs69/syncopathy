@@ -1,17 +1,17 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/helper/constants.dart';
 
 class Heatmap extends StatefulWidget {
   final Funscript funscript;
-  final ValueNotifier<double> totalDuration;
-  final ValueNotifier<double> videoPosition;
+  final ReadonlySignal<double> totalDuration;
+  final ReadonlySignal<double> videoPosition;
 
-  Duration get totalDurationGetter =>
-      Duration(milliseconds: (totalDuration.value * 1000).round());
+  int get totalDurationMs => (totalDuration.value * 1000.0).round();
 
   final void Function(Duration)? onClick;
   final VoidCallback? onInteractionStart;
@@ -46,9 +46,7 @@ class _HeatmapState extends State<Heatmap> {
         widget.totalDuration.value > 0 &&
         constraints.maxWidth > 0) {
       final dx = localPosition.dx.clamp(0, constraints.maxWidth);
-      final clickedMs =
-          (dx / constraints.maxWidth) *
-          widget.totalDurationGetter.inMilliseconds;
+      final clickedMs = (dx / constraints.maxWidth) * widget.totalDurationMs;
       widget.onClick!(Duration(milliseconds: clickedMs.round()));
     }
   }
@@ -59,8 +57,7 @@ class _HeatmapState extends State<Heatmap> {
       builder: (context, constraints) {
         return MouseRegion(
           onHover: (event) {
-            if (widget.totalDurationGetter.inMilliseconds > 0 &&
-                constraints.maxWidth > 0) {
+            if (widget.totalDurationMs > 0 && constraints.maxWidth > 0) {
               _hoverPosition.value = event.localPosition.dx.clamp(
                 0,
                 constraints.maxWidth,
@@ -100,27 +97,30 @@ class _HeatmapState extends State<Heatmap> {
                   fit: StackFit.expand,
                   children: [
                     // Heatmap painter (only rebuilds when duration/funscript changes)
-                    ValueListenableBuilder<double>(
-                      valueListenable: widget.totalDuration,
-                      builder: (context, duration, child) {
+                    Watch.builder(
+                      builder: (context) {
                         return CustomPaint(
                           painter: HeatmapPainter(
                             funscript: widget.funscript,
-                            totalDuration: widget.totalDurationGetter,
+                            totalDuration: Duration(
+                              milliseconds: widget.totalDurationMs,
+                            ),
                           ),
                         );
                       },
                     ),
                     // Indicator painter (only rebuilds when position changes)
-                    ValueListenableBuilder<double>(
-                      valueListenable: widget.videoPosition,
-                      builder: (context, position, child) {
+                    Watch.builder(
+                      builder: (context) {
+                        final position = widget.videoPosition.value;
                         return CustomPaint(
                           painter: IndicatorPainter(
                             videoPosition: Duration(
                               milliseconds: (position * 1000).round(),
                             ),
-                            totalDuration: widget.totalDurationGetter,
+                            totalDuration: Duration(
+                              milliseconds: widget.totalDurationMs,
+                            ),
                           ),
                         );
                       },
@@ -138,9 +138,9 @@ class _HeatmapState extends State<Heatmap> {
                       },
                     ),
                     // Progress bar (solid bar on top)
-                    ValueListenableBuilder<double>(
-                      valueListenable: widget.videoPosition,
-                      builder: (context, position, child) {
+                    Watch.builder(
+                      builder: (context) {
+                        final position = widget.videoPosition.value;
                         final double progressWidth =
                             widget.totalDuration.value > 0
                             ? constraints.maxWidth *

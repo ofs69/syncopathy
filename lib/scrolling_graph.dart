@@ -3,13 +3,16 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/helper/constants.dart';
+import 'package:syncopathy/model/player_model.dart';
 
 /// A widget that wraps the [ScrollingGraph] with a slider to control the zoom level (view duration).
 class InteractiveScrollingGraph extends StatefulWidget {
   final Funscript funscript;
-  final ValueNotifier<double> videoPosition;
+  final ReadonlySignal<double> videoPosition;
 
   const InteractiveScrollingGraph({
     super.key,
@@ -24,9 +27,7 @@ class InteractiveScrollingGraph extends StatefulWidget {
 
 class _InteractiveScrollingGraphState extends State<InteractiveScrollingGraph> {
   // Default zoom level set to 10 seconds.
-  final ValueNotifier<Duration> _viewDuration = ValueNotifier(
-    const Duration(seconds: 10),
-  );
+  final Signal<Duration> _viewDuration = signal(const Duration(seconds: 10));
 
   @override
   void dispose() {
@@ -39,9 +40,9 @@ class _InteractiveScrollingGraphState extends State<InteractiveScrollingGraph> {
     return Row(
       children: [
         Expanded(
-          child: ValueListenableBuilder<Duration>(
-            valueListenable: _viewDuration,
-            builder: (context, duration, child) {
+          child: Watch.builder(
+            builder: (context) {
+              final duration = _viewDuration.value;
               return Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey),
@@ -58,9 +59,9 @@ class _InteractiveScrollingGraphState extends State<InteractiveScrollingGraph> {
         Column(
           children: [
             Expanded(
-              child: ValueListenableBuilder<Duration>(
-                valueListenable: _viewDuration,
-                builder: (context, duration, child) {
+              child: Watch.builder(
+                builder: (context) {
+                  final duration = _viewDuration.value;
                   return RotatedBox(
                     quarterTurns: -1,
                     child: Slider(
@@ -86,7 +87,7 @@ class _InteractiveScrollingGraphState extends State<InteractiveScrollingGraph> {
 
 class ScrollingGraph extends StatefulWidget {
   final Funscript funscript;
-  final ValueNotifier<double> videoPosition;
+  final ReadonlySignal<double> videoPosition;
   final Duration viewDuration;
 
   const ScrollingGraph({
@@ -150,13 +151,11 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
 
   @override
   Widget build(BuildContext context) {
-    // Use a ValueListenableBuilder to rebuild only this widget
-    // when the video position changes.
-    return ValueListenableBuilder<double>(
-      valueListenable: widget.videoPosition,
-      builder: (context, position, child) {
+    final player = context.read<PlayerModel>();
+    return Watch.builder(
+      builder: (context) {
+        final position = player.positionNoOffset.value;
         return ClipRect(
-          // Prevents the painter from drawing outside its bounds
           child: CustomPaint(
             painter: GraphPainter(
               funscript: widget.funscript,
