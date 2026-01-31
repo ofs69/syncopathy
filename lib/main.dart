@@ -7,8 +7,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_manager.dart';
 
-import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/battery_model.dart';
+import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/syncopathy.dart';
@@ -49,12 +49,16 @@ Future<Widget> _initializeAppAndRun(Directory appSupportDir) async {
   var mediaManager = MediaManager(settings.mediaPaths.value);
   await mediaManager.load();
   var batteryModel = BatteryModel();
-  var model = SyncopathyModel(settings, batteryModel, mediaManager);
+  var player = PlayerModel(settings, batteryModel);
 
   return MultiProvider(
     providers: [
-      ChangeNotifierProvider.value(value: model),
-      ChangeNotifierProvider.value(value: model.player),
+      Provider(
+        create: (_) => mediaManager,
+        dispose: (_, model) => model.dispose(),
+      ),
+      Provider(create: (_) => player, dispose: (_, model) => model.dispose()),
+      Provider(create: (_) => settings, dispose: (_, model) => model.dispose()),
       Provider.value(value: batteryModel),
     ],
     child: const Syncopathy(),

@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/media_library.dart';
 import 'package:syncopathy/model/player_model.dart';
 
-import 'package:syncopathy/media_manager.dart';
-
 class MediaPage extends StatefulWidget {
-  final MediaManager mediaManager;
-  const MediaPage({super.key, required this.mediaManager});
+  const MediaPage({super.key});
 
   @override
   State<MediaPage> createState() => _MediaPageState();
@@ -22,7 +18,6 @@ class _MediaPageState extends State<MediaPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final model = context.read<SyncopathyModel>();
     final player = context.read<PlayerModel>();
 
     return Padding(
@@ -32,7 +27,6 @@ class _MediaPageState extends State<MediaPage>
         children: [
           Expanded(
             child: MediaLibrary(
-              mediaManager: model.mediaManager,
               onVideoTapped: (v) => player.openVideoAndScript(v, false),
             ),
           ),

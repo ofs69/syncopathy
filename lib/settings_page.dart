@@ -5,11 +5,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:syncopathy/helper/debouncer.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
-import 'package:syncopathy/model/app_model.dart';
+import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/video_thumbnail.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:flutter/foundation.dart';
@@ -25,127 +26,20 @@ class _SettingsPageState extends State<SettingsPage>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-  late double _currentMin;
-  late double _currentMax;
-  late double _currentOffsetMs;
-
-  late double _currentRdpEpsilon;
-  late bool _rdpEpsilonEnabled;
-  late bool _skipToAction;
-  late double _currentSlewMaxRateOfChange;
-  late bool _slewMaxRateOfChangeEnabled;
-  late bool _remapFullRange;
-  late bool _embeddedVideoPlayer;
-  late bool _autoSwitchToVideoPlayerTab;
-  late bool _autoPlay;
-  late bool _invert;
-
-  late final SyncopathyModel _model;
-  final _debouncer = Debouncer(milliseconds: 500);
-
-  @override
-  void initState() {
-    super.initState();
-    _model = context.read<SyncopathyModel>();
-    _model.settings.min.addListener(_onSettingsChanged);
-    _model.settings.max.addListener(_onSettingsChanged);
-    _model.settings.offsetMs.addListener(_onSettingsChanged);
-    _model.settings.mediaPaths.addListener(_onSettingsChanged);
-    _model.settings.slewMaxRateOfChange.addListener(_onSettingsChanged);
-    _model.settings.rdpEpsilon.addListener(_onSettingsChanged);
-    _model.settings.remapFullRange.addListener(_onSettingsChanged);
-    _model.settings.skipToAction.addListener(_onSettingsChanged);
-    _model.settings.autoSwitchToVideoPlayerTab.addListener(_onSettingsChanged);
-    _model.settings.embeddedVideoPlayer.addListener(_onSettingsChanged);
-    _model.settings.autoPlay.addListener(_onSettingsChanged);
-    _updateStateFromSettings();
-  }
-
-  @override
-  void dispose() {
-    _model.settings.min.removeListener(_onSettingsChanged);
-    _model.settings.max.removeListener(_onSettingsChanged);
-    _model.settings.offsetMs.removeListener(_onSettingsChanged);
-    _model.settings.mediaPaths.removeListener(_onSettingsChanged);
-    _model.settings.slewMaxRateOfChange.removeListener(_onSettingsChanged);
-    _model.settings.rdpEpsilon.removeListener(_onSettingsChanged);
-    _model.settings.remapFullRange.removeListener(_onSettingsChanged);
-    _model.settings.skipToAction.removeListener(_onSettingsChanged);
-    _model.settings.autoSwitchToVideoPlayerTab.removeListener(
-      _onSettingsChanged,
-    );
-    _model.settings.embeddedVideoPlayer.removeListener(_onSettingsChanged);
-    _model.settings.autoPlay.removeListener(_onSettingsChanged);
-    _model.settings.invert.removeListener(_onSettingsChanged);
-    super.dispose();
-  }
-
-  void _onSettingsChanged() {
-    if (mounted) {
-      setState(_updateStateFromSettings);
-    }
-  }
-
-  void _updateStateFromSettings() {
-    _currentMin = _model.settings.min.value.toDouble();
-    _currentMax = _model.settings.max.value.toDouble();
-    _currentOffsetMs = _model.settings.offsetMs.value.toDouble();
-    _currentRdpEpsilon = _model.settings.rdpEpsilon.value ?? 15.0;
-    _rdpEpsilonEnabled = _model.settings.rdpEpsilon.value != null;
-    _currentSlewMaxRateOfChange =
-        _model.settings.slewMaxRateOfChange.value ?? 400.0;
-    _slewMaxRateOfChangeEnabled =
-        _model.settings.slewMaxRateOfChange.value != null;
-    _remapFullRange = _model.settings.remapFullRange.value;
-    _skipToAction = _model.settings.skipToAction.value;
-    _embeddedVideoPlayer = _model.settings.embeddedVideoPlayer.value;
-    _autoSwitchToVideoPlayerTab =
-        _model.settings.autoSwitchToVideoPlayerTab.value;
-    _autoPlay = _model.settings.autoPlay.value;
-    _invert = _model.settings.invert.value;
-  }
 
   Future<void> _addPath() async {
+    final settings = context.read<SettingsModel>();
     final String? selectedDirectory = await FilePicker.platform
         .getDirectoryPath();
 
     if (selectedDirectory != null) {
-      await _model.settings.addPath(selectedDirectory);
+      settings.mediaPaths.add(selectedDirectory);
       if (!mounted) return;
       NotificationFeedManager.showSuccessNotification(
         context,
         'Added path: $selectedDirectory',
       );
     }
-  }
-
-  void _saveSettings() {
-    final currentMin = _currentMin.round();
-    final currentMax = _currentMax.round();
-
-    final currentOffset = _currentOffsetMs.round();
-    final currentRdpEpsilon = _rdpEpsilonEnabled ? _currentRdpEpsilon : null;
-    final currentSlewRate = _slewMaxRateOfChangeEnabled
-        ? _currentSlewMaxRateOfChange
-        : null;
-    final remapFullRange = _remapFullRange;
-    final skipToAction = _skipToAction;
-    final embeddedVideoPlayer = _embeddedVideoPlayer;
-    final autoSwitchToVideoPlayerTab = _autoSwitchToVideoPlayerTab;
-    final autoPlay = _autoPlay;
-    final invert = _invert;
-
-    _model.settings.setMinMax(currentMin, currentMax);
-    _model.settings.setOffsetMs(currentOffset);
-    _model.settings.setRdpEpsilon(currentRdpEpsilon);
-    _model.settings.setSlewMaxRateOfChange(currentSlewRate);
-    _model.settings.setRemapFullRange(remapFullRange);
-    _model.settings.setSkipToAction(skipToAction);
-    _model.settings.setAutoSwitchToVideoPlayerTab(autoSwitchToVideoPlayerTab);
-    _model.settings.setEmbeddedVideoPlayer(embeddedVideoPlayer);
-    _model.settings.setAutoPlay(autoPlay);
-    _model.settings.setInvert(invert);
-    Logger.info('Settings saved.');
   }
 
   @override
@@ -318,30 +212,34 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _buildMediaPaths(BuildContext context) {
+    final settings = context.read<SettingsModel>();
     return Column(
       children: [
         Container(
-          height: 150,
+          constraints: BoxConstraints(minHeight: 100, maxHeight: 300),
           decoration: BoxDecoration(
             border: Border.all(color: Theme.of(context).dividerColor),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: ListView.builder(
-            itemCount: _model.settings.mediaPaths.value.length,
-            shrinkWrap: true,
-            itemBuilder: (context, index) {
-              final path = _model.settings.mediaPaths.value[index];
-              return ListTile(
-                title: Text(path),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: 'Remove path',
-                  onPressed: () async {
-                    await _model.settings.removePath(path);
-                  },
-                ),
-              );
-            },
+          child: Watch.builder(
+            builder: (context) => ListView.builder(
+              itemCount: settings.mediaPaths.watch(context).length,
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                final path = settings.mediaPaths.value[index];
+                return ListTile(
+                  contentPadding: EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 0.0),
+                  title: Text(path),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip: 'Remove path',
+                    onPressed: () {
+                      settings.mediaPaths.remove(path);
+                    },
+                  ),
+                );
+              },
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -355,6 +253,7 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _buildRdpEpsilonSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
     return Column(
       children: [
         SwitchListTile(
@@ -362,35 +261,32 @@ class _SettingsPageState extends State<SettingsPage>
           subtitle: const Text(
             'Reduces the number of points in the funscript. Higher values mean more simplification. Changes are applied when loading a funscript.',
           ),
-          value: _rdpEpsilonEnabled,
+          value: settings.rdpEpsilon.watch(context) != null,
           onChanged: (value) {
-            setState(() {
-              _rdpEpsilonEnabled = value;
-              _saveSettings();
-            });
+            if (value) {
+              settings.rdpEpsilon.value = 7.0;
+            }
           },
           secondary: const Icon(Icons.timeline),
           isThreeLine: true,
         ),
-        if (_rdpEpsilonEnabled)
+        if (settings.rdpEpsilon.watch(context) != null)
           _buildSliderWithNumericInput(
             context,
-            value: _currentRdpEpsilon,
+            value: settings.rdpEpsilon.watch(context)!,
             min: 0,
             max: 50,
             divisions: 50,
             onChanged: (value) {
-              setState(() {
-                _currentRdpEpsilon = value;
-              });
+              settings.rdpEpsilon.value = value;
             },
-            onSave: _saveSettings,
           ),
       ],
     );
   }
 
   Widget _buildSlewRateSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
     return Column(
       children: [
         SwitchListTile(
@@ -398,46 +294,40 @@ class _SettingsPageState extends State<SettingsPage>
           subtitle: const Text(
             'Modify the funscript limiting the rate of change, preventing jerky movements. Measured in percent per second. Changes are applied when loading a funscript.',
           ),
-          value: _slewMaxRateOfChangeEnabled,
+          value: settings.slewMaxRateOfChange.watch(context) != null,
           onChanged: (value) {
-            setState(() {
-              _slewMaxRateOfChangeEnabled = value;
-              _saveSettings();
-            });
+            if (value) {
+              settings.slewMaxRateOfChange.value = 400;
+            }
           },
           secondary: const Icon(Icons.speed),
           isThreeLine: true,
         ),
-        if (_slewMaxRateOfChangeEnabled)
+        if (settings.slewMaxRateOfChange.watch(context) != null)
           _buildSliderWithNumericInput(
             context,
-            value: _currentSlewMaxRateOfChange,
+            value: settings.slewMaxRateOfChange.watch(context)!,
             min: 100,
             max: 1000,
             divisions: 90,
             onChanged: (value) {
-              setState(() {
-                _currentSlewMaxRateOfChange = value;
-              });
+              settings.slewMaxRateOfChange.value = value;
             },
-            onSave: _saveSettings,
           ),
       ],
     );
   }
 
   Widget _buildRemapFullRangeSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
     return SwitchListTile(
       title: const Text('Remap to Full Range'),
       subtitle: const Text(
         "Remaps the funscript actions to use the full 0-100 range. The Handy will still remap into the range specified by the stroke range setting. Changes are applied when loading a funscript.",
       ),
-      value: _remapFullRange,
+      value: settings.remapFullRange.watch(context),
       onChanged: (value) {
-        setState(() {
-          _remapFullRange = value;
-          _saveSettings();
-        });
+        settings.remapFullRange.value = value;
       },
       secondary: const Icon(Icons.fullscreen),
       isThreeLine: true,
@@ -445,32 +335,28 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _buildSkipToActionSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
     return SwitchListTile(
       title: const Text('Skip to action'),
       subtitle: const Text('Skips to the part where the funscript begins.'),
-      value: _skipToAction,
+      value: settings.skipToAction.watch(context),
       onChanged: (value) {
-        setState(() {
-          _skipToAction = value;
-          _saveSettings();
-        });
+        settings.skipToAction.value = value;
       },
       secondary: const Icon(Icons.skip_next),
     );
   }
 
   Widget _buildEmbeddedVideoPlayerSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
     return SwitchListTile(
       title: const Text('Use Embedded Video Player'),
       subtitle: const Text(
         'Enables an embedded video player (requires restart, Windows only).',
       ),
-      value: _embeddedVideoPlayer,
+      value: settings.embeddedVideoPlayer.watch(context),
       onChanged: (value) {
-        setState(() {
-          _embeddedVideoPlayer = value;
-          _saveSettings();
-        });
+        settings.embeddedVideoPlayer.value = value;
       },
       secondary: const Icon(Icons.video_collection),
       isThreeLine: true,
@@ -478,17 +364,15 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _buildAutoSwitchToVideoPlayerTabSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
     return SwitchListTile(
       title: const Text('Auto Switch to Video Player Tab'),
       subtitle: const Text(
         'Automatically switches to the video player tab when a video is loaded.',
       ),
-      value: _autoSwitchToVideoPlayerTab,
+      value: settings.autoSwitchToVideoPlayerTab.watch(context),
       onChanged: (value) {
-        setState(() {
-          _autoSwitchToVideoPlayerTab = value;
-          _saveSettings();
-        });
+        settings.autoSwitchToVideoPlayerTab.value = value;
       },
       secondary: const Icon(Icons.tab),
       isThreeLine: true,
@@ -496,32 +380,28 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _buildAutoPlaySettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
     return SwitchListTile(
       title: const Text('Auto Play'),
       subtitle: const Text('Automatically plays the video when loaded.'),
-      value: _autoPlay,
+      value: settings.autoPlay.watch(context),
       onChanged: (value) {
-        setState(() {
-          _autoPlay = value;
-          _saveSettings();
-        });
+        settings.autoPlay.value = value;
       },
       secondary: const Icon(Icons.play_arrow),
     );
   }
 
   Widget _buildInvertSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
     return SwitchListTile(
       title: const Text('Invert'),
       subtitle: const Text(
         'Inverts the funscript actions. Changes are applied when loading a funscript.',
       ),
-      value: _invert,
+      value: settings.invert.watch(context),
       onChanged: (value) {
-        setState(() {
-          _invert = value;
-          _saveSettings();
-        });
+        settings.invert.value = value;
       },
       secondary: const Icon(Icons.swap_vert),
       isThreeLine: true,
@@ -529,23 +409,21 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _buildMinMaxSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
     return Column(
       children: [
         RangeSlider(
-          values: RangeValues(_currentMin, _currentMax),
+          values: settings.minMaxRange.watch(context),
           min: 0,
           max: 100,
           divisions: 100,
           labels: RangeLabels(
-            _currentMin.round().toString(),
-            _currentMax.round().toString(),
+            settings.min.value.round().toString(),
+            settings.max.value.round().toString(),
           ),
           onChanged: (values) {
-            setState(() {
-              _currentMin = values.start;
-              _currentMax = values.end;
-              _debouncer.run(_saveSettings);
-            });
+            settings.min.value = values.start.toInt();
+            settings.max.value = values.end.toInt();
           },
         ),
         Row(
@@ -554,17 +432,14 @@ class _SettingsPageState extends State<SettingsPage>
             Expanded(
               child: FocusNumericInput(
                 label: 'Min',
-                value: _currentMin,
+                value: settings.min.watch(context).toDouble(),
                 min: 0,
                 max: 100,
                 onChanged: (value) {
-                  setState(() {
-                    _currentMin = value;
-                    if (_currentMin > _currentMax) {
-                      _currentMax = _currentMin;
-                    }
-                    _saveSettings();
-                  });
+                  settings.min.value = value.toInt();
+                  if (settings.min.value > settings.max.value) {
+                    settings.max.value = settings.min.value;
+                  }
                 },
               ),
             ),
@@ -572,17 +447,14 @@ class _SettingsPageState extends State<SettingsPage>
             Expanded(
               child: FocusNumericInput(
                 label: 'Max',
-                value: _currentMax,
+                value: settings.max.watch(context).toDouble(),
                 min: 0,
                 max: 100,
                 onChanged: (value) {
-                  setState(() {
-                    _currentMax = value;
-                    if (_currentMax < _currentMin) {
-                      _currentMin = _currentMax;
-                    }
-                    _saveSettings();
-                  });
+                  settings.max.value = value.toInt();
+                  if (settings.max.value < settings.min.value) {
+                    settings.min.value = settings.max.value;
+                  }
                 },
               ),
             ),
@@ -593,6 +465,7 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _buildOffsetSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -606,16 +479,13 @@ class _SettingsPageState extends State<SettingsPage>
         ),
         _buildSliderWithNumericInput(
           context,
-          value: _currentOffsetMs,
+          value: settings.offsetMs.watch(context).toDouble(),
           min: -200,
           max: 200,
           divisions: 400,
           onChanged: (value) {
-            setState(() {
-              _currentOffsetMs = value;
-            });
+            settings.offsetMs.value = value.toInt();
           },
-          onSave: _saveSettings,
         ),
       ],
     );
@@ -628,7 +498,6 @@ class _SettingsPageState extends State<SettingsPage>
     required double max,
     required int divisions,
     required ValueChanged<double> onChanged,
-    required VoidCallback onSave,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -643,7 +512,6 @@ class _SettingsPageState extends State<SettingsPage>
               divisions: divisions,
               label: value.round().toString(),
               onChanged: onChanged,
-              onChangeEnd: (value) => onSave(),
             ),
           ),
           Expanded(
@@ -652,10 +520,7 @@ class _SettingsPageState extends State<SettingsPage>
               value: value,
               min: min,
               max: max,
-              onChanged: (newValue) {
-                onChanged(newValue);
-                onSave();
-              },
+              onChanged: onChanged,
             ),
           ),
         ],
@@ -726,6 +591,7 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _buildDebugSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
     return Column(
       children: [
         SwitchListTile(
@@ -733,10 +599,10 @@ class _SettingsPageState extends State<SettingsPage>
           subtitle: const Text(
             'Shows extra notifications with debug information.',
           ),
-          value: _model.showDebugNotifications.value,
+          value: settings.showDebugNotifications.value,
           onChanged: (value) {
             setState(() {
-              _model.showDebugNotifications.value = value;
+              settings.showDebugNotifications.value = value;
             });
           },
           secondary: const Icon(Icons.bug_report),
@@ -750,8 +616,8 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   void _generateMissingThumbnails(BuildContext context) {
-    final model = context.read<SyncopathyModel>();
-    final videos = model.mediaManager.allVideos;
+    final mediaManager = context.read<MediaManager>();
+    final videos = mediaManager.allVideos;
     int generatedCount = 0;
     bool generationStarted = false;
     int successCount = 0;

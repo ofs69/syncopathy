@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/sqlite/models/user_category.dart';
@@ -7,7 +8,6 @@ import 'package:syncopathy/notification_feed.dart';
 class CategorySelectionDialog extends StatefulWidget {
   final UserCategory? initialSelectedCategory;
   final bool showAddCategory;
-  final MediaManager mediaManager;
   final UserCategory uncategorized;
   final bool showUncategorizedOption;
   final bool showAllCategoriesOption;
@@ -16,7 +16,6 @@ class CategorySelectionDialog extends StatefulWidget {
     super.key,
     this.initialSelectedCategory,
     this.showAddCategory = true,
-    required this.mediaManager,
     required this.uncategorized,
     this.showUncategorizedOption = false,
     this.showAllCategoriesOption = false,
@@ -72,6 +71,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaManager = context.read<MediaManager>();
     final filteredUserCategories = _userCategories
         .where(
           (item) => item.name.toLowerCase().contains(
@@ -122,7 +122,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                         ),
                         onSubmitted: (value) async {
                           if (value.isNotEmpty) {
-                            await widget.mediaManager.createCategory(value);
+                            await mediaManager.createCategory(value);
                             _newCategoryController.clear();
                             _searchController.clear();
                             await _loadCategories();
@@ -135,7 +135,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                       icon: const Icon(Icons.add),
                       onPressed: () async {
                         if (_newCategoryController.text.isNotEmpty) {
-                          await widget.mediaManager.createCategory(
+                          await mediaManager.createCategory(
                             _newCategoryController.text,
                           );
                           _newCategoryController.clear();
@@ -184,6 +184,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
   }
 
   Widget _buildReorderableList(List<UserCategory> categories) {
+    final mediaManager = context.read<MediaManager>();
     return Column(
       children: [
         ..._metaCategories.map((item) {
@@ -244,7 +245,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                           );
 
                           if (confirm == true) {
-                            await widget.mediaManager.deleteCategory(item);
+                            await mediaManager.deleteCategory(item);
                             if (!context.mounted) return;
                             NotificationFeedManager.showSuccessNotification(
                               context,

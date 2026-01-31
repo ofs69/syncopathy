@@ -73,13 +73,8 @@ class VideoFilter {
 
 class MediaLibrary extends StatefulWidget {
   final void Function(Video) onVideoTapped;
-  final MediaManager mediaManager;
 
-  const MediaLibrary({
-    super.key,
-    required this.onVideoTapped,
-    required this.mediaManager,
-  });
+  const MediaLibrary({super.key, required this.onVideoTapped});
 
   @override
   State<MediaLibrary> createState() => _MediaLibraryState();
@@ -89,7 +84,6 @@ final _uncategorized = UserCategory(name: 'Uncategorized');
 
 class _MediaLibraryState extends State<MediaLibrary> {
   late final PcaCalculator _pcaCalculator;
-  late final MediaManager _mediaManager;
   late final MediaLibrarySettingsModel _mediaLibrarySettings;
   late final MediaSearchService _mediaSearchService;
   String _searchQuery = '';
@@ -114,20 +108,20 @@ class _MediaLibraryState extends State<MediaLibrary> {
   @override
   void initState() {
     super.initState();
-    _mediaManager = widget.mediaManager;
     _mediaLibrarySettings = MediaLibrarySettingsModel();
     _mediaLibrarySettings.load().then((_) {
       _updateDisplayedVideos();
       _settingsSaveSubscription = _mediaLibrarySettings.saveNotifier.stream
           .listen((_) => _updateDisplayedVideos());
     });
-    _pcaCalculator = PcaCalculator(_mediaManager);
+    final mediaManager = context.read<MediaManager>();
+    _pcaCalculator = PcaCalculator(mediaManager);
     _mediaSearchService = MediaSearchService();
 
     _refreshVideos();
 
     _filteredVideos = [];
-    _videoUpdateSubscription = _mediaManager.videoUpdates.listen((_) {
+    _videoUpdateSubscription = mediaManager.videoUpdates.listen((_) {
       _updateDisplayedVideos();
     });
   }
@@ -140,7 +134,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
   }
 
   List<String> get _allAuthors {
-    final authors = _mediaManager.allVideos
+    final authors = context
+        .read<MediaManager>()
+        .allVideos
         .map((v) => v.funscriptMetadata?.creator)
         .where((c) => c != null && c.isNotEmpty)
         .cast<String>()
@@ -151,7 +147,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
   }
 
   List<String> get _allTags {
-    final tags = _mediaManager.allVideos
+    final tags = context
+        .read<MediaManager>()
+        .allVideos
         .expand<String>((v) => v.funscriptMetadata?.tags ?? [])
         .toSet()
         .toList();
@@ -160,7 +158,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
   }
 
   List<String> get _allPerformers {
-    final performers = _mediaManager.allVideos
+    final performers = context
+        .read<MediaManager>()
+        .allVideos
         .expand<String>((v) => v.funscriptMetadata?.performers ?? [])
         .toSet()
         .toList();
@@ -172,7 +172,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
     if (!mounted) return;
     if (_isLoading) return;
 
-    List<Video> videos = _mediaManager.allVideos.where((video) {
+    List<Video> videos = context.read<MediaManager>().allVideos.where((video) {
       final authorMatch =
           _selectedAuthors.isEmpty ||
           (_selectedAuthors.isNotEmpty &&
@@ -344,7 +344,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
       _isLoading = true;
       _filteredVideos = []; // Clear videos when loading starts
     });
-    await _mediaManager.refreshVideos();
+    await context.read<MediaManager>().refreshVideos();
     if (mounted) {
       setState(() => _isLoading = false);
       await _updateDisplayedVideos();
@@ -455,7 +455,6 @@ class _MediaLibraryState extends State<MediaLibrary> {
       isScrollControlled: true,
       builder: (BuildContext context) {
         return CategorySelectionDialog(
-          mediaManager: _mediaManager,
           uncategorized: _uncategorized,
           showAllCategoriesOption: true,
           showUncategorizedOption: true,
@@ -472,9 +471,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
   }
 
   Future<void> _showBulkAddCategoryDialog() async {
+    final mediaManager = context.read<MediaManager>();
     final category = await _showCategorySelectionDialog();
     if (category != null) {
-      await _mediaManager.addVideosToCategory(
+      await mediaManager.addVideosToCategory(
         _selectedVideos.toList(),
         category,
       );
@@ -486,9 +486,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
   }
 
   Future<void> _showBulkRemoveCategoryDialog() async {
+    final mediaManager = context.read<MediaManager>();
     final category = await _showCategorySelectionDialog(showAddCategory: false);
     if (category != null) {
-      await _mediaManager.removeVideosFromCategory(
+      await mediaManager.removeVideosFromCategory(
         _selectedVideos.toList(),
         category,
       );
@@ -507,7 +508,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
   }
 
   Future<void> _deleteVideo(Video video) async {
-    await _mediaManager.deleteVideo(video);
+    await context.read<MediaManager>().deleteVideo(video);
     _updateDisplayedVideos();
   }
 
@@ -519,7 +520,6 @@ class _MediaLibraryState extends State<MediaLibrary> {
       isScrollControlled: true,
       builder: (BuildContext context) {
         return CategorySelectionDialog(
-          mediaManager: _mediaManager,
           uncategorized: _uncategorized,
           showAddCategory: showAddCategory,
           showAllCategoriesOption: false,
@@ -792,6 +792,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaManager = context.read<MediaManager>();
     return Scaffold(
       appBar: _isSelectionMode
           ? _buildSelectionAppBar()
@@ -817,7 +818,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    'Showing ${_filteredVideos.length} of ${_mediaManager.allVideos.length} videos',
+                    'Showing ${_filteredVideos.length} of ${mediaManager.allVideos.length} videos',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   Tooltip(
@@ -844,7 +845,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
                         const CircularProgressIndicator(),
                         const SizedBox(height: 16),
                         ValueListenableBuilder<int>(
-                          valueListenable: _mediaManager.videoCountNotifier,
+                          valueListenable: context
+                              .read<MediaManager>()
+                              .videoCountNotifier,
                           builder: (context, value, child) {
                             return Text('Found $value videos...');
                           },
@@ -922,21 +925,18 @@ class _MediaLibraryState extends State<MediaLibrary> {
                             });
                           },
                           onFavoriteChanged: (video) {
-                            _mediaManager.saveFavorite(video);
+                            mediaManager.saveFavorite(video);
                             _updateDisplayedVideos();
                           },
                           onDislikeChanged: (video) {
-                            _mediaManager.saveDislike(video);
+                            mediaManager.saveDislike(video);
                             _updateDisplayedVideos();
                           },
                           onCategoryChanged: (video, category, removeCategory) {
                             if (removeCategory) {
-                              _mediaManager.removeVideoCategory(
-                                video,
-                                category,
-                              );
+                              mediaManager.removeVideoCategory(video, category);
                             } else {
-                              _mediaManager.setVideoCategory(video, category);
+                              mediaManager.setVideoCategory(video, category);
                             }
                             _updateDisplayedVideos();
                           },

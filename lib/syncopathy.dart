@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:syncopathy/help_page.dart';
 
 import 'package:syncopathy/media_page.dart';
-import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/notification_feed.dart';
 
 import 'package:syncopathy/settings_page.dart';
@@ -102,10 +102,10 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   }
 
   void _handleVideoChange() {
-    final model = context.read<SyncopathyModel>();
+    final settings = context.read<SettingsModel>();
     final player = context.read<PlayerModel>();
     if (player.currentVideo.value != null &&
-        model.settings.autoSwitchToVideoPlayerTab.value) {
+        settings.autoSwitchToVideoPlayerTab.value) {
       setState(() {
         _selectedIndex = 1; // Navigate to Video Player tab
       });
@@ -151,7 +151,6 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     final currentVideo = player.currentVideo.value;
 
     return LogNotificationObserver(
-      showDebugNotifications: context.watch<SyncopathyModel>().showDebugNotifications,
       child: Stack(
         children: [
           ShortcutHandler(
@@ -229,7 +228,7 @@ class _PageContentState extends State<PageContent> {
       controller: widget.pageController,
       onPageChanged: widget.onPageChanged,
       children: <Widget>[
-        MediaPage(mediaManager: context.read<SyncopathyModel>().mediaManager),
+        MediaPage(),
         VideoPlayerPage(focusNode: widget.videoPlayerFocusNode),
         SettingsPage(),
         HelpPage(),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/scrolling_graph.dart';
 import 'package:syncopathy/video_controls.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
@@ -93,7 +93,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final model = context.watch<SyncopathyModel>();
+    final settings = context.watch<SettingsModel>();
     final player = context.watch<PlayerModel>();
 
     enterFullscreen() => Navigator.push(
@@ -102,7 +102,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
         builder: (context) => FullscreenVideoPage(
           player: player,
           videoParamsNotifier: player.videoParams,
-          isEmbeddedPlayerEnabled: model.settings.embeddedVideoPlayer.value,
+          isEmbeddedPlayerEnabled: settings.embeddedVideoPlayer.value,
         ),
       ),
     );
@@ -135,7 +135,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                   children: [
                     Expanded(
                       flex: 6,
-                      child: model.settings.embeddedVideoPlayer.value
+                      child: settings.embeddedVideoPlayer.value
                           ? GestureDetector(
                               onDoubleTap: enterFullscreen,
                               child: Hero(

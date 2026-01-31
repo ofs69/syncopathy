@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
+import 'package:signals/signals.dart';
 import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/model/battery_model.dart';
@@ -48,18 +49,24 @@ class HandyBle extends FunscriptDevice {
 
   static final _connectSemaphore = Semaphore(1);
   final SettingsModel _settings;
+  final Debouncer _settingsDebouncer = Debouncer(milliseconds: 500);
+  late final Function _settingsEffectDispose;
 
   HandyBle(this._settings, this._batteryModel) {
-    _settings.min.addListener(setSettings);
-    _settings.max.addListener(setSettings);
+    _settingsEffectDispose = effect(() {
+      final minVal = _settings.min.value;
+      final maxVal = _settings.max.value;
+      _settingsDebouncer.run(() async {
+        await setSettings(minVal, maxVal);
+      });
+    });
 
     _startConnectionCheckTimer();
     UniversalBle.onScanResult = _handleScanResults;
   }
 
   void dispose() {
-    _settings.min.removeListener(setSettings);
-    _settings.max.removeListener(setSettings);
+    _settingsEffectDispose();
 
     _connectionCheckTimer?.cancel();
     _rxSubscription?.cancel();
@@ -329,7 +336,7 @@ class HandyBle extends FunscriptDevice {
     await response;
   }
 
-  Future<void> setSettings() async {
+  Future<void> setSettings(int min, int max) async {
     if (_tx == null) return;
     var requestId = nextRequestId;
     var message = RpcMessage(
@@ -337,8 +344,8 @@ class HandyBle extends FunscriptDevice {
       request: Request(
         id: requestId,
         requestSliderStrokeSet: RequestSliderStrokeSet(
-          min: (_settings.min.value / 100.0).clamp(0.0, 1.0),
-          max: (_settings.max.value / 100.0).clamp(0.0, 1.0),
+          min: (min / 100.0).clamp(0.0, 1.0),
+          max: (max / 100.0).clamp(0.0, 1.0),
         ),
       ),
     );
@@ -622,6 +629,6 @@ class HandyBle extends FunscriptDevice {
 
     var _ = await response;
 
-    await setSettings();
+    await setSettings(_settings.min.value, _settings.max.value);
   }
 }

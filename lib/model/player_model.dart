@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:libmpv_dart/video/video_params.dart';
 import 'package:syncopathy/funscript_algo.dart';
-import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/funscript.dart';
@@ -15,7 +14,7 @@ import 'package:syncopathy/player/funscript_stream_controller.dart';
 import 'package:syncopathy/player/handy_ble.dart';
 import 'package:syncopathy/player/mpv.dart';
 
-class PlayerModel extends ChangeNotifier {
+class PlayerModel {
   late final MpvVideoplayer _mpvPlayer;
   bool _shouldPlay = false;
   ValueNotifier<bool> get paused => _mpvPlayer.paused;
@@ -65,7 +64,6 @@ class PlayerModel extends ChangeNotifier {
     positionNoOffset.addListener(_handlePositionChanged);
   }
 
-  @override
   void dispose() {
     paused.removeListener(_handlePausedChanged);
     _funscriptStreamController.canPlay.removeListener(_handlePausedChanged);
@@ -73,7 +71,6 @@ class PlayerModel extends ChangeNotifier {
     positionNoOffset.removeListener(_handlePositionChanged);
     _mpvPlayer.dispose();
     _handyBle.dispose();
-    super.dispose();
   }
 
   void tryConnect() {

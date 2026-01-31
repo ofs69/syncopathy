@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/connection_button.dart';
-import 'package:syncopathy/model/app_model.dart';
+import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
@@ -35,8 +35,9 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
 class CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
-    var playerModel = context.read<SyncopathyModel>();
-    var batteryModel = context.read<BatteryModel>();
+    final mediaManager = context.read<MediaManager>();
+    final player = context.read<PlayerModel>();
+    final batteryModel = context.read<BatteryModel>();
 
     var hasBattery = batteryModel.hasBattery.watch(context);
     var chargerConnected = batteryModel.chargerConntected.watch(context);
@@ -90,9 +91,7 @@ class CustomAppBarState extends State<CustomAppBar> {
                             widget.currentVideo!.isDislike = false;
                           }
                         });
-                        playerModel.mediaManager.saveFavorite(
-                          widget.currentVideo!,
-                        );
+                        mediaManager.saveFavorite(widget.currentVideo!);
                       },
                       tooltip: widget.currentVideo!.isFavorite
                           ? 'Remove from Favorites'
@@ -115,9 +114,7 @@ class CustomAppBarState extends State<CustomAppBar> {
                             widget.currentVideo!.isFavorite = false;
                           }
                         });
-                        playerModel.mediaManager.saveDislike(
-                          widget.currentVideo!,
-                        );
+                        mediaManager.saveDislike(widget.currentVideo!);
                       },
                       tooltip: widget.currentVideo!.isDislike
                           ? 'Remove Dislike'
@@ -126,9 +123,8 @@ class CustomAppBarState extends State<CustomAppBar> {
                     const SizedBox(width: 16),
                     IconButton(
                       icon: const Icon(Icons.close),
-                      onPressed: () =>
-                          playerModel.player.closeVideoOrPlaylist(),
-                      tooltip: playerModel.player.playlist.value != null
+                      onPressed: () => player.closeVideoOrPlaylist(),
+                      tooltip: player.playlist.value != null
                           ? 'Close Playlist'
                           : 'Close Video',
                     ),

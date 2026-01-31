@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:syncopathy/model/app_model.dart';
-import 'package:syncopathy/helper/debouncer.dart';
+import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/model/settings_model.dart';
 
 class SettingsPopupMenu extends StatefulWidget {
   final VoidCallback? onInteractionStart;
@@ -18,45 +19,10 @@ class SettingsPopupMenu extends StatefulWidget {
 }
 
 class _SettingsPopupMenuState extends State<SettingsPopupMenu> {
-  RangeValues minMax = RangeValues(0, 100);
-  final _debouncer = Debouncer(milliseconds: 500);
-  late final SyncopathyModel _model;
-
-  @override
-  void initState() {
-    _model = context.read<SyncopathyModel>();
-    minMax = RangeValues(
-      _model.settings.min.value.toDouble(),
-      _model.settings.max.value.toDouble(),
-    );
-
-    _model.settings.min.addListener(_handleMinMaxValueChange);
-    _model.settings.max.addListener(_handleMinMaxValueChange);
-
-    super.initState();
-  }
-
-  void _handleMinMaxValueChange() {
-    if (mounted) {
-      setState(() {
-        minMax = RangeValues(
-          _model.settings.min.value.toDouble(),
-          _model.settings.max.value.toDouble(),
-        );
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _model.settings.min.removeListener(_handleMinMaxValueChange);
-    _model.settings.max.removeListener(_handleMinMaxValueChange);
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    final player = _model.player;
+    final player = context.read<PlayerModel>();
+    final settings = context.read<SettingsModel>();
     return PopupMenuButton(
       icon: const Icon(Icons.settings),
       offset: Offset(0, (-(Theme.of(context).iconTheme.size ?? 24.0)) * 4.0),
@@ -85,24 +51,19 @@ class _SettingsPopupMenuState extends State<SettingsPopupMenu> {
                           height:
                               (Theme.of(context).iconTheme.size ?? 24.0) * 1.5,
                           child: RangeSlider(
-                            values: minMax,
+                            values: settings.minMaxRange.watch(context),
                             min: 0,
                             max: 100,
                             divisions: 100,
                             labels: RangeLabels(
-                              minMax.start.round().toString(),
-                              minMax.end.round().toString(),
+                              settings.minMaxRange.value.start
+                                  .round()
+                                  .toString(),
+                              settings.minMaxRange.value.end.round().toString(),
                             ),
                             onChanged: (values) {
-                              setState(() {
-                                minMax = values;
-                                _debouncer.run(() {
-                                  _model.settings.setMinMax(
-                                    values.start.round(),
-                                    values.end.round(),
-                                  );
-                                });
-                              });
+                              settings.min.value = values.start.round();
+                              settings.max.value = values.end.round();
                             },
                             onChangeStart: (_) =>
                                 widget.onInteractionStart?.call(),

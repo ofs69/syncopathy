@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/heatmap.dart';
-import 'package:syncopathy/model/app_model.dart';
 import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/settings_popup_menu.dart';
 
 class VideoControls extends StatefulWidget {
@@ -27,19 +27,12 @@ class VideoControls extends StatefulWidget {
 }
 
 class _VideoControlsState extends State<VideoControls> {
-  late final SyncopathyModel _model;
   bool _hovering = false;
   Timer? _hoverExitTimer;
 
   @override
-  void initState() {
-    _model = context.read<SyncopathyModel>();
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final player = _model.player;
+    final player = context.read<PlayerModel>();
     final iconSize = Theme.of(context).iconTheme.size ?? 24.0;
 
     return Material(
