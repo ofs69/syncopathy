@@ -163,7 +163,6 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                 widgetTitle: widget.title,
                 currentVideo: currentVideo,
                 player: player,
-                batteryState: player.batteryState,
               ),
               body: Row(
                 children: <Widget>[

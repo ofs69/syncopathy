@@ -4,6 +4,7 @@ import 'package:libmpv_dart/video/video_params.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/playlist.dart';
 import 'package:syncopathy/model/settings_model.dart';
@@ -28,7 +29,6 @@ class PlayerModel extends ChangeNotifier {
   late final HandyBle _handyBle;
   ValueNotifier<bool> get isScanning => _handyBle.isScanning;
   ValueNotifier<bool> get isConnected => _handyBle.isConnected;
-  ValueNotifier<BatteryState?> get batteryState => _handyBle.batteryState;
 
   final SettingsModel _settings;
   late final FunscriptStreamController _funscriptStreamController;
@@ -49,12 +49,12 @@ class PlayerModel extends ChangeNotifier {
       (_positionNoOffset.value * 1000.0).round().toInt() +
       _settings.offsetMs.value;
 
-  PlayerModel(this._settings) {
+  PlayerModel(this._settings, BatteryModel batteryModel) {
     _mpvPlayer = MpvVideoplayer(
       videoOutput: _settings.embeddedVideoPlayer.value,
     );
 
-    _handyBle = HandyBle(_settings);
+    _handyBle = HandyBle(_settings, batteryModel);
     _funscriptStreamController = FunscriptStreamController(
       _handyBle,
       currentFunscript,

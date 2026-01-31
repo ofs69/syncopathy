@@ -6,6 +6,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/helper/debouncer.dart';
+import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/funscript_stream_controller.dart';
@@ -23,12 +24,11 @@ class HandyBle extends FunscriptDevice {
   Timer? _connectionCheckTimer;
   StreamSubscription? _rxSubscription;
 
+  final BatteryModel _batteryModel;
   final ValueNotifier<bool> _isConnected = ValueNotifier(false);
   ValueNotifier<bool> get isConnected => _isConnected;
   final ValueNotifier<bool> _isScanning = ValueNotifier(false);
   ValueNotifier<bool> get isScanning => _isScanning;
-  final ValueNotifier<BatteryState?> _batteryState = ValueNotifier(null);
-  ValueNotifier<BatteryState?> get batteryState => _batteryState;
   ResponseCapabilitiesGet? _capabilities;
 
   int _nextRequestId = 1;
@@ -49,7 +49,7 @@ class HandyBle extends FunscriptDevice {
   static final _connectSemaphore = Semaphore(1);
   final SettingsModel _settings;
 
-  HandyBle(this._settings) {
+  HandyBle(this._settings, this._batteryModel) {
     _settings.min.addListener(setSettings);
     _settings.max.addListener(setSettings);
 
@@ -171,6 +171,7 @@ class HandyBle extends FunscriptDevice {
 
         await _setupDevice();
         _capabilities = await _getCapabilities();
+        _batteryModel.hasBattery.value = _capabilities?.hasBattery() ?? false;
         await _loadSettings();
       }
     } catch (e) {
@@ -370,7 +371,10 @@ class HandyBle extends FunscriptDevice {
     var response = completer.future.then((value) {
       var response = value.response;
       if (response.hasResponseBatteryGet()) {
-        _batteryState.value = response.responseBatteryGet.state;
+        _batteryModel.chargerConntected.value =
+            response.responseBatteryGet.state.chargerConnected;
+        _batteryModel.batteryLevel.value =
+            response.responseBatteryGet.state.level;
       }
     });
     _txWrite(message.writeToBuffer());

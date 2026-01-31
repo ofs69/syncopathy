@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/connection_button.dart';
 import 'package:syncopathy/model/app_model.dart';
+import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/playlist_controls.dart';
 import 'package:syncopathy/update_checker_widget.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:syncopathy/generated/constants.pb.dart';
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   const CustomAppBar({
@@ -17,14 +18,12 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
     required this.widgetTitle,
     required this.currentVideo,
     required this.player,
-    required this.batteryState,
   });
 
   final String? currentVideoTitle;
   final String widgetTitle;
   final Video? currentVideo;
   final PlayerModel player;
-  final ValueNotifier<BatteryState?> batteryState;
 
   @override
   CustomAppBarState createState() => CustomAppBarState();
@@ -37,6 +36,11 @@ class CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
     var playerModel = context.read<SyncopathyModel>();
+    var batteryModel = context.read<BatteryModel>();
+
+    var hasBattery = batteryModel.hasBattery.watch(context);
+    var chargerConnected = batteryModel.chargerConntected.watch(context);
+
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: DragToMoveArea(
@@ -137,30 +141,26 @@ class CustomAppBarState extends State<CustomAppBar> {
         const SizedBox(width: 24),
         const UpdateCheckerWidget(),
         const SizedBox(width: 8),
-        ValueListenableBuilder<BatteryState?>(
-          valueListenable: widget.batteryState,
-          builder: (context, batteryState, child) {
-            if (batteryState == null || batteryState.level == 0) {
-              return const SizedBox.shrink();
-            }
-            return Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Row(
-                children: [
-                  Icon(
-                    batteryState.chargerConnected
-                        ? Icons.battery_charging_full
-                        : Icons.battery_full,
-                    color: batteryState.chargerConnected
-                        ? Colors.green
-                        : (batteryState.level < 20 ? Colors.red : null),
-                  ),
-                  Text('${batteryState.level}%'),
-                ],
-              ),
-            );
-          },
-        ),
+
+        if (hasBattery)
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: Row(
+              children: [
+                Icon(
+                  chargerConnected
+                      ? Icons.battery_charging_full
+                      : Icons.battery_full,
+                  color: chargerConnected
+                      ? Colors.green
+                      : (batteryModel.batteryLevel.value < 20
+                            ? Colors.red
+                            : null),
+                ),
+                Text('${batteryModel.batteryLevel.watch(context)}%'),
+              ],
+            ),
+          ),
         const Padding(
           padding: EdgeInsets.only(right: 8.0),
           child: ConnectionButton(),
