@@ -44,7 +44,11 @@ class CustomAppBarState extends State<CustomAppBar> {
 
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      title: DragToMoveArea(
+      flexibleSpace: DragToMoveArea(
+        child: Container(color: Colors.transparent),
+      ),
+      title: IgnorePointer(
+        ignoring: true,
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           transitionBuilder: (Widget child, Animation<double> animation) {
