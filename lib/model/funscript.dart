@@ -145,9 +145,9 @@ class Funscript {
     }
 
     return Funscript(
-      version: json['version'] as String? ?? "1.0",
-      inverted: json['inverted'] as bool? ?? false,
-      range: json['range'] as int? ?? 90,
+      version: json['version'] is String ? json['version'] : '1.0',
+      inverted: json['inverted'] is bool ? json['inverted'] : false,
+      range: json['range'] is num ? (json['range'] as num).toInt() : 100,
       actions: actions,
       metadata: metadata,
       filePath: filePath,
