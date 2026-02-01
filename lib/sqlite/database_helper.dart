@@ -270,6 +270,24 @@ class DatabaseHelper {
     await batch.commit(noResult: true);
   }
 
+  Future<void> resetAllVideosPlayCount() async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> videoMaps = await db.query('videos');
+    final batch = db.batch();
+    for (var readonlyVideo in videoMaps) {
+      final video = Map<String, Object?>.from(readonlyVideo);
+      video['playCount'] = 0;
+      batch.insert(
+        'videos',
+        video,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+
+    await batch.commit(noResult: true);
+  }
+
   Future<List<Video>> getAllVideos() async {
     final db = await database;
 

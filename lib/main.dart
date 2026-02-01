@@ -8,6 +8,7 @@ import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_manager.dart';
 
 import 'package:syncopathy/model/battery_model.dart';
+import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
@@ -46,6 +47,8 @@ Future<Widget> _initializeAppAndRun(Directory appSupportDir) async {
 
   var settings = SettingsModel();
   await settings.load();
+  var mediaSettings = MediaLibrarySettingsModel();
+  await mediaSettings.load();
   var mediaManager = MediaManager(settings.mediaPaths.value);
   await mediaManager.load();
   var batteryModel = BatteryModel();
@@ -55,6 +58,10 @@ Future<Widget> _initializeAppAndRun(Directory appSupportDir) async {
     providers: [
       Provider(
         create: (_) => mediaManager,
+        dispose: (_, model) => model.dispose(),
+      ),
+      Provider(
+        create: (_) => mediaSettings,
         dispose: (_, model) => model.dispose(),
       ),
       Provider(create: (_) => player, dispose: (_, model) => model.dispose()),

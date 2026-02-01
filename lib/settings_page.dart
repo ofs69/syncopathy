@@ -10,7 +10,10 @@ import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
+import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/sqlite/models/media_library_settings.dart';
 import 'package:syncopathy/video_thumbnail.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:flutter/foundation.dart';
@@ -554,7 +557,7 @@ class _SettingsPageState extends State<SettingsPage>
           ),
           trailing: const Icon(Icons.image_search),
           onTap: () async {
-            final bool? shouldGenerate = await showDialog<bool>(
+            final shouldGenerate = await showDialog<bool>(
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
@@ -579,6 +582,39 @@ class _SettingsPageState extends State<SettingsPage>
             if (shouldGenerate == true) {
               if (!mounted) return;
               _callGenerateMissingThumbnails();
+            }
+          },
+        ),
+        ListTile(
+          title: const Text('Reset Video Play Count'),
+          subtitle: const Text(
+            'Resets the video play count to zero for all videos.',
+          ),
+          trailing: const Icon(Icons.history),
+          onTap: () async {
+            final resetViewCount = await showDialog<bool>(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Confirm Video Play Count Reset'),
+                  content: const Text('Are you sure you want to continue?'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Reset'),
+                    ),
+                  ],
+                );
+              },
+            );
+
+            if (resetViewCount == true) {
+              if (!mounted) return;
+              _resetAllVideoPlayCount();
             }
           },
         ),
@@ -609,6 +645,18 @@ class _SettingsPageState extends State<SettingsPage>
 
   void _callGenerateMissingThumbnails() {
     _generateMissingThumbnails(context);
+  }
+
+  Future<void> _resetAllVideoPlayCount() async {
+    final mediaSettings = context.read<MediaLibrarySettingsModel>();
+    final mediaManager = context.read<MediaManager>();
+    await DatabaseHelper().resetAllVideosPlayCount();
+    // HACK: trigger a UI refresh
+    await mediaManager.load();
+    mediaSettings.isSortAscending.set(
+      mediaSettings.isSortAscending.value,
+      force: true,
+    );
   }
 
   void _generateMissingThumbnails(BuildContext context) {
