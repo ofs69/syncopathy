@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:async_locks/async_locks.dart';
 import 'package:libmpv_dart/video/video_params.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/funscript_algo.dart';
@@ -48,6 +49,8 @@ class PlayerModel {
       _settings.offsetMs.value;
 
   late final Function _effectDispose;
+
+  final Lock _openVideoLock = Lock();
 
   PlayerModel(this._settings, BatteryModel batteryModel) {
     _mpvPlayer = MpvVideoplayer(
@@ -209,6 +212,7 @@ class PlayerModel {
 
   Future<void> openVideoAndScript(Video video, bool isPlaylist) async {
     try {
+      await _openVideoLock.acquire();
       _hasTriggeredNextVideo = false;
       if (!isPlaylist) {
         bool videoFoundInExistingPlaylist = false;
@@ -258,6 +262,8 @@ class PlayerModel {
       Logger.error(ex);
       Logger.error(trace);
       currentVideo.value = null;
+    } finally {
+      _openVideoLock.release();
     }
   }
 
