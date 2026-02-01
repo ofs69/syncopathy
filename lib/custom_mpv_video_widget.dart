@@ -31,7 +31,7 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
 
         return AspectRatio(
           aspectRatio: videoParams.value.dw / videoParams.value.dh,
-          child: Texture(textureId: player.textureId.watch(context)),
+          child: Texture(textureId: player.textureId.value),
         );
       },
     );

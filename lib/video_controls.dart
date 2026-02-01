@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/heatmap.dart';
-import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/settings_popup_menu.dart';
 
@@ -11,16 +10,14 @@ class VideoControls extends StatefulWidget {
   final VoidCallback onFullscreenToggle;
   final VoidCallback? onInteractionStart;
   final VoidCallback? onInteractionEnd;
-  final ValueChanged<bool>? onToggleFunscriptGraph;
-  final ValueNotifier<bool> showFunscriptGraphNotifier;
+  final Signal<bool> showFunscriptGraph;
 
   const VideoControls({
     super.key,
     required this.onFullscreenToggle,
     this.onInteractionStart,
     this.onInteractionEnd,
-    this.onToggleFunscriptGraph,
-    required this.showFunscriptGraphNotifier,
+    required this.showFunscriptGraph,
   });
 
   @override
@@ -77,9 +74,9 @@ class _VideoControlsState extends State<VideoControls> {
                         duration: const Duration(milliseconds: 200),
                         curve: Curves.easeInOut,
                         height: _hovering ? iconSize * 2.5 : iconSize * 1.0,
-                        child: ValueListenableBuilder<Funscript?>(
-                          valueListenable: player.currentFunscript,
-                          builder: (context, funscript, child) {
+                        child: Watch.builder(
+                          builder: (context) {
+                            final funscript = player.currentFunscript.value;
                             if (funscript == null) {
                               return const Center(
                                 child: Text("No funscript loaded"),
@@ -141,16 +138,16 @@ class _VideoControlsState extends State<VideoControls> {
                   ),
                   const Spacer(),
                   // Toggle Graph Button
-                  ValueListenableBuilder<bool>(
-                    valueListenable: widget.showFunscriptGraphNotifier,
-                    builder: (context, showGraph, child) {
+                  Watch.builder(
+                    builder: (context) {
+                      final showGraph = widget.showFunscriptGraph.value;
                       return IconButton(
                         icon: Icon(
                           showGraph ? Icons.timeline : Icons.timeline_sharp,
                         ),
                         tooltip: showGraph ? "Hide Graph" : "Show Graph",
-                        onPressed: () =>
-                            widget.onToggleFunscriptGraph?.call(!showGraph),
+                        onPressed: () => widget.showFunscriptGraph.value =
+                            !widget.showFunscriptGraph.value,
                       );
                     },
                   ),

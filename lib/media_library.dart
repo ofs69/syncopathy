@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:signals/signals_flutter.dart';
 
 import 'package:syncopathy/funscript_metadata_filter_bottom_sheet.dart';
 
@@ -86,33 +87,34 @@ class _MediaLibraryState extends State<MediaLibrary> {
   late final PcaCalculator _pcaCalculator;
   late final MediaLibrarySettingsModel _mediaLibrarySettings;
   late final MediaSearchService _mediaSearchService;
-  String _searchQuery = '';
-  late List<Video> _filteredVideos;
 
-  UserCategory? _selectedCategory;
-  Set<String> _selectedAuthors = {};
-  Set<String> _selectedTags = {};
-  Set<String> _selectedPerformers = {};
-  bool _isLoading = false;
+  final Signal<String> _searchQuery = signal('');
+  final Signal<List<Video>> _filteredVideos = listSignal([]);
+
+  final Signal<UserCategory?> _selectedCategory = signal(null);
+  final Signal<Set<String>> _selectedAuthors = setSignal({});
+  final Signal<Set<String>> _selectedTags = setSignal({});
+  final Signal<Set<String>> _selectedPerformers = setSignal({});
+  final Signal<bool> _isLoading = signal(false);
+
   SortOption? _previousSortOption;
   int? _randomSeed;
   final Map<String, List<double>> _pcaScoresByPath = {};
   final Map<Video, List<double>> _videoPcaScores = {};
 
-  final Set<Video> _selectedVideos = {};
+  final Signal<Set<Video>> _selectedVideos = setSignal({});
   bool get _isSelectionMode => _selectedVideos.isNotEmpty;
 
-  StreamSubscription? _videoUpdateSubscription;
-  StreamSubscription? _settingsSaveSubscription;
+  late final Function _videoUpdateEffectDispose;
 
   @override
   void initState() {
     super.initState();
     _mediaLibrarySettings = MediaLibrarySettingsModel();
     _mediaLibrarySettings.load().then((_) {
-      _updateDisplayedVideos();
-      _settingsSaveSubscription = _mediaLibrarySettings.saveNotifier.stream
-          .listen((_) => _updateDisplayedVideos());
+      _videoUpdateEffectDispose = effect(() {
+        _updateVideosFromMediaSettings();
+      });
     });
     final mediaManager = context.read<MediaManager>();
     _pcaCalculator = PcaCalculator(mediaManager);
@@ -120,17 +122,31 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
     _refreshVideos();
 
-    _filteredVideos = [];
-    _videoUpdateSubscription = mediaManager.videoUpdates.listen((_) {
-      _updateDisplayedVideos();
-    });
+    _filteredVideos.value = [];
   }
 
   @override
   void dispose() {
-    _videoUpdateSubscription?.cancel();
-    _settingsSaveSubscription?.cancel();
+    _videoUpdateEffectDispose();
+    _mediaLibrarySettings.dispose();
     super.dispose();
+  }
+
+  Future<void> _updateVideosFromMediaSettings() async {
+    final _ = _isLoading.value;
+    final filteredVideos = await _updateDisplayedVideos(
+      context.read<MediaManager>().allVideos,
+      _mediaLibrarySettings.visibilityFilters.value,
+      _mediaLibrarySettings.sortOption.value,
+      _mediaLibrarySettings.separateFavorites.value,
+      _mediaLibrarySettings.isSortAscending.value,
+      _selectedAuthors.value,
+      _selectedTags.value,
+      _selectedPerformers.value,
+      _selectedCategory.value,
+      _searchQuery.value,
+    );
+    _filteredVideos.value = filteredVideos;
   }
 
   List<String> get _allAuthors {
@@ -168,65 +184,63 @@ class _MediaLibraryState extends State<MediaLibrary> {
     return performers;
   }
 
-  Future<void> _updateDisplayedVideos() async {
-    if (!mounted) return;
-    if (_isLoading) return;
-
-    List<Video> videos = context.read<MediaManager>().allVideos.where((video) {
+  Future<List<Video>> _updateDisplayedVideos(
+    List<Video> allVideos,
+    Set<VideoFilter> videoFilter,
+    SortOption sortOption,
+    bool separateFavorites,
+    bool isSortAscending,
+    Set<String> selectedAuthors,
+    Set<String> selectedTags,
+    Set<String> selectedPerformers,
+    UserCategory? selectedCategory,
+    String searchQuery,
+  ) async {
+    List<Video> videos = allVideos.where((video) {
       final authorMatch =
-          _selectedAuthors.isEmpty ||
-          (_selectedAuthors.isNotEmpty &&
+          selectedAuthors.isEmpty ||
+          (selectedAuthors.isNotEmpty &&
               video.funscriptMetadata?.creator != null &&
-              _selectedAuthors.contains(video.funscriptMetadata!.creator));
+              selectedAuthors.contains(video.funscriptMetadata!.creator));
       if (!authorMatch) return false;
 
       final tagMatch =
-          _selectedTags.isEmpty ||
-          (_selectedTags.isNotEmpty &&
+          selectedTags.isEmpty ||
+          (selectedTags.isNotEmpty &&
               video.funscriptMetadata?.tags != null &&
               video.funscriptMetadata!.tags.any(
-                (tag) => _selectedTags.contains(tag),
+                (tag) => selectedTags.contains(tag),
               ));
       if (!tagMatch) return false;
 
       final performerMatch =
-          _selectedPerformers.isEmpty ||
-          (_selectedPerformers.isNotEmpty &&
+          selectedPerformers.isEmpty ||
+          (selectedPerformers.isNotEmpty &&
               video.funscriptMetadata?.performers != null &&
               video.funscriptMetadata!.performers.any(
-                (performer) => _selectedPerformers.contains(performer),
+                (performer) => selectedPerformers.contains(performer),
               ));
       if (!performerMatch) return false;
 
-      if (_selectedCategory != null) {
-        if (_selectedCategory == _uncategorized) {
+      if (selectedCategory != null) {
+        if (selectedCategory == _uncategorized) {
           if (video.categories.isNotEmpty) {
             return false;
           }
-        } else if (!video.categories.any(
-          (c) => c.id == _selectedCategory!.id,
-        )) {
+        } else if (!video.categories.any((c) => c.id == selectedCategory.id)) {
           return false;
         }
       }
 
-      if (_mediaLibrarySettings.visibilityFilters.value.contains(
-            VideoFilter.hideFavorite,
-          ) &&
-          video.isFavorite) {
+      if (videoFilter.contains(VideoFilter.hideFavorite) && video.isFavorite) {
         return false;
       }
 
-      if (_mediaLibrarySettings.visibilityFilters.value.contains(
-            VideoFilter.hideDisliked,
-          ) &&
-          video.isDislike) {
+      if (videoFilter.contains(VideoFilter.hideDisliked) && video.isDislike) {
         return false;
       }
 
-      if (_mediaLibrarySettings.visibilityFilters.value.contains(
-            VideoFilter.hideUnrated,
-          ) &&
+      if (videoFilter.contains(VideoFilter.hideUnrated) &&
           !video.isFavorite &&
           !video.isDislike) {
         return false;
@@ -234,10 +248,10 @@ class _MediaLibraryState extends State<MediaLibrary> {
       return true; // Explicitly return true if no filters exclude the video
     }).toList(); // Convert to List after all initial filters
 
-    videos = _mediaSearchService.filterVideos(videos, _searchQuery);
+    videos = _mediaSearchService.filterVideos(videos, searchQuery);
 
     _videoPcaScores.clear();
-    if (_mediaLibrarySettings.sortOption.value == SortOption.pca) {
+    if (sortOption == SortOption.pca) {
       if (_pcaScoresByPath.isEmpty) {
         await showDialog(
           context: context,
@@ -263,7 +277,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
       }
     }
 
-    if (_mediaLibrarySettings.sortOption.value == SortOption.random) {
+    if (sortOption == SortOption.random) {
       if (_previousSortOption != SortOption.random) {
         _randomSeed = Random().nextInt(1000000); // Generate new seed
       }
@@ -273,7 +287,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
     }
 
     videos.sort((a, b) {
-      if (_mediaLibrarySettings.separateFavorites.value) {
+      if (separateFavorites) {
         // Favorites always come first, and disliked videos are never favorites.
         if (a.isFavorite != b.isFavorite) {
           return a.isFavorite ? -1 : 1;
@@ -287,7 +301,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
       // Within each group (favorites, normal, disliked), sort by the selected option.
       int compareResult = 0;
-      switch (_mediaLibrarySettings.sortOption.value) {
+      switch (sortOption) {
         case SortOption.title:
           compareResult = a.title.compareTo(b.title);
           break;
@@ -327,27 +341,21 @@ class _MediaLibraryState extends State<MediaLibrary> {
           break;
       }
 
-      return _mediaLibrarySettings.isSortAscending.value
-          ? compareResult
-          : -compareResult;
+      return isSortAscending ? compareResult : -compareResult;
     });
 
-    setState(() {
-      _filteredVideos = videos;
-    });
-    _previousSortOption =
-        _mediaLibrarySettings.sortOption.value; // Update previous sort option
+    //_filteredVideos.value = videos;
+    _previousSortOption = sortOption; // Update previous sort option
+    return videos;
   }
 
   Future<void> _refreshVideos() async {
-    setState(() {
-      _isLoading = true;
-      _filteredVideos = []; // Clear videos when loading starts
-    });
+    _isLoading.value = true;
+    _filteredVideos.value = []; // Clear videos when loading starts
     await context.read<MediaManager>().refreshVideos();
     if (mounted) {
-      setState(() => _isLoading = false);
-      await _updateDisplayedVideos();
+      _isLoading.value = false;
+      await _updateVideosFromMediaSettings();
     }
   }
 
@@ -423,27 +431,9 @@ class _MediaLibraryState extends State<MediaLibrary> {
           allAuthors: _allAuthors,
           allTags: _allTags,
           allPerformers: _allPerformers,
-          initialAuthors: _selectedAuthors,
-          initialTags: _selectedTags,
-          initialPerformers: _selectedPerformers,
-          onAuthorsChanged: (selectedAuthors) {
-            setState(() {
-              _selectedAuthors = selectedAuthors;
-            });
-            _updateDisplayedVideos();
-          },
-          onTagsChanged: (selectedTags) {
-            setState(() {
-              _selectedTags = selectedTags;
-            });
-            _updateDisplayedVideos();
-          },
-          onPerformersChanged: (selectedPerformers) {
-            setState(() {
-              _selectedPerformers = selectedPerformers;
-            });
-            _updateDisplayedVideos();
-          },
+          selectedAuthors: _selectedAuthors,
+          selectedTags: _selectedTags,
+          selectedPerformers: _selectedPerformers,
         );
       },
     );
@@ -462,11 +452,8 @@ class _MediaLibraryState extends State<MediaLibrary> {
       },
     );
 
-    if (selected != _selectedCategory) {
-      setState(() {
-        _selectedCategory = selected;
-      });
-      _updateDisplayedVideos();
+    if (selected != _selectedCategory.value) {
+      _selectedCategory.value = selected;
     }
   }
 
@@ -478,10 +465,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
         _selectedVideos.toList(),
         category,
       );
-      setState(() {
-        _selectedVideos.clear();
-      });
-      _updateDisplayedVideos();
+      _selectedVideos.clear();
     }
   }
 
@@ -493,23 +477,18 @@ class _MediaLibraryState extends State<MediaLibrary> {
         _selectedVideos.toList(),
         category,
       );
-      setState(() {
-        _selectedVideos.clear();
-      });
-      _updateDisplayedVideos();
+      _selectedVideos.clear();
     }
   }
 
   void _selectAllVideos() {
-    setState(() {
-      _selectedVideos.clear();
-      _selectedVideos.addAll(_filteredVideos);
-    });
+    _selectedVideos.clear();
+    _selectedVideos.addAll(_filteredVideos.value);
   }
 
   Future<void> _deleteVideo(Video video) async {
     await context.read<MediaManager>().deleteVideo(video);
-    _updateDisplayedVideos();
+    await _updateVideosFromMediaSettings();
   }
 
   Future<UserCategory?> _showCategorySelectionDialog({
@@ -586,7 +565,21 @@ class _MediaLibraryState extends State<MediaLibrary> {
     );
   }
 
-  AppBar _buildDefaultAppBar() {
+  AppBar _buildDefaultAppBar(
+    bool isLoading,
+    String searchQuery,
+    SortOption sortOption,
+    bool isSortAscending,
+    Set<VideoFilter> visibilityFilters,
+    bool separateFavorites,
+    bool showVideoTitles,
+    bool showAverageSpeed,
+    bool showAverageMinMax,
+    bool showDuration,
+    bool showPlayCount,
+    UserCategory? selectedCategory,
+    int videosPerRow,
+  ) {
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
       shape: const RoundedRectangleBorder(
@@ -598,7 +591,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
             const Text('Media Library')
           else
             ExpressionVisualizer(
-              expression: _searchQuery,
+              expression: searchQuery,
               style: Theme.of(context).textTheme.titleLarge,
             ),
         ],
@@ -618,7 +611,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
         const SizedBox(width: 8),
         // Sorting Dropdown
         DropdownButton<SortOption>(
-          value: _mediaLibrarySettings.sortOption.value,
+          value: sortOption,
           icon: const Icon(Icons.sort),
           underline: const SizedBox.shrink(), // Hides the default underline
           isDense: true,
@@ -626,7 +619,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
           borderRadius: BorderRadius.circular(16.0),
           onChanged: (SortOption? newValue) {
             if (newValue != null) {
-              _mediaLibrarySettings.setSortOption(newValue);
+              _mediaLibrarySettings.sortOption.value = newValue;
             }
           },
           items: SortOption.values.map((SortOption option) {
@@ -639,18 +632,13 @@ class _MediaLibraryState extends State<MediaLibrary> {
         const SizedBox(width: 8),
         IconButton(
           icon: Icon(
-            _mediaLibrarySettings.isSortAscending.value
-                ? Icons.arrow_upward
-                : Icons.arrow_downward,
+            isSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
           ),
           onPressed: () {
-            _mediaLibrarySettings.setIsSortAscending(
-              !_mediaLibrarySettings.isSortAscending.value,
-            );
+            _mediaLibrarySettings.isSortAscending.value =
+                !_mediaLibrarySettings.isSortAscending.value;
           },
-          tooltip: _mediaLibrarySettings.isSortAscending.value
-              ? 'Sort Descending'
-              : 'Sort Ascending',
+          tooltip: isSortAscending ? 'Sort Descending' : 'Sort Ascending',
         ),
         const SizedBox(width: 8),
         PopupMenuButton<dynamic>(
@@ -658,40 +646,31 @@ class _MediaLibraryState extends State<MediaLibrary> {
           tooltip: 'View Options',
           onSelected: (dynamic value) {
             if (value is VideoFilter) {
-              final currentFilters = _mediaLibrarySettings
-                  .visibilityFilters
-                  .value
-                  .toSet();
+              final currentFilters = visibilityFilters.toSet();
               if (currentFilters.contains(value)) {
                 currentFilters.remove(value);
               } else {
                 currentFilters.add(value);
               }
-              _mediaLibrarySettings.setVisibilityFilters(currentFilters);
+              _mediaLibrarySettings.visibilityFilters.value = currentFilters;
             } else if (value == 'toggle_titles') {
-              _mediaLibrarySettings.setShowVideoTitles(
-                !_mediaLibrarySettings.showVideoTitles.value,
-              );
+              _mediaLibrarySettings.showVideoTitles.value =
+                  !_mediaLibrarySettings.showVideoTitles.value;
             } else if (value == 'show_average_speed') {
-              _mediaLibrarySettings.setShowAverageSpeed(
-                !_mediaLibrarySettings.showAverageSpeed.value,
-              );
+              _mediaLibrarySettings.showAverageSpeed.value =
+                  !_mediaLibrarySettings.showAverageSpeed.value;
             } else if (value == 'show_average_min_max') {
-              _mediaLibrarySettings.setShowAverageMinMax(
-                !_mediaLibrarySettings.showAverageMinMax.value,
-              );
+              _mediaLibrarySettings.showAverageMinMax.value =
+                  !_mediaLibrarySettings.showAverageMinMax.value;
             } else if (value == 'show_duration') {
-              _mediaLibrarySettings.setShowDuration(
-                !_mediaLibrarySettings.showDuration.value,
-              );
+              _mediaLibrarySettings.showDuration.value =
+                  !_mediaLibrarySettings.showDuration.value;
             } else if (value == 'separate_favorites') {
-              _mediaLibrarySettings.setSeparateFavorites(
-                !_mediaLibrarySettings.separateFavorites.value,
-              );
+              _mediaLibrarySettings.separateFavorites.value =
+                  !_mediaLibrarySettings.separateFavorites.value;
             } else if (value == 'show_play_count') {
-              _mediaLibrarySettings.setShowPlayCount(
-                !_mediaLibrarySettings.showPlayCount.value,
-              );
+              _mediaLibrarySettings.showPlayCount.value =
+                  !_mediaLibrarySettings.showPlayCount.value;
             }
           },
           itemBuilder: (BuildContext context) {
@@ -699,41 +678,40 @@ class _MediaLibraryState extends State<MediaLibrary> {
               ...VideoFilter.values.map((VideoFilter filter) {
                 return CheckedPopupMenuItem<VideoFilter>(
                   value: filter,
-                  checked: _mediaLibrarySettings.visibilityFilters.value
-                      .contains(filter),
+                  checked: visibilityFilters.contains(filter),
                   child: Text(filter.label),
                 );
               }),
               const PopupMenuDivider(),
               CheckedPopupMenuItem<String>(
                 value: 'separate_favorites',
-                checked: _mediaLibrarySettings.separateFavorites.value,
+                checked: separateFavorites,
                 child: const Text('Separate Favorites/Dislikes'),
               ),
               const PopupMenuDivider(),
               CheckedPopupMenuItem<String>(
                 value: 'toggle_titles',
-                checked: _mediaLibrarySettings.showVideoTitles.value,
+                checked: showVideoTitles,
                 child: const Text('Show Titles'),
               ),
               CheckedPopupMenuItem<String>(
                 value: 'show_average_speed',
-                checked: _mediaLibrarySettings.showAverageSpeed.value,
+                checked: showAverageSpeed,
                 child: const Text('Show Average Speed'),
               ),
               CheckedPopupMenuItem<String>(
                 value: 'show_average_min_max',
-                checked: _mediaLibrarySettings.showAverageMinMax.value,
+                checked: showAverageMinMax,
                 child: const Text('Show Average Min/Max'),
               ),
               CheckedPopupMenuItem<String>(
                 value: 'show_duration',
-                checked: _mediaLibrarySettings.showDuration.value,
+                checked: showDuration,
                 child: const Text('Show Duration'),
               ),
               CheckedPopupMenuItem<String>(
                 value: 'show_play_count',
-                checked: _mediaLibrarySettings.showPlayCount.value,
+                checked: showPlayCount,
                 child: const Text('Show Play Count'),
               ),
             ];
@@ -749,7 +727,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
         const SizedBox(width: 8),
         ActionChip(
           avatar: const Icon(Icons.category_outlined),
-          label: Text(_selectedCategory?.name ?? 'Category'),
+          label: Text(selectedCategory?.name ?? 'Category'),
           onPressed: _showCategoryDialog,
         ),
         const SizedBox(width: 8),
@@ -757,14 +735,14 @@ class _MediaLibraryState extends State<MediaLibrary> {
         Tooltip(
           message: 'Videos per row',
           child: DropdownButton<int>(
-            value: _mediaLibrarySettings.videosPerRow.value,
+            value: videosPerRow,
             isDense: true,
             underline: const SizedBox.shrink(), // Hides the default underline
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
             borderRadius: BorderRadius.circular(16.0),
             onChanged: (int? newValue) {
               if (newValue != null) {
-                _mediaLibrarySettings.setVideosPerRow(newValue);
+                _mediaLibrarySettings.videosPerRow.value = newValue;
               }
             },
             items:
@@ -782,7 +760,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
         // Refresh Button
         IconButton(
           icon: const Icon(Icons.refresh),
-          onPressed: _isLoading ? null : _refreshVideos,
+          onPressed: isLoading ? null : _refreshVideos,
           tooltip: 'Refresh',
         ),
         const SizedBox(width: 8),
@@ -793,32 +771,71 @@ class _MediaLibraryState extends State<MediaLibrary> {
   @override
   Widget build(BuildContext context) {
     final mediaManager = context.read<MediaManager>();
+
+    // Snapshot the signals
+    final filteredVideos = _filteredVideos.watch(context);
+    final isLoading = _isLoading.watch(context);
+    final showTitle = _mediaLibrarySettings.showVideoTitles.watch(context);
+    final showAverageSpeed = _mediaLibrarySettings.showAverageSpeed.watch(
+      context,
+    );
+    final showAverageMinMax = _mediaLibrarySettings.showAverageMinMax.watch(
+      context,
+    );
+    final showDuration = _mediaLibrarySettings.showDuration.watch(context);
+    final showPlayCount = _mediaLibrarySettings.showPlayCount.watch(context);
+    final searchQuery = _searchQuery.watch(context);
+    final sortOption = _mediaLibrarySettings.sortOption.watch(context);
+    final isSortAscending = _mediaLibrarySettings.isSortAscending.watch(
+      context,
+    );
+    final visiblityFilters = _mediaLibrarySettings.visibilityFilters.watch(
+      context,
+    );
+    final separateFavorites = _mediaLibrarySettings.separateFavorites.watch(
+      context,
+    );
+    final showVideoTitle = _mediaLibrarySettings.showVideoTitles.watch(context);
+    final selectedCategory = _selectedCategory.watch(context);
+    final videosPerRow = _mediaLibrarySettings.videosPerRow.watch(context);
+
     return Scaffold(
       appBar: _isSelectionMode
           ? _buildSelectionAppBar()
-          : _buildDefaultAppBar(),
+          : _buildDefaultAppBar(
+              isLoading,
+              searchQuery,
+              sortOption,
+              isSortAscending,
+              visiblityFilters,
+              separateFavorites,
+              showVideoTitle,
+              showAverageSpeed,
+              showAverageMinMax,
+              showDuration,
+              showPlayCount,
+              selectedCategory,
+              videosPerRow,
+            ),
       body: Column(
         children: [
           MediaSearchBar(
             onSearchChanged: (query) {
-              if (_searchQuery == query) {
+              if (_searchQuery.value == query) {
                 return;
               }
-              setState(() {
-                _searchQuery = query;
-              });
-              _updateDisplayedVideos();
+              _searchQuery.value = query;
             },
           ),
 
-          if (!_isLoading)
+          if (!isLoading)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    'Showing ${_filteredVideos.length} of ${mediaManager.allVideos.length} videos',
+                    'Showing ${filteredVideos.length} of ${mediaManager.allVideos.length} videos',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   Tooltip(
@@ -837,25 +854,26 @@ class _MediaLibraryState extends State<MediaLibrary> {
           Expanded(
             child: Stack(
               children: [
-                if (_isLoading)
+                if (isLoading)
                   Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const CircularProgressIndicator(),
                         const SizedBox(height: 16),
-                        ValueListenableBuilder<int>(
-                          valueListenable: context
-                              .read<MediaManager>()
-                              .videoCountNotifier,
-                          builder: (context, value, child) {
+                        Watch.builder(
+                          builder: (context) {
+                            final value = context
+                                .read<MediaManager>()
+                                .videoCountNotifier
+                                .value;
                             return Text('Found $value videos...');
                           },
                         ),
                       ],
                     ),
                   ),
-                if (!_isLoading && _filteredVideos.isEmpty)
+                if (!isLoading && filteredVideos.isEmpty)
                   Center(
                     child: Text(
                       _searchQuery.isEmpty
@@ -875,33 +893,27 @@ class _MediaLibraryState extends State<MediaLibrary> {
                           );
                         },
                     child: GridView.builder(
-                      key: ValueKey(_filteredVideos.length),
+                      key: ValueKey(filteredVideos.length),
                       padding: const EdgeInsets.all(8.0),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount:
-                            _mediaLibrarySettings.videosPerRow.value,
+                        crossAxisCount: videosPerRow,
                         crossAxisSpacing: 8.0,
                         mainAxisSpacing: 8.0,
                         childAspectRatio:
                             16 / 9, // Standard 16:9 video aspect ratio
                       ),
-                      itemCount: _filteredVideos.length,
+                      itemCount: filteredVideos.length,
                       itemBuilder: (context, index) {
-                        final video = _filteredVideos[index];
+                        final video = filteredVideos[index];
                         final isSelected = _selectedVideos.contains(video);
                         return VideoItem(
                           video: video,
                           isSelected: isSelected,
-                          showTitle:
-                              _mediaLibrarySettings.showVideoTitles.value,
-                          showAverageSpeed:
-                              _mediaLibrarySettings.showAverageSpeed.value,
-                          showAverageMinMax:
-                              _mediaLibrarySettings.showAverageMinMax.value,
-                          showDuration:
-                              _mediaLibrarySettings.showDuration.value,
-                          showPlayCount:
-                              _mediaLibrarySettings.showPlayCount.value,
+                          showAverageMinMax: showAverageMinMax,
+                          showAverageSpeed: showAverageSpeed,
+                          showDuration: showDuration,
+                          showPlayCount: showPlayCount,
+                          showTitle: showTitle,
                           onVideoTapped: (video) {
                             if (_isSelectionMode) {
                               setState(() {
@@ -926,11 +938,11 @@ class _MediaLibraryState extends State<MediaLibrary> {
                           },
                           onFavoriteChanged: (video) {
                             mediaManager.saveFavorite(video);
-                            _updateDisplayedVideos();
+                            _updateVideosFromMediaSettings();
                           },
                           onDislikeChanged: (video) {
                             mediaManager.saveDislike(video);
-                            _updateDisplayedVideos();
+                            _updateVideosFromMediaSettings();
                           },
                           onCategoryChanged: (video, category, removeCategory) {
                             if (removeCategory) {
@@ -938,7 +950,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
                             } else {
                               mediaManager.setVideoCategory(video, category);
                             }
-                            _updateDisplayedVideos();
+                            _updateVideosFromMediaSettings();
                           },
                           onDelete: _deleteVideo,
                         );

@@ -32,7 +32,7 @@ class Heatmap extends StatefulWidget {
 }
 
 class _HeatmapState extends State<Heatmap> {
-  final ValueNotifier<double?> _hoverPosition = ValueNotifier<double?>(null);
+  final Signal<double?> _hoverPosition = signal(null);
   final Throttler _throttler = Throttler(milliseconds: 100);
 
   @override
@@ -97,17 +97,13 @@ class _HeatmapState extends State<Heatmap> {
                   fit: StackFit.expand,
                   children: [
                     // Heatmap painter (only rebuilds when duration/funscript changes)
-                    Watch.builder(
-                      builder: (context) {
-                        return CustomPaint(
-                          painter: HeatmapPainter(
-                            funscript: widget.funscript,
-                            totalDuration: Duration(
-                              milliseconds: widget.totalDurationMs,
-                            ),
-                          ),
-                        );
-                      },
+                    CustomPaint(
+                      painter: HeatmapPainter(
+                        funscript: widget.funscript,
+                        totalDuration: Duration(
+                          milliseconds: widget.totalDurationMs,
+                        ),
+                      ),
                     ),
                     // Indicator painter (only rebuilds when position changes)
                     Watch.builder(
@@ -126,9 +122,9 @@ class _HeatmapState extends State<Heatmap> {
                       },
                     ),
                     // Hover indicator
-                    ValueListenableBuilder<double?>(
-                      valueListenable: _hoverPosition,
-                      builder: (context, hoverX, child) {
+                    Watch.builder(
+                      builder: (context) {
+                        final hoverX = _hoverPosition.value;
                         if (hoverX == null) {
                           return Container();
                         }

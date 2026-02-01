@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/model/player_model.dart';
-import 'package:syncopathy/model/playlist.dart';
 
 class PlaylistControls extends StatefulWidget {
   const PlaylistControls({super.key});
@@ -15,9 +15,9 @@ class _PlaylistControlsState extends State<PlaylistControls> {
   Widget build(BuildContext context) {
     final model = context.watch<PlayerModel>();
 
-    return ValueListenableBuilder<Playlist?>(
-      valueListenable: model.playlist,
-      builder: (context, playlist, child) {
+    return Watch.builder(
+      builder: (context) {
+        final playlist = model.playlist.value;
         if (playlist == null) {
           return const SizedBox.shrink();
         }
@@ -45,9 +45,9 @@ class _PlaylistControlsState extends State<PlaylistControls> {
             ),
             Padding(
               padding: const EdgeInsets.all(4.0),
-              child: ValueListenableBuilder<bool>(
-                valueListenable: model.isLoopingVideo,
-                builder: (context, isLooping, child) {
+              child: Watch.builder(
+                builder: (context) {
+                  final isLooping = model.isLoopingVideo.value;
                   return ToggleButtons(
                     isSelected: [isLooping],
                     onPressed: (int index) {
@@ -94,9 +94,9 @@ class _PlaylistControlsState extends State<PlaylistControls> {
               ),
             ),
             const SizedBox(width: 8),
-            ValueListenableBuilder(
-              valueListenable: playlist.currentIndex,
-              builder: (context, currentIndex, child) {
+            Watch.builder(
+              builder: (context) {
+                final currentIndex = playlist.currentIndex.value;
                 return Text('${currentIndex + 1} / ${playlist.videos.length}');
               },
             ),

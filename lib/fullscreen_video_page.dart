@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/video_controls.dart';
@@ -24,7 +25,7 @@ class FullscreenVideoPage extends StatefulWidget {
 class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
   bool _showControls = true;
   Timer? _hideControlsTimer;
-  late final ValueNotifier<bool> _showFunscriptGraphNotifier;
+  final Signal<bool> _showFunscriptGraph = signal(true);
 
   @override
   void initState() {
@@ -35,7 +36,6 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
       DeviceOrientation.landscapeRight,
     ]);
     _startHideControlsTimer();
-    _showFunscriptGraphNotifier = ValueNotifier<bool>(true);
   }
 
   @override
@@ -48,7 +48,6 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
-    _showFunscriptGraphNotifier.dispose();
     super.dispose();
   }
 
@@ -173,10 +172,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                             onInteractionEnd: () {
                               _startHideControlsTimer();
                             },
-                            showFunscriptGraphNotifier:
-                                _showFunscriptGraphNotifier,
-                            onToggleFunscriptGraph: (value) =>
-                                _showFunscriptGraphNotifier.value = value,
+                            showFunscriptGraph: _showFunscriptGraph
                           ),
                         ),
                       ),

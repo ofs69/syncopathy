@@ -263,9 +263,7 @@ class _SettingsPageState extends State<SettingsPage>
           ),
           value: settings.rdpEpsilon.watch(context) != null,
           onChanged: (value) {
-            if (value) {
-              settings.rdpEpsilon.value = 7.0;
-            }
+            settings.rdpEpsilon.value = value ? 7.0 : null;
           },
           secondary: const Icon(Icons.timeline),
           isThreeLine: true,
@@ -296,9 +294,7 @@ class _SettingsPageState extends State<SettingsPage>
           ),
           value: settings.slewMaxRateOfChange.watch(context) != null,
           onChanged: (value) {
-            if (value) {
-              settings.slewMaxRateOfChange.value = 400;
-            }
+            settings.slewMaxRateOfChange.value = value ? 400 : null;
           },
           secondary: const Icon(Icons.speed),
           isThreeLine: true,

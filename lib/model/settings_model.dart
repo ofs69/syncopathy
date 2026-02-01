@@ -27,7 +27,7 @@ class SettingsModel {
   final Signal<bool> invert = signal(false);
 
   // Not persisted in the database
-  ValueNotifier<bool> showDebugNotifications = ValueNotifier(false);
+  Signal<bool> showDebugNotifications = signal(false);
 
   late final Function? _saveEffectDispose;
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:signals/signals_core.dart';
 import 'package:syncopathy/help_page.dart';
 
 import 'package:syncopathy/media_page.dart';
@@ -8,6 +9,7 @@ import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/notification_feed.dart';
 
 import 'package:syncopathy/settings_page.dart';
+import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/video_player_page.dart';
 
 import 'package:syncopathy/shortcut_handler.dart';
@@ -51,8 +53,10 @@ class SyncopathyHomePage extends StatefulWidget {
 class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
   int _selectedIndex = 0;
 
-  late PageController _pageController;
-  late FocusNode _videoPlayerFocusNode;
+  late final PageController _pageController;
+  late final FocusNode _videoPlayerFocusNode;
+
+  late final Function _videoChangeEffectDispose;
 
   @override
   void initState() {
@@ -60,7 +64,9 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     _pageController = PageController(initialPage: _selectedIndex);
     _videoPlayerFocusNode = FocusNode();
     final player = context.read<PlayerModel>();
-    player.currentVideo.addListener(_handleVideoChange);
+    _videoChangeEffectDispose = effect(() {
+      _handleVideoChange(player.currentVideo.value);
+    });
 
     // Check for database reset and show dialog if necessary
     if (DatabaseHelper().databaseWasReset) {
@@ -78,8 +84,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
 
   @override
   void dispose() {
-    final player = context.read<PlayerModel>();
-    player.currentVideo.removeListener(_handleVideoChange);
+    _videoChangeEffectDispose();
     _videoPlayerFocusNode.dispose();
     super.dispose();
   }
@@ -101,11 +106,10 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     );
   }
 
-  void _handleVideoChange() {
+  void _handleVideoChange(Video? currentVideo) {
     final settings = context.read<SettingsModel>();
-    final player = context.read<PlayerModel>();
-    if (player.currentVideo.value != null &&
-        settings.autoSwitchToVideoPlayerTab.value) {
+
+    if (currentVideo != null && settings.autoSwitchToVideoPlayerTab.value) {
       setState(() {
         _selectedIndex = 1; // Navigate to Video Player tab
       });

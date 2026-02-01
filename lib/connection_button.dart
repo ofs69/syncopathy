@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/model/player_model.dart';
 
 class ConnectionButton extends StatelessWidget {
@@ -8,9 +9,9 @@ class ConnectionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final player = context.watch<PlayerModel>();
-    return ValueListenableBuilder(
-      valueListenable: player.isScanning,
-      builder: (context, scanning, child) {
+    return Watch.builder(
+      builder: (context) {
+        final scanning = player.isScanning.value;
         if (scanning) {
           return Padding(
             padding: const EdgeInsets.all(8.0),
@@ -30,9 +31,9 @@ class ConnectionButton extends StatelessWidget {
             ),
           );
         }
-        return ValueListenableBuilder(
-          valueListenable: player.isConnected,
-          builder: (context, connected, child) {
+        return Watch.builder(
+          builder: (context) {
+            final connected = player.isConnected.value;
             return Tooltip(
               message: connected ? "Connected" : "Disconnected",
               child: TextButton.icon(

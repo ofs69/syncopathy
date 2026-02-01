@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:syncopathy/model/funscript.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/scrolling_graph.dart';
@@ -66,7 +66,7 @@ class PreviousPlaylistEntryAction extends Action<PreviousPlaylistEntryIntent> {
 class _VideoPlayerPageState extends State<VideoPlayerPage>
     with AutomaticKeepAliveClientMixin {
   final FocusNode _focusNode = FocusNode();
-  late final ValueNotifier<bool> _showFunscriptGraphNotifier;
+  final Signal<bool> _showFunscriptGraph = signal(true);
 
   @override
   bool get wantKeepAlive => true;
@@ -75,19 +75,13 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   void initState() {
     super.initState();
     _focusNode.requestFocus();
-    _showFunscriptGraphNotifier = ValueNotifier<bool>(true);
   }
 
   @override
   void dispose() {
     _focusNode.dispose();
-    _showFunscriptGraphNotifier.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
-  }
-
-  void _onToggleFunscriptGraph(bool value) {
-    _showFunscriptGraphNotifier.value = value;
   }
 
   @override
@@ -123,9 +117,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
         child: Focus(
           focusNode: widget.focusNode,
           autofocus: true,
-          child: ValueListenableBuilder<Funscript?>(
-            valueListenable: player.currentFunscript,
-            builder: (context, funscript, child) {
+          child: Watch.builder(
+            builder: (context) {
+              final funscript = player.currentFunscript.value;
               if (funscript == null) {
                 return const Center(child: Text('No funscript loaded'));
               }
@@ -139,9 +133,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                               onDoubleTap: enterFullscreen,
                               child: Hero(
                                 tag: 'videoPlayer',
-                                child: CustomMpvVideoWidget(
-                                  player: player,
-                                ),
+                                child: CustomMpvVideoWidget(player: player),
                               ),
                             )
                           : const Center(
@@ -150,9 +142,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                               ),
                             ),
                     ),
-                    ValueListenableBuilder<bool>(
-                      valueListenable: _showFunscriptGraphNotifier,
-                      builder: (context, showGraph, child) {
+                    Watch.builder(
+                      builder: (context) {
+                        final showGraph = _showFunscriptGraph.value;
                         if (showGraph) {
                           return Expanded(
                             flex: 1,
@@ -176,8 +168,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                       tag: 'videoControls',
                       child: VideoControls(
                         onFullscreenToggle: enterFullscreen,
-                        onToggleFunscriptGraph: _onToggleFunscriptGraph,
-                        showFunscriptGraphNotifier: _showFunscriptGraphNotifier,
+                        showFunscriptGraph: _showFunscriptGraph,
                       ),
                     ),
                   ],

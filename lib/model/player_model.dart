@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:libmpv_dart/video/video_params.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/funscript_algo.dart';
@@ -28,21 +27,21 @@ class PlayerModel {
   ReadonlySignal<double> get positionNoOffset => _mpvPlayer.position;
 
   late final HandyBle _handyBle;
-  ValueNotifier<bool> get isScanning => _handyBle.isScanning;
-  ValueNotifier<bool> get isConnected => _handyBle.isConnected;
+  ReadonlySignal<bool> get isScanning => _handyBle.isScanning;
+  ReadonlySignal<bool> get isConnected => _handyBle.isConnected;
 
   final SettingsModel _settings;
   late final FunscriptStreamController _funscriptStreamController;
 
-  final ValueNotifier<Playlist?> playlist = ValueNotifier(null);
+  final Signal<Playlist?> playlist = signal(null);
   bool _hasTriggeredNextVideo = false;
   bool _playlistTriggeredNextShouldPlay = false;
 
-  ValueNotifier<Video?> currentVideo = ValueNotifier(null);
-  ValueNotifier<Funscript?> currentFunscript = ValueNotifier(null);
+  final Signal<Video?> currentVideo = signal(null);
+  final Signal<Funscript?> currentFunscript = signal(null);
 
-  final ValueNotifier<bool> _isLoopingVideo = ValueNotifier(false);
-  ValueNotifier<bool> get isLoopingVideo => _isLoopingVideo;
+  final Signal<bool> _isLoopingVideo = signal(false);
+  ReadonlySignal<bool> get isLoopingVideo => _isLoopingVideo;
 
   int get _positionMs =>
       (positionNoOffset.value * 1000.0).round().toInt() +
@@ -218,7 +217,7 @@ class PlayerModel {
             (v) => v.videoPath == video.videoPath,
           );
           if (index != -1) {
-            playlist.value!.currentIndex.value = index;
+            playlist.value!.goTo(index);
             videoFoundInExistingPlaylist = true;
           }
         }

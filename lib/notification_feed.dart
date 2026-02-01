@@ -1,3 +1,4 @@
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,7 +15,7 @@ class NotificationMessage {
   final LogLevel level;
   final StackTrace stackTrace;
   Timer? timer;
-  final ValueNotifier<double> progressNotifier;
+  final Signal<double> progressNotifier = signal(1.0);
   int remainingSeconds;
   DateTime? startTime;
 
@@ -27,7 +28,6 @@ class NotificationMessage {
     this.timer,
     int initialSeconds = 5,
   }) : id = const Uuid().v4(),
-       progressNotifier = ValueNotifier<double>(1.0),
        remainingSeconds = initialSeconds,
        totalDurationSeconds = initialSeconds;
 }
@@ -304,9 +304,9 @@ class _NotificationCardState extends State<NotificationCard> {
               top: 0,
               left: 0,
               right: 0,
-              child: ValueListenableBuilder<double>(
-                valueListenable: widget.notification.progressNotifier,
-                builder: (context, progress, child) {
+              child: Watch.builder(
+                builder: (context) {
+                  final progress = widget.notification.progressNotifier.value;
                   return LinearProgressIndicator(
                     value: progress,
                     backgroundColor: Colors.transparent,

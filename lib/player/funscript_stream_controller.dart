@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:async_locks/async_locks.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/funscript.dart';
@@ -22,22 +21,24 @@ abstract class FunscriptDevice {
 }
 
 class FunscriptStreamController {
-  final ValueNotifier<Funscript?> _currentFunscriptNotifier;
-  Funscript? get _currentFunscript => _currentFunscriptNotifier.value;
+  final Signal<Funscript?> _currentFunscript;
+  late final Function _currentFunscriptEffectDispose;
 
   final List<FunscriptAction> _currentBuffer = List.empty(growable: true);
 
   static const int batchSize = 50;
   final FunscriptDevice? _device;
   final Signal<bool> canPlay = signal(false);
-  Lock bufferLock = Lock();
+  final Lock bufferLock = Lock();
 
-  FunscriptStreamController(this._device, this._currentFunscriptNotifier) {
-    _currentFunscriptNotifier.addListener(_handleFunscriptChange);
+  FunscriptStreamController(this._device, this._currentFunscript) {
+    _currentFunscriptEffectDispose = effect(() {
+      _handleFunscriptChange(_currentFunscript.value);
+    });
   }
 
   void dispose() {
-    _currentFunscriptNotifier.removeListener(_handleFunscriptChange);
+    _currentFunscriptEffectDispose();
   }
 
   Future<void> _bufferBatch(
@@ -74,7 +75,7 @@ class FunscriptStreamController {
   }
 
   Future<void> startPlayback(int positionMs, double playbackRate) async {
-    if (_currentFunscript == null || !canPlay.value) return;
+    if (_currentFunscript.value == null || !canPlay.value) return;
     await _device?.startPlayback(positionMs, playbackRate);
   }
 
@@ -83,7 +84,8 @@ class FunscriptStreamController {
     bool paused,
     double playbackRate,
   ) async {
-    if (_currentFunscript == null) return false;
+    final currentFunscript = _currentFunscript.value;
+    if (currentFunscript == null) return false;
 
     try {
       bufferLock.cancelAll();
@@ -106,17 +108,16 @@ class FunscriptStreamController {
         final firstAction = _currentBuffer.first;
         final lastAction = _currentBuffer.last;
         if (positionMs < firstAction.at) {
-          flush =
-              _currentBuffer.first.at != _currentFunscript!.actions.first.at;
+          flush = _currentBuffer.first.at != currentFunscript.actions.first.at;
         } else if (positionMs > lastAction.at) {
-          flush = _currentBuffer.last.at != _currentFunscript!.actions.last.at;
+          flush = _currentBuffer.last.at != currentFunscript.actions.last.at;
         }
         if (flush) {
           Logger.debug(
             "Position $positionMs ms is outside of buffer [${firstAction.at}, ${lastAction.at}], flushing.",
           );
         }
-      } else if (_currentFunscript!.actions.isNotEmpty) {
+      } else if (currentFunscript.actions.isNotEmpty) {
         // Buffer is empty, but we have a script, so it's the initial fill.
         flush = true;
       }
@@ -137,19 +138,19 @@ class FunscriptStreamController {
         int startFromIndex;
         if (flush) {
           // Determine the index of the action at or just before the current position
-          startFromIndex = _currentFunscript!.actions.lowerBound(
+          startFromIndex = currentFunscript.actions.lowerBound(
             FunscriptAction(at: positionMs, pos: 0),
           );
 
-          if (startFromIndex >= _currentFunscript!.actions.length) {
-            startFromIndex = _currentFunscript!.actions.length - 1;
+          if (startFromIndex >= currentFunscript.actions.length) {
+            startFromIndex = currentFunscript.actions.length - 1;
           }
 
           if (startFromIndex > 0 &&
-              _currentFunscript!.actions[startFromIndex].at > positionMs) {
+              currentFunscript.actions[startFromIndex].at > positionMs) {
             startFromIndex--;
           }
-          if (startFromIndex < _currentFunscript!.actions.length) {
+          if (startFromIndex < currentFunscript.actions.length) {
             Logger.debug(
               "Flushing buffer. Starting new batch from index $startFromIndex",
             );
@@ -160,22 +161,22 @@ class FunscriptStreamController {
             startFromIndex = 0;
           } else {
             startFromIndex =
-                _currentFunscript!.actions.indexOf(lastBufferedAction) + 1;
+                currentFunscript.actions.indexOf(lastBufferedAction) + 1;
           }
 
-          if (startFromIndex < _currentFunscript!.actions.length) {
+          if (startFromIndex < currentFunscript.actions.length) {
             Logger.debug(
               "Appending to buffer. Starting new batch from index $startFromIndex",
             );
           }
         }
 
-        if (startFromIndex < _currentFunscript!.actions.length) {
+        if (startFromIndex < currentFunscript.actions.length) {
           final endOfBatchIndex = min(
             startFromIndex + batchSize,
-            _currentFunscript!.actions.length,
+            currentFunscript.actions.length,
           );
-          final batch = _currentFunscript!.actions.sublist(
+          final batch = currentFunscript.actions.sublist(
             startFromIndex,
             endOfBatchIndex,
           );
@@ -210,8 +211,8 @@ class FunscriptStreamController {
     await _device?.positionUpdate(positionMs, paused, playbackRate);
   }
 
-  void _handleFunscriptChange() async {
-    if (_currentFunscript != null) {
+  void _handleFunscriptChange(Funscript? currentFunscript) async {
+    if (currentFunscript != null) {
       await _loadFunscript();
     } else {
       await _unloadFunscript();

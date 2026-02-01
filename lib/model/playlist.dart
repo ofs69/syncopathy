@@ -1,12 +1,15 @@
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
 
 class Playlist extends ChangeNotifier {
   final List<Video> _videos;
   final List<Video> _originalVideos; // Store the original order
-  final ValueNotifier<int> _currentIndex;
+  final Signal<int> _currentIndex;
+  ReadonlySignal<int> get currentIndex => _currentIndex;
+
   bool _isShuffled;
 
   Playlist({
@@ -15,7 +18,7 @@ class Playlist extends ChangeNotifier {
     bool isShuffled = false,
   }) : _videos = List.of(videos),
        _originalVideos = List.of(videos), // Initialize with original order
-       _currentIndex = ValueNotifier<int>(initialIndex),
+       _currentIndex = signal(initialIndex),
        _isShuffled = isShuffled {
     if (_isShuffled) {
       _videos.shuffle();
@@ -24,8 +27,7 @@ class Playlist extends ChangeNotifier {
 
   Video? get currentVideo =>
       _videos.isEmpty ? null : _videos[_currentIndex.value];
-  ValueNotifier<int> get currentIndex => _currentIndex;
-  List<Video> get videos => UnmodifiableListView(_videos);
+  UnmodifiableListView<Video> get videos => UnmodifiableListView(_videos);
 
   bool get isShuffled => _isShuffled;
 
@@ -53,6 +55,12 @@ class Playlist extends ChangeNotifier {
       _currentIndex.value =
           (_currentIndex.value - 1 + _videos.length) % _videos.length;
       notifyListeners();
+    }
+  }
+
+  void goTo(int index) {
+    if (index >= 0 && index < _videos.length) {
+      _currentIndex.value = index;
     }
   }
 }

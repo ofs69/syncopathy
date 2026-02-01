@@ -1,27 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:signals/signals_flutter.dart';
 
 class FunscriptMetadataFilterBottomSheet extends StatefulWidget {
   final List<String> allAuthors;
   final List<String> allTags;
   final List<String> allPerformers;
-  final Set<String> initialAuthors;
-  final Set<String> initialTags;
-  final Set<String> initialPerformers;
-  final ValueChanged<Set<String>>? onAuthorsChanged;
-  final ValueChanged<Set<String>>? onTagsChanged;
-  final ValueChanged<Set<String>>? onPerformersChanged;
+  final Signal<Set<String>> selectedAuthors;
+  final Signal<Set<String>> selectedTags;
+  final Signal<Set<String>> selectedPerformers;
 
   const FunscriptMetadataFilterBottomSheet({
     super.key,
     required this.allAuthors,
     required this.allTags,
     required this.allPerformers,
-    this.initialAuthors = const {},
-    this.initialTags = const {},
-    this.initialPerformers = const {},
-    this.onAuthorsChanged,
-    this.onTagsChanged,
-    this.onPerformersChanged,
+    required this.selectedAuthors,
+    required this.selectedPerformers,
+    required this.selectedTags,
   });
 
   @override
@@ -37,10 +32,6 @@ class _FunscriptMetadataFilterBottomSheetState
   late TextEditingController _tagSearchController;
   late TextEditingController _performerSearchController;
 
-  Set<String> _selectedAuthors = {};
-  Set<String> _selectedTags = {};
-  Set<String> _selectedPerformers = {};
-
   @override
   void initState() {
     super.initState();
@@ -48,10 +39,6 @@ class _FunscriptMetadataFilterBottomSheetState
     _authorSearchController = TextEditingController();
     _tagSearchController = TextEditingController();
     _performerSearchController = TextEditingController();
-
-    _selectedAuthors = Set.from(widget.initialAuthors);
-    _selectedTags = Set.from(widget.initialTags);
-    _selectedPerformers = Set.from(widget.initialPerformers);
   }
 
   @override
@@ -149,66 +136,56 @@ class _FunscriptMetadataFilterBottomSheetState
                     title: 'Author',
                     items: widget.allAuthors,
                     searchController: _authorSearchController,
-                    currentSelectedItems: _selectedAuthors,
+                    currentSelectedItems: widget.selectedAuthors.watch(context),
                     onItemToggled: (value) {
-                      setState(() {
-                        if (_selectedAuthors.contains(value)) {
-                          _selectedAuthors.remove(value);
+                      batch(() {
+                        if (widget.selectedAuthors.contains(value)) {
+                          widget.selectedAuthors.remove(value);
                         } else {
-                          _selectedAuthors.add(value);
+                          widget.selectedAuthors.add(value);
                         }
                       });
-                      widget.onAuthorsChanged?.call(_selectedAuthors);
                     },
                     onAllSelected: () {
-                      setState(() {
-                        _selectedAuthors.clear();
-                      });
-                      widget.onAuthorsChanged?.call(_selectedAuthors);
+                      widget.selectedAuthors.clear();
                     },
                   ),
                   _buildSearchableList(
                     title: 'Tag',
                     items: widget.allTags,
                     searchController: _tagSearchController,
-                    currentSelectedItems: _selectedTags,
+                    currentSelectedItems: widget.selectedTags.watch(context),
                     onItemToggled: (value) {
-                      setState(() {
-                        if (_selectedTags.contains(value)) {
-                          _selectedTags.remove(value);
+                      batch(() {
+                        if (widget.selectedTags.contains(value)) {
+                          widget.selectedTags.remove(value);
                         } else {
-                          _selectedTags.add(value);
+                          widget.selectedTags.add(value);
                         }
                       });
-                      widget.onTagsChanged?.call(_selectedTags);
                     },
                     onAllSelected: () {
-                      setState(() {
-                        _selectedTags.clear();
-                      });
-                      widget.onTagsChanged?.call(_selectedTags);
+                      widget.selectedTags.clear();
                     },
                   ),
                   _buildSearchableList(
                     title: 'Performer',
                     items: widget.allPerformers,
                     searchController: _performerSearchController,
-                    currentSelectedItems: _selectedPerformers,
+                    currentSelectedItems: widget.selectedPerformers.watch(
+                      context,
+                    ),
                     onItemToggled: (value) {
-                      setState(() {
-                        if (_selectedPerformers.contains(value)) {
-                          _selectedPerformers.remove(value);
+                      batch(() {
+                        if (widget.selectedPerformers.contains(value)) {
+                          widget.selectedPerformers.remove(value);
                         } else {
-                          _selectedPerformers.add(value);
+                          widget.selectedPerformers.add(value);
                         }
                       });
-                      widget.onPerformersChanged?.call(_selectedPerformers);
                     },
                     onAllSelected: () {
-                      setState(() {
-                        _selectedPerformers.clear();
-                      });
-                      widget.onPerformersChanged?.call(_selectedPerformers);
+                      widget.selectedPerformers.clear();
                     },
                   ),
                 ],

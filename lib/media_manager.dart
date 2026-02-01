@@ -5,6 +5,7 @@ import 'package:async_locks/async_locks.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/funscript_algo.dart';
@@ -18,10 +19,7 @@ class MediaManager {
   final List<Video> _allVideos = List.empty(growable: true);
   List<Video> get allVideos => _allVideos;
   final List<String> _paths;
-  final ValueNotifier<int> videoCountNotifier = ValueNotifier(0);
-  final _videoUpdateController = StreamController<Video>.broadcast();
-
-  Stream<Video> get videoUpdates => _videoUpdateController.stream;
+  final Signal<int> videoCountNotifier = signal(0);
 
   MediaManager(this._paths);
 
@@ -30,9 +28,7 @@ class MediaManager {
     _allVideos.addAll(await DatabaseHelper().getAllVideos());
   }
 
-  void dispose() {
-    _videoUpdateController.close();
-  }
+  Future<void> dispose() async {}
 
   Future<Map<String, dynamic>> _getVideoMetadata(
     String videoPath, {
@@ -286,17 +282,14 @@ class MediaManager {
 
   void saveFavorite(Video video) async {
     await DatabaseHelper().updateVideo(video);
-    _videoUpdateController.add(video);
   }
 
   void saveDislike(Video video) async {
     await DatabaseHelper().updateVideo(video);
-    _videoUpdateController.add(video);
   }
 
   Future<void> createCategory(String name, {String? description}) async {
-    final maxSortOrder =
-        await DatabaseHelper().getMaxUserCategorySortOrder();
+    final maxSortOrder = await DatabaseHelper().getMaxUserCategorySortOrder();
     final category = UserCategory(
       name: name,
       description: description,
@@ -368,7 +361,6 @@ class MediaManager {
       DatabaseHelper().deleteVideo(video.id!);
 
       _allVideos.removeWhere((v) => v.id == video.id);
-      _videoUpdateController.add(video);
     } catch (e) {
       Logger.error('Error deleting video ${video.title}: $e');
     }

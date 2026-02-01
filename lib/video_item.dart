@@ -16,13 +16,13 @@ class VideoItem extends StatefulWidget {
     required this.onDislikeChanged,
     required this.onCategoryChanged,
     required this.onDelete,
-    this.showTitle = true,
-    this.isSelected = false,
+    required this.showAverageSpeed,
+    required this.showAverageMinMax,
+    required this.showDuration,
+    required this.showPlayCount,
+    required this.showTitle,
+    required this.isSelected,
     this.onLongPress,
-    this.showAverageSpeed = true,
-    this.showAverageMinMax = true,
-    this.showDuration = true,
-    this.showPlayCount = true,
   });
 
   final Video video;

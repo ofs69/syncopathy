@@ -3,7 +3,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
-import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/helper/debouncer.dart';
@@ -26,10 +25,13 @@ class HandyBle extends FunscriptDevice {
   StreamSubscription? _rxSubscription;
 
   final BatteryModel _batteryModel;
-  final ValueNotifier<bool> _isConnected = ValueNotifier(false);
-  ValueNotifier<bool> get isConnected => _isConnected;
-  final ValueNotifier<bool> _isScanning = ValueNotifier(false);
-  ValueNotifier<bool> get isScanning => _isScanning;
+  
+  final Signal<bool> _isConnected = signal(false);
+  ReadonlySignal<bool> get isConnected => _isConnected;
+
+  final Signal<bool> _isScanning = signal(false);
+  ReadonlySignal<bool> get isScanning => _isScanning;
+
   ResponseCapabilitiesGet? _capabilities;
 
   int _nextRequestId = 1;
