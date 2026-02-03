@@ -13,7 +13,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
-import 'package:syncopathy/sqlite/models/media_library_settings.dart';
 import 'package:syncopathy/video_thumbnail.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:flutter/foundation.dart';
