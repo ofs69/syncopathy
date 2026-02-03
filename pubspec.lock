@@ -341,7 +341,7 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "42323b0bbf23e88f5efad9698ee609ac1e0b095f"
+      resolved-ref: "479e34449b9510d94f1071bc7e4794c36180f910"
       url: "https://github.com/ofs69/libmpv_dart.git"
     source: git
     version: "0.0.3"
