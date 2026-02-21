@@ -209,7 +209,7 @@ class _DesktopGlassSettingsState extends State<DesktopGlassSettings> {
         SwitchListTile(
           title: const Text('Funscript Simplification (RDP Epsilon)'),
           subtitle: const Text(
-            'Reduces the number of points in the funscript. Higher values mean more simplification. Changes are applied when loading a funscript.',
+            'Reduces the number of points in the funscript. Higher values mean more simplification.',
           ),
           value: settings.rdpEpsilon.watch(context) != null,
           onChanged: (value) {
@@ -240,7 +240,7 @@ class _DesktopGlassSettingsState extends State<DesktopGlassSettings> {
         SwitchListTile(
           title: const Text('Slew Rate Limit'),
           subtitle: const Text(
-            'Modify the funscript limiting the rate of change, preventing jerky movements. Measured in percent per second. Changes are applied when loading a funscript.',
+            'Modify the funscript limiting the rate of change, preventing jerky movements. Measured in percent per second.',
           ),
           value: settings.slewMaxRateOfChange.watch(context) != null,
           onChanged: (value) {
@@ -268,9 +268,7 @@ class _DesktopGlassSettingsState extends State<DesktopGlassSettings> {
     final settings = context.read<SettingsModel>();
     return SwitchListTile(
       title: const Text('Invert'),
-      subtitle: const Text(
-        'Inverts the funscript actions. Changes are applied when loading a funscript.',
-      ),
+      subtitle: const Text('Inverts the funscript actions.'),
       value: settings.invert.watch(context),
       onChanged: (value) {
         settings.invert.value = value;
@@ -285,7 +283,7 @@ class _DesktopGlassSettingsState extends State<DesktopGlassSettings> {
     return SwitchListTile(
       title: const Text('Remap to Full Range'),
       subtitle: const Text(
-        "Remaps the funscript actions to use the full 0-100 range. The Handy will still remap into the range specified by the stroke range setting. Changes are applied when loading a funscript.",
+        "Remaps the funscript actions to use the full 0-100 range. The Handy will still remap into the range specified by the stroke range setting.",
       ),
       value: settings.remapFullRange.watch(context),
       onChanged: (value) {
