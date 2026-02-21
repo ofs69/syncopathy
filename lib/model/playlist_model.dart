@@ -12,7 +12,9 @@ class PlaylistModel {
 
   PlaylistModel(List<PlaylistItem> entries) : _entries = listSignal(entries) {
     currentIndex = computed(() => _entries.value.indexWhere((e) => e.current));
-    currentPlaylistItem = computed(() => _entries.value.firstWhereOrNull((e) => e.current));
+    currentPlaylistItem = computed(
+      () => _entries.value.firstWhereOrNull((e) => e.current),
+    );
   }
   //UnmodifiableListView<Video> get videos => UnmodifiableListView(_videos);
   //bool get isShuffled => _isShuffled;
@@ -98,7 +100,8 @@ class PlaylistModel {
       }
 
       List<PlaylistItem> items = [];
-      for (final Map<String, dynamic> item in json.whereType<Map<String, dynamic>>()) {
+      for (final Map<String, dynamic> item
+          in json.whereType<Map<String, dynamic>>()) {
         final id = item['id'] as int?;
         final filename = item['filename'] as String?;
         final current = item['current'] as bool?;
@@ -111,7 +114,7 @@ class PlaylistModel {
         }
       }
       return PlaylistModel(items);
-    } catch (e) {}
+    } catch (_) {}
 
     return PlaylistModel([]);
   }

@@ -110,30 +110,6 @@ class FunscriptAlgorithms {
     ];
   }
 
-  // Calculates the perpendicular distance from a point to a line segment
-  static double _perpendicularDistance(
-    FunscriptAction point,
-    FunscriptAction lineStart,
-    FunscriptAction lineEnd,
-  ) {
-    double x0 = point.at.toDouble();
-    double y0 = point.pos.toDouble();
-    double x1 = lineStart.at.toDouble();
-    double y1 = lineStart.pos.toDouble();
-    double x2 = lineEnd.at.toDouble();
-    double y2 = lineEnd.pos.toDouble();
-
-    double numerator = ((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1)
-        .abs();
-    double denominator = sqrt(pow(y2 - y1, 2) + pow(x2 - x1, 2));
-
-    if (denominator == 0) {
-      return 0; // The line segment is a point, distance is 0
-    }
-
-    return numerator / denominator;
-  }
-
   static double averageSpeed(List<FunscriptAction> actions) {
     if (actions.length < 2) {
       return 0.0;

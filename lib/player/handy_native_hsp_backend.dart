@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/helper/debouncer.dart';
@@ -76,9 +76,9 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
       tailPointThreshold: buffer.tailPointTreshold,
     );
     _currentlyBufferedBuffers.add(buffer.id);
-    debugPrint(
-      "threshold: ${buffer.tailPointTreshold} tail: ${buffer.tailPointIndex}",
-    );
+    // debugPrint(
+    //   "threshold: ${buffer.tailPointTreshold} tail: ${buffer.tailPointIndex}",
+    // );
 
     // If the buffer after the one passed to this function is the last
     // eagerly buffer it
@@ -199,10 +199,12 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
     final currentTimeMs = timesource.currentSmoothMs;
     final isPlaying = !timesource.paused.value;
 
-    if (_lastState != hspState.playState) {
-      debugPrint("hspStateChange: ${hspState.playState.toString()}");
+    if (kDebugMode) {
+      if (_lastState != hspState.playState) {
+        debugPrint("hspStateChange: ${hspState.playState.toString()}");
+      }
+      _lastState = hspState.playState;
     }
-    _lastState = hspState.playState;
     switch (hspState.playState) {
       case HspPlayState.HSP_STATE_NOT_INITIALIZED:
         _hspSetup(); // initialize
@@ -223,11 +225,9 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
         break;
       case HspPlayState.HSP_STATE_PLAYING:
         playbackDelta.value = currentTimeMs - hspState.currentTime;
-        print(
-          "$currentTimeMs - ${hspState.currentTime} = ${playbackDelta.value}",
-        );
-        //print(hspState.toDebugString());
-
+        // debugPrint(
+        //   "$currentTimeMs - ${hspState.currentTime} = ${playbackDelta.value}",
+        // );
         break;
       case HspPlayState.HSP_STATE_STARVING:
         Logger.debug("Handy HSP starved. Restarting...");
@@ -237,8 +237,7 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
   }
 
   void _handleThresholdReached(bool isStarving) {
-    print("Threshold reached!!");
-
+    debugPrint("Handy threshold reached.");
     final actions = currentActions.value;
     if (actions == null) return;
 

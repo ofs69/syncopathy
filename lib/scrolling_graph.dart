@@ -4,11 +4,9 @@ import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/helper/constants.dart';
-import 'package:syncopathy/player/mpv.dart';
 
 /// A widget that wraps the [ScrollingGraph] with a slider to control the zoom level (view duration).
 class InteractiveScrollingGraph extends StatefulWidget {
@@ -107,7 +105,6 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
 
   @override
   Widget build(BuildContext context) {
-    final player = context.read<MpvVideoplayer>();
     return Watch.builder(
       builder: (context) {
         final position = widget.videoPosition.value;
@@ -160,7 +157,6 @@ class GraphPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.square
       ..strokeJoin = StrokeJoin.bevel;
-    ;
 
     final cursorPaint = Paint()
       ..color = theme.colorScheme.secondary

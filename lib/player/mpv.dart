@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:libmpv_dart/libmpv.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,7 +9,6 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/events/event_bus.dart';
 import 'package:syncopathy/events/event_subscriber_mixin.dart';
 import 'package:syncopathy/events/player_event.dart';
-import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/model/playlist_model.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
@@ -178,7 +176,7 @@ class MpvVideoplayer with EventSubscriber, EffectDispose {
   }
 
   void _onPathChange(String newPath) {
-    debugPrint(newPath);
+    // debugPrint(newPath);
   }
 
   Future<void> _onOpenPlaylist(OpenPlaylistEvent event) async {
@@ -237,6 +235,7 @@ class MpvVideoplayer with EventSubscriber, EffectDispose {
     _playlistShuffled.value = false;
   }
 
+  // ignore: unused_element
   Future<bool> _loadFile(String filepath, String mode) async {
     final _ = _player.command(["loadfile", filepath, mode]);
     return true;

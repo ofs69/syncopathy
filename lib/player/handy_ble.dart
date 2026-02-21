@@ -295,7 +295,7 @@ class HandyBle with EffectDispose {
 
       // UNHANDLED NOTIFICATION
       default:
-        debugPrint(message.notification.toDebugString());
+        if (kDebugMode) debugPrint(message.notification.toDebugString());
         break;
     }
   }

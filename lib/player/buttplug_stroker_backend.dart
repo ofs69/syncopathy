@@ -63,9 +63,9 @@ class ButtplugStrokerBackend extends PlayerBackend with CommandPacketBackend {
 
       if (speed >= _ignoreSpeedThreshold) {
         // TODO: this can be improved by doing some dynamic slewing instead
-        debugPrint(
-          "IGNORED $_lastPosition to ${cmd.logicalMoveToPos} over ${cmd.moveOverTimeMs}ms speed: ${speed.toStringAsFixed(1)}",
-        );
+        // debugPrint(
+        //   "IGNORED $_lastPosition to ${cmd.logicalMoveToPos} over ${cmd.moveOverTimeMs}ms speed: ${speed.toStringAsFixed(1)}",
+        // );
         return;
       }
       final output = DeviceOutput.positionWithDuration.percent(
@@ -73,9 +73,9 @@ class ButtplugStrokerBackend extends PlayerBackend with CommandPacketBackend {
         cmd.moveOverTimeMs,
       );
       await _device?.runOutput(output);
-      debugPrint(
-        "$_lastPosition to ${cmd.logicalMoveToPos} over ${cmd.moveOverTimeMs}ms speed: ${speed.toStringAsFixed(1)}",
-      );
+      // debugPrint(
+      //   "$_lastPosition to ${cmd.logicalMoveToPos} over ${cmd.moveOverTimeMs}ms speed: ${speed.toStringAsFixed(1)}",
+      // );
       _lastPosition = cmd.logicalMoveToPos;
     }
   }
