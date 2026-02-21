@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/model/player_model.dart';
 
 class ConnectionButton extends StatelessWidget {
@@ -8,11 +9,14 @@ class ConnectionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final player = context.watch<PlayerModel>();
+    final playerModel = context.read<PlayerModel>();
+
     return Watch.builder(
       builder: (context) {
-        final scanning = player.isScanning.value;
-        if (scanning) {
+        final backend = playerModel.playerBackend.value;
+        final isConnecting = backend?.isConnecting.value ?? false;
+
+        if (isConnecting) {
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -31,9 +35,10 @@ class ConnectionButton extends StatelessWidget {
             ),
           );
         }
+
         return Watch.builder(
           builder: (context) {
-            final connected = player.isConnected.value;
+            final connected = backend?.connected.value ?? false;
             return Tooltip(
               message: connected ? "Connected" : "Disconnected",
               child: TextButton.icon(
@@ -44,7 +49,15 @@ class ConnectionButton extends StatelessWidget {
                       : Icons.bluetooth_disabled,
                   color: connected ? Colors.green : Colors.red,
                 ),
-                onPressed: scanning ? null : () => player.tryConnect(),
+                onPressed: isConnecting ? null : () => backend?.tryConnect(),
+                style: TextButton.styleFrom(
+                  side: BorderSide(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withAlphaF(0.5),
+                    width: 1.0,
+                  ),
+                ),
               ),
             );
           },

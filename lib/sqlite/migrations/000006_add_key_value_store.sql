@@ -1,0 +1,1 @@
+CREATE TABLE key_value_store(key TEXT NOT NULL PRIMARY KEY, value TEXT);

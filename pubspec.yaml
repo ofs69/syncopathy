@@ -39,6 +39,10 @@ dependencies:
     git:
       url: https://github.com/ofs69/libmpv_dart.git
       ref: main
+  buttplug:
+    git:
+      url: https://github.com/buttplugio/buttplug_dart
+      ref: v1.0.0
   window_manager: ^0.5.1
   universal_ble: ^1.1.0
   protobuf: ^6.0.0
@@ -59,6 +63,10 @@ dependencies:
   sqflite: ^2.4.2
   sqflite_common_ffi: ^2.4.0
   signals: ^6.3.0
+  event_bus: ^2.0.1
+  flutter_staggered_grid_view: ^0.7.0
+  json_annotation: ^4.10.0
+  args: ^2.7.0
 
 dev_dependencies:
   flutter_test:
@@ -72,6 +80,8 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   protoc_plugin: ^25.0.0 # run: dart pub global activate protoc_plugin when updating
   flutter_launcher_icons: "^0.14.4"
+  json_serializable: ^6.12.0
+  build_runner: ^2.11.1 # run: dart run build_runner build # used to generate json_serializable code
 
 # run: dart run flutter_launcher_icons
 flutter_launcher_icons:

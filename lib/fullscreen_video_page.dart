@@ -2,14 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
-import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/player/mpv.dart';
 import 'package:syncopathy/video_controls.dart';
 import 'package:window_manager/window_manager.dart';
 
 class FullscreenVideoPage extends StatefulWidget {
-  final PlayerModel player;
+  final MpvVideoplayer player;
   final bool isEmbeddedPlayerEnabled;
 
   const FullscreenVideoPage({
@@ -25,7 +24,6 @@ class FullscreenVideoPage extends StatefulWidget {
 class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
   bool _showControls = true;
   Timer? _hideControlsTimer;
-  final Signal<bool> _showFunscriptGraph = signal(true);
 
   @override
   void initState() {
@@ -89,10 +87,6 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
               _startHideControlsTimer();
             },
             child: GestureDetector(
-              onDoubleTap: () {
-                // exit fullscreen
-                Navigator.pop(context);
-              },
               onTap: _toggleControls,
               onLongPressStart: (_) {
                 if (!_showControls) {
@@ -172,7 +166,6 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                             onInteractionEnd: () {
                               _startHideControlsTimer();
                             },
-                            showFunscriptGraph: _showFunscriptGraph
                           ),
                         ),
                       ),

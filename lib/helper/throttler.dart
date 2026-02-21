@@ -11,9 +11,10 @@ class Throttler {
     if (!_isThrottled) {
       action();
       _isThrottled = true;
-      _timer = Timer(Duration(milliseconds: milliseconds), () {
-        _isThrottled = false;
-      });
+      _timer = Timer(
+        Duration(milliseconds: milliseconds),
+        () => _isThrottled = false,
+      );
     }
   }
 

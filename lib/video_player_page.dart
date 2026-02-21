@@ -1,18 +1,25 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/events/event_bus.dart';
+import 'package:syncopathy/events/event_subscriber_mixin.dart';
+import 'package:syncopathy/events/player_event.dart';
+import 'package:syncopathy/helper/extensions.dart';
+import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
+import 'package:syncopathy/player/mpv.dart';
 import 'package:syncopathy/scrolling_graph.dart';
 import 'package:syncopathy/video_controls.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
 import 'package:syncopathy/fullscreen_video_page.dart';
+import 'package:syncopathy/video_player_settings_overlay.dart';
 
 class VideoPlayerPage extends StatefulWidget {
-  const VideoPlayerPage({super.key, this.focusNode});
-
-  final FocusNode? focusNode;
+  const VideoPlayerPage({super.key});
 
   @override
   State<VideoPlayerPage> createState() => _VideoPlayerPageState();
@@ -23,13 +30,13 @@ class TogglePauseIntent extends Intent {
 }
 
 class TogglePauseAction extends Action<TogglePauseIntent> {
-  TogglePauseAction(this.playerModel);
+  TogglePauseAction(this.player);
 
-  final PlayerModel playerModel;
+  final MpvVideoplayer player;
 
   @override
   void invoke(TogglePauseIntent intent) {
-    playerModel.togglePause();
+    player.togglePause();
   }
 }
 
@@ -38,13 +45,11 @@ class NextPlaylistEntryIntent extends Intent {
 }
 
 class NextPlaylistEntryAction extends Action<NextPlaylistEntryIntent> {
-  NextPlaylistEntryAction(this.playerModel);
-
-  final PlayerModel playerModel;
+  NextPlaylistEntryAction();
 
   @override
   void invoke(NextPlaylistEntryIntent intent) {
-    playerModel.playlist.value?.next();
+    Events.emit(PlaylistNextEvent());
   }
 }
 
@@ -53,20 +58,18 @@ class PreviousPlaylistEntryIntent extends Intent {
 }
 
 class PreviousPlaylistEntryAction extends Action<PreviousPlaylistEntryIntent> {
-  PreviousPlaylistEntryAction(this.playerModel);
-
-  final PlayerModel playerModel;
+  PreviousPlaylistEntryAction();
 
   @override
   void invoke(PreviousPlaylistEntryIntent intent) {
-    playerModel.playlist.value?.previous();
+    Events.emit(PlaylistPreviousEvent());
   }
 }
 
 class _VideoPlayerPageState extends State<VideoPlayerPage>
-    with AutomaticKeepAliveClientMixin {
-  final FocusNode _focusNode = FocusNode();
+    with EventSubscriber, AutomaticKeepAliveClientMixin {
   final Signal<bool> _showFunscriptGraph = signal(true);
+  final Signal<bool> _showSettings = signal(false);
 
   @override
   bool get wantKeepAlive => true;
@@ -74,12 +77,17 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   @override
   void initState() {
     super.initState();
-    _focusNode.requestFocus();
+
+    eventSubs([
+      Events.on<CloseMediaEvent>().listen(
+        (event) => _showSettings.value = false,
+      ),
+    ]);
   }
 
   @override
-  void dispose() {
-    _focusNode.dispose();
+  void dispose() async {
+    await eventDispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
@@ -88,7 +96,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   Widget build(BuildContext context) {
     super.build(context);
     final settings = context.watch<SettingsModel>();
-    final player = context.watch<PlayerModel>();
+    final player = context.watch<MpvVideoplayer>();
+    final playerModel = context.watch<PlayerModel>();
+    final embeddedVideoPlayer = settings.embeddedVideoPlayer.watch(context);
+    final funscriptLoaded = playerModel.currentFunscript.watch(context) == null;
 
     enterFullscreen() => Navigator.push(
       context,
@@ -99,6 +110,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
         ),
       ),
     );
+
+    toggleSettings() => _showSettings.value = !_showSettings.value;
 
     return Shortcuts(
       shortcuts: <LogicalKeySet, Intent>{
@@ -111,70 +124,99 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
       child: Actions(
         actions: <Type, Action<Intent>>{
           TogglePauseIntent: TogglePauseAction(player),
-          NextPlaylistEntryIntent: NextPlaylistEntryAction(player),
-          PreviousPlaylistEntryIntent: PreviousPlaylistEntryAction(player),
+          NextPlaylistEntryIntent: NextPlaylistEntryAction(),
+          PreviousPlaylistEntryIntent: PreviousPlaylistEntryAction(),
         },
-        child: Focus(
-          focusNode: widget.focusNode,
-          autofocus: true,
-          child: Watch.builder(
-            builder: (context) {
-              final funscript = player.currentFunscript.value;
-              if (funscript == null) {
-                return const Center(child: Text('No funscript loaded'));
-              }
-              return Scaffold(
-                body: Column(
-                  children: [
-                    Expanded(
-                      flex: 6,
-                      child: settings.embeddedVideoPlayer.value
-                          ? GestureDetector(
-                              onDoubleTap: enterFullscreen,
-                              child: Hero(
-                                tag: 'videoPlayer',
-                                child: CustomMpvVideoWidget(player: player),
-                              ),
-                            )
-                          : const Center(
-                              child: Text(
-                                'Embedded video player is disabled in settings.',
-                              ),
-                            ),
-                    ),
-                    Watch.builder(
-                      builder: (context) {
-                        final showGraph = _showFunscriptGraph.value;
-                        if (showGraph) {
-                          return Expanded(
-                            flex: 1,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                                vertical: 4.0,
-                              ),
-                              child: InteractiveScrollingGraph(
-                                funscript: funscript,
-                                videoPosition: player.positionNoOffset,
-                              ),
-                            ),
-                          );
-                        } else {
-                          return const SizedBox.shrink();
-                        }
-                      },
-                    ),
+        child: Column(
+          children: [
+            Expanded(
+              flex: 6,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  if (embeddedVideoPlayer)
                     Hero(
-                      tag: 'videoControls',
-                      child: VideoControls(
-                        onFullscreenToggle: enterFullscreen,
-                        showFunscriptGraph: _showFunscriptGraph,
-                      ),
+                      tag: 'videoPlayer',
+                      child: CustomMpvVideoWidget(player: player),
+                    )
+                  else
+                    Center(
+                      child: !funscriptLoaded
+                          ? SizedBox.shrink()
+                          : Text('Embedded player disabled'),
                     ),
-                  ],
-                ),
-              );
-            },
+
+                  if (funscriptLoaded)
+                    Container(
+                      color: Colors.black54,
+                      child: Text("No funscript loaded"),
+                    ),
+
+                  Align(
+                    alignment: AlignmentGeometry.bottomCenter,
+                    child: Column(
+                      children: [
+                        Expanded(
+                          flex: 6,
+                          child: AnimatedSlide(
+                            offset: _showSettings.watch(context)
+                                ? Offset.zero
+                                : const Offset(
+                                    0,
+                                    -1,
+                                  ), // Slides in from the right
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: ScriptPlayerSettingsOverlay(
+                              toggleSettings: toggleSettings,
+                            ),
+                          ),
+                        ),
+                        _showFunscriptGraph.watch(context)
+                            ? Expanded(
+                                flex: 1,
+                                child: _funscriptGraph(
+                                  playerModel.currentFunscript,
+                                  player,
+                                  settings,
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Hero(
+              tag: 'videoControls',
+              child: VideoControls(
+                onFullscreenToggle: enterFullscreen,
+                showFunscriptGraph: _showFunscriptGraph,
+                showSettings: _showSettings,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  ClipRect _funscriptGraph(
+    ReadonlySignal<Funscript?> funscript,
+    MpvVideoplayer player,
+    SettingsModel settings,
+  ) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          decoration: BoxDecoration(color: Colors.black.withAlphaF(0.3)),
+          child: InteractiveScrollingGraph(
+            funscript: funscript,
+            videoPosition: player.smoothPosition,
+            viewDuration: settings.funscriptGraphViewDuration,
           ),
         ),
       ),

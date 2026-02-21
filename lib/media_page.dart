@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:syncopathy/events/event_bus.dart';
+import 'package:syncopathy/events/player_event.dart';
 import 'package:syncopathy/media_library.dart';
-import 'package:syncopathy/model/player_model.dart';
 
 class MediaPage extends StatefulWidget {
   const MediaPage({super.key});
@@ -18,7 +18,6 @@ class _MediaPageState extends State<MediaPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final player = context.read<PlayerModel>();
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -27,7 +26,8 @@ class _MediaPageState extends State<MediaPage>
         children: [
           Expanded(
             child: MediaLibrary(
-              onVideoTapped: (v) => player.openVideoAndScript(v, false),
+              onVideoTapped: (v) =>
+                  Events.emit(OpenVideoEvent(v)),
             ),
           ),
         ],

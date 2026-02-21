@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/events/event_bus.dart';
+import 'package:syncopathy/events/player_event.dart';
+import 'package:syncopathy/player/mpv.dart';
 
 class PlaylistControls extends StatefulWidget {
   const PlaylistControls({super.key});
@@ -13,32 +15,32 @@ class PlaylistControls extends StatefulWidget {
 class _PlaylistControlsState extends State<PlaylistControls> {
   @override
   Widget build(BuildContext context) {
-    final model = context.watch<PlayerModel>();
+    final player = context.read<MpvVideoplayer>();
 
     return Watch.builder(
       builder: (context) {
-        final playlist = model.playlist.value;
-        if (playlist == null) {
+        final playlist = player.currentPlaylist.value;
+
+        if (playlist.entries.length <= 1) {
           return const SizedBox.shrink();
         }
 
+        final isShuffled = player.playlistShuffled.watch(context);
         return Row(
           children: [
             Padding(
               padding: const EdgeInsets.all(4.0),
               child: ToggleButtons(
-                isSelected: [playlist.isShuffled],
-                onPressed: (int index) {
-                  playlist.shuffle();
-                  setState(() {});
-                },
+                isSelected: [isShuffled],
+                onPressed: (int index) =>
+                    Events.emit(PlaylistSetShuffleEvent(!isShuffled)),
                 borderRadius: BorderRadius.circular(20.0),
                 constraints: const BoxConstraints(
                   minWidth: 40.0,
                   minHeight: 40.0,
                 ),
                 selectedColor: Colors.green,
-                children: const <Widget>[
+                children: [
                   Tooltip(message: 'Shuffle', child: Icon(Icons.shuffle)),
                 ],
               ),
@@ -47,12 +49,10 @@ class _PlaylistControlsState extends State<PlaylistControls> {
               padding: const EdgeInsets.all(4.0),
               child: Watch.builder(
                 builder: (context) {
-                  final isLooping = model.isLoopingVideo.value;
+                  final isLooping = player.loopFile.value;
                   return ToggleButtons(
                     isSelected: [isLooping],
-                    onPressed: (int index) {
-                      model.toggleLoopVideo();
-                    },
+                    onPressed: (int index) => player.toggleLooping(),
                     borderRadius: BorderRadius.circular(20.0),
                     constraints: const BoxConstraints(
                       minWidth: 40.0,
@@ -75,10 +75,7 @@ class _PlaylistControlsState extends State<PlaylistControls> {
               padding: const EdgeInsets.all(4.0),
               child: IconButton(
                 icon: const Icon(Icons.skip_previous),
-                onPressed: () {
-                  playlist.previous();
-                  setState(() {});
-                },
+                onPressed: () => Events.emit(PlaylistPreviousEvent()),
                 tooltip: 'Previous',
               ),
             ),
@@ -86,19 +83,13 @@ class _PlaylistControlsState extends State<PlaylistControls> {
               padding: const EdgeInsets.all(4.0),
               child: IconButton(
                 icon: const Icon(Icons.skip_next),
-                onPressed: () {
-                  playlist.next();
-                  setState(() {});
-                },
+                onPressed: () => Events.emit(PlaylistNextEvent()),
                 tooltip: 'Next',
               ),
             ),
             const SizedBox(width: 8),
-            Watch.builder(
-              builder: (context) {
-                final currentIndex = playlist.currentIndex.value;
-                return Text('${currentIndex + 1} / ${playlist.videos.length}');
-              },
+            Text(
+              '${playlist.currentIndex.watch(context) + 1} / ${playlist.entries.length}',
             ),
           ],
         );

@@ -2,11 +2,19 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class UpdateChecker {
   static const String _repoOwner = 'ofs69'; // Replace with your GitHub username
   static const String _repoName =
       'syncopathy'; // Replace with your GitHub repository name
+
+  static Future<void> openReleasePage() async {
+    final url = Uri.parse('https://github.com/ofs69/syncopathy/releases');
+    if (!await launchUrl(url)) {
+      Logger.error('Could not launch $url');
+    }
+  }
 
   static Future<String?> checkForUpdates() async {
     try {

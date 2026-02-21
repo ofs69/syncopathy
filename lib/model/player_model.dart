@@ -1,356 +1,141 @@
-import 'dart:async';
-import 'package:async_locks/async_locks.dart';
-import 'package:libmpv_dart/video/video_params.dart';
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/events/event_bus.dart';
+import 'package:syncopathy/events/event_subscriber_mixin.dart';
+import 'package:syncopathy/events/player_event.dart';
 import 'package:syncopathy/funscript_algo.dart';
+import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/funscript.dart';
-import 'package:syncopathy/model/playlist.dart';
+import 'package:syncopathy/model/json/buttplug_stroker_backend_settings.dart';
 import 'package:syncopathy/model/settings_model.dart';
+import 'package:syncopathy/model/timesource_model.dart';
+import 'package:syncopathy/player/buttplug_stroker_backend.dart';
+import 'package:syncopathy/player/handy_native_command_backend.dart';
+import 'package:syncopathy/player/handy_native_hsp_backend.dart';
+import 'package:syncopathy/player/mpv.dart';
+import 'package:syncopathy/player/player_backend.dart';
+import 'package:syncopathy/player/player_backend_type.dart';
+import 'package:syncopathy/sqlite/key_value_store.dart';
 
 import 'package:syncopathy/sqlite/models/video_model.dart';
-import 'package:syncopathy/sqlite/database_helper.dart';
-import 'package:syncopathy/player/funscript_stream_controller.dart';
-import 'package:syncopathy/player/handy_ble.dart';
-import 'package:syncopathy/player/mpv.dart';
 
-class PlayerModel {
-  late final MpvVideoplayer _mpvPlayer;
-  bool _shouldPlay = false;
-
-  ReadonlySignal<int> get textureId => _mpvPlayer.textureId;
-  ReadonlySignal<double> get volume => _mpvPlayer.volume;
-  ReadonlySignal<double> get playbackSpeed => _mpvPlayer.playbackSpeed;
-  ReadonlySignal<bool> get paused => _mpvPlayer.paused;
-  ReadonlySignal<VideoParams> get videoParams => _mpvPlayer.videoParams;
-  ReadonlySignal<double> get duration => _mpvPlayer.duration;
-  ReadonlySignal<double> get positionNoOffset => _mpvPlayer.position;
-
-  late final HandyBle _handyBle;
-  ReadonlySignal<bool> get isScanning => _handyBle.isScanning;
-  ReadonlySignal<bool> get isConnected => _handyBle.isConnected;
-
+class PlayerModel with EventSubscriber, EffectDispose {
   final SettingsModel _settings;
-  late final FunscriptStreamController _funscriptStreamController;
+  final TimesourceModel timeSource;
+  late final Signal<PlayerBackend?> playerBackend;
 
-  final Signal<Playlist?> playlist = signal(null);
-  bool _hasTriggeredNextVideo = false;
-  bool _playlistTriggeredNextShouldPlay = false;
+  late final ReadonlySignal<Video?> currentVideo;
+  late final AsyncSignal<Funscript?> _asyncCurrentFunscript = computedAsync(
+    () async {
+      final video = currentVideo.value;
+      try {
+        if (video != null) {
+          if (video.funscript == null) await video.loadFunscript();
+          if (video.funscript?.likelyScriptToken ?? false) {
+            Logger.warning("Script token playback is not supported.");
+            return null;
+          }
+          return video.funscript;
+        }
+      } finally {
+        if (video?.funscript == null) {
+          Events.emit(CloseMediaEvent());
+        }
+      }
+      return null;
+    },
+  );
+  late final ReadonlySignal<Funscript?> currentFunscript = computed(
+    () => _asyncCurrentFunscript.value.value,
+  );
 
-  final Signal<Video?> currentVideo = signal(null);
-  final Signal<Funscript?> currentFunscript = signal(null);
+  PlayerModel(
+    this._settings,
+    this.timeSource,
+    MpvVideoplayer player,
+    BatteryModel batteryModel,
+  ) {
+    playerBackend = signal(null);
+    currentVideo = player.currentVideo;
 
-  final Signal<bool> _isLoopingVideo = signal(false);
-  ReadonlySignal<bool> get isLoopingVideo => _isLoopingVideo;
+    effectAdd([
+      effect(() {
+        final funscript = currentFunscript.value;
+        final duration = player.duration.value;
+        // Skip to first stroke if enabled
+        if (untracked(() => _settings.skipToAction.value)) {
+          if (funscript != null && duration > 0.0) {
+            final startTime = FunscriptAlgorithms.findFirstStroke(
+              untracked(() => funscript.actions.value),
+            );
+            player.seekTo(Duration(milliseconds: startTime));
+          }
+        }
+      }),
+      effect(() async {
+        PlayerBackend? newBackend;
+        switch (_settings.playerBackendType.value) {
+          case PlayerBackendType.buttplugStrokerCommand:
+            if (playerBackend.value is! ButtplugStrokerBackend) {
+              final settings = await KeyValueStore.get(
+                ButtplugStrokerBackendSettings.key,
+              );
 
-  int get _positionMs =>
-      (positionNoOffset.value * 1000.0).round().toInt() +
-      _settings.offsetMs.value;
-
-  late final Function _effectDispose;
-
-  final Lock _openVideoLock = Lock();
-
-  PlayerModel(this._settings, BatteryModel batteryModel) {
-    _mpvPlayer = MpvVideoplayer(
-      videoOutput: _settings.embeddedVideoPlayer.value,
-    );
-
-    _handyBle = HandyBle(_settings, batteryModel);
-    _funscriptStreamController = FunscriptStreamController(
-      _handyBle,
-      currentFunscript,
-    );
-
-    final pauseChangeEffect = effect(() {
-      _handlePausedChanged(
-        paused.value,
-        _funscriptStreamController.canPlay.value,
-      );
-    });
-
-    final positionNoOffsetEffect = effect(() {
-      _handlePositionChanged(_positionMs);
-    });
-
-    _effectDispose = () {
-      pauseChangeEffect();
-      positionNoOffsetEffect();
-    };
+              newBackend = ButtplugStrokerBackend(
+                timesource: timeSource,
+                currentFunscript: currentFunscript,
+                settingsModel: _settings,
+                settings: settings != null
+                    ? ButtplugStrokerBackendSettings.fromJson(settings)
+                    : ButtplugStrokerBackendSettings(),
+                batteryModel: batteryModel,
+              );
+            }
+            break;
+          case PlayerBackendType.handyStrokerCommand:
+            if (playerBackend.value is! HandyNativeCommandBackend) {
+              newBackend = HandyNativeCommandBackend(
+                settingsModel: _settings,
+                batteryModel: batteryModel,
+                timesource: timeSource,
+                currentFunscript: currentFunscript,
+              );
+            }
+            break;
+          case PlayerBackendType.handyStrokerStreamingBluetooth:
+            if (playerBackend.value is! HandyNativeHspBackend) {
+              newBackend = HandyNativeHspBackend(
+                currentFunscript: currentFunscript,
+                timesource: timeSource,
+                settingsModel: _settings,
+                batteryModel: batteryModel,
+              );
+            }
+            break;
+        }
+        if (newBackend != null) {
+          await playerBackend.value?.dispose();
+          playerBackend.value = newBackend;
+        }
+      }),
+      effect(() {
+        final funscript = currentFunscript.value;
+        if (funscript == null) return;
+        final modifiedActions = FunscriptAlgorithms.processForHandy(
+          funscript.originalActions,
+          _settings.slewMaxRateOfChange.value,
+          _settings.rdpEpsilon.value,
+          _settings.remapFullRange.value ? (0, 100) : null,
+          _settings.invert.value,
+        );
+        funscript.actions.value = modifiedActions;
+      }),
+    ]);
   }
 
   void dispose() {
-    _effectDispose();
-    _funscriptStreamController.dispose();
-    _mpvPlayer.dispose();
-    _handyBle.dispose();
-  }
-
-  void tryConnect() {
-    _handyBle.startScan();
-  }
-
-  Future<void> _handlePositionChanged(int newPositionMs) async {
-    if (!await _funscriptStreamController.bufferFunscript(
-      newPositionMs,
-      paused.value,
-      playbackSpeed.value,
-    )) {
-      if (!paused.value) {
-        await _funscriptStreamController.positionUpdate(
-          newPositionMs,
-          paused.value,
-          playbackSpeed.value,
-        );
-      }
-    }
-    if (!paused.value) {
-      _checkAndPlayNextVideo();
-    }
-  }
-
-  void _checkAndPlayNextVideo() {
-    if (_isLoopingVideo.value) {
-      return;
-    }
-
-    if (playlist.value == null || _hasTriggeredNextVideo) {
-      return;
-    }
-
-    bool shouldPlayNext = false;
-    if (currentFunscript.value != null &&
-        currentFunscript.value!.actions.isNotEmpty) {
-      final triggerTimeMs = currentFunscript.value!.actions.last.at - 100;
-      if (_positionMs >= triggerTimeMs) {
-        shouldPlayNext = true;
-      }
-    } else {
-      // Fallback to old logic if no funscript is loaded
-      const double endThresholdSeconds =
-          0.10; // Play next video 100 millieseconds before current one ends
-
-      if (duration.value > 0 &&
-          positionNoOffset.value >= (duration.value - endThresholdSeconds)) {
-        shouldPlayNext = true;
-      }
-    }
-
-    if (shouldPlayNext) {
-      if (playlist.value!.currentIndex.value <
-          playlist.value!.videos.length - 1) {
-        _hasTriggeredNextVideo =
-            true; // Prevent multiple triggers for the same video
-        _playlistTriggeredNextShouldPlay = !paused.value;
-        playlist.value!.next();
-      }
-    }
-  }
-
-  void toggleLoopVideo() {
-    if (playlist.value == null) {
-      return; // Looping is always enabled for single videos
-    }
-    _setLooping(!_isLoopingVideo.value);
-  }
-
-  void _setLooping(bool enable) {
-    _isLoopingVideo.value = enable;
-    if (enable) {
-      _mpvPlayer.enableLooping();
-    } else {
-      _mpvPlayer.disableLooping();
-    }
-  }
-
-  Future<void> _handlePausedChanged(bool pauseState, bool canPlay) async {
-    if (canPlay && (_shouldPlay != !pauseState)) {
-      _shouldPlay = !pauseState;
-    }
-
-    if (_shouldPlay) {
-      await play();
-    } else {
-      await pause();
-    }
-  }
-
-  Future<bool> _loadAndProcessFunscript(String script) async {
-    var funscriptFile = await Funscript.fromFile(script).catchError(
-      (e) => null,
-      test: (e) {
-        Logger.error(e.toString());
-        return true;
-      },
-    );
-
-    if (funscriptFile == null) {
-      currentFunscript.value = null;
-      return false;
-    }
-
-    if (funscriptFile.likelyScriptToken) {
-      Logger.error("Funscript token playback is not supported!");
-      currentFunscript.value = null;
-      return false;
-    }
-
-    funscriptFile.originalActions = List.from(funscriptFile.actions);
-    funscriptFile.actions = FunscriptAlgorithms.processForHandy(
-      List.from(funscriptFile.actions),
-      _settings.slewMaxRateOfChange.value,
-      _settings.rdpEpsilon.value,
-      _settings.remapFullRange.value ? (0, 100) : null,
-      _settings.invert.value,
-    );
-    currentFunscript.value = funscriptFile;
-    Logger.debug(currentFunscript.value?.fileName ?? "no script loaded");
-
-    return true;
-  }
-
-  Future<void> openVideoAndScript(Video video, bool isPlaylist) async {
-    try {
-      await _openVideoLock.acquire();
-      _hasTriggeredNextVideo = false;
-      if (!isPlaylist) {
-        bool videoFoundInExistingPlaylist = false;
-        if (playlist.value != null) {
-          final index = playlist.value!.videos.indexWhere(
-            (v) => v.videoPath == video.videoPath,
-          );
-          if (index != -1) {
-            playlist.value!.goTo(index);
-            videoFoundInExistingPlaylist = true;
-          }
-        }
-
-        if (!videoFoundInExistingPlaylist) {
-          clearPlaylist();
-        }
-      } else {
-        _setLooping(false);
-      }
-
-      await closeVideo();
-      if (!await _loadAndProcessFunscript(video.funscriptPath)) {
-        throw Exception("Failed to load funscript.");
-      }
-      await _mpvPlayer.loadFile(video.videoPath);
-      await pause();
-
-      video.playCount++;
-      await DatabaseHelper().updateVideo(video); // Persist playCount
-      currentVideo.value = video;
-
-      if (_settings.skipToAction.value) {
-        final startTime = FunscriptAlgorithms.findFirstStroke(
-          currentFunscript.value!.actions,
-        );
-        seekTo(startTime / 1000.0);
-      }
-      await _handlePositionChanged(_positionMs);
-
-      if (_settings.autoPlay.value || _playlistTriggeredNextShouldPlay) {
-        _playlistTriggeredNextShouldPlay = false;
-        play();
-      }
-
-      return;
-    } on Exception catch (ex, trace) {
-      Logger.error(ex);
-      Logger.error(trace);
-      currentVideo.value = null;
-    } finally {
-      _openVideoLock.release();
-    }
-  }
-
-  Future<void> closeVideo() async {
-    await pause();
-    currentVideo.value = null;
-    currentFunscript.value = null;
-    await _mpvPlayer.closeFile();
-  }
-
-  Future<void> togglePause() async {
-    _shouldPlay = !_shouldPlay;
-    if (_shouldPlay) {
-      await play();
-    } else {
-      await pause();
-    }
-  }
-
-  Future<void> play() async {
-    _shouldPlay = true;
-    _mpvPlayer.play();
-    await _funscriptStreamController.startPlayback(
-      _positionMs,
-      playbackSpeed.value,
-    );
-  }
-
-  Future<void> pause() async {
-    _shouldPlay = false;
-    _mpvPlayer.pause();
-    await _funscriptStreamController.stopPlayback();
-  }
-
-  void setVolume(double volume) {
-    _mpvPlayer.setVolume(volume);
-  }
-
-  void setPlaybackSpeed(double speed) {
-    _mpvPlayer.setSpeed(speed.clamp(0.5, 2.0));
-  }
-
-  void setSizeAndPosition(int width, int height, int x, int y) {
-    _mpvPlayer.setSizeAndPosition(width, height, x, y);
-  }
-
-  void seekTo(double time) {
-    final posPercent = time / duration.value;
-    _mpvPlayer.seekTo(posPercent.clamp(0.0, 1.0));
-  }
-
-  void _handlePlaylistChange() {
-    // This method is called when the playlist's internal state changes (e.g., next/previous)
-    if (playlist.value != null &&
-        playlist.value!.currentVideo != null &&
-        playlist.value!.currentVideo != currentVideo.value) {
-      openVideoAndScript(playlist.value!.currentVideo!, true);
-    }
-  }
-
-  void clearPlaylist() {
-    playlist.value?.removeListener(_handlePlaylistChange);
-    playlist.value = null;
-    _setLooping(true);
-  }
-
-  void setPlaylist(List<Video> videos, int initialIndex) {
-    // Remove listener from previous playlist if it exists
-    playlist.value?.removeListener(_handlePlaylistChange);
-
-    final newPlaylist = Playlist(videos: videos, initialIndex: initialIndex);
-    playlist.value = newPlaylist;
-
-    // Add listener to the new playlist
-    newPlaylist.addListener(_handlePlaylistChange);
-
-    _setLooping(false);
-
-    if (newPlaylist.currentVideo != null) {
-      openVideoAndScript(newPlaylist.currentVideo!, true);
-    }
-  }
-
-  Future<void> closeVideoOrPlaylist() async {
-    if (playlist.value != null) {
-      clearPlaylist();
-    }
-    await closeVideo();
+    eventDispose();
+    effectDispose();
   }
 }

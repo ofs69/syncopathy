@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'package:syncopathy/media_library.dart'; // For SortOption enum
 
@@ -46,8 +45,10 @@ class MediaLibrarySettings {
 
   factory MediaLibrarySettings.fromMap(Map<String, dynamic> map) {
     return MediaLibrarySettings(
-      sortOption: SortOption.values
-          .firstWhere((e) => e.toString().split('.').last == map['sortOption']),
+      sortOption: SortOption.values.firstWhere(
+        (e) => e.toString().split('.').last == map['sortOption'],
+        orElse: () => SortOption.title,
+      ),
       isSortAscending: map['isSortAscending'] == 1,
       videosPerRow: map['videosPerRow'],
       showVideoTitles: map['showVideoTitles'] == 1,
@@ -56,7 +57,9 @@ class MediaLibrarySettings {
       showDuration: map['showDuration'] == 1,
       showPlayCount: map['showPlayCount'] == 1,
       separateFavorites: map['separateFavorites'] == 1,
-      visibilityFilters: List<String>.from(jsonDecode(map['visibilityFilters'])),
+      visibilityFilters: List<String>.from(
+        jsonDecode(map['visibilityFilters']),
+      ),
     );
   }
 }

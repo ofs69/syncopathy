@@ -350,7 +350,7 @@ class _LogNotificationObserverState extends State<LogNotificationObserver> {
     _logSubscription = logStream.listen((entry) {
       if (entry.level == LogLevel.warning ||
           entry.level == LogLevel.error ||
-          (kDebugMode && showDebugNotifications.value)) {
+          showDebugNotifications.value) {
         notificationFeedManager.addNotification(
           entry.message,
           entry.level,

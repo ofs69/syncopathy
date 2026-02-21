@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
+import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/sqlite/models/settings.dart';
 
@@ -23,11 +25,15 @@ class SettingsModel {
   final Signal<bool> skipToAction = signal(false);
   final Signal<bool> embeddedVideoPlayer = signal(false);
   final Signal<bool> autoSwitchToVideoPlayerTab = signal(false);
-  final Signal<bool> autoPlay = signal(true);
   final Signal<bool> invert = signal(false);
+  final Signal<PlayerBackendType> playerBackendType = signal(
+    PlayerBackendType.handyStrokerStreamingBluetooth,
+  );
 
   // Not persisted in the database
-  Signal<bool> showDebugNotifications = signal(false);
+  Signal<bool> showDebugNotifications = signal(kDebugMode);
+  Signal<Duration> funscriptGraphViewDuration = signal(Duration(seconds: 5));
+  Signal<bool> homeDeviceEnabled = signal(false);
 
   late final Function? _saveEffectDispose;
 
@@ -49,8 +55,8 @@ class SettingsModel {
     skipToAction.value = _entity.skipToAction;
     embeddedVideoPlayer.value = _entity.embeddedVideoPlayer;
     autoSwitchToVideoPlayerTab.value = _entity.autoSwitchToVideoPlayerTab;
-    autoPlay.value = _entity.autoPlay;
     invert.value = _entity.invert;
+    playerBackendType.value = _entity.playerBackendType;
 
     _saveEffectDispose = effect(() async {
       _entity.min = min.value;
@@ -63,8 +69,8 @@ class SettingsModel {
       _entity.skipToAction = skipToAction.value;
       _entity.embeddedVideoPlayer = embeddedVideoPlayer.value;
       _entity.autoSwitchToVideoPlayerTab = autoSwitchToVideoPlayerTab.value;
-      _entity.autoPlay = autoPlay.value;
       _entity.invert = invert.value;
+      _entity.playerBackendType = playerBackendType.value;
       await _save();
     });
   }

@@ -44,8 +44,7 @@ class PcaCalculator {
         videosWithFunscript.add(video);
       }
       loadedCount++;
-      onProgress(
-          'Loaded $loadedCount of ${allVideos.length} funscripts...');
+      onProgress('Loaded $loadedCount of ${allVideos.length} funscripts...');
     }
     onProgress(
       'Finished loading funscripts. Total: $loadedCount. Now calculating PCA...',
@@ -54,12 +53,12 @@ class PcaCalculator {
     if (videosWithFunscript.length >= 2) {
       final features = videosWithFunscript.map((v) {
         final funscript = v.funscript!;
-        final positions =
-            funscript.actions.map((a) => a.pos.toDouble()).toList();
+        final actions = funscript.actions.value;
+        final positions = actions.map((a) => a.pos.toDouble()).toList();
         final speeds = <double>[];
-        for (var i = 0; i < funscript.actions.length - 1; i++) {
-          final a1 = funscript.actions[i];
-          final a2 = funscript.actions[i + 1];
+        for (var i = 0; i < actions.length - 1; i++) {
+          final a1 = actions[i];
+          final a2 = actions[i + 1];
           final timeDiff = a2.at - a1.at;
           if (timeDiff > 0) {
             speeds.add(
@@ -70,17 +69,17 @@ class PcaCalculator {
 
         final accelerations = <double>[];
         for (var i = 0; i < speeds.length - 1; i++) {
-          final timeDiff =
-              funscript.actions[i + 1].at - funscript.actions[i].at;
+          final timeDiff = actions[i + 1].at - actions[i].at;
           if (timeDiff > 0) {
             accelerations.add((speeds[i + 1] - speeds[i]) / timeDiff);
           }
         }
 
-        final strokes = _extractStrokes(funscript);
+        final strokes = _extractStrokes(actions);
         final strokeLengths = strokes.map((s) => s.length).toList();
-        final strokeDurations =
-            strokes.map((s) => s.duration.toDouble()).toList();
+        final strokeDurations = strokes
+            .map((s) => s.duration.toDouble())
+            .toList();
 
         if (positions.isEmpty) {
           positions.add(0);
@@ -104,8 +103,7 @@ class PcaCalculator {
 
         final positionQuantiles = _calculateQuantiles(positions, 16);
         final speedQuantiles = _calculateQuantiles(speeds, 16);
-        final accelerationQuantiles =
-            _calculateQuantiles(accelerations, 16);
+        final accelerationQuantiles = _calculateQuantiles(accelerations, 16);
         final positionSkewness = _calculateSkewness(positions);
         final speedSkewness = _calculateSkewness(speeds);
         final accelerationSkewness = _calculateSkewness(accelerations);
@@ -119,8 +117,7 @@ class PcaCalculator {
             : strokeLengths.reduce((a, b) => a + b) / strokeLengths.length;
         final averageStrokeDuration = strokeDurations.isEmpty
             ? 0.0
-            : strokeDurations.reduce((a, b) => a + b) /
-                strokeDurations.length;
+            : strokeDurations.reduce((a, b) => a + b) / strokeDurations.length;
 
         return [
           positionSkewness,
@@ -142,8 +139,7 @@ class PcaCalculator {
       final standardizedFeatures = _standardizeFeatures(features);
       final pca = PCA(components: 2);
       final pcaResult = pca.fitTransform(standardizedFeatures);
-      final principalComponents =
-          pcaResult['projected'] as List<List<double>>;
+      final principalComponents = pcaResult['projected'] as List<List<double>>;
 
       for (var i = 0; i < videosWithFunscript.length; i++) {
         pcaScoresByPath[videosWithFunscript[i].videoPath] =
@@ -183,13 +179,14 @@ class PcaCalculator {
     }
 
     // Standardize features
-    final standardizedFeatures =
-        List.generate(features.length, (i) => List.filled(numFeatures, 0.0));
+    final standardizedFeatures = List.generate(
+      features.length,
+      (i) => List.filled(numFeatures, 0.0),
+    );
     for (var i = 0; i < features.length; i++) {
       for (var j = 0; j < numFeatures; j++) {
         if (stdDevs[j] > 0) {
-          standardizedFeatures[i][j] =
-              (features[i][j] - means[j]) / stdDevs[j];
+          standardizedFeatures[i][j] = (features[i][j] - means[j]) / stdDevs[j];
         } else {
           standardizedFeatures[i][j] = 0.0;
         }
@@ -254,18 +251,18 @@ class PcaCalculator {
   }
 
   // Function to extract strokes
-  List<Stroke> _extractStrokes(Funscript funscript) {
+  List<Stroke> _extractStrokes(List<FunscriptAction> actions) {
     final strokes = <Stroke>[];
-    if (funscript.actions.length < 2) {
+    if (actions.length < 2) {
       return strokes;
     }
 
     int direction = 0; // 0 = unknown, 1 = up, -1 = down
     int strokeStartIndex = 0;
 
-    for (int i = 0; i < funscript.actions.length - 1; i++) {
-      final p1 = funscript.actions[i].pos;
-      final p2 = funscript.actions[i + 1].pos;
+    for (int i = 0; i < actions.length - 1; i++) {
+      final p1 = actions[i].pos;
+      final p2 = actions[i + 1].pos;
 
       int currentDirection = (p2 > p1) ? 1 : ((p2 < p1) ? -1 : 0);
 
@@ -275,28 +272,32 @@ class PcaCalculator {
 
       if (currentDirection != 0 && currentDirection != direction) {
         // Direction changed, end of a stroke
-        final startAction = funscript.actions[strokeStartIndex];
-        final endAction = funscript.actions[i];
-        strokes.add(Stroke(
-          startPos: startAction.pos.toDouble(),
-          endPos: endAction.pos.toDouble(),
-          startTime: startAction.at,
-          endTime: endAction.at,
-        ));
+        final startAction = actions[strokeStartIndex];
+        final endAction = actions[i];
+        strokes.add(
+          Stroke(
+            startPos: startAction.pos.toDouble(),
+            endPos: endAction.pos.toDouble(),
+            startTime: startAction.at,
+            endTime: endAction.at,
+          ),
+        );
         strokeStartIndex = i;
         direction = currentDirection;
       }
     }
 
     // Add the last stroke
-    final startAction = funscript.actions[strokeStartIndex];
-    final endAction = funscript.actions.last;
-    strokes.add(Stroke(
-      startPos: startAction.pos.toDouble(),
-      endPos: endAction.pos.toDouble(),
-      startTime: startAction.at,
-      endTime: endAction.at,
-    ));
+    final startAction = actions[strokeStartIndex];
+    final endAction = actions.last;
+    strokes.add(
+      Stroke(
+        startPos: startAction.pos.toDouble(),
+        endPos: endAction.pos.toDouble(),
+        startTime: startAction.at,
+        endTime: endAction.at,
+      ),
+    );
 
     return strokes;
   }

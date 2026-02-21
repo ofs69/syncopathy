@@ -7,19 +7,21 @@ import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/helper/constants.dart';
 
 class Heatmap extends StatefulWidget {
-  final Funscript funscript;
+  final List<FunscriptAction> actions;
   final ReadonlySignal<double> totalDuration;
   final ReadonlySignal<double> videoPosition;
 
-  int get totalDurationMs => (totalDuration.value * 1000.0).round();
+  late final ReadonlySignal<int> totalDurationMs = computed(
+    () => (totalDuration.value * 1000.0).round(),
+  );
 
   final void Function(Duration)? onClick;
   final VoidCallback? onInteractionStart;
   final VoidCallback? onInteractionEnd;
 
-  const Heatmap({
+  Heatmap({
     super.key,
-    required this.funscript,
+    required this.actions,
     required this.totalDuration,
     this.onClick,
     required this.videoPosition,
@@ -46,7 +48,8 @@ class _HeatmapState extends State<Heatmap> {
         widget.totalDuration.value > 0 &&
         constraints.maxWidth > 0) {
       final dx = localPosition.dx.clamp(0, constraints.maxWidth);
-      final clickedMs = (dx / constraints.maxWidth) * widget.totalDurationMs;
+      final clickedMs =
+          (dx / constraints.maxWidth) * widget.totalDurationMs.value;
       widget.onClick!(Duration(milliseconds: clickedMs.round()));
     }
   }
@@ -76,7 +79,7 @@ class _HeatmapState extends State<Heatmap> {
               widget.onInteractionEnd?.call();
             },
             onPanUpdate: (details) {
-              _throttler.run(() {
+              _throttler.run(() async {
                 _handleInteraction(details.localPosition, constraints);
               });
             },
@@ -99,9 +102,9 @@ class _HeatmapState extends State<Heatmap> {
                     // Heatmap painter (only rebuilds when duration/funscript changes)
                     CustomPaint(
                       painter: HeatmapPainter(
-                        funscript: widget.funscript,
+                        actions: widget.actions,
                         totalDuration: Duration(
-                          milliseconds: widget.totalDurationMs,
+                          milliseconds: widget.totalDurationMs.watch(context),
                         ),
                       ),
                     ),
@@ -109,13 +112,14 @@ class _HeatmapState extends State<Heatmap> {
                     Watch.builder(
                       builder: (context) {
                         final position = widget.videoPosition.value;
+                        final totalDurationMs = widget.totalDurationMs.value;
                         return CustomPaint(
                           painter: IndicatorPainter(
                             videoPosition: Duration(
                               milliseconds: (position * 1000).round(),
                             ),
                             totalDuration: Duration(
-                              milliseconds: widget.totalDurationMs,
+                              milliseconds: totalDurationMs,
                             ),
                           ),
                         );
@@ -177,14 +181,14 @@ class _SegmentData {
 
 /// A [CustomPainter] that draws the heatmap based on movement speed.
 class HeatmapPainter extends CustomPainter {
-  final Funscript funscript;
+  final List<FunscriptAction> actions;
   final Duration totalDuration;
 
-  HeatmapPainter({required this.funscript, required this.totalDuration});
+  HeatmapPainter({required this.actions, required this.totalDuration});
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (funscript.actions.length < 2 ||
+    if (actions.length < 2 ||
         totalDuration.inMilliseconds <= 0 ||
         size.width <= 0) {
       return;
@@ -216,16 +220,16 @@ class HeatmapPainter extends CustomPainter {
       final double segmentEndTimeMs = (i + 1) * segmentMs;
 
       // Advance currentActionIndex to the first action that starts within or after segmentStartTimeMs
-      while (currentActionIndex < funscript.actions.length - 1 &&
-          funscript.actions[currentActionIndex + 1].at < segmentStartTimeMs) {
+      while (currentActionIndex < actions.length - 1 &&
+          actions[currentActionIndex + 1].at < segmentStartTimeMs) {
         currentActionIndex++;
       }
 
       // Iterate through actions that overlap with the current segment
       int tempActionIndex = currentActionIndex;
-      while (tempActionIndex < funscript.actions.length - 1) {
-        final p1 = funscript.actions[tempActionIndex];
-        final p2 = funscript.actions[tempActionIndex + 1];
+      while (tempActionIndex < actions.length - 1) {
+        final p1 = actions[tempActionIndex];
+        final p2 = actions[tempActionIndex + 1];
 
         // If the current action interval starts after the segment ends, break
         if (p1.at >= segmentEndTimeMs) {
@@ -293,7 +297,7 @@ class HeatmapPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant HeatmapPainter oldDelegate) {
-    return oldDelegate.funscript != funscript ||
+    return oldDelegate.actions != actions ||
         oldDelegate.totalDuration != totalDuration;
   }
 }

@@ -88,8 +88,8 @@ class Video {
   }
 
   // HACK: remove this
-  Funscript? _funscript; // Added field
-  Funscript? get funscript => _funscript; // Added getter
+  Funscript? _funscript;
+  Funscript? get funscript => _funscript;
 
   Future<void> loadFunscript() async {
     if (funscriptPath.isNotEmpty && _funscript == null) {
