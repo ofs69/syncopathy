@@ -21,7 +21,6 @@ class MediaSearchService {
       }).toList();
     } catch (e) {
       // Log the error or handle it as appropriate
-      // print('Error parsing search query: $e'); // Removed print
       return [];
     }
   }

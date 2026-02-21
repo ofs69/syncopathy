@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/helper/debouncer.dart';
@@ -41,11 +42,14 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
       tailPointThreshold: buffer.tailPointTreshold,
     );
     _currentlyBufferedBuffers.add(buffer.id);
+    debugPrint(
+      "threshold: ${buffer.tailPointTreshold} tail: ${buffer.tailPointIndex}",
+    );
 
     // If the buffer after the one passed to this function is the last
     // eagerly buffer it
-    if ((buffer.allActions.length - buffer.tailPointIndex) <
-        ActionBuffer.maxBufferSize) {
+    final remainingActions = buffer.allActions.length - buffer.tailPointIndex;
+    if (remainingActions > 0 && remainingActions < ActionBuffer.maxBufferSize) {
       final lastBuffer = ActionBuffer.fromActions(
         buffer.id + 1,
         buffer.allActions,
@@ -54,7 +58,7 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
       return;
     }
 
-    print(
+    debugPrint(
       "threshold: ${buffer.tailPointTreshold} tail: ${buffer.tailPointIndex}",
     );
   }
@@ -100,11 +104,10 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
           ActionBuffer.maxBufferSize;
 
       if (!_currentlyBufferedBuffers.contains(currentBufferId)) {
-        Logger.warning("Handy stalled restarting...");
+        Logger.debug("Handy stalled restarting...");
         handyBle?.hspSetup();
         final buffer = ActionBuffer.fromActions(currentBufferId, actions);
         if (buffer != null) _bufferPoints(buffer, flush: true);
-        print("eager current buffer");
       }
 
       final maxBuffers = (actions.length / ActionBuffer.maxBufferSize).ceil();
@@ -114,7 +117,6 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
       if (!_currentlyBufferedBuffers.contains(nextBufferId)) {
         final buffer = ActionBuffer.fromActions(nextBufferId, actions);
         if (buffer != null) _bufferPoints(buffer, flush: false);
-        print("eager next buffer");
       }
     });
   }
@@ -147,11 +149,12 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
       // Stop playing
       handyBle?.hspPause();
     } else {
-      print(hspState.toDebugString());
+      // Not sure if something needs to happen here
+      // print(hspState.toDebugString());
     }
   }
 
-  HspPlayState? _lastState = null;
+  HspPlayState? _lastState;
   void _hspStateChange(HspState? hspState) {
     final handy = handyBle;
     if (hspState == null || handy == null) return;
@@ -161,7 +164,7 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
     final isPlaying = !timesource.paused.value;
 
     if (_lastState != hspState.playState) {
-      print("hspStateChange: ${hspState.playState.toString()}");
+      debugPrint("hspStateChange: ${hspState.playState.toString()}");
     }
     _lastState = hspState.playState;
     switch (hspState.playState) {

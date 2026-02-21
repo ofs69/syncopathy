@@ -116,8 +116,6 @@ void main(List<String> args) async {
       negatable: false,
       help: 'Enable simple interface (automatic if [file] is provided).',
     );
-
-  // 2. Parse the raw list
   final results = parser.parse(args);
 
   if (results['help']) {
@@ -127,10 +125,7 @@ void main(List<String> args) async {
     return;
   }
 
-  // 3. Extract the file (the first "rest" argument, if any)
   final String? filePath = results.rest.isNotEmpty ? results.rest.first : null;
-
-  // 4. Logic: Enable simple mode if flag IS TRUE -OR- filePath IS NOT NULL
   final bool isSimple = (results['simple'] as bool) || (filePath != null);
 
   final mainApp = await _initializeAppAndRun(

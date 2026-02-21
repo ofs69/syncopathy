@@ -26,6 +26,7 @@ class HandyNativeCommandBackend extends HandyBluetoothBackendBase
           (cmd.moveOverTimeMs / 1000.0);
 
       if (speed >= _ignoreSpeedThreshold) {
+        // TODO: this can be improved by doing some dynamic slewing instead
         debugPrint(
           "IGNORED speed: ${speed.toStringAsFixed(1)} to: ${cmd.logicalMoveToPos} over ${cmd.moveOverTimeMs}ms",
         );
@@ -36,6 +37,8 @@ class HandyNativeCommandBackend extends HandyBluetoothBackendBase
         (cmd.actualMoveToPos / 100.0).clamp(0.0, 1.0),
         cmd.moveOverTimeMs,
       );
+      // TODO: by listening to the notification from the handy when the command finished
+      // we can calculate the playbackDelta
       debugPrint(
         "speed: ${speed.toStringAsFixed(1)} to: ${cmd.logicalMoveToPos} over ${cmd.moveOverTimeMs}ms",
       );

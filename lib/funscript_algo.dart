@@ -1,6 +1,4 @@
 import 'dart:math';
-
-import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/funscript.dart';
 
 class FunscriptAlgorithms {
@@ -295,44 +293,7 @@ class FunscriptAlgorithms {
       actions = FunscriptAlgorithms.invert(actions);
     }
 
-    if (false) {
-      FunscriptAlgorithms.addPadding(actions, 1000);
-    }
-
     return actions;
-  }
-
-  static void addPadding(List<FunscriptAction> actions, int maxInterval) {
-    // this padding is needed for the handy to function.
-    // maybe there's a better solution
-    // the code inserts reduntant points at a fixed interval
-
-    // add padding
-    if (actions.first.at != 0) {
-      actions.insert(0, FunscriptAction(at: 0, pos: actions.first.pos));
-    }
-
-    int actionLen = actions.length;
-    if (actionLen >= 2) {
-      for (int i = 1; i < actionLen; i++) {
-        var from = actions[i - 1];
-        var to = actions[i];
-
-        var diff = to.at - from.at;
-        for (int x = 1; x < (diff / paddingIntervalMs); x++) {
-          var time = from.at + x * paddingIntervalMs;
-          var posRel = time / diff;
-          var pos = (from.pos + (to.pos - from.pos) * posRel);
-
-          var action = FunscriptAction(
-            at: from.at + x * paddingIntervalMs,
-            pos: pos.toInt().clamp(0, 100),
-          );
-          actions.add(action);
-        }
-      }
-      actions.sort();
-    }
   }
 
   static List<FunscriptAction> remapRange(

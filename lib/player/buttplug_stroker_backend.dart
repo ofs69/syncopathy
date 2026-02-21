@@ -62,6 +62,7 @@ class ButtplugStrokerBackend extends PlayerBackend with CommandPacketBackend {
           (cmd.moveOverTimeMs / 1000.0);
 
       if (speed >= _ignoreSpeedThreshold) {
+        // TODO: this can be improved by doing some dynamic slewing instead
         debugPrint(
           "IGNORED $_lastPosition to ${cmd.logicalMoveToPos} over ${cmd.moveOverTimeMs}ms speed: ${speed.toStringAsFixed(1)}",
         );

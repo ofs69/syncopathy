@@ -99,7 +99,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
     final player = context.watch<MpvVideoplayer>();
     final playerModel = context.watch<PlayerModel>();
     final embeddedVideoPlayer = settings.embeddedVideoPlayer.watch(context);
-    final funscriptLoaded = playerModel.currentFunscript.watch(context) == null;
+    final noFunscriptLoaded =
+        playerModel.currentFunscript.watch(context) == null;
 
     enterFullscreen() => Navigator.push(
       context,
@@ -141,12 +142,12 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                     )
                   else
                     Center(
-                      child: !funscriptLoaded
+                      child: noFunscriptLoaded
                           ? SizedBox.shrink()
                           : Text('Embedded player disabled'),
                     ),
 
-                  if (funscriptLoaded)
+                  if (noFunscriptLoaded)
                     Container(
                       color: Colors.black54,
                       child: Text("No funscript loaded"),
