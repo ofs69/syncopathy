@@ -86,6 +86,9 @@ class ProtobufWorker {
     mainSendPort.send(childReceivePort.sendPort);
 
     childReceivePort.listen((message) {
+      debugPrint(
+        "BT MESSAGE SENT: ${(message as RpcMessage).request.whichParams()}",
+      );
       final Uint8List buffer = message.writeToBuffer();
       mainSendPort.send(buffer);
     });
@@ -98,6 +101,7 @@ class ProtobufWorker {
 
     childReceivePort.listen((message) {
       final msg = RpcMessage.fromBuffer(message);
+      debugPrint("BT MESSAGE RECEIVED ${msg.response.whichResult()}");
       mainSendPort.send(msg);
     });
   }
@@ -361,6 +365,7 @@ class HandyBle with EffectDispose {
     streamId ??= Random().nextInt(maxInt32);
     final request = RequestHspSetup(streamId: streamId);
     _sendRequest(Request(requestHspSetup: request));
+    print("hspSetup");
   }
 
   void hspFlush() {
@@ -396,6 +401,7 @@ class HandyBle with EffectDispose {
       serverTime: Int64(DateTime.now().millisecondsSinceEpoch),
     );
     _sendRequest(Request(requestHspPlay: request));
+    print("hspPlay $startTime");
   }
 
   void hspResume() {
@@ -418,6 +424,7 @@ class HandyBle with EffectDispose {
       filter: forceCurrentTime ? 1.0 : 0.6,
     );
     _sendRequest(Request(requestHspCurrentTimeSet: request));
+    print("hspCurrentTimeSet $currentTime");
   }
 
   void hspStop() {

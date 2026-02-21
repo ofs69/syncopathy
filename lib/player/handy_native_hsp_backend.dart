@@ -20,6 +20,28 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
     required super.currentFunscript,
   }) {
     effectAdd([
+      effect(() {
+        final homeMode = settingsModel.homeDeviceEnabled.value;
+        print("Home Mode: $homeMode");
+      }),
+      // effect(() {
+      //   final paused = timesource.paused.value;
+      //   if (!settingsModel.homeDeviceEnabled.value) {
+      //     untracked(() => _playChange(paused));
+      //   }
+      // }),
+      // effect(() {
+      //   final rawTime = timesource.rawPosition.value;
+      //   if (!settingsModel.homeDeviceEnabled.value) {
+      //     untracked(() => _timeChange(rawTime));
+      //   }
+      // }),
+      // effect(() {
+      //   final actions = currentActions.value;
+      //   if (!settingsModel.homeDeviceEnabled.value) {
+      //     untracked(() => _actionChangeChange(actions));
+      //   }
+      // }),
       timesource.paused.subscribe(_playChange),
       timesource.rawPosition.subscribe(_timeChange),
       currentActions.subscribe(_actionChangeChange),
@@ -57,10 +79,6 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
       if (lastBuffer != null) _bufferPoints(lastBuffer, flush: false);
       return;
     }
-
-    debugPrint(
-      "threshold: ${buffer.tailPointTreshold} tail: ${buffer.tailPointIndex}",
-    );
   }
 
   void _hspSetup() {
@@ -74,7 +92,7 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
     });
   }
 
-  void _timeChange(double timeSeconds) {
+  void _timeChange(double timeSeconds_) {
     final currentTimeMs = timesource.currentSmoothMs;
     final actions = currentActions.value;
     if (actions == null) return;
@@ -159,8 +177,7 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
     final handy = handyBle;
     if (hspState == null || handy == null) return;
 
-    final currentTime = timesource.smoothPosition.value;
-    final currentTimeMs = (currentTime * 1000.0).round();
+    final currentTimeMs = timesource.currentSmoothMs;
     final isPlaying = !timesource.paused.value;
 
     if (_lastState != hspState.playState) {
@@ -187,6 +204,11 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
         break;
       case HspPlayState.HSP_STATE_PLAYING:
         playbackDelta.value = currentTimeMs - hspState.currentTime;
+        print(
+          "$currentTimeMs - ${hspState.currentTime} = ${playbackDelta.value}",
+        );
+        //print(hspState.toDebugString());
+
         break;
       case HspPlayState.HSP_STATE_STARVING:
         Logger.debug("Handy HSP starved. Restarting...");
