@@ -1,6 +1,4 @@
 import 'dart:math';
-
-import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/funscript.dart';
 
 class FunscriptAlgorithms {
@@ -49,67 +47,67 @@ class FunscriptAlgorithms {
     List<FunscriptAction> actions,
     double epsilon,
   ) {
-    if (actions.length < 2) {
-      return actions;
-    }
+    final int n = actions.length;
+    if (n < 3) return actions;
 
-    // Find the point with the maximum distance
-    double dmax = 0.0;
-    int index = 0;
-    int end = actions.length - 1;
+    final double epsilonSq = epsilon * epsilon;
+    final List<bool> keep = List.filled(n, false);
+    keep[0] = true;
+    keep[n - 1] = true;
 
-    for (int i = 1; i < end; i++) {
-      double d = _perpendicularDistance(actions[i], actions[0], actions[end]);
-      if (d > dmax) {
-        index = i;
-        dmax = d;
+    // Use a simple Int32List for the stack to avoid List<List<int>> overhead
+    final List<int> stack = [0, n - 1];
+
+    while (stack.isNotEmpty) {
+      final int end = stack.removeLast();
+      final int start = stack.removeLast();
+
+      double dmaxSq = 0.0;
+      int index = start;
+
+      final double x1 = actions[start].at.toDouble();
+      final double y1 = actions[start].pos.toDouble();
+      final double x2 = actions[end].at.toDouble();
+      final double y2 = actions[end].pos.toDouble();
+
+      // Pre-calculate line components
+      final double dx = x2 - x1;
+      final double dy = y2 - y1;
+      final double magSq = dx * dx + dy * dy;
+
+      for (int i = start + 1; i < end; i++) {
+        final double x0 = actions[i].at.toDouble();
+        final double y0 = actions[i].pos.toDouble();
+
+        double dSq;
+        if (magSq == 0) {
+          // Points are identical, use Euclidean distance
+          dSq = (x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1);
+        } else {
+          // Simplified squared perpendicular distance formula
+          final double num = (dy * x0 - dx * y0 + x2 * y1 - y2 * x1);
+          dSq = (num * num) / magSq;
+        }
+
+        if (dSq > dmaxSq) {
+          index = i;
+          dmaxSq = dSq;
+        }
+      }
+
+      if (dmaxSq > epsilonSq) {
+        keep[index] = true;
+        stack.add(start);
+        stack.add(index);
+        stack.add(index);
+        stack.add(end);
       }
     }
 
-    // If max distance is greater than epsilon, recursively simplify
-    if (dmax > epsilon) {
-      List<FunscriptAction> recResults1 = rdp(
-        actions.sublist(0, index + 1),
-        epsilon,
-      );
-      List<FunscriptAction> recResults2 = rdp(
-        actions.sublist(index, end + 1),
-        epsilon,
-      );
-
-      // Build the result list
-      List<FunscriptAction> result = List.empty(growable: true);
-      result.addAll(recResults1.sublist(0, recResults1.length - 1));
-      result.addAll(recResults2);
-      return result;
-    } else {
-      // If max distance is less than epsilon, remove all intermediate points
-      return [actions[0], actions[end]];
-    }
-  }
-
-  // Calculates the perpendicular distance from a point to a line segment
-  static double _perpendicularDistance(
-    FunscriptAction point,
-    FunscriptAction lineStart,
-    FunscriptAction lineEnd,
-  ) {
-    double x0 = point.at.toDouble();
-    double y0 = point.pos.toDouble();
-    double x1 = lineStart.at.toDouble();
-    double y1 = lineStart.pos.toDouble();
-    double x2 = lineEnd.at.toDouble();
-    double y2 = lineEnd.pos.toDouble();
-
-    double numerator = ((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1)
-        .abs();
-    double denominator = sqrt(pow(y2 - y1, 2) + pow(x2 - x1, 2));
-
-    if (denominator == 0) {
-      return 0; // The line segment is a point, distance is 0
-    }
-
-    return numerator / denominator;
+    return [
+      for (int i = 0; i < n; i++)
+        if (keep[i]) actions[i],
+    ];
   }
 
   static double averageSpeed(List<FunscriptAction> actions) {
@@ -254,6 +252,8 @@ class FunscriptAlgorithms {
       return actions;
     }
 
+    actions = List.of(actions);
+
     if (remapRange != null) {
       actions = FunscriptAlgorithms.remapRange(actions, remapRange);
     }
@@ -269,38 +269,6 @@ class FunscriptAlgorithms {
       actions = FunscriptAlgorithms.invert(actions);
     }
 
-    {
-      // this padding is needed for the handy to function.
-      // maybe there's a better solution
-      // the code inserts reduntant points at a fixed interval
-
-      // add padding
-      if (actions.first.at != 0) {
-        actions.insert(0, FunscriptAction(at: 0, pos: actions.first.pos));
-      }
-
-      int actionLen = actions.length;
-      if (actionLen >= 2) {
-        for (int i = 1; i < actionLen; i++) {
-          var from = actions[i - 1];
-          var to = actions[i];
-
-          var diff = to.at - from.at;
-          for (int x = 1; x < (diff / paddingIntervalMs); x++) {
-            var time = from.at + x * paddingIntervalMs;
-            var posRel = time / diff;
-            var pos = (from.pos + (to.pos - from.pos) * posRel);
-
-            var action = FunscriptAction(
-              at: from.at + x * paddingIntervalMs,
-              pos: pos.toInt().clamp(0, 100),
-            );
-            actions.add(action);
-          }
-        }
-        actions.sort();
-      }
-    }
     return actions;
   }
 

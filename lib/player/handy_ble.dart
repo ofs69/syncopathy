@@ -1,636 +1,532 @@
 import 'dart:async';
+import 'dart:isolate';
 import 'dart:math';
-import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:flutter/foundation.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/helper/throttler.dart';
-import 'package:syncopathy/helper/debouncer.dart';
-import 'package:syncopathy/model/battery_model.dart';
-import 'package:syncopathy/model/funscript.dart';
-import 'package:syncopathy/model/settings_model.dart';
-import 'package:syncopathy/player/funscript_stream_controller.dart';
 import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/generated/handy_rpc.pb.dart';
 import 'package:syncopathy/generated/messages.pb.dart';
-import 'package:universal_ble/universal_ble.dart';
-import "package:async_locks/async_locks.dart";
+import 'package:syncopathy/helper/debouncer.dart';
+import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:syncopathy/player/bluetooth_connector.dart';
+import 'package:universal_ble/universal_ble.dart';
 
-class HandyBle extends FunscriptDevice {
-  BleDevice? _device;
-  BleCharacteristic? _tx;
-  BleCharacteristic? _rx;
-  Timer? _connectionCheckTimer;
-  StreamSubscription? _rxSubscription;
+// Takes care of serializationg and deserialization on two separate isolates
+class ProtobufWorker {
+  late Isolate _isolateSerialize;
+  late Isolate _isolateDeserialize;
 
-  final BatteryModel _batteryModel;
-  
-  final Signal<bool> _isConnected = signal(false);
-  ReadonlySignal<bool> get isConnected => _isConnected;
+  SendPort? _sendSerializePort;
+  SendPort? _sendDeserializePort;
 
-  final Signal<bool> _isScanning = signal(false);
-  ReadonlySignal<bool> get isScanning => _isScanning;
+  final _resultSerializeController = StreamController<Uint8List>.broadcast();
+  Stream<Uint8List> get serializedStream => _resultSerializeController.stream;
 
-  ResponseCapabilitiesGet? _capabilities;
+  final _resultDeserializeController = StreamController<RpcMessage>.broadcast();
+  Stream<RpcMessage> get deserializeStream =>
+      _resultDeserializeController.stream;
 
-  int _nextRequestId = 1;
-  int get nextRequestId => _nextRequestId++;
-  final _pendingRequests = <int, Completer<RpcMessage>>{};
-
-  int _currentStreamId = 0;
-  final Debouncer _syncTimeDebouncer = Debouncer(milliseconds: 300);
-  final Throttler _syncTimeThrottler = Throttler(milliseconds: 2000);
-
-  bool _isPaused = true;
-  int _lastPositionMs = 0; // Keep track of the last reported position
-  final int _skipThresholdMs = 1000; // 1 second threshold for large skips
-  DateTime _lastUpdateTime = DateTime.now(); // To track time between updates
-  final int _timeDeviationThresholdMs =
-      500; // Max allowed deviation between expected and actual position based on real time
-
-  static final _connectSemaphore = Semaphore(1);
-  final SettingsModel _settings;
-  final Debouncer _settingsDebouncer = Debouncer(milliseconds: 500);
-  late final Function _settingsEffectDispose;
-
-  HandyBle(this._settings, this._batteryModel) {
-    _settingsEffectDispose = effect(() {
-      final minVal = _settings.min.value;
-      final maxVal = _settings.max.value;
-      _settingsDebouncer.run(() async {
-        await setSettings(minVal, maxVal);
-      });
-    });
-
-    _startConnectionCheckTimer();
-    UniversalBle.onScanResult = _handleScanResults;
-  }
-
-  void dispose() {
-    _settingsEffectDispose();
-
-    _connectionCheckTimer?.cancel();
-    _rxSubscription?.cancel();
-    if (_device != null) {
-      UniversalBle.disconnect(_device!.deviceId);
-    }
-  }
-
-  void _startConnectionCheckTimer() {
-    _connectionCheckTimer?.cancel();
-    _connectionCheckTimer = Timer.periodic(const Duration(seconds: 2), (
-      timer,
-    ) async {
-      if (_device != null) {
-        try {
-          final state = await _device!.connectionState;
-          final isCurrentlyConnected = state == BleConnectionState.connected;
-          if (_isConnected.value != isCurrentlyConnected) {
-            _isConnected.value = isCurrentlyConnected;
-            if (!isCurrentlyConnected) {
-              Logger.info("Device disconnected.");
-            }
-          }
-          if (isCurrentlyConnected) {
-            if (_capabilities != null && _capabilities!.hasBattery()) {
-              await _getBattery();
-            }
-          }
-        } catch (e) {
-          if (_isConnected.value) {
-            _isConnected.value = false;
-            Logger.error("Connection check failed: $e");
-          }
-        }
-      } else if (_isConnected.value) {
-        await _disconnected();
-      }
-    });
-  }
-
-  Future<void> _disconnected() async {
-    _rxSubscription?.cancel();
-    _isConnected.value = false;
-    _device = null;
-    _tx = null;
-    _rx = null;
-    _isConnected.value = false;
-  }
-
-  void startScan() async {
-    _isScanning.value = true;
-
-    final bluetoothAvailabilityState =
-        await UniversalBle.getBluetoothAvailabilityState();
-
-    if (bluetoothAvailabilityState != AvailabilityState.poweredOn) {
-      Logger.error("NO BLUETOOTH AVAILABLE!");
-      _isScanning.value = false;
-      return;
-    }
-
-    if (_device != null) {
-      if (await _device!.connectionState == BleConnectionState.connected) {
-        await _rx?.notifications.unsubscribe();
-        _rxSubscription?.cancel();
-        await _device?.disconnect();
-      }
-    }
-
-    await _disconnected();
-
-    UniversalBle.startScan(
-      scanFilter: ScanFilter(
-        withServices: ["77834d26-40f7-11ee-be56-0242ac120002"],
-      ),
-    );
-  }
-
-  /*
-    Service: 77834d26-40f7-11ee-be56-0242ac120002
-    TX characteristics: 77835032-40f7-11ee-be56-0242ac120002
-    RX characteristics: 77835410-40f7-11ee-be56-0242ac120002
-  */
-  void _handleScanResults(BleDevice device) async {
-    await _connectSemaphore.acquire();
-    if (isConnected.value) return;
-
-    try {
-      await device.connect();
-      _device = device;
-
-      await Future.delayed(Duration(milliseconds: 500));
-
-      _tx = await device.getCharacteristic(
-        "77835032-40f7-11ee-be56-0242ac120002",
-        service: "77834d26-40f7-11ee-be56-0242ac120002",
-      );
-      _rx = await device.getCharacteristic(
-        "77835410-40f7-11ee-be56-0242ac120002",
-        service: "77834d26-40f7-11ee-be56-0242ac120002",
-      );
-      if (_tx != null && _rx != null) {
-        _pendingRequests.clear();
-        _rxSubscription = _rx!.onValueReceived.listen(_rpcMessageReceived);
-        await _rx!.notifications.subscribe();
-        _isConnected.value = true;
-        await UniversalBle.stopScan();
-        _isScanning.value = false;
-
-        await _setupDevice();
-        _capabilities = await _getCapabilities();
-        _batteryModel.hasBattery.value = _capabilities?.hasBattery() ?? false;
-        await _loadSettings();
-      }
-    } catch (e) {
-      await UniversalBle.stopScan();
-      _isScanning.value = false;
-      await _device?.disconnect();
-      Logger.error(e.toString());
-    } finally {
-      _connectSemaphore.release();
-    }
-  }
-
-  @override
-  Future<void> bufferBatch(
-    List<FunscriptAction> batch,
-    int tailActionIndex,
-    bool flush,
-  ) async {
-    var pointBatch = List<Point>.empty(growable: true);
-
-    for (var action in batch) {
-      var point = Point(t: action.at, x: action.pos);
-      pointBatch.add(point);
-    }
-
-    await _bufferPoints(
-      pointBatch,
-      tailActionIndex,
-      tailActionIndex - (batch.length ~/ 2),
-      flush,
-    );
-
-    if (flush && !_isPaused) {
-      await stopPlayback();
-      await startPlayback(pointBatch.first.t, 1.0);
-    }
-  }
-
-  @override
-  Future<void> initStream() async {
-    _lastPositionMs = 0; // Reset position on new stream initialization
-    await _createStream();
-  }
-
-  @override
-  Future<void> positionUpdate(
-    int positionMs,
-    bool paused,
-    double playbackRate,
-  ) async {
-    bool shouldSkip = false;
-
-    // Condition 1: Going back in time (position skip)
-    if (_lastPositionMs > positionMs) {
-      shouldSkip = true;
-    }
-    // Condition 2: Larger than normal position skip (forward or backward)
-    else if ((positionMs - _lastPositionMs).abs() > _skipThresholdMs) {
-      shouldSkip = true;
-    }
-    // Condition 3: Deviation from expected time (new logic)
-    else if (!paused) {
-      // Only check for time skips if not paused
-      final currentUpdateTime = DateTime.now();
-      final expectedPositionMs =
-          _lastPositionMs +
-          currentUpdateTime.difference(_lastUpdateTime).inMilliseconds;
-      final deviation = (positionMs - expectedPositionMs).abs();
-
-      if (deviation > _timeDeviationThresholdMs) {
-        // Using _timeDeviationThresholdMs
-        shouldSkip = true;
-      }
-      _lastUpdateTime = currentUpdateTime; // Update _lastUpdateTime
-    }
-
-    if (shouldSkip && !_isPaused) {
-      Logger.info("skip occured!");
-      await stopPlayback();
-      await startPlayback(positionMs, playbackRate);
-    }
-    await _syncTime(positionMs, paused);
-
-    _lastPositionMs = positionMs; // Update last position for next call
-  }
-
-  @override
-  Future<void> startPlayback(int positionMs, double playbackRate) async {
-    await _startPlayback(positionMs, playbackRate);
-  }
-
-  @override
-  Future<void> stopPlayback() async {
-    await _stopPlayback();
-  }
-
-  @override
-  Future<void> deinitStream() async {
-    await stopPlayback();
-  }
-
-  Future<void> _txWrite(Uint8List buffer) async {
-    if (_tx == null) return;
-    return await _tx!.write(buffer).catchError((error) {
-      Logger.error(error.toString());
-      _disconnected();
-    });
-  }
-
-  void _rpcMessageReceived(Uint8List value) {
-    var message = RpcMessage.fromBuffer(value.toList());
-    if (message.type == MessageType.MESSAGE_TYPE_RESPONSE) {
-      if (message.response.hasError()) {
-        var error = message.response.error;
-        Logger.error(error.toString());
-      } else {
-        _pendingRequests[message.response.id]?.complete(message);
-
-        // Logger.info(
-        //   message.response.toString().replaceAll(RegExp(r'\s+'), ' '),
-        // );
-      }
-      _pendingRequests.remove(message.response.id);
-    } else if (message.type == MessageType.MESSAGE_TYPE_NOTIFICATION) {
-      // Logger.info(
-      //   message.notification.toString().replaceAll(RegExp(r'\s+'), ' '),
-      // );
-    } else {
-      throw Exception("Unknown message type: ${message.type}");
-    }
-  }
-
-  Future<void> _loadSettings() async {
-    var requestId = nextRequestId;
-    var message = RpcMessage(
-      type: MessageType.MESSAGE_TYPE_REQUEST,
-      request: Request(
-        id: requestId,
-        requestSliderStrokeGet: RequestSliderStrokeGet(),
-      ),
-    );
-    var completer = Completer<RpcMessage>();
-    _pendingRequests[requestId] = completer;
-
-    var response = completer.future.then((value) {
-      var response = value.response;
-      if (response.hasResponseSliderStrokeGet()) {
-        var get = response.responseSliderStrokeGet;
-        _settings.min.value = (get.min * 100.0).clamp(0, 100).toInt();
-        _settings.max.value = (get.max * 100.0).clamp(0, 100).toInt();
-      }
-    });
-
-    _txWrite(message.writeToBuffer());
-    await response;
-  }
-
-  Future<void> setSettings(int min, int max) async {
-    if (_tx == null) return;
-    var requestId = nextRequestId;
-    var message = RpcMessage(
-      type: MessageType.MESSAGE_TYPE_REQUEST,
-      request: Request(
-        id: requestId,
-        requestSliderStrokeSet: RequestSliderStrokeSet(
-          min: (min / 100.0).clamp(0.0, 1.0),
-          max: (max / 100.0).clamp(0.0, 1.0),
-        ),
-      ),
-    );
-
-    var completer = Completer<RpcMessage>();
-    _pendingRequests[requestId] = completer;
-    var response = completer.future.then((value) {
-      var response = value.response;
-      if (response.hasResponseSliderStrokeSet()) {
-        var set = response.responseSliderStrokeSet;
-        _settings.min.value = (set.min * 100.0).clamp(0, 100).toInt();
-        _settings.max.value = (set.max * 100.0).clamp(0, 100).toInt();
-      }
-    });
-
-    _txWrite(message.writeToBuffer());
-    await response;
-  }
-
-  Future<void> _getBattery() async {
-    if (_tx == null) return;
-    var requestId = nextRequestId;
-    var message = RpcMessage(
-      type: MessageType.MESSAGE_TYPE_REQUEST,
-      request: Request(id: requestId, requestBatteryGet: RequestBatteryGet()),
-    );
-
-    var completer = Completer<RpcMessage>();
-    _pendingRequests[requestId] = completer;
-    var response = completer.future.then((value) {
-      var response = value.response;
-      if (response.hasResponseBatteryGet()) {
-        _batteryModel.chargerConntected.value =
-            response.responseBatteryGet.state.chargerConnected;
-        _batteryModel.batteryLevel.value =
-            response.responseBatteryGet.state.level;
-      }
-    });
-    _txWrite(message.writeToBuffer());
-    await response;
-  }
-
-  Future<ResponseCapabilitiesGet?> _getCapabilities() async {
-    if (_tx == null) return null;
-    var requestId = nextRequestId;
-    var message = RpcMessage(
-      type: MessageType.MESSAGE_TYPE_REQUEST,
-      request: Request(
-        id: requestId,
-        requestCapabilitiesGet: RequestCapabilitiesGet(),
-      ),
-    );
-
-    var completer = Completer<RpcMessage>();
-    _pendingRequests[requestId] = completer;
-    var response = completer.future.then((value) {
-      var response = value.response;
-      if (response.hasResponseCapabilitiesGet()) {
-        var caps = response.responseCapabilitiesGet;
-        return caps;
-      }
-      return null;
-    });
-    _txWrite(message.writeToBuffer());
-    var caps = await response;
-    return caps;
-  }
-
-  Future<void> _createStream() async {
-    if (_tx == null) return;
-
-    _currentStreamId = Random(
-      DateTime.now().millisecondsSinceEpoch,
-    ).nextInt(999999999);
-
-    var requestId = nextRequestId;
-    var message = RpcMessage(
-      type: MessageType.MESSAGE_TYPE_REQUEST,
-      request: Request(
-        id: requestId,
-        requestHspSetup: RequestHspSetup(streamId: _currentStreamId),
-      ),
-    );
-
-    var completer = Completer<RpcMessage>();
-    _pendingRequests[requestId] = completer;
-    var response = completer.future.then((value) {
-      var response = value.response;
-      if (response.hasResponseHspSetup()) {
-        var setup = response.responseHspSetup;
-        var state = setup.state;
-        return state;
-      }
-    });
-    _txWrite(message.writeToBuffer());
-
-    var state = (await response)!;
-    var _ = state.maxPoints;
-  }
-
-  Future<void> _bufferPoints(
-    List<Point> points,
-    int tailPointIndex,
-    int tailPointThreshold,
-    bool flush,
-  ) async {
-    if (_tx == null) return;
-    var requestId = nextRequestId;
-    var message = RpcMessage(
-      type: MessageType.MESSAGE_TYPE_REQUEST,
-      request: Request(
-        id: requestId,
-        requestHspAdd: RequestHspAdd(
-          flush: flush,
-          points: points,
-          tailPointStreamIndex: tailPointIndex,
-          tailPointThreshold: tailPointThreshold,
-        ),
-      ),
-    );
-
-    var completer = Completer<RpcMessage>();
-    _pendingRequests[requestId] = completer;
-    var response = completer.future.then((value) {
-      var response = value.response;
-      if (response.hasResponseHspAdd()) {
-        var _ = response.responseHspAdd;
-      }
-    });
-
-    _txWrite(message.writeToBuffer());
-    await response;
-  }
-
-  Future<void> _syncTime(int currentTimeMs, bool isPaused) async {
-    Future<void> syncTimeInternal(int currentTimeMs, bool isPaused) async {
-      if (_tx == null) return;
-      Logger.info("sync time! $currentTimeMs");
-      var requestId = nextRequestId;
-      var message = RpcMessage(
-        type: MessageType.MESSAGE_TYPE_REQUEST,
-        request: Request(
-          id: requestId,
-          requestHspCurrentTimeSet: RequestHspCurrentTimeSet(
-            currentTime: currentTimeMs,
-            serverTime: Int64(DateTime.now().millisecondsSinceEpoch),
-            filter: 0.5,
-          ),
-        ),
-      );
-
-      var completer = Completer<RpcMessage>();
-      _pendingRequests[requestId] = completer;
-      var response = completer.future.then((value) {
-        var response = value.response;
-        if (response.hasResponseHspCurrentTimeSet()) {
-          var _ = response.responseHspCurrentTimeSet;
-        }
-      });
-      _txWrite(message.writeToBuffer());
-      await response;
-    }
-
-    if (isPaused) {
-      _syncTimeDebouncer.run(() async {
-        await syncTimeInternal(currentTimeMs, isPaused);
-      });
-    } else {
-      _syncTimeThrottler.run(() async {
-        await syncTimeInternal(currentTimeMs, isPaused);
-      });
-    }
-  }
-
-  Future<void> _startPlayback(int startTimeMs, double playbackRate) async {
-    if (_tx == null) return;
-    Logger.info("start playback!");
-    _isPaused = false;
-
-    var requestId = nextRequestId;
-    var message = RpcMessage(
-      type: MessageType.MESSAGE_TYPE_REQUEST,
-      request: Request(
-        id: requestId,
-        requestHspPlay: RequestHspPlay(
-          startTime: startTimeMs,
-          loop: false,
-          playbackRate: playbackRate,
-          pauseOnStarving: false,
-          serverTime: Int64(DateTime.now().millisecondsSinceEpoch),
-        ),
-      ),
-    );
-
-    var completer = Completer<RpcMessage>();
-    _pendingRequests[requestId] = completer;
-    var response = completer.future.then((value) {
-      var response = value.response;
-      if (response.hasResponseHspStop()) {
-        var _ = response.responseHspStop;
-      }
-    });
-    _txWrite(message.writeToBuffer());
-    await response;
-  }
-
-  Future<void> _stopPlayback() async {
-    if (_tx == null) return;
-    _isPaused = true;
-    Logger.info("stop playback!");
-
-    var requestId = nextRequestId;
-    var message = RpcMessage(
-      type: MessageType.MESSAGE_TYPE_REQUEST,
-      request: Request(id: requestId, requestHspStop: RequestHspStop()),
-    );
-
-    var completer = Completer<RpcMessage>();
-    _pendingRequests[requestId] = completer;
-    var response = completer.future.then((value) {
-      var response = value.response;
-      if (response.hasResponseHspStop()) {
-        var _ = response.responseHspStop;
-      }
-    });
-    _txWrite(message.writeToBuffer());
-    await response;
-  }
-
-  Future<void> _setupDevice() async {
-    ResponseClockOffsetGet clock;
+  Future<void> spawn() async {
+    // Serialization isolate
     {
-      var requestId = nextRequestId;
-      var message = RpcMessage(
-        type: MessageType.MESSAGE_TYPE_REQUEST,
-        request: Request(
-          id: requestId,
-          requestClockOffsetGet: RequestClockOffsetGet(),
-        ),
+      final receiveSerializePort = ReceivePort();
+      _isolateSerialize = await Isolate.spawn(
+        _isolateSerializeEntry,
+        receiveSerializePort.sendPort,
       );
 
-      var completer = Completer<RpcMessage>();
-      _pendingRequests[requestId] = completer;
-      var response = completer.future.then((value) {
-        var response = value.response;
-        if (response.hasResponseClockOffsetGet()) {
-          var clock = response.responseClockOffsetGet;
-          return clock;
+      Completer<SendPort> serializeCompleter = Completer();
+      receiveSerializePort.listen((message) {
+        if (message is SendPort) {
+          serializeCompleter.complete(message);
+        } else if (message is Uint8List) {
+          _resultSerializeController.add(message);
         }
       });
-      _txWrite(message.writeToBuffer());
-      clock = (await response)!;
-      await _createStream();
+      _sendSerializePort = await serializeCompleter.future;
     }
 
-    var serverTime = DateTime.now().millisecondsSinceEpoch;
-    var clockOffset = serverTime - clock.time;
+    // Deserialization isolate
+    {
+      final receiveDeserializePort = ReceivePort();
+      _isolateDeserialize = await Isolate.spawn(
+        _isolateDeserializeEntry,
+        receiveDeserializePort.sendPort,
+      );
 
-    var requestId = nextRequestId;
-    var message = RpcMessage(
-      type: MessageType.MESSAGE_TYPE_REQUEST,
-      request: Request(
-        id: requestId,
-        requestClockOffsetSet: RequestClockOffsetSet(
-          clockOffset: Int64(clockOffset),
-          rtd: 0,
-        ),
-      ),
-    );
+      Completer<SendPort> deserializeCompleter = Completer();
+      receiveDeserializePort.listen((message) {
+        if (message is SendPort) {
+          deserializeCompleter.complete(message);
+        } else if (message is RpcMessage) {
+          _resultDeserializeController.add(message);
+        }
+      });
+      _sendDeserializePort = await deserializeCompleter.future;
+    }
+  }
 
-    var completer = Completer<RpcMessage>();
-    _pendingRequests[requestId] = completer;
-    var response = completer.future.then((value) {
-      var response = value.response;
-      if (response.hasResponseClockOffsetSet()) {
-        var clock = response.responseClockOffsetSet;
-        return clock;
-      }
+  Future<void> dispose() async {
+    _isolateDeserialize.kill();
+    _isolateSerialize.kill();
+  }
+
+  void sendToSerialize(RpcMessage message) => _sendSerializePort?.send(message);
+
+  void sendToDeserialize(Uint8List message) =>
+      _sendDeserializePort?.send(message);
+
+  // This runs in the separate thread
+  static void _isolateSerializeEntry(SendPort mainSendPort) {
+    final childReceivePort = ReceivePort();
+    mainSendPort.send(childReceivePort.sendPort);
+
+    childReceivePort.listen((message) {
+      final Uint8List buffer = message.writeToBuffer();
+      mainSendPort.send(buffer);
     });
-    _txWrite(message.writeToBuffer());
+  }
 
-    var _ = await response;
+  // This runs in the separate thread
+  static void _isolateDeserializeEntry(SendPort mainSendPort) {
+    final childReceivePort = ReceivePort();
+    mainSendPort.send(childReceivePort.sendPort);
 
-    await setSettings(_settings.min.value, _settings.max.value);
+    childReceivePort.listen((message) {
+      final msg = RpcMessage.fromBuffer(message);
+      mainSendPort.send(msg);
+    });
+  }
+}
+
+class HandyBle with EffectDispose {
+  final BtDevice _device;
+  final List<(int, DateTime, Completer<Response>)> _messageCompleters = [];
+
+  int _messageIdCounter = 1;
+  int get messageId => _messageIdCounter++;
+  static const noCompletionId = 2147483647;
+
+  ReadonlySignal<HspState?> get hspState => _hspState;
+  final Signal<HspState?> _hspState = signal(null);
+
+  ReadonlySignal<BatteryState?> get batteryState => _batteryState;
+  final Signal<BatteryState?> _batteryState = signal(null);
+  Timer? _batteryPolling;
+
+  late final ReadonlySignal<bool> isConnected;
+
+  final Signal<int> _strokeRangeMin;
+  final Signal<int> _strokeRangeMax;
+
+  // Called when threshold is reached or starving
+  Function(bool)? hspThresholdReached; // bool = starving
+  // Called when paused on starving notification is received
+  Function()? hspPausedOnStarving;
+
+  late final StreamSubscription _bufferReceivedSubscription;
+  late final StreamSubscription _deserializeSubscription;
+  late final StreamSubscription _serializeSubscription;
+  final ProtobufWorker _worker = ProtobufWorker();
+
+  final _applyStrokeRangeDebouncer = Debouncer(milliseconds: 500);
+
+  int estimatedAverageOffset = 0;
+
+  HandyBle(this._device, this._strokeRangeMin, this._strokeRangeMax) {
+    isConnected = _device.device.connectionStream.toSyncSignal(true);
+    _bufferReceivedSubscription = _device.rx.onValueReceived.listen(
+      _bufferReceived,
+    );
+    _device.rx.notifications.subscribe();
+    _deserializeSubscription = _worker.deserializeStream.listen(
+      _rpcMessageReceived,
+    );
+    _serializeSubscription = _worker.serializedStream.listen(_sendBuffer);
+
+    effectAdd([
+      effect(() {
+        final min = _strokeRangeMin.value;
+        final max = _strokeRangeMax.value;
+        _applyStrokeRangeDebouncer.run(() {
+          Logger.info("Stroke range set!");
+          sliderStrokeSet(min, max);
+        });
+      }),
+    ]);
+  }
+
+  // We are the server + estimated BT latency
+  int serverTime() =>
+      DateTime.now().millisecondsSinceEpoch + estimatedAverageOffset;
+
+  Future<void> init() async {
+    await _worker.spawn();
+    final range = await sliderStrokeGet();
+    if (range != null) {
+      _strokeRangeMin.value = range.$1;
+      _strokeRangeMax.value = range.$2;
+    }
+
+    // Capabilities
+    final caps = await getCapabilities();
+    if (caps != null) {
+      if (caps.battery) {
+        final battery = await getBatteryState();
+        _batteryState.value = battery;
+        _batteryPolling = Timer.periodic(Duration(seconds: 3), (_) async {
+          try {
+            final battery = await getBatteryState();
+            _batteryState.value = battery;
+          } catch (_) {
+            _batteryPolling?.cancel();
+          }
+        });
+      } else {
+        _batteryPolling?.cancel();
+        _batteryState.value = null;
+      }
+    }
+
+    // Sync time
+    {
+      const syncTries = 10;
+      var offsetAggregated = 0.0;
+      for (var index = 0; index < syncTries; index += 1) {
+        final start = DateTime.now().millisecondsSinceEpoch;
+        final _ = await getClockOffset();
+        final server = DateTime.now().millisecondsSinceEpoch;
+        final end = server;
+        final rtd = end - start;
+        final offset = (server + (rtd / 2)) - end;
+        offsetAggregated += offset;
+      }
+      estimatedAverageOffset = (offsetAggregated / syncTries).round();
+      Logger.debug("Estimated average offset: $estimatedAverageOffset");
+      final offset = await getClockOffset();
+      final clockOffset = serverTime() - offset!.time;
+      await setClockOffset(clockOffset);
+    }
+  }
+
+  static Future<HandyBle?> startScanning(
+    Signal<int> strokeMin,
+    Signal<int> strokeMax,
+  ) async {
+    final device = await BluetoothConnector().scanForDevice(
+      "77834d26-40f7-11ee-be56-0242ac120002",
+      "77835032-40f7-11ee-be56-0242ac120002",
+      "77835410-40f7-11ee-be56-0242ac120002",
+    );
+    return device == null ? null : HandyBle(device, strokeMin, strokeMax);
+  }
+
+  void _bufferReceived(Uint8List buffer) {
+    _worker.sendToDeserialize(buffer);
+  }
+
+  void _sendBuffer(Uint8List bufferMsg) async {
+    try {
+      await _device.tx.write(bufferMsg, withResponse: false);
+    } catch (_) {
+      await _device.device.disconnect();
+    }
+  }
+
+  void _rpcMessageReceived(RpcMessage message) {
+    if (message.type == MessageType.MESSAGE_TYPE_RESPONSE) {
+      Response response = message.response;
+      if (response.id != noCompletionId) {
+        final completer = _messageCompleters.firstWhereOrNull(
+          (c) => c.$1 == response.id,
+        );
+        if (completer != null) {
+          _messageCompleters.remove(completer);
+          completer.$3.complete(response);
+        }
+        // remove potentially timed out completers
+        _messageCompleters.removeWhere(
+          (c) => (DateTime.now().difference(c.$2).inSeconds > 10),
+        );
+      }
+      _resultHandler(response);
+    } else if (message.type == MessageType.MESSAGE_TYPE_NOTIFICATION) {
+      _notificationHandler(message);
+    }
+  }
+
+  void _notificationHandler(RpcMessage message) {
+    switch (message.notification.whichNotification()) {
+      // HSP NOTIFICATIONS
+      case Notification_Notification.notificationHspThresholdReached:
+        _hspState.value =
+            message.notification.notificationHspThresholdReached.state;
+        hspThresholdReached?.call(false);
+        break;
+      case Notification_Notification.notificationHspStateChanged:
+        _hspState.value =
+            message.notification.notificationHspStateChanged.state;
+        break;
+      case Notification_Notification.notificationHspLooping:
+        _hspState.value = message.notification.notificationHspLooping.state;
+        break;
+      case Notification_Notification.notificationHspStarving:
+        _hspState.value = message.notification.notificationHspStarving.state;
+        hspThresholdReached?.call(true);
+        break;
+      case Notification_Notification.notificationHspResumedOnNonStarving:
+        _hspState.value =
+            message.notification.notificationHspResumedOnNonStarving.state;
+        break;
+      case Notification_Notification.notificationHspPausedOnStarving:
+        _hspState.value =
+            message.notification.notificationHspPausedOnStarving.state;
+        hspPausedOnStarving?.call();
+        break;
+
+      case Notification_Notification.notificationBatteryChanged:
+        _batteryState.value =
+            message.notification.notificationBatteryChanged.state;
+        break;
+
+      // UNHANDLED NOTIFICATION
+      default:
+        if (kDebugMode) debugPrint(message.notification.toDebugString());
+        break;
+    }
+  }
+
+  Future<Response?> _sendRequestFuture(Request request) async {
+    request.id = messageId;
+    final message = RpcMessage(
+      type: MessageType.MESSAGE_TYPE_REQUEST,
+      request: request,
+    );
+    final completer = Completer<Response>();
+    _messageCompleters.add((request.id, DateTime.now(), completer));
+    _worker.sendToSerialize(message);
+    return completer.future.timeout(Duration(seconds: 5));
+  }
+
+  void _sendRequest(Request request) {
+    request.id = noCompletionId;
+    final message = RpcMessage(
+      type: MessageType.MESSAGE_TYPE_REQUEST,
+      request: request,
+    );
+    _worker.sendToSerialize(message);
+  }
+
+  Future<void> dispose() async {
+    effectDispose();
+    _batteryPolling?.cancel();
+    await _bufferReceivedSubscription.cancel();
+    await _deserializeSubscription.cancel();
+    await _serializeSubscription.cancel();
+    await _worker.dispose();
+    await _device.device.disconnect();
+  }
+
+  Future<(int, int)?> sliderStrokeGet() async {
+    final request = RequestSliderStrokeGet();
+    final response = await _sendRequestFuture(
+      Request(requestSliderStrokeGet: request),
+    );
+    if (response != null && response.hasResponseSliderStrokeGet()) {
+      final get = response.responseSliderStrokeGet;
+      final min = (get.min * 100.0).round().clamp(0, 100);
+      final max = (get.max * 100.0).round().clamp(0, 100);
+      return (min, max);
+    }
+    return null;
+  }
+
+  Future<(int, int)?> sliderStrokeSet(int min, int max) async {
+    final request = RequestSliderStrokeSet(
+      min: (min / 100.0).clamp(0.0, 1.0),
+      max: (max / 100.0).clamp(0.0, 1.0),
+    );
+    final response = await _sendRequestFuture(
+      Request(requestSliderStrokeSet: request),
+    );
+    if (response != null && response.hasResponseSliderStrokeSet()) {
+      final get = response.responseSliderStrokeSet;
+      final min = (get.min * 100.0).round().clamp(0, 100);
+      final max = (get.max * 100.0).round().clamp(0, 100);
+      return (min, max);
+    }
+    return null;
+  }
+
+  Future<HspState?> hspStateGet() async {
+    final request = RequestHspStateGet();
+    final response = await _sendRequestFuture(
+      Request(requestHspStateGet: request),
+    );
+    if (response != null && response.hasResponseHspStateGet()) {
+      final hspState = response.responseHspStateGet.state;
+      return hspState;
+    }
+    return null;
+  }
+
+  void positionWithDuration(double relPos, int moveOverTimeMs) {
+    final request = RequestHdspXpTSet(
+      xp: relPos,
+      t: moveOverTimeMs,
+      stopOnTarget: true,
+    );
+    _sendRequest(Request(requestHdspXpTSet: request));
+  }
+
+  void _resultHandler(Response response) {
+    switch (response.whichResult()) {
+      case Response_Result.responseHspStateGet:
+        _hspState.value = response.responseHspStateGet.state;
+        break;
+      case Response_Result.responseHspSetup:
+        _hspState.value = response.responseHspSetup.state;
+        break;
+      case Response_Result.responseHspFlush:
+        _hspState.value = response.responseHspFlush.state;
+        break;
+      case Response_Result.responseHspAdd:
+        _hspState.value = response.responseHspAdd.state;
+        break;
+      case Response_Result.responseHspPlay:
+        _hspState.value = response.responseHspPlay.state;
+        break;
+      case Response_Result.responseHspResume:
+        _hspState.value = response.responseHspResume.state;
+        break;
+      case Response_Result.responseHspPause:
+        _hspState.value = response.responseHspPause.state;
+        break;
+      case Response_Result.responseHspCurrentTimeSet:
+        _hspState.value = response.responseHspCurrentTimeSet.state;
+        break;
+      default:
+    }
+  }
+
+  void hspSetup({int? streamId}) {
+    const int maxInt32 = 2147483647;
+    streamId ??= Random().nextInt(maxInt32);
+    final request = RequestHspSetup(streamId: streamId);
+    _sendRequest(Request(requestHspSetup: request));
+  }
+
+  void hspFlush() {
+    final requeust = RequestHspFlush();
+    _sendRequest(Request(requestHspFlush: requeust));
+  }
+
+  void hspAdd(
+    List<Point> points, {
+    required bool flush,
+    required int? tailPointStreamIndex,
+    required int? tailPointThreshold,
+  }) {
+    final request = RequestHspAdd(
+      points: points,
+      flush: flush,
+      tailPointStreamIndex: tailPointStreamIndex,
+      tailPointThreshold: tailPointThreshold,
+    );
+    _sendRequest(Request(requestHspAdd: request));
+  }
+
+  void hspPlay({
+    required int startTime,
+    required double playbackRate,
+    required bool loop,
+  }) {
+    final request = RequestHspPlay(
+      startTime: startTime,
+      loop: loop,
+      pauseOnStarving: false,
+      playbackRate: playbackRate,
+      serverTime: Int64(serverTime()),
+    );
+    _sendRequest(Request(requestHspPlay: request));
+  }
+
+  void hspResume() {
+    final request = RequestHspResume(pickUp: false);
+    _sendRequest(Request(requestHspResume: request));
+  }
+
+  void hspPause() {
+    final request = RequestHspPause();
+    _sendRequest(Request(requestHspPause: request));
+  }
+
+  void hspCurrentTimeSet({
+    required int currentTime,
+    required bool forceCurrentTime,
+  }) {
+    final request = RequestHspCurrentTimeSet(
+      currentTime: currentTime,
+      serverTime: Int64(serverTime()),
+      filter: forceCurrentTime ? 1.0 : 0.6,
+    );
+    _sendRequest(Request(requestHspCurrentTimeSet: request));
+  }
+
+  void hspStop() {
+    final request = RequestHspStop();
+    _sendRequest(Request(requestHspStop: request));
+  }
+
+  Future<ResponseClockOffsetGet?> getClockOffset() async {
+    final request = RequestClockOffsetGet();
+    final response = await _sendRequestFuture(
+      Request(requestClockOffsetGet: request),
+    );
+    if (response != null && response.hasResponseClockOffsetGet()) {
+      final get = response.responseClockOffsetGet;
+      return get;
+    }
+    return null;
+  }
+
+  Future<ResponseClockOffsetSet?> setClockOffset(int offset, {int? rtd}) async {
+    final request = RequestClockOffsetSet(clockOffset: Int64(offset), rtd: rtd);
+    final response = await _sendRequestFuture(
+      Request(requestClockOffsetSet: request),
+    );
+    if (response != null && response.hasResponseClockOffsetSet()) {
+      final set = response.responseClockOffsetSet;
+      return set;
+    }
+    return null;
+  }
+
+  Future<ResponseCapabilitiesGet?> getCapabilities() async {
+    final request = RequestCapabilitiesGet();
+    final response = await _sendRequestFuture(
+      Request(requestCapabilitiesGet: request),
+    );
+    if (response != null && response.hasResponseCapabilitiesGet()) {
+      final caps = response.responseCapabilitiesGet;
+      return caps;
+    }
+    return null;
+  }
+
+  Future<BatteryState?> getBatteryState() async {
+    final request = RequestBatteryGet();
+    final response = await _sendRequestFuture(
+      Request(requestBatteryGet: request),
+    );
+    if (response != null && response.hasResponseBatteryGet()) {
+      final state = response.responseBatteryGet.state;
+      return state;
+    }
+    return null;
   }
 }

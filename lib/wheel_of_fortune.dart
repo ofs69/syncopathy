@@ -84,7 +84,8 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
           selected: _selected.stream,
           animateFirst: false,
           items: items,
-          duration: const Duration(seconds: 1, milliseconds: 0),
+          rotationCount: 4,
+          duration: const Duration(seconds: 2, milliseconds: 0),
           onAnimationEnd: () {
             Future.delayed(const Duration(milliseconds: 500), () {
               if (!mounted) return;

@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:syncopathy/player/player_backend_type.dart';
+
 class Settings {
   final int id = 0; // Singleton ID
   int min = 0;
@@ -14,6 +16,7 @@ class Settings {
   bool autoSwitchToVideoPlayerTab;
   bool autoPlay;
   bool invert;
+  PlayerBackendType playerBackendType;
 
   Settings({
     this.min = 0,
@@ -28,6 +31,7 @@ class Settings {
     this.autoSwitchToVideoPlayerTab = false,
     this.autoPlay = true,
     this.invert = false,
+    this.playerBackendType = PlayerBackendType.buttplugStrokerCommand,
   }) {
     this.mediaPaths.clear();
     this.mediaPaths.addAll(mediaPaths);
@@ -48,6 +52,7 @@ class Settings {
       'autoSwitchToVideoPlayerTab': autoSwitchToVideoPlayerTab ? 1 : 0,
       'autoPlay': autoPlay ? 1 : 0,
       'invert': invert ? 1 : 0,
+      'playerBackendType': playerBackendType.toString().split('.').last,
     };
   }
 
@@ -65,6 +70,10 @@ class Settings {
       autoSwitchToVideoPlayerTab: map['autoSwitchToVideoPlayerTab'] == 1,
       autoPlay: map['autoPlay'] == 1,
       invert: map['invert'] == 1,
+      playerBackendType: PlayerBackendType.values.firstWhere(
+        (e) => e.toString().split('.').last == map['playerBackendType'],
+        orElse: () => PlayerBackendType.buttplugStrokerCommand,
+      ),
     );
   }
 }

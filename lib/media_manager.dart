@@ -54,7 +54,7 @@ class MediaManager {
         '-of',
         'json',
         videoPath,
-      ]);
+      ]).timeout(Duration(seconds: 3));
 
       if (ffprobeResult.exitCode != 0) {
         Logger.error('ffprobe error for $videoPath: ${ffprobeResult.stderr}');
@@ -143,7 +143,10 @@ class MediaManager {
                 final firstActions = validFunscripts.first.actions;
                 bool allActionsSame = true;
                 for (int i = 1; i < validFunscripts.length; i++) {
-                  if (!listEquals(firstActions, validFunscripts[i].actions)) {
+                  if (!listEquals(
+                    firstActions.value,
+                    validFunscripts[i].actions.value,
+                  )) {
                     allActionsSame = false;
                     break;
                   }
@@ -154,17 +157,17 @@ class MediaManager {
                     'Multiple funscripts found for video with different actions: $videoPath Funscripts: ${funscriptPaths.join(', ')}',
                   );
                 } else {
-                  Logger.info(
-                    'Multiple funscripts found for video with identical actions: $videoPath Funscripts: ${funscriptPaths.join(', ')}',
-                  );
+                  // Logger.info(
+                  //   'Multiple funscripts found for video with identical actions: $videoPath Funscripts: ${funscriptPaths.join(', ')}',
+                  // );
                 }
               }
             }
             final funscriptPath = funscriptPaths.first;
             if (p.dirname(videoPath) != p.dirname(funscriptPath)) {
-              Logger.debug(
-                'Video and funscript not in same directory: Video: $videoPath Funscript: $funscriptPath',
-              );
+              // Logger.debug(
+              //   'Video and funscript not in same directory: Video: $videoPath Funscript: $funscriptPath',
+              // );
             }
             final title = videoBasename;
             final funscript = await Funscript.fromFile(funscriptPath)
@@ -178,14 +181,14 @@ class MediaManager {
 
             if (funscript != null) {
               final averageSpeed = FunscriptAlgorithms.averageSpeed(
-                funscript.actions,
+                funscript.actions.value,
               );
 
               final averageMin = FunscriptAlgorithms.averageMin(
-                funscript.actions,
+                funscript.actions.value,
               );
               final averageMax = FunscriptAlgorithms.averageMax(
-                funscript.actions,
+                funscript.actions.value,
               );
               final metadata = await _getVideoMetadata(
                 videoFile.path,

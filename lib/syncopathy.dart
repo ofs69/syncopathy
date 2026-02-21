@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_core.dart';
 import 'package:syncopathy/help_page.dart';
+import 'package:syncopathy/helper/effect_dispose_mixin.dart';
+import 'package:syncopathy/media_manager.dart';
 
 import 'package:syncopathy/media_page.dart';
 import 'package:syncopathy/model/player_model.dart';
@@ -50,23 +52,23 @@ class SyncopathyHomePage extends StatefulWidget {
   State<SyncopathyHomePage> createState() => _SyncopathyHomePageState();
 }
 
-class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
+class _SyncopathyHomePageState extends State<SyncopathyHomePage>
+    with EffectDispose {
   int _selectedIndex = 0;
 
   late final PageController _pageController;
-  late final FocusNode _videoPlayerFocusNode;
-
-  late final Function _videoChangeEffectDispose;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _selectedIndex);
-    _videoPlayerFocusNode = FocusNode();
     final player = context.read<PlayerModel>();
-    _videoChangeEffectDispose = effect(() {
-      _handleVideoChange(player.currentVideo.value);
-    });
+
+    effectAdd([
+      effect(() {
+        _handleVideoChange(player.currentVideo.value);
+      }),
+    ]);
 
     // Check for database reset and show dialog if necessary
     if (DatabaseHelper().databaseWasReset) {
@@ -84,8 +86,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
 
   @override
   void dispose() {
-    _videoChangeEffectDispose();
-    _videoPlayerFocusNode.dispose();
+    effectDispose();
     super.dispose();
   }
 
@@ -123,61 +124,53 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
     }
   }
 
-  List<NavigationRailDestination> get _destinations {
-    final destinations = <NavigationRailDestination>[
-      const NavigationRailDestination(
-        icon: Icon(Icons.video_library_outlined),
-        selectedIcon: Icon(Icons.video_library),
-        label: Text('Media'),
-      ),
-      const NavigationRailDestination(
-        icon: Icon(Icons.play_circle_outline),
-        selectedIcon: Icon(Icons.play_circle_filled),
-        label: Text("Video Player"),
-      ),
-      const NavigationRailDestination(
-        icon: Icon(Icons.settings_outlined),
-        selectedIcon: Icon(Icons.settings),
-        label: Text('Settings'),
-      ),
-      const NavigationRailDestination(
-        icon: Icon(Icons.help_outline),
-        selectedIcon: Icon(Icons.help),
-        label: Text('Help'),
-      ),
-    ];
-    return destinations;
-  }
+  List<NavigationRailDestination> _destinations(bool withMedia) =>
+      <NavigationRailDestination>[
+        if (withMedia)
+          const NavigationRailDestination(
+            icon: Icon(Icons.video_library_outlined),
+            selectedIcon: Icon(Icons.video_library),
+            label: Text('Media'),
+          ),
+        const NavigationRailDestination(
+          icon: Icon(Icons.play_circle_outline),
+          selectedIcon: Icon(Icons.play_circle_filled),
+          label: Text("Video Player"),
+        ),
+        const NavigationRailDestination(
+          icon: Icon(Icons.settings_outlined),
+          selectedIcon: Icon(Icons.settings),
+          label: Text('Settings'),
+        ),
+        const NavigationRailDestination(
+          icon: Icon(Icons.help_outline),
+          selectedIcon: Icon(Icons.help),
+          label: Text('Help'),
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
-    final player = context.read<PlayerModel>();
-    final currentVideo = player.currentVideo.value;
-
+    final withMedia = context.read<MediaManager?>() != null;
     return LogNotificationObserver(
-      child: Stack(
-        children: [
-          ShortcutHandler(
-            pageController: _pageController,
-            onTabChanged: _onTabChanged,
-            child: Scaffold(
-              appBar: CustomAppBar(
-                currentVideoTitle: currentVideo?.title,
-                widgetTitle: widget.title,
-                currentVideo: currentVideo,
-                player: player,
+      child: ShortcutHandler(
+        pageController: _pageController,
+        onTabChanged: _onTabChanged,
+        child: Scaffold(
+          appBar: CustomAppBar(widgetTitle: widget.title),
+          body: Row(
+            children: <Widget>[
+              NavigationRail(
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: _onTabChanged,
+                labelType: NavigationRailLabelType.all,
+                destinations: _destinations(withMedia),
               ),
-              body: Row(
-                children: <Widget>[
-                  NavigationRail(
-                    selectedIndex: _selectedIndex,
-                    onDestinationSelected: _onTabChanged,
-                    labelType: NavigationRailLabelType.all,
-                    destinations: _destinations,
-                  ),
-                  const VerticalDivider(thickness: 1, width: 1),
-                  Expanded(
-                    child: PageContent(
+              const VerticalDivider(thickness: 1, width: 1),
+              Expanded(
+                child: Stack(
+                  children: [
+                    PageContent(
                       selectedIndex: _selectedIndex,
                       onPageChanged: (index) {
                         setState(() {
@@ -185,15 +178,14 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage> {
                         });
                       },
                       pageController: _pageController,
-                      videoPlayerFocusNode: _videoPlayerFocusNode,
                     ),
-                  ),
-                ],
+                    const NotificationFeed(),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-          const NotificationFeed(),
-        ],
+        ),
       ),
     );
   }
@@ -205,13 +197,11 @@ class PageContent extends StatefulWidget {
     required this.selectedIndex,
     required this.onPageChanged,
     required this.pageController,
-    this.videoPlayerFocusNode,
   });
 
   final int selectedIndex;
   final ValueChanged<int> onPageChanged;
   final PageController pageController;
-  final FocusNode? videoPlayerFocusNode;
 
   @override
   State<PageContent> createState() => _PageContentState();
@@ -219,21 +209,14 @@ class PageContent extends StatefulWidget {
 
 class _PageContentState extends State<PageContent> {
   @override
-  void didUpdateWidget(covariant PageContent oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selectedIndex == 1 && widget.videoPlayerFocusNode != null) {
-      widget.videoPlayerFocusNode!.requestFocus();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final withMedia = context.read<MediaManager?>() != null;
     return PageView(
       controller: widget.pageController,
       onPageChanged: widget.onPageChanged,
       children: <Widget>[
-        MediaPage(),
-        VideoPlayerPage(focusNode: widget.videoPlayerFocusNode),
+        if (withMedia) MediaPage(),
+        VideoPlayerPage(),
         SettingsPage(),
         HelpPage(),
       ],

@@ -4,7 +4,6 @@ import 'package:uuid/uuid.dart';
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/logging.dart';
@@ -164,7 +163,7 @@ class NotificationFeed extends StatelessWidget {
     return Consumer<NotificationFeedManager>(
       builder: (context, manager, child) {
         return Align(
-          alignment: Alignment.bottomRight,
+          alignment: Alignment.topRight,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: SizedBox(
@@ -350,7 +349,7 @@ class _LogNotificationObserverState extends State<LogNotificationObserver> {
     _logSubscription = logStream.listen((entry) {
       if (entry.level == LogLevel.warning ||
           entry.level == LogLevel.error ||
-          (kDebugMode && showDebugNotifications.value)) {
+          showDebugNotifications.value) {
         notificationFeedManager.addNotification(
           entry.message,
           entry.level,

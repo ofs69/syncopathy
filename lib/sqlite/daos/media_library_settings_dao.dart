@@ -1,4 +1,3 @@
-
 import 'package:sqflite/sqflite.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/sqlite/models/media_library_settings.dart';

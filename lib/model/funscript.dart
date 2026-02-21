@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
 
@@ -42,6 +43,9 @@ class FunscriptAction implements Comparable<FunscriptAction> {
 
   @override
   int get hashCode => at.hashCode;
+
+  @override
+  String toString() => "{at: $at, pos: $pos}";
 }
 
 /// Represents a Funscript file.
@@ -58,10 +62,8 @@ class Funscript {
   final int range;
 
   /// The list of actions.
-  List<FunscriptAction> actions;
-
-  /// A backup copy of the original actions if actions was modified
-  List<FunscriptAction> originalActions = [];
+  late final Signal<List<FunscriptAction>> actions;
+  late final List<FunscriptAction> originalActions;
 
   /// Optional metadata.
   final FunscriptMetadata? metadata;
@@ -77,20 +79,21 @@ class Funscript {
     this.version = "1.0",
     this.inverted = false,
     this.range = 90,
-    required this.actions,
+    required List<FunscriptAction> rawActions,
     this.metadata,
     required this.filePath,
   }) {
+    likelyScriptToken = _isScriptToken(rawActions);
     // remove duplicate timestamps
     final uniqueActions = <FunscriptAction>[];
     final seenTimestamps = <int>{};
-    for (final action in actions) {
+    for (final action in rawActions) {
       if (seenTimestamps.add(action.at)) {
         uniqueActions.add(action);
       }
     }
-    likelyScriptToken = _isScriptToken(actions);
-    actions = uniqueActions;
+    actions = listSignal(uniqueActions);
+    originalActions = List.unmodifiable(uniqueActions);
   }
 
   // This determines if something is likely a script token
@@ -114,7 +117,7 @@ class Funscript {
 
   int getIndexBefore(int time) {
     var test = FunscriptAction(at: time, pos: 0);
-    var index = actions.lowerBound(test);
+    var index = actions.value.lowerBound(test);
     return max(index - 1, 0);
   }
 
@@ -148,7 +151,7 @@ class Funscript {
       version: json['version'] is String ? json['version'] : '1.0',
       inverted: json['inverted'] is bool ? json['inverted'] : false,
       range: json['range'] is num ? (json['range'] as num).toInt() : 100,
-      actions: actions,
+      rawActions: actions,
       metadata: metadata,
       filePath: filePath,
     );

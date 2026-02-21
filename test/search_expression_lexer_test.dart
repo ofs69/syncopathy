@@ -6,10 +6,7 @@ void main() {
     test('should tokenize a simple string', () {
       final tokenizer = SearchExpressionTokenizer();
       final tokens = tokenizer.tokenize('hello');
-      expect(tokens, [
-        const StringToken('hello'),
-        const EOFToken(),
-      ]);
+      expect(tokens, [const StringToken('hello'), const EOFToken()]);
     });
 
     test('should tokenize operators', () {
@@ -38,24 +35,20 @@ void main() {
     test('should tokenize quoted strings with double quotes', () {
       final tokenizer = SearchExpressionTokenizer();
       final tokens = tokenizer.tokenize('"hello world"');
-      expect(tokens, [
-        const StringToken('hello world'),
-        const EOFToken(),
-      ]);
+      expect(tokens, [const StringToken('hello world'), const EOFToken()]);
     });
 
     test('should tokenize quoted strings with single quotes', () {
       final tokenizer = SearchExpressionTokenizer();
       final tokens = tokenizer.tokenize("'hello world'");
-      expect(tokens, [
-        const StringToken('hello world'),
-        const EOFToken(),
-      ]);
+      expect(tokens, [const StringToken('hello world'), const EOFToken()]);
     });
 
     test('should tokenize a mixed expression', () {
       final tokenizer = SearchExpressionTokenizer();
-      final tokens = tokenizer.tokenize('path:"some/path" & date:today - "old"');
+      final tokens = tokenizer.tokenize(
+        'path:"some/path" & date:today - "old"',
+      );
       expect(tokens, [
         const KeywordToken(KeywordEnum.path),
         const StringToken('some/path'),
@@ -88,9 +81,7 @@ void main() {
     test('should tokenize an empty query', () {
       final tokenizer = SearchExpressionTokenizer();
       final tokens = tokenizer.tokenize('');
-      expect(tokens, [
-        const EOFToken(),
-      ]);
+      expect(tokens, [const EOFToken()]);
     });
 
     test('should tokenize with operators without surrounding spaces', () {

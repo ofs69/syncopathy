@@ -4,20 +4,22 @@ import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/heatmap.dart';
 import 'package:syncopathy/model/player_model.dart';
-import 'package:syncopathy/settings_popup_menu.dart';
+import 'package:syncopathy/player/mpv.dart';
 
 class VideoControls extends StatefulWidget {
   final VoidCallback onFullscreenToggle;
   final VoidCallback? onInteractionStart;
   final VoidCallback? onInteractionEnd;
-  final Signal<bool> showFunscriptGraph;
+  final Signal<bool>? showFunscriptGraph;
+  final Signal<bool>? showSettings;
 
   const VideoControls({
     super.key,
     required this.onFullscreenToggle,
     this.onInteractionStart,
     this.onInteractionEnd,
-    required this.showFunscriptGraph,
+    this.showFunscriptGraph,
+    this.showSettings,
   });
 
   @override
@@ -26,12 +28,17 @@ class VideoControls extends StatefulWidget {
 
 class _VideoControlsState extends State<VideoControls> {
   bool _hovering = false;
+  Timer? _hoverEnterTimer;
   Timer? _hoverExitTimer;
 
   @override
   Widget build(BuildContext context) {
-    final player = context.read<PlayerModel>();
+    final player = context.read<MpvVideoplayer>();
+    final playerModel = context.read<PlayerModel>();
     final iconSize = Theme.of(context).iconTheme.size ?? 24.0;
+
+    final showFunscriptGraph = widget.showFunscriptGraph;
+    final showSettings = widget.showSettings;
 
     return Material(
       type: MaterialType.transparency,
@@ -58,36 +65,33 @@ class _VideoControlsState extends State<VideoControls> {
                     child: MouseRegion(
                       onEnter: (_) {
                         _hoverExitTimer?.cancel();
-                        setState(() => _hovering = true);
+                        _hoverEnterTimer = Timer(
+                          const Duration(milliseconds: 250),
+                          () => setState(() => _hovering = true),
+                        );
                       },
                       onExit: (_) {
+                        _hoverEnterTimer?.cancel();
                         _hoverExitTimer = Timer(
-                          const Duration(milliseconds: 1000),
-                          () {
-                            if (mounted) {
-                              setState(() => _hovering = false);
-                            }
-                          },
+                          const Duration(milliseconds: 500),
+                          () => setState(() => _hovering = false),
                         );
                       },
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
+                        duration: const Duration(milliseconds: 150),
                         curve: Curves.easeInOut,
                         height: _hovering ? iconSize * 2.5 : iconSize * 1.0,
                         child: Watch.builder(
                           builder: (context) {
-                            final funscript = player.currentFunscript.value;
-                            if (funscript == null) {
-                              return const Center(
-                                child: Text("No funscript loaded"),
-                              );
-                            }
+                            final funscript =
+                                playerModel.currentFunscript.value;
+
+                            final actions = funscript?.actions.value ?? [];
                             return Heatmap(
-                              funscript: funscript,
+                              actions: actions,
                               totalDuration: player.duration,
-                              videoPosition: player.positionNoOffset,
-                              onClick: (d) =>
-                                  player.seekTo(d.inSeconds.toDouble()),
+                              videoPosition: player.rawPosition,
+                              onClick: (d) => player.seekTo(d),
                               onInteractionStart: widget.onInteractionStart,
                               onInteractionEnd: widget.onInteractionEnd,
                             );
@@ -115,6 +119,26 @@ class _VideoControlsState extends State<VideoControls> {
                       );
                     },
                   ),
+                  // Play/Pause Button
+                  Watch.builder(
+                    builder: (context) {
+                      final currentTime = Duration(
+                        milliseconds: (player.rawPosition.value * 1000.0)
+                            .toInt(),
+                      );
+                      final duration = Duration(
+                        milliseconds: (player.duration.value * 1000.0).toInt(),
+                      );
+                      return Text(
+                        "${_formatFullTimestamp(currentTime)} / "
+                        "${_formatFullTimestamp(duration)}",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'monospace',
+                        ),
+                      );
+                    },
+                  ),
                   // Volume Slider
                   Watch.builder(
                     builder: (context) {
@@ -138,24 +162,32 @@ class _VideoControlsState extends State<VideoControls> {
                   ),
                   const Spacer(),
                   // Toggle Graph Button
-                  Watch.builder(
-                    builder: (context) {
-                      final showGraph = widget.showFunscriptGraph.value;
-                      return IconButton(
-                        icon: Icon(
-                          showGraph ? Icons.timeline : Icons.timeline_sharp,
-                        ),
-                        tooltip: showGraph ? "Hide Graph" : "Show Graph",
-                        onPressed: () => widget.showFunscriptGraph.value =
-                            !widget.showFunscriptGraph.value,
-                      );
-                    },
-                  ),
+                  showFunscriptGraph != null
+                      ? IconButton(
+                          icon: Icon(
+                            showFunscriptGraph.watch(context)
+                                ? Icons.timeline
+                                : Icons.timeline_sharp,
+                          ),
+                          tooltip: showFunscriptGraph.watch(context)
+                              ? "Hide Graph"
+                              : "Show Graph",
+                          onPressed: () => showFunscriptGraph.value =
+                              !showFunscriptGraph.value,
+                        )
+                      : const SizedBox.shrink(),
                   // Settings
-                  SettingsPopupMenu(
-                    onInteractionStart: widget.onInteractionStart,
-                    onInteractionEnd: widget.onInteractionEnd,
-                  ),
+                  showSettings != null
+                      ? IconButton(
+                          onPressed: () =>
+                              showSettings.value = !showSettings.value,
+                          icon: Icon(
+                            showSettings.watch(context)
+                                ? Icons.settings
+                                : Icons.settings_outlined,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                   const SizedBox(width: 8.0),
                   // Fullscreen Button
                   IconButton(
@@ -176,6 +208,19 @@ class _VideoControlsState extends State<VideoControls> {
   @override
   void dispose() {
     _hoverExitTimer?.cancel();
+    _hoverEnterTimer?.cancel();
     super.dispose();
+  }
+
+  String _formatFullTimestamp(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String threeDigits(int n) => n.toString().padLeft(3, "0");
+
+    final hours = twoDigits(duration.inHours);
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    final ms = threeDigits(duration.inMilliseconds.remainder(1000));
+
+    return "$hours:$minutes:$seconds.$ms";
   }
 }

@@ -21,7 +21,6 @@ class MediaSearchService {
       }).toList();
     } catch (e) {
       // Log the error or handle it as appropriate
-      // print('Error parsing search query: $e'); // Removed print
       return [];
     }
   }
@@ -152,7 +151,7 @@ class MediaSearchService {
     int playedCount,
     Video video,
   ) {
-    final actualPlayCount = video.playCount; 
+    final actualPlayCount = video.playCount;
 
     switch (operator) {
       case RelationalOperator.equal:

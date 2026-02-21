@@ -2,22 +2,23 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/helper/constants.dart';
-import 'package:syncopathy/model/player_model.dart';
 
 /// A widget that wraps the [ScrollingGraph] with a slider to control the zoom level (view duration).
 class InteractiveScrollingGraph extends StatefulWidget {
-  final Funscript funscript;
+  final ReadonlySignal<Funscript?> funscript;
   final ReadonlySignal<double> videoPosition;
+  final Signal<Duration> viewDuration;
 
   const InteractiveScrollingGraph({
     super.key,
     required this.funscript,
     required this.videoPosition,
+    required this.viewDuration,
   });
 
   @override
@@ -26,75 +27,45 @@ class InteractiveScrollingGraph extends StatefulWidget {
 }
 
 class _InteractiveScrollingGraphState extends State<InteractiveScrollingGraph> {
-  // Default zoom level set to 10 seconds.
-  final Signal<Duration> _viewDuration = signal(const Duration(seconds: 10));
-
-  @override
-  void dispose() {
-    _viewDuration.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Watch.builder(
-            builder: (context) {
-              final duration = _viewDuration.value;
-              return Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                ),
-                child: ScrollingGraph(
-                  funscript: widget.funscript,
-                  videoPosition: widget.videoPosition,
-                  viewDuration: duration,
-                ),
-              );
-            },
-          ),
+    return Listener(
+      onPointerSignal: (event) {
+        if (event is PointerScrollEvent) {
+          final scrollValue = event.scrollDelta.dy > 0 ? 1.1 : 0.9;
+          widget.viewDuration.value = Duration(
+            milliseconds:
+                (widget.viewDuration.value.inMilliseconds * scrollValue)
+                    .round()
+                    .clamp(1000, 30000),
+          );
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade600),
+          color: Colors.black.withAlpha(25),
         ),
-        Column(
-          children: [
-            Expanded(
-              child: Watch.builder(
-                builder: (context) {
-                  final duration = _viewDuration.value;
-                  return RotatedBox(
-                    quarterTurns: -1,
-                    child: Slider(
-                      value: duration.inSeconds.toDouble(),
-                      min: 5,
-                      max: 30,
-                      divisions: 25, // (30-5) for 1-second increments
-                      label: '${duration.inSeconds}s',
-                      onChanged: (value) {
-                        _viewDuration.value = Duration(seconds: value.round());
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+        child: ScrollingGraph(
+          funscript: widget.funscript,
+          videoPosition: widget.videoPosition,
+          viewDuration: widget.viewDuration,
         ),
-      ],
+      ),
     );
   }
 }
 
 class ScrollingGraph extends StatefulWidget {
-  final Funscript funscript;
+  final ReadonlySignal<Funscript?> funscript;
   final ReadonlySignal<double> videoPosition;
-  final Duration viewDuration;
+  final Signal<Duration> viewDuration;
 
   const ScrollingGraph({
     super.key,
     required this.funscript,
     required this.videoPosition,
-    this.viewDuration = const Duration(seconds: 5),
+    required this.viewDuration,
   });
 
   @override
@@ -102,67 +73,52 @@ class ScrollingGraph extends StatefulWidget {
 }
 
 class _ScrollingGraphState extends State<ScrollingGraph> {
-  List<double> _speeds = [];
+  late final ReadonlySignal<List<double>> speeds;
 
   @override
   void initState() {
     super.initState();
-    _updateSpeeds();
-  }
 
-  @override
-  void didUpdateWidget(ScrollingGraph oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.funscript != oldWidget.funscript) {
-      _updateSpeeds();
-    }
-  }
+    speeds = computed(() {
+      final funscript = widget.funscript.value;
+      if (funscript == null) return [];
+      if (funscript.actions.value.length < 2) return [];
 
-  void _updateSpeeds() {
-    if (widget.funscript.actions.length < 2) {
-      if (mounted) {
-        setState(() {
-          _speeds = [];
-        });
+      final actions = funscript.actions.value;
+      final speeds = <double>[];
+      for (int i = 0; i < actions.length - 1; i++) {
+        final p1 = actions[i];
+        final p2 = actions[i + 1];
+        final timeDiff = p2.at - p1.at;
+        if (timeDiff > 0) {
+          final posDiff = (p2.pos - p1.pos).abs();
+          final speed = posDiff / timeDiff; // % per millisecond
+          speeds.add(speed);
+        } else {
+          speeds.add(0.0);
+        }
       }
-      return;
-    }
 
-    final speeds = <double>[];
-    for (int i = 0; i < widget.funscript.actions.length - 1; i++) {
-      final p1 = widget.funscript.actions[i];
-      final p2 = widget.funscript.actions[i + 1];
-      final timeDiff = p2.at - p1.at;
-      if (timeDiff > 0) {
-        final posDiff = (p2.pos - p1.pos).abs();
-        final speed = posDiff / timeDiff; // % per millisecond
-        speeds.add(speed);
-      } else {
-        speeds.add(0.0);
-      }
-    }
-
-    if (mounted) {
-      setState(() {
-        _speeds = speeds;
-      });
-    }
+      return speeds;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final player = context.read<PlayerModel>();
     return Watch.builder(
       builder: (context) {
-        final position = player.positionNoOffset.value;
+        final position = widget.videoPosition.value;
+        final viewDuration = widget.viewDuration.value;
+        final funscript = widget.funscript.value;
+        final actions = funscript?.actions.value;
         return ClipRect(
           child: CustomPaint(
             painter: GraphPainter(
-              funscript: widget.funscript,
+              actions: actions ?? [],
               videoPosition: Duration(milliseconds: (position * 1000).round()),
-              viewDuration: widget.viewDuration,
+              viewDuration: viewDuration,
               theme: Theme.of(context),
-              speeds: _speeds,
+              speeds: speeds.watch(context),
             ),
             size: Size.infinite,
           ),
@@ -174,14 +130,14 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
 
 // The custom painter that handles the drawing logic.
 class GraphPainter extends CustomPainter {
-  final Funscript funscript;
+  final List<FunscriptAction> actions;
   final Duration videoPosition;
   final Duration viewDuration;
   final ThemeData theme;
   final List<double> speeds;
 
   GraphPainter({
-    required this.funscript,
+    required this.actions,
     required this.videoPosition,
     required this.viewDuration,
     required this.theme,
@@ -198,7 +154,9 @@ class GraphPainter extends CustomPainter {
     final linePaint = Paint()
       ..color = theme.colorScheme.primary
       ..strokeWidth = 5.0
-      ..style = PaintingStyle.stroke;
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.square
+      ..strokeJoin = StrokeJoin.bevel;
 
     final cursorPaint = Paint()
       ..color = theme.colorScheme.secondary
@@ -207,7 +165,14 @@ class GraphPainter extends CustomPainter {
     final pointPaint = Paint()
       ..color = theme.colorScheme.tertiary
       ..strokeWidth = 10.0
-      ..style = PaintingStyle.fill;
+      ..style = PaintingStyle.fill
+      ..strokeCap = StrokeCap.round;
+
+    Offset boundSize(Size size, double strokeWidth, double relX, double relY) {
+      double x = (strokeWidth / 2.0) + (relX * (size.width - strokeWidth));
+      double y = (strokeWidth / 2.0) + (relY * (size.height - strokeWidth));
+      return Offset(x, y);
+    }
 
     // --- 2. Draw Grid ---
     final secondsInView = viewDuration.inSeconds;
@@ -223,7 +188,7 @@ class GraphPainter extends CustomPainter {
     final viewEnd = videoPosition + Duration(milliseconds: halfViewMs.round());
 
     // --- 4. Calculate Speeds ---
-    if (funscript.actions.length < 2) {
+    if (actions.length < 2) {
       // Not enough points to draw lines or calculate speed
       return;
     }
@@ -239,29 +204,22 @@ class GraphPainter extends CustomPainter {
     // --- 5. Filter, Transform, and Draw Points ---
     // binary search for start and end indices
     final testStart = FunscriptAction(at: viewStart.inMilliseconds, pos: 0);
-    int start = max(lowerBound(funscript.actions, testStart) - 1, 0);
+    int start = max(lowerBound(actions, testStart) - 1, 0);
     final testEnd = FunscriptAction(at: viewEnd.inMilliseconds, pos: 0);
-    int end = min(
-      lowerBound(funscript.actions, testEnd) + 1,
-      funscript.actions.length,
-    );
+    int end = min(lowerBound(actions, testEnd) + 1, actions.length);
 
     List<Offset> points = [];
     for (int i = start; i < end - 1; i++) {
-      final p1 = funscript.actions[i];
-      final p2 = funscript.actions[i + 1];
+      final a1 = actions[i];
+      final a2 = actions[i + 1];
 
-      final timeOffset1 = Duration(milliseconds: p1.at) - viewStart;
-      final x1 =
-          (timeOffset1.inMilliseconds / viewDuration.inMilliseconds) *
-          size.width;
-      final y1 = size.height - (p1.pos / 100.0) * size.height;
+      final timeOffset1 = Duration(milliseconds: a1.at) - viewStart;
+      final relX1 = (timeOffset1.inMilliseconds / viewDuration.inMilliseconds);
+      final relY1 = 1.0 - (a1.pos / 100.0);
 
-      final timeOffset2 = Duration(milliseconds: p2.at) - viewStart;
-      final x2 =
-          (timeOffset2.inMilliseconds / viewDuration.inMilliseconds) *
-          size.width;
-      final y2 = size.height - (p2.pos / 100.0) * size.height;
+      final timeOffset2 = Duration(milliseconds: a2.at) - viewStart;
+      final relX2 = (timeOffset2.inMilliseconds / viewDuration.inMilliseconds);
+      final relY2 = 1.0 - (a2.pos / 100.0);
 
       final speed = speeds[i];
       final normalizedSpeed = min(speed / speedNormalizationValue, 1.0);
@@ -283,11 +241,13 @@ class GraphPainter extends CustomPainter {
         t,
       )!;
 
-      canvas.drawLine(Offset(x1, y1), Offset(x2, y2), linePaint);
+      final p1 = boundSize(size, linePaint.strokeWidth, relX1, relY1);
+      final p2 = boundSize(size, linePaint.strokeWidth, relX2, relY2);
+      canvas.drawLine(p1, p2, linePaint);
 
-      points.add(Offset(x1, y1));
+      points.add(p1);
       if (i == end - 2) {
-        points.add(Offset(x2, y2));
+        points.add(p2);
       }
     }
 
@@ -306,7 +266,7 @@ class GraphPainter extends CustomPainter {
   bool shouldRepaint(covariant GraphPainter oldDelegate) {
     // Repaint whenever the video position or points change.
     return oldDelegate.videoPosition != videoPosition ||
-        oldDelegate.funscript != funscript ||
+        oldDelegate.actions != actions ||
         oldDelegate.theme != theme ||
         oldDelegate.viewDuration != viewDuration ||
         oldDelegate.speeds != speeds;

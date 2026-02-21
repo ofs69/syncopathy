@@ -1,4 +1,3 @@
-
 import 'package:sqflite/sqflite.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
@@ -8,17 +7,16 @@ class VideoDao {
 
   Future<int> insertVideo(Video video) async {
     final db = await dbHelper.database;
-    return await db.insert('videos', video.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert(
+      'videos',
+      video.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<Video?> getVideo(int id) async {
     final db = await dbHelper.database;
-    final maps = await db.query(
-      'videos',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    final maps = await db.query('videos', where: 'id = ?', whereArgs: [id]);
     if (maps.isNotEmpty) {
       return Video.fromMap(maps.first);
     }
@@ -45,22 +43,17 @@ class VideoDao {
 
   Future<int> deleteVideo(int id) async {
     final db = await dbHelper.database;
-    return await db.delete(
-      'videos',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('videos', where: 'id = ?', whereArgs: [id]);
   }
 
   // Methods for handling the many-to-many relationship with UserCategory
 
   Future<void> linkVideoToCategory(int videoId, int categoryId) async {
     final db = await dbHelper.database;
-    await db.insert(
-      'video_user_category_links',
-      {'videoId': videoId, 'userCategoryId': categoryId},
-      conflictAlgorithm: ConflictAlgorithm.ignore,
-    );
+    await db.insert('video_user_category_links', {
+      'videoId': videoId,
+      'userCategoryId': categoryId,
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
   Future<void> unlinkVideoFromCategory(int videoId, int categoryId) async {

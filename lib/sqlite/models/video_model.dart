@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:flutter/material.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
 import 'package:syncopathy/sqlite/models/user_category.dart';
@@ -88,15 +87,14 @@ class Video {
   }
 
   // HACK: remove this
-  Funscript? _funscript; // Added field
-  Funscript? get funscript => _funscript; // Added getter
+  Funscript? _funscript;
+  Funscript? get funscript => _funscript;
 
   Future<void> loadFunscript() async {
     if (funscriptPath.isNotEmpty && _funscript == null) {
       try {
         _funscript = await Funscript.fromFile(funscriptPath);
       } catch (e) {
-        debugPrint('Error loading funscript from $funscriptPath: $e');
         _funscript = null; // Ensure funscript is null on error
       }
     }
