@@ -132,7 +132,10 @@ class _VideoControlsState extends State<VideoControls> {
                       return Text(
                         "${_formatFullTimestamp(currentTime)} / "
                         "${_formatFullTimestamp(duration)}",
-                        style: const TextStyle(color: Colors.white, fontFamily: 'monospace'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'monospace',
+                        ),
                       );
                     },
                   ),

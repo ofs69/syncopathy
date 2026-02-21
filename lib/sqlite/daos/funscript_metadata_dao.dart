@@ -1,4 +1,3 @@
-
 import 'package:sqflite/sqflite.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
@@ -8,8 +7,11 @@ class FunscriptMetadataDao {
 
   Future<int> insert(FunscriptMetadata metadata) async {
     final db = await dbHelper.database;
-    return await db.insert('funscript_metadata', metadata.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert(
+      'funscript_metadata',
+      metadata.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<FunscriptMetadata?> get(int id) async {

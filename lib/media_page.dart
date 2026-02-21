@@ -26,8 +26,7 @@ class _MediaPageState extends State<MediaPage>
         children: [
           Expanded(
             child: MediaLibrary(
-              onVideoTapped: (v) =>
-                  Events.emit(OpenVideoEvent(v)),
+              onVideoTapped: (v) => Events.emit(OpenVideoEvent(v)),
             ),
           ),
         ],

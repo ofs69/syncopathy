@@ -4,14 +4,13 @@ import 'package:syncopathy/search_expression_visualizer.dart';
 
 void main() {
   group('ExpressionVisualizer', () {
-    testWidgets('should correctly visualize precedence: test | -test2 test3', (WidgetTester tester) async {
+    testWidgets('should correctly visualize precedence: test | -test2 test3', (
+      WidgetTester tester,
+    ) async {
       final theme = ThemeData(
         colorScheme: ColorScheme.fromSwatch(
           primarySwatch: Colors.blue,
-        ).copyWith(
-          secondary: Colors.green,
-          error: Colors.red,
-        ),
+        ).copyWith(secondary: Colors.green, error: Colors.red),
       );
 
       await tester.pumpWidget(
@@ -47,7 +46,10 @@ void main() {
       expect(textSpan.children, isA<List<InlineSpan>>());
       final children = textSpan.children!;
 
-      expect(children.length, 8); // test, ' OR ', '(', 'NOT ', test2, ' AND ', test3, ')'
+      expect(
+        children.length,
+        8,
+      ); // test, ' OR ', '(', 'NOT ', test2, ' AND ', test3, ')'
 
       // 'test'
       expect((children[0] as TextSpan).text, 'test');
@@ -77,14 +79,14 @@ void main() {
       expect((children[7] as TextSpan).text, ')');
     });
 
-    testWidgets('should visualize an empty expression', (WidgetTester tester) async {
+    testWidgets('should visualize an empty expression', (
+      WidgetTester tester,
+    ) async {
       final theme = ThemeData(colorScheme: ColorScheme.fromSwatch());
       await tester.pumpWidget(
         MaterialApp(
           theme: theme,
-          home: Scaffold(
-            body: ExpressionVisualizer(expression: ''),
-          ),
+          home: Scaffold(body: ExpressionVisualizer(expression: '')),
         ),
       );
 
@@ -101,9 +103,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: theme,
-          home: Scaffold(
-            body: ExpressionVisualizer(expression: 'hello'),
-          ),
+          home: Scaffold(body: ExpressionVisualizer(expression: 'hello')),
         ),
       );
 
@@ -118,14 +118,14 @@ void main() {
       expect((children[0] as TextSpan).text, 'hello');
     });
 
-    testWidgets('should visualize multiple words as implicit AND', (WidgetTester tester) async {
+    testWidgets('should visualize multiple words as implicit AND', (
+      WidgetTester tester,
+    ) async {
       final theme = ThemeData(colorScheme: ColorScheme.fromSwatch());
       await tester.pumpWidget(
         MaterialApp(
           theme: theme,
-          home: Scaffold(
-            body: ExpressionVisualizer(expression: 'hello world'),
-          ),
+          home: Scaffold(body: ExpressionVisualizer(expression: 'hello world')),
         ),
       );
 
@@ -143,14 +143,14 @@ void main() {
       expect((children[2] as TextSpan).text, 'world');
     });
 
-    testWidgets('should visualize a simple exclude', (WidgetTester tester) async {
+    testWidgets('should visualize a simple exclude', (
+      WidgetTester tester,
+    ) async {
       final theme = ThemeData(colorScheme: ColorScheme.fromSwatch());
       await tester.pumpWidget(
         MaterialApp(
           theme: theme,
-          home: Scaffold(
-            body: ExpressionVisualizer(expression: '-exclude'),
-          ),
+          home: Scaffold(body: ExpressionVisualizer(expression: '-exclude')),
         ),
       );
 
@@ -167,7 +167,9 @@ void main() {
       expect((children[1] as TextSpan).text, 'exclude');
     });
 
-    testWidgets('should visualize a simple path keyword', (WidgetTester tester) async {
+    testWidgets('should visualize a simple path keyword', (
+      WidgetTester tester,
+    ) async {
       final theme = ThemeData(colorScheme: ColorScheme.fromSwatch());
       await tester.pumpWidget(
         MaterialApp(

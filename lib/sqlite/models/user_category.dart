@@ -1,4 +1,3 @@
-
 class UserCategory {
   final int? id;
   final String name;

@@ -19,8 +19,10 @@ class PCA {
     final sortedIndices = List.generate(eigenvalues.length, (i) => i)
       ..sort((a, b) => eigenvalues[b].compareTo(eigenvalues[a]));
 
-    final topEigenvectors =
-        sortedIndices.sublist(0, components).map((i) => eigenvectors[i]).toList();
+    final topEigenvectors = sortedIndices
+        .sublist(0, components)
+        .map((i) => eigenvectors[i])
+        .toList();
 
     final projectedData = _project(centeredData, _transpose(topEigenvectors));
 
@@ -42,7 +44,9 @@ class PCA {
     }
 
     final centered = List.generate(
-        data.length, (i) => List.filled(numFeatures, 0.0));
+      data.length,
+      (i) => List.filled(numFeatures, 0.0),
+    );
     for (var i = 0; i < data.length; i++) {
       for (var j = 0; j < numFeatures; j++) {
         centered[i][j] = data[i][j] - means[j];
@@ -54,8 +58,10 @@ class PCA {
   List<List<double>> _covariance(List<List<double>> data) {
     final numSamples = data.length;
     final numFeatures = data[0].length;
-    final cov =
-        List.generate(numFeatures, (_) => List.filled(numFeatures, 0.0));
+    final cov = List.generate(
+      numFeatures,
+      (_) => List.filled(numFeatures, 0.0),
+    );
 
     for (var i = 0; i < numFeatures; i++) {
       for (var j = i; j < numFeatures; j++) {
@@ -74,7 +80,9 @@ class PCA {
     final n = matrix.length;
     var A = List<List<double>>.generate(n, (i) => List<double>.from(matrix[i]));
     var V = List<List<double>>.generate(
-        n, (i) => List<double>.generate(n, (j) => i == j ? 1.0 : 0.0));
+      n,
+      (i) => List<double>.generate(n, (j) => i == j ? 1.0 : 0.0),
+    );
     const maxIterations = 100;
     const tolerance = 1e-10;
 
@@ -152,9 +160,13 @@ class PCA {
   }
 
   List<List<double>> _project(
-      List<List<double>> data, List<List<double>> components) {
+    List<List<double>> data,
+    List<List<double>> components,
+  ) {
     final projected = List.generate(
-        data.length, (i) => List.filled(components[0].length, 0.0));
+      data.length,
+      (i) => List.filled(components[0].length, 0.0),
+    );
     for (var i = 0; i < data.length; i++) {
       for (var j = 0; j < components[0].length; j++) {
         double sum = 0;

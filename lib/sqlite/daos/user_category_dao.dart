@@ -1,4 +1,3 @@
-
 import 'package:sqflite/sqflite.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/sqlite/models/user_category.dart';
@@ -8,8 +7,11 @@ class UserCategoryDao {
 
   Future<int> insert(UserCategory category) async {
     final db = await dbHelper.database;
-    return await db.insert('user_categories', category.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert(
+      'user_categories',
+      category.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<UserCategory?> get(int id) async {
@@ -45,21 +47,20 @@ class UserCategoryDao {
 
   Future<int> delete(int id) async {
     final db = await dbHelper.database;
-    return await db.delete(
-      'user_categories',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('user_categories', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<List<UserCategory>> getCategoriesForVideo(int videoId) async {
     final db = await dbHelper.database;
-    final maps = await db.rawQuery('''
+    final maps = await db.rawQuery(
+      '''
       SELECT c.* FROM user_categories c
       INNER JOIN video_user_category_links l ON c.id = l.userCategoryId
       WHERE l.videoId = ?
-    ''', [videoId]);
-    
+    ''',
+      [videoId],
+    );
+
     return List.generate(maps.length, (i) {
       return UserCategory.fromMap(maps[i]);
     });

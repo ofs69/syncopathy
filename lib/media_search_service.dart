@@ -151,7 +151,7 @@ class MediaSearchService {
     int playedCount,
     Video video,
   ) {
-    final actualPlayCount = video.playCount; 
+    final actualPlayCount = video.playCount;
 
     switch (operator) {
       case RelationalOperator.equal:

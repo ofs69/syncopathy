@@ -25,14 +25,15 @@ class _PcaProgressDialogState extends State<PcaProgressDialog> {
   }
 
   Future<void> _startPcaCalculation() async {
-    final pcaScoresByPath =
-        await widget.pcaCalculator.performPcaCalculation(onProgress: (message) {
-      if (mounted) {
-        setState(() {
-          _progressMessage = message;
-        });
-      }
-    });
+    final pcaScoresByPath = await widget.pcaCalculator.performPcaCalculation(
+      onProgress: (message) {
+        if (mounted) {
+          setState(() {
+            _progressMessage = message;
+          });
+        }
+      },
+    );
 
     if (mounted) {
       widget.onCalculationComplete(pcaScoresByPath);
