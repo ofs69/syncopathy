@@ -116,6 +116,21 @@ mixin CommandPacketBackend {
       final actions = currentActions.value;
       final isPaused = timesource.paused.value;
       final playbackSpeed = timesource.playbackSpeed.value;
+      final homeMode = settingsModel.homeDeviceEnabled.value;
+
+      if (homeMode) {
+        untracked(() {
+          updateCommand(
+            CommandPacket(
+              0,
+              500,
+              settingsModel.max.value,
+              settingsModel.min.value,
+            ),
+          );
+        });
+        return;
+      }
 
       if (actions != null && !isPaused) {
         final currentMs = (currentTime * 1000.0).round();

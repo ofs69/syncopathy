@@ -5,8 +5,8 @@ import 'package:syncopathy/player/player_backend.dart';
 
 abstract class HandyBluetoothBackendBase extends PlayerBackend {
   @override
-  ReadonlySignal<bool> get connected =>
-      computed(() => handyBle?.isConnected.value ?? false);
+  ReadonlySignal<bool> get connected => _connected;
+  final Signal<bool> _connected = signal(false);
 
   @override
   ReadonlySignal<bool> get isConnecting => _isConnecting;
@@ -25,6 +25,7 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend {
         if (!connected.value) {
           handyBle?.dispose();
           handyBle = null;
+          batteryModel.hasBattery.value = false;
         }
       }),
     ]);
@@ -47,6 +48,20 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend {
     );
     await handyBle?.init();
     _isConnecting.value = false;
+
+    effectAdd([
+      effect(() {
+        final battery = handyBle?.batteryState.value;
+        batteryModel.hasBattery.value = battery != null;
+        if (battery != null) {
+          batteryModel.chargerConntected.value = battery.chargerConnected;
+          batteryModel.batteryLevel.value = battery.level;
+        }
+      }),
+      effect(() {
+        _connected.value = handyBle?.isConnected.value ?? false;
+      }),
+    ]);
   }
 
   @override

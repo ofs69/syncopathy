@@ -86,9 +86,6 @@ class ProtobufWorker {
     mainSendPort.send(childReceivePort.sendPort);
 
     childReceivePort.listen((message) {
-      debugPrint(
-        "BT MESSAGE SENT: ${(message as RpcMessage).request.whichParams()}",
-      );
       final Uint8List buffer = message.writeToBuffer();
       mainSendPort.send(buffer);
     });
@@ -101,7 +98,6 @@ class ProtobufWorker {
 
     childReceivePort.listen((message) {
       final msg = RpcMessage.fromBuffer(message);
-      debugPrint("BT MESSAGE RECEIVED ${msg.response.whichResult()}");
       mainSendPort.send(msg);
     });
   }
@@ -117,6 +113,11 @@ class HandyBle with EffectDispose {
 
   ReadonlySignal<HspState?> get hspState => _hspState;
   final Signal<HspState?> _hspState = signal(null);
+
+  ReadonlySignal<BatteryState?> get batteryState => _batteryState;
+  final Signal<BatteryState?> _batteryState = signal(null);
+  Timer? _batteryPolling;
+
   late final ReadonlySignal<bool> isConnected;
 
   final Signal<int> _strokeRangeMin;
@@ -133,6 +134,8 @@ class HandyBle with EffectDispose {
   final ProtobufWorker _worker = ProtobufWorker();
 
   final _applyStrokeRangeDebouncer = Debouncer(milliseconds: 500);
+
+  int estimatedAverageOffset = 0;
 
   HandyBle(this._device, this._strokeRangeMin, this._strokeRangeMax) {
     isConnected = _device.device.connectionStream.toSyncSignal(true);
@@ -157,12 +160,56 @@ class HandyBle with EffectDispose {
     ]);
   }
 
+  // We are the server + estimated BT latency
+  int serverTime() =>
+      DateTime.now().millisecondsSinceEpoch + estimatedAverageOffset;
+
   Future<void> init() async {
     await _worker.spawn();
     final range = await sliderStrokeGet();
     if (range != null) {
       _strokeRangeMin.value = range.$1;
       _strokeRangeMax.value = range.$2;
+    }
+
+    // Capabilities
+    final caps = await getCapabilities();
+    if (caps != null) {
+      if (caps.battery) {
+        final battery = await getBatteryState();
+        _batteryState.value = battery;
+        _batteryPolling = Timer.periodic(Duration(seconds: 3), (_) async {
+          try {
+            final battery = await getBatteryState();
+            _batteryState.value = battery;
+          } catch (_) {
+            _batteryPolling?.cancel();
+          }
+        });
+      } else {
+        _batteryPolling?.cancel();
+        _batteryState.value = null;
+      }
+    }
+
+    // Sync time
+    {
+      const syncTries = 10;
+      var offsetAggregated = 0.0;
+      for (var index = 0; index < syncTries; index += 1) {
+        final start = DateTime.now().millisecondsSinceEpoch;
+        final _ = await getClockOffset();
+        final server = DateTime.now().millisecondsSinceEpoch;
+        final end = server;
+        final rtd = end - start;
+        final offset = (server + (rtd / 2)) - end;
+        offsetAggregated += offset;
+      }
+      estimatedAverageOffset = (offsetAggregated / syncTries).round();
+      Logger.debug("Estimated average offset: $estimatedAverageOffset");
+      final offset = await getClockOffset();
+      final clockOffset = serverTime() - offset!.time;
+      await setClockOffset(clockOffset);
     }
   }
 
@@ -241,6 +288,11 @@ class HandyBle with EffectDispose {
         hspPausedOnStarving?.call();
         break;
 
+      case Notification_Notification.notificationBatteryChanged:
+        _batteryState.value =
+            message.notification.notificationBatteryChanged.state;
+        break;
+
       // UNHANDLED NOTIFICATION
       default:
         debugPrint(message.notification.toDebugString());
@@ -271,6 +323,7 @@ class HandyBle with EffectDispose {
 
   Future<void> dispose() async {
     effectDispose();
+    _batteryPolling?.cancel();
     await _bufferReceivedSubscription.cancel();
     await _deserializeSubscription.cancel();
     await _serializeSubscription.cancel();
@@ -365,7 +418,6 @@ class HandyBle with EffectDispose {
     streamId ??= Random().nextInt(maxInt32);
     final request = RequestHspSetup(streamId: streamId);
     _sendRequest(Request(requestHspSetup: request));
-    print("hspSetup");
   }
 
   void hspFlush() {
@@ -398,10 +450,9 @@ class HandyBle with EffectDispose {
       loop: loop,
       pauseOnStarving: false,
       playbackRate: playbackRate,
-      serverTime: Int64(DateTime.now().millisecondsSinceEpoch),
+      serverTime: Int64(serverTime()),
     );
     _sendRequest(Request(requestHspPlay: request));
-    print("hspPlay $startTime");
   }
 
   void hspResume() {
@@ -420,15 +471,62 @@ class HandyBle with EffectDispose {
   }) {
     final request = RequestHspCurrentTimeSet(
       currentTime: currentTime,
-      serverTime: Int64(DateTime.now().millisecondsSinceEpoch),
+      serverTime: Int64(serverTime()),
       filter: forceCurrentTime ? 1.0 : 0.6,
     );
     _sendRequest(Request(requestHspCurrentTimeSet: request));
-    print("hspCurrentTimeSet $currentTime");
   }
 
   void hspStop() {
     final request = RequestHspStop();
     _sendRequest(Request(requestHspStop: request));
+  }
+
+  Future<ResponseClockOffsetGet?> getClockOffset() async {
+    final request = RequestClockOffsetGet();
+    final response = await _sendRequestFuture(
+      Request(requestClockOffsetGet: request),
+    );
+    if (response != null && response.hasResponseClockOffsetGet()) {
+      final get = response.responseClockOffsetGet;
+      return get;
+    }
+    return null;
+  }
+
+  Future<ResponseClockOffsetSet?> setClockOffset(int offset, {int? rtd}) async {
+    final request = RequestClockOffsetSet(clockOffset: Int64(offset), rtd: rtd);
+    final response = await _sendRequestFuture(
+      Request(requestClockOffsetSet: request),
+    );
+    if (response != null && response.hasResponseClockOffsetSet()) {
+      final set = response.responseClockOffsetSet;
+      return set;
+    }
+    return null;
+  }
+
+  Future<ResponseCapabilitiesGet?> getCapabilities() async {
+    final request = RequestCapabilitiesGet();
+    final response = await _sendRequestFuture(
+      Request(requestCapabilitiesGet: request),
+    );
+    if (response != null && response.hasResponseCapabilitiesGet()) {
+      final caps = response.responseCapabilitiesGet;
+      return caps;
+    }
+    return null;
+  }
+
+  Future<BatteryState?> getBatteryState() async {
+    final request = RequestBatteryGet();
+    final response = await _sendRequestFuture(
+      Request(requestBatteryGet: request),
+    );
+    if (response != null && response.hasResponseBatteryGet()) {
+      final state = response.responseBatteryGet.state;
+      return state;
+    }
+    return null;
   }
 }

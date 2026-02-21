@@ -22,29 +22,41 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
     effectAdd([
       effect(() {
         final homeMode = settingsModel.homeDeviceEnabled.value;
-        print("Home Mode: $homeMode");
+        untracked(() {
+          if (homeMode) {
+            //_hspSetup(); // reset
+            handyBle?.hspStop();
+            handyBle?.positionWithDuration(0.0, 500);
+          } else {
+            _hspSetup(); // reset
+            final paused = timesource.paused.value;
+
+            if (!paused) {
+              final actions = currentActions.value;
+              if (actions == null) return;
+              _bootstrapBuffer(actions);
+            }
+          }
+        });
       }),
-      // effect(() {
-      //   final paused = timesource.paused.value;
-      //   if (!settingsModel.homeDeviceEnabled.value) {
-      //     untracked(() => _playChange(paused));
-      //   }
-      // }),
-      // effect(() {
-      //   final rawTime = timesource.rawPosition.value;
-      //   if (!settingsModel.homeDeviceEnabled.value) {
-      //     untracked(() => _timeChange(rawTime));
-      //   }
-      // }),
-      // effect(() {
-      //   final actions = currentActions.value;
-      //   if (!settingsModel.homeDeviceEnabled.value) {
-      //     untracked(() => _actionChangeChange(actions));
-      //   }
-      // }),
-      timesource.paused.subscribe(_playChange),
-      timesource.rawPosition.subscribe(_timeChange),
-      currentActions.subscribe(_actionChangeChange),
+      effect(() {
+        final paused = timesource.paused.value;
+        if (!settingsModel.homeDeviceEnabled.value) {
+          untracked(() => _playChange(paused));
+        }
+      }),
+      effect(() {
+        final rawTime = timesource.rawPosition.value;
+        if (!settingsModel.homeDeviceEnabled.value) {
+          untracked(() => _timeChange(rawTime));
+        }
+      }),
+      effect(() {
+        final actions = currentActions.value;
+        if (!settingsModel.homeDeviceEnabled.value) {
+          untracked(() => _actionChangeChange(actions));
+        }
+      }),
     ]);
   }
 
@@ -123,7 +135,7 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
 
       if (!_currentlyBufferedBuffers.contains(currentBufferId)) {
         Logger.debug("Handy stalled restarting...");
-        handyBle?.hspSetup();
+        _hspSetup();
         final buffer = ActionBuffer.fromActions(currentBufferId, actions);
         if (buffer != null) _bufferPoints(buffer, flush: true);
       }
@@ -156,13 +168,7 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
       // 1. Get the current buffer send to to the handy
       // 2. Buffer the next buffer
       // 3. hspPlay is called when the hspState updates in _hspStateChange
-      final bufferId =
-          PlayerBackend.getActionIndex(timesource.currentSmoothMs, actions) ~/
-          ActionBuffer.maxBufferSize;
-      final currentBuffer = ActionBuffer.fromActions(bufferId, actions);
-      if (currentBuffer != null) _bufferPoints(currentBuffer, flush: true);
-      final nextBuffer = ActionBuffer.fromActions(bufferId + 1, actions);
-      if (nextBuffer != null) _bufferPoints(nextBuffer, flush: false);
+      _bootstrapBuffer(actions);
     } else if (!playing && handyPlaying) {
       // Stop playing
       handyBle?.hspPause();
@@ -170,6 +176,19 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
       // Not sure if something needs to happen here
       // print(hspState.toDebugString());
     }
+  }
+
+  void _bootstrapBuffer(List<FunscriptAction> actions) {
+    // 1. Get the current buffer send to to the handy
+    // 2. Buffer the next buffer
+    // 3. hspPlay is called when the hspState updates in _hspStateChange
+    final bufferId =
+        PlayerBackend.getActionIndex(timesource.currentSmoothMs, actions) ~/
+        ActionBuffer.maxBufferSize;
+    final currentBuffer = ActionBuffer.fromActions(bufferId, actions);
+    if (currentBuffer != null) _bufferPoints(currentBuffer, flush: true);
+    final nextBuffer = ActionBuffer.fromActions(bufferId + 1, actions);
+    if (nextBuffer != null) _bufferPoints(nextBuffer, flush: false);
   }
 
   HspPlayState? _lastState;
@@ -242,7 +261,7 @@ class HandyNativeHspBackend extends HandyBluetoothBackendBase {
   @override
   Future<void> tryConnect() async {
     await super.tryConnect();
-    handyBle?.hspSetup();
+    _hspSetup();
     handyBle?.hspThresholdReached = _handleThresholdReached;
     effectAdd([
       effect(() {
