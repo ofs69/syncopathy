@@ -163,7 +163,7 @@ class NotificationFeed extends StatelessWidget {
     return Consumer<NotificationFeedManager>(
       builder: (context, manager, child) {
         return Align(
-          alignment: Alignment.bottomRight,
+          alignment: Alignment.topRight,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: SizedBox(

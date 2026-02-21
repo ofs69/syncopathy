@@ -153,24 +153,24 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
   Widget build(BuildContext context) {
     final withMedia = context.read<MediaManager?>() != null;
     return LogNotificationObserver(
-      child: Stack(
-        children: [
-          ShortcutHandler(
-            pageController: _pageController,
-            onTabChanged: _onTabChanged,
-            child: Scaffold(
-              appBar: CustomAppBar(widgetTitle: widget.title),
-              body: Row(
-                children: <Widget>[
-                  NavigationRail(
-                    selectedIndex: _selectedIndex,
-                    onDestinationSelected: _onTabChanged,
-                    labelType: NavigationRailLabelType.all,
-                    destinations: _destinations(withMedia),
-                  ),
-                  const VerticalDivider(thickness: 1, width: 1),
-                  Expanded(
-                    child: PageContent(
+      child: ShortcutHandler(
+        pageController: _pageController,
+        onTabChanged: _onTabChanged,
+        child: Scaffold(
+          appBar: CustomAppBar(widgetTitle: widget.title),
+          body: Row(
+            children: <Widget>[
+              NavigationRail(
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: _onTabChanged,
+                labelType: NavigationRailLabelType.all,
+                destinations: _destinations(withMedia),
+              ),
+              const VerticalDivider(thickness: 1, width: 1),
+              Expanded(
+                child: Stack(
+                  children: [
+                    PageContent(
                       selectedIndex: _selectedIndex,
                       onPageChanged: (index) {
                         setState(() {
@@ -179,13 +179,13 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
                       },
                       pageController: _pageController,
                     ),
-                  ),
-                ],
+                    const NotificationFeed(),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-          const NotificationFeed(),
-        ],
+        ),
       ),
     );
   }
