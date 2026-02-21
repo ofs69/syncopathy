@@ -114,92 +114,76 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
 
     toggleSettings() => _showSettings.value = !_showSettings.value;
 
-    return Shortcuts(
-      shortcuts: <LogicalKeySet, Intent>{
-        LogicalKeySet(LogicalKeyboardKey.space): const TogglePauseIntent(),
-        LogicalKeySet(LogicalKeyboardKey.arrowRight):
-            const NextPlaylistEntryIntent(),
-        LogicalKeySet(LogicalKeyboardKey.arrowLeft):
-            const PreviousPlaylistEntryIntent(),
-      },
-      child: Actions(
-        actions: <Type, Action<Intent>>{
-          TogglePauseIntent: TogglePauseAction(player),
-          NextPlaylistEntryIntent: NextPlaylistEntryAction(),
-          PreviousPlaylistEntryIntent: PreviousPlaylistEntryAction(),
-        },
-        child: Column(
-          children: [
-            Expanded(
-              flex: 6,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  if (embeddedVideoPlayer)
-                    Hero(
-                      tag: 'videoPlayer',
-                      child: CustomMpvVideoWidget(player: player),
-                    )
-                  else
-                    Center(
-                      child: noFunscriptLoaded
-                          ? SizedBox.shrink()
-                          : Text('Embedded player disabled'),
-                    ),
-
-                  if (noFunscriptLoaded)
-                    Container(
-                      color: Colors.black54,
-                      child: Text("No funscript loaded"),
-                    ),
-
-                  Align(
-                    alignment: AlignmentGeometry.bottomCenter,
-                    child: Column(
-                      children: [
-                        Expanded(
-                          flex: 6,
-                          child: AnimatedSlide(
-                            offset: _showSettings.watch(context)
-                                ? Offset.zero
-                                : const Offset(
-                                    0,
-                                    -1,
-                                  ), // Slides in from the right
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                            child: ScriptPlayerSettingsOverlay(
-                              toggleSettings: toggleSettings,
-                            ),
-                          ),
+    return Column(
+      children: [
+        Expanded(
+          flex: 6,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (embeddedVideoPlayer)
+                Hero(
+                  tag: 'videoPlayer',
+                  child: CustomMpvVideoWidget(player: player),
+                )
+              else
+                Center(
+                  child: noFunscriptLoaded
+                      ? SizedBox.shrink()
+                      : Text('Embedded player disabled'),
+                ),
+    
+              if (noFunscriptLoaded)
+                Container(
+                  color: Colors.black54,
+                  child: Text("No funscript loaded"),
+                ),
+    
+              Align(
+                alignment: AlignmentGeometry.bottomCenter,
+                child: Column(
+                  children: [
+                    Expanded(
+                      flex: 6,
+                      child: AnimatedSlide(
+                        offset: _showSettings.watch(context)
+                            ? Offset.zero
+                            : const Offset(
+                                0,
+                                -1,
+                              ), // Slides in from the right
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        child: ScriptPlayerSettingsOverlay(
+                          toggleSettings: toggleSettings,
                         ),
-                        _showFunscriptGraph.watch(context)
-                            ? Expanded(
-                                flex: 1,
-                                child: _funscriptGraph(
-                                  playerModel.currentFunscript,
-                                  player,
-                                  settings,
-                                ),
-                              )
-                            : const SizedBox.shrink(),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                    _showFunscriptGraph.watch(context)
+                        ? Expanded(
+                            flex: 1,
+                            child: _funscriptGraph(
+                              playerModel.currentFunscript,
+                              player,
+                              settings,
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ],
+                ),
               ),
-            ),
-            Hero(
-              tag: 'videoControls',
-              child: VideoControls(
-                onFullscreenToggle: enterFullscreen,
-                showFunscriptGraph: _showFunscriptGraph,
-                showSettings: _showSettings,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+        Hero(
+          tag: 'videoControls',
+          child: VideoControls(
+            onFullscreenToggle: enterFullscreen,
+            showFunscriptGraph: _showFunscriptGraph,
+            showSettings: _showSettings,
+          ),
+        ),
+      ],
     );
   }
 

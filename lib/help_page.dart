@@ -15,7 +15,7 @@ class _HelpPageState extends State<HelpPage> {
         padding: const EdgeInsets.all(24.0),
         children: [
           Text(
-            'Help & Shortcuts',
+            'Help',
             style: Theme.of(
               context,
             ).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -86,62 +86,62 @@ class _HelpPageState extends State<HelpPage> {
                   ],
                 ),
               ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Available Shortcuts',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildShortcutItem(
-                      context,
-                      Icons.space_bar,
-                      'Toggle video playback (Play/Pause)',
-                      'Spacebar',
-                    ),
-                    _buildShortcutItem(
-                      context,
-                      Icons.arrow_forward,
-                      'Next playlist entry',
-                      'Arrow Right',
-                    ),
-                    _buildShortcutItem(
-                      context,
-                      Icons.arrow_back,
-                      'Previous playlist entry',
-                      'Arrow Left',
-                    ),
-                    _buildShortcutItem(
-                      context,
-                      Icons.looks_one,
-                      'Switch to Media tab',
-                      'Ctrl+1',
-                    ),
-                    _buildShortcutItem(
-                      context,
-                      Icons.looks_two,
-                      'Switch to Video Player tab',
-                      'Ctrl+2',
-                    ),
-                    _buildShortcutItem(
-                      context,
-                      Icons.looks_3,
-                      'Switch to Settings tab',
-                      'Ctrl+3',
-                    ),
-                    _buildShortcutItem(
-                      context,
-                      Icons.looks_4,
-                      'Switch to Help tab',
-                      'Ctrl+4',
-                    ),
-                  ],
-                ),
-              ),
+              // const SizedBox(width: 24),
+              // Expanded(
+              //   child: Column(
+              //     crossAxisAlignment: CrossAxisAlignment.start,
+              //     children: [
+              //       Text(
+              //         'Available Shortcuts',
+              //         style: Theme.of(context).textTheme.headlineMedium
+              //             ?.copyWith(fontWeight: FontWeight.bold),
+              //       ),
+              //       const SizedBox(height: 16),
+              //       _buildShortcutItem(
+              //         context,
+              //         Icons.space_bar,
+              //         'Toggle video playback (Play/Pause)',
+              //         'Spacebar',
+              //       ),
+              //       _buildShortcutItem(
+              //         context,
+              //         Icons.arrow_forward,
+              //         'Next playlist entry',
+              //         'Arrow Right',
+              //       ),
+              //       _buildShortcutItem(
+              //         context,
+              //         Icons.arrow_back,
+              //         'Previous playlist entry',
+              //         'Arrow Left',
+              //       ),
+              //       _buildShortcutItem(
+              //         context,
+              //         Icons.looks_one,
+              //         'Switch to Media tab',
+              //         'Ctrl+1',
+              //       ),
+              //       _buildShortcutItem(
+              //         context,
+              //         Icons.looks_two,
+              //         'Switch to Video Player tab',
+              //         'Ctrl+2',
+              //       ),
+              //       _buildShortcutItem(
+              //         context,
+              //         Icons.looks_3,
+              //         'Switch to Settings tab',
+              //         'Ctrl+3',
+              //       ),
+              //       _buildShortcutItem(
+              //         context,
+              //         Icons.looks_4,
+              //         'Switch to Help tab',
+              //         'Ctrl+4',
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         ],

@@ -14,7 +14,6 @@ import 'package:syncopathy/settings_page.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/video_player_page.dart';
 
-import 'package:syncopathy/shortcut_handler.dart';
 import 'package:syncopathy/custom_app_bar.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/widgets/database_reset_dialog.dart';
@@ -153,38 +152,34 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
   Widget build(BuildContext context) {
     final withMedia = context.read<MediaManager?>() != null;
     return LogNotificationObserver(
-      child: ShortcutHandler(
-        pageController: _pageController,
-        onTabChanged: _onTabChanged,
-        child: Scaffold(
-          appBar: CustomAppBar(widgetTitle: widget.title),
-          body: Row(
-            children: <Widget>[
-              NavigationRail(
-                selectedIndex: _selectedIndex,
-                onDestinationSelected: _onTabChanged,
-                labelType: NavigationRailLabelType.all,
-                destinations: _destinations(withMedia),
+      child: Scaffold(
+        appBar: CustomAppBar(widgetTitle: widget.title),
+        body: Row(
+          children: <Widget>[
+            NavigationRail(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: _onTabChanged,
+              labelType: NavigationRailLabelType.all,
+              destinations: _destinations(withMedia),
+            ),
+            const VerticalDivider(thickness: 1, width: 1),
+            Expanded(
+              child: Stack(
+                children: [
+                  PageContent(
+                    selectedIndex: _selectedIndex,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _selectedIndex = index;
+                      });
+                    },
+                    pageController: _pageController,
+                  ),
+                  const NotificationFeed(),
+                ],
               ),
-              const VerticalDivider(thickness: 1, width: 1),
-              Expanded(
-                child: Stack(
-                  children: [
-                    PageContent(
-                      selectedIndex: _selectedIndex,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _selectedIndex = index;
-                        });
-                      },
-                      pageController: _pageController,
-                    ),
-                    const NotificationFeed(),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
