@@ -3,6 +3,7 @@ import 'package:syncopathy/events/event_bus.dart';
 import 'package:syncopathy/events/event_subscriber_mixin.dart';
 import 'package:syncopathy/events/player_event.dart';
 import 'package:syncopathy/funscript_algo.dart';
+import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/battery_model.dart';
@@ -16,6 +17,7 @@ import 'package:syncopathy/player/handy_native_hsp_backend.dart';
 import 'package:syncopathy/player/mpv.dart';
 import 'package:syncopathy/player/player_backend.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
+import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/sqlite/key_value_store.dart';
 
 import 'package:syncopathy/sqlite/models/video_model.dart';
@@ -50,6 +52,8 @@ class PlayerModel with EventSubscriber, EffectDispose {
     () => _asyncCurrentFunscript.value.value,
   );
 
+  bool _videoViewCounted = false;
+
   PlayerModel(
     this._settings,
     this.timeSource,
@@ -60,6 +64,29 @@ class PlayerModel with EventSubscriber, EffectDispose {
     currentVideo = player.currentVideo;
 
     effectAdd([
+      // View counting logic
+      effect(() {
+        final _ = currentVideo.value;
+        _videoViewCounted = false;
+      }),
+      effect(() {
+        final video = currentVideo.value;
+        final playing = !player.paused.value;
+        if (video != null && playing && !_videoViewCounted) {
+          final viewCounter = Debouncer(milliseconds: 5000);
+          viewCounter.run(() {
+            final moreCurrentVideo = untracked(() => currentVideo.value);
+            if (!player.paused.value) {
+              if (moreCurrentVideo == video) {
+                // Count the view
+                video.playCount += 1;
+                DatabaseHelper().updateVideo(video);
+              }
+            }
+          });
+        }
+      }),
+      // View counting logic end
       effect(() {
         final funscript = currentFunscript.value;
         final duration = player.duration.value;
