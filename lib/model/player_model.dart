@@ -77,8 +77,9 @@ class PlayerModel with EventSubscriber, EffectDispose {
           viewCounter.run(() {
             final moreCurrentVideo = untracked(() => currentVideo.value);
             if (!player.paused.value) {
-              if (moreCurrentVideo == video) {
+              if (moreCurrentVideo == video && !_videoViewCounted) {
                 // Count the view
+                _videoViewCounted = true;
                 video.playCount += 1;
                 DatabaseHelper().updateVideo(video);
               }
