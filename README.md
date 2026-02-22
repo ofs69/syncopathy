@@ -13,6 +13,9 @@ protoc --dart_out=lib/generated -Iprotos protos\notifications.proto
 // fetch the dlls for mpv
 // on linux you have to install it via your package manager sudo apt install libmpv-dev
 dart run libmpv_dart:setup --platform windows 
+
+// needs to be run when changing @JsonSerializable classes
+dart run build_runner build
 ```
 I forked this library because I needed some changes
 https://github.com/ofs69/libmpv_dart
