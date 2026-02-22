@@ -29,6 +29,7 @@ class DatabaseHelper {
     "000004_add_show_play_count_to_media_library_settings.sql",
     "000005_add_player_backend_type.sql",
     "000006_add_key_value_store.sql",
+    "000007_rename_column_kv_and_cleanup.sql",
   ];
 
   Future<Database> get database async {

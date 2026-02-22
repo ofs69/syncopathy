@@ -40,7 +40,7 @@ class SettingsModel {
   SettingsModel();
 
   Future<void> dispose() async {
-    _saveEffectDispose!();
+    _saveEffectDispose?.call();
   }
 
   Future<void> load() async {

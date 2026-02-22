@@ -14,7 +14,6 @@ class Settings {
   bool skipToAction;
   bool embeddedVideoPlayer;
   bool autoSwitchToVideoPlayerTab;
-  bool autoPlay;
   bool invert;
   PlayerBackendType playerBackendType;
 
@@ -29,9 +28,8 @@ class Settings {
     this.skipToAction = true,
     this.embeddedVideoPlayer = false,
     this.autoSwitchToVideoPlayerTab = false,
-    this.autoPlay = true,
     this.invert = false,
-    this.playerBackendType = PlayerBackendType.buttplugStrokerCommand,
+    this.playerBackendType = PlayerBackendType.handyStrokerStreamingBluetooth,
   }) {
     this.mediaPaths.clear();
     this.mediaPaths.addAll(mediaPaths);
@@ -50,7 +48,6 @@ class Settings {
       'skipToAction': skipToAction ? 1 : 0,
       'embeddedVideoPlayer': embeddedVideoPlayer ? 1 : 0,
       'autoSwitchToVideoPlayerTab': autoSwitchToVideoPlayerTab ? 1 : 0,
-      'autoPlay': autoPlay ? 1 : 0,
       'invert': invert ? 1 : 0,
       'playerBackendType': playerBackendType.toString().split('.').last,
     };
@@ -68,11 +65,10 @@ class Settings {
       skipToAction: map['skipToAction'] == 1,
       embeddedVideoPlayer: map['embeddedVideoPlayer'] == 1,
       autoSwitchToVideoPlayerTab: map['autoSwitchToVideoPlayerTab'] == 1,
-      autoPlay: map['autoPlay'] == 1,
       invert: map['invert'] == 1,
       playerBackendType: PlayerBackendType.values.firstWhere(
         (e) => e.toString().split('.').last == map['playerBackendType'],
-        orElse: () => PlayerBackendType.buttplugStrokerCommand,
+        orElse: () => PlayerBackendType.handyStrokerStreamingBluetooth,
       ),
     );
   }

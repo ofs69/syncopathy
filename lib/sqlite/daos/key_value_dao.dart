@@ -18,7 +18,7 @@ class KeyValueDao {
     final db = await dbHelper.database;
     final maps = await db.query(
       'key_value_store',
-      where: "key = ?",
+      where: "id = ?",
       whereArgs: [key],
     );
     if (maps.isNotEmpty) {
