@@ -31,6 +31,8 @@ class _VideoControlsState extends State<VideoControls> {
   Timer? _hoverEnterTimer;
   Timer? _hoverExitTimer;
 
+  double _lastVolume = 100.0;
+
   @override
   Widget build(BuildContext context) {
     final player = context.read<MpvVideoplayer>();
@@ -42,7 +44,6 @@ class _VideoControlsState extends State<VideoControls> {
 
     return Material(
       type: MaterialType.transparency,
-
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -119,7 +120,54 @@ class _VideoControlsState extends State<VideoControls> {
                       );
                     },
                   ),
-                  // Play/Pause Button
+                  // Padding
+                  const SizedBox(width: 8.0),
+                  // Volume Slider + Mute/Unmute Button
+                  Watch.builder(
+                    builder: (context) {
+                      final volume = player.volume.value;
+                      return Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              volume <= 0.1
+                                  ? Icons.volume_off
+                                  : Icons.volume_up,
+                            ),
+                            onPressed: () {
+                              if (volume <= 0.1) {
+                                player.setVolume(_lastVolume);
+                              } else {
+                                player.setVolume(0.0);
+                                _lastVolume = player.volume.value;
+                              }
+                            },
+                          ),
+                          SizedBox(
+                            width: 150, // Adjust width as needed
+                            height: Theme.of(context).iconTheme.size ?? 24.0,
+                            child: Slider(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 0.0,
+                                horizontal: 8.0,
+                              ),
+                              value: volume,
+                              min: 0,
+                              max: 130,
+                              divisions: 130 ~/ 5,
+                              label: '${volume.round()}%',
+                              onChanged: player.setVolume,
+                              onChangeStart: (_) =>
+                                  widget.onInteractionStart?.call(),
+                              onChangeEnd: (_) =>
+                                  widget.onInteractionEnd?.call(),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  // Time / Duration Display
                   Watch.builder(
                     builder: (context) {
                       final currentTime = Duration(
@@ -135,27 +183,6 @@ class _VideoControlsState extends State<VideoControls> {
                         style: const TextStyle(
                           color: Colors.white,
                           fontFamily: 'monospace',
-                        ),
-                      );
-                    },
-                  ),
-                  // Volume Slider
-                  Watch.builder(
-                    builder: (context) {
-                      final volume = player.volume.value;
-                      return SizedBox(
-                        width: 200, // Adjust width as needed
-                        height: Theme.of(context).iconTheme.size ?? 24.0,
-                        child: Slider(
-                          value: volume,
-                          min: 0,
-                          max: 130,
-                          divisions: 130 ~/ 5,
-                          label: '${volume.round()}%',
-                          onChanged: player.setVolume,
-                          onChangeStart: (_) =>
-                              widget.onInteractionStart?.call(),
-                          onChangeEnd: (_) => widget.onInteractionEnd?.call(),
                         ),
                       );
                     },

@@ -149,6 +149,7 @@ class _HelpPageState extends State<HelpPage> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildShortcutItem(
     BuildContext context,
     IconData icon,

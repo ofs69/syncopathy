@@ -132,13 +132,13 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                       ? SizedBox.shrink()
                       : Text('Embedded player disabled'),
                 ),
-    
+
               if (noFunscriptLoaded)
                 Container(
                   color: Colors.black54,
                   child: Text("No funscript loaded"),
                 ),
-    
+
               Align(
                 alignment: AlignmentGeometry.bottomCenter,
                 child: Column(
@@ -148,10 +148,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                       child: AnimatedSlide(
                         offset: _showSettings.watch(context)
                             ? Offset.zero
-                            : const Offset(
-                                0,
-                                -1,
-                              ), // Slides in from the right
+                            : const Offset(0, -1), // Slides in from the right
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
                         child: ScriptPlayerSettingsOverlay(
