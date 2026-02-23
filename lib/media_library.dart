@@ -38,40 +38,13 @@ enum SortOption {
   final String label;
 }
 
-class VideoFilter {
+enum VideoFilter {
+  hideFavorite('Hide Favorite'),
+  hideDisliked('Hide Disliked'),
+  hideUnrated('Hide Unrated');
+
+  const VideoFilter(this.label);
   final String label;
-  final String id;
-
-  const VideoFilter._(this.label, this.id);
-
-  static const VideoFilter hideFavorite = VideoFilter._(
-    'Hide Favorite',
-    'hideFavorite',
-  );
-  static const VideoFilter hideDisliked = VideoFilter._(
-    'Hide Disliked',
-    'hideDisliked',
-  );
-  static const VideoFilter hideUnrated = VideoFilter._(
-    'Hide Unrated',
-    'hideUnrated',
-  );
-
-  static List<VideoFilter> get values => [
-    hideFavorite,
-    hideUnrated,
-    hideDisliked,
-  ];
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is VideoFilter &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
-
-  @override
-  int get hashCode => id.hashCode;
 }
 
 class MediaLibrary extends StatefulWidget {

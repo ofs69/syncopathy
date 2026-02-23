@@ -358,7 +358,7 @@ class _SettingsPageState extends State<SettingsPage>
             return Watch(
               (context) => ListTile(
                 title: Text(
-                  '${info.appName} v${info.version}+${info.buildNumber}',
+                  '${info.appName} v${info.version}+${info.buildNumber}\n${DatabaseHelper().dbVersion}\n${DatabaseHelper().userDbVersion}',
                 ),
                 subtitle: statusUpdateMessageSignal.value != null
                     ? Text(statusUpdateMessageSignal.value!)

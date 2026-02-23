@@ -6,10 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
-import 'package:syncopathy/sqlite/models/settings.dart';
 import 'package:syncopathy/sqlite/models/user_category.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
-import 'package:syncopathy/sqlite/models/media_library_settings.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -19,10 +17,13 @@ class DatabaseHelper {
   static Database? _database;
   String? _databaseWasResetName;
 
+  String dbVersion = "unknown";
+  String userDbVersion = "unknown";
+
   // Migrations must be added to this array,
   // in the order in which they should be applied
   // They must be created in lib/sqlite/migrations
-  final _migrations = [
+  final _migrations = const [
     "000001_initialize_db.sql",
     "000002_add_play_count_to_videos.sql",
     "000003_add_sort_order_to_user_categories.sql",
@@ -30,6 +31,8 @@ class DatabaseHelper {
     "000005_add_player_backend_type.sql",
     "000006_add_key_value_store.sql",
     "000007_rename_column_kv_and_cleanup.sql",
+    "000008_migrate_media_library_to_json.sql",
+    "000009_migrate_settings_to_json.sql",
   ];
 
   Future<Database> get database async {
@@ -125,6 +128,12 @@ class DatabaseHelper {
       } else {
         // If it's another type of exception, rethrow it
         rethrow;
+      }
+    } finally {
+      final result = await _database?.rawQuery('SELECT sqlite_version()');
+      if (result != null) {
+        dbVersion = "SQLite: ${result.first.values.first}";
+        userDbVersion = "Version: $currentAppSchemaVersion";
       }
     }
   }
@@ -344,27 +353,6 @@ class DatabaseHelper {
     return videos;
   }
 
-  Future<Settings> getSettings() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('settings');
-    if (maps.isNotEmpty) {
-      return Settings.fromMap(maps.first);
-    } else {
-      final defaultSettings = Settings();
-      await updateSettings(defaultSettings);
-      return defaultSettings;
-    }
-  }
-
-  Future<int> updateSettings(Settings settings) async {
-    final db = await database;
-    return await db.insert(
-      'settings',
-      settings.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
   Future<Video?> getVideoByPath(String videoPath) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -504,28 +492,5 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) {
       return UserCategory.fromMap(maps[i]);
     });
-  }
-
-  Future<MediaLibrarySettings> getMediaLibrarySettings() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'media_library_settings',
-    );
-    if (maps.isNotEmpty) {
-      return MediaLibrarySettings.fromMap(maps.first);
-    } else {
-      final defaultSettings = MediaLibrarySettings();
-      await updateMediaLibrarySettings(defaultSettings);
-      return defaultSettings;
-    }
-  }
-
-  Future<int> updateMediaLibrarySettings(MediaLibrarySettings settings) async {
-    final db = await database;
-    return await db.insert(
-      'media_library_settings',
-      settings.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
   }
 }

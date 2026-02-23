@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
@@ -16,10 +17,17 @@ import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/timesource_model.dart';
 import 'package:syncopathy/player/mpv.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/sqlite/repository/kv_repository.dart';
 import 'package:syncopathy/syncopathy.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'package:flutter/foundation.dart';
+
+final getIt = GetIt.instance;
+
+void _registerServices() {
+  getIt.registerSingleton(KeyValueRepository());
+}
 
 bool isDesktop() {
   return defaultTargetPlatform == TargetPlatform.windows ||
@@ -34,6 +42,7 @@ Future<Widget> _initializeAppAndRun(
 }) async {
   await DatabaseHelper().initDb(directory: appSupportDir.path);
   Logger.info('SQLite initialized.');
+  _registerServices();
 
   if (isDesktop()) {
     await windowManager.ensureInitialized();

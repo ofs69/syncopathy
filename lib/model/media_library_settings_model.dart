@@ -3,8 +3,8 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_library.dart';
-import 'package:syncopathy/sqlite/database_helper.dart';
-import 'package:syncopathy/sqlite/models/media_library_settings.dart';
+import 'package:syncopathy/sqlite/key_value_store.dart';
+import 'package:syncopathy/model/json/media_library_settings.dart';
 
 class MediaLibrarySettingsModel {
   late final MediaLibrarySettings _entity;
@@ -30,7 +30,10 @@ class MediaLibrarySettingsModel {
   }
 
   Future<void> load() async {
-    _entity = await DatabaseHelper().getMediaLibrarySettings();
+    final settings = await KeyValueStore.get(MediaLibrarySettings.key);
+    _entity = settings != null
+        ? MediaLibrarySettings.fromJson(settings)
+        : MediaLibrarySettings();
     sortOption.value = _entity.sortOption;
     isSortAscending.value = _entity.isSortAscending;
     videosPerRow.value = _entity.videosPerRow;
@@ -40,9 +43,7 @@ class MediaLibrarySettingsModel {
     showDuration.value = _entity.showDuration;
     showPlayCount.value = _entity.showPlayCount;
     separateFavorites.value = _entity.separateFavorites;
-    visibilityFilters.value = _entity.visibilityFilters
-        .map((id) => VideoFilter.values.firstWhere((f) => f.id == id))
-        .toSet();
+    visibilityFilters.value = _entity.visibilityFilters.toSet();
 
     _saveEffectDispose = effect(() async {
       _entity.sortOption = sortOption.value;
@@ -54,7 +55,7 @@ class MediaLibrarySettingsModel {
       _entity.showDuration = showDuration.value;
       _entity.showPlayCount = showPlayCount.value;
       _entity.separateFavorites = separateFavorites.value;
-      _entity.visibilityFilters = visibilityFilters.map((f) => f.id).toList();
+      _entity.visibilityFilters = visibilityFilters.toList();
       await _save();
     });
   }
@@ -64,7 +65,7 @@ class MediaLibrarySettingsModel {
   }
 
   Future<void> _saveInternal() async {
-    await DatabaseHelper().updateMediaLibrarySettings(_entity);
+    KeyValueStore.put(MediaLibrarySettings.key, _entity.toJson());
     Logger.debug("Media library settings save");
   }
 }
