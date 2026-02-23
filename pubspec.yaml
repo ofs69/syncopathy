@@ -70,6 +70,7 @@ dependencies:
   args: ^2.7.0
   get_it: ^9.2.1
   freezed: ^3.2.5
+  image: ^4.8.0
 
 dev_dependencies:
   flutter_test:

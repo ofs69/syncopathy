@@ -9,6 +9,7 @@ class KeyValuePair extends DbEntity<String> {
 
   KeyValuePair(super.id, {required this.value});
 
+  @override
   Map<String, dynamic> toMap() => {'id': id, 'value': value};
 
   factory KeyValuePair.fromMap(Map<String, dynamic> map) {

@@ -99,11 +99,18 @@ class _VideoItemState extends State<VideoItem> {
   }
 
   void _showContextMenu(BuildContext context, TapUpDetails details) async {
+    final playerModel = context.read<PlayerModel>();
+
     final List<PopupMenuEntry<String>> menuItems = [
       const PopupMenuItem<String>(
         value: 'regenerate_thumbnail',
         child: Text('Regenerate Thumbnail'),
       ),
+      if (playerModel.currentVideo.value?.id == widget.video.id!)
+        const PopupMenuItem<String>(
+          value: 'current_frame_as_thumbnail',
+          child: Text('Current frame as thumbnail'),
+        ),
       const PopupMenuItem<String>(
         value: 'open_video_dir',
         child: Text('Open video file directory'),
@@ -144,6 +151,8 @@ class _VideoItemState extends State<VideoItem> {
     if (result != null) {
       if (result == 'regenerate_thumbnail') {
         _thumbnailKey.currentState?.regenerateThumbnail();
+      } else if (result == 'current_frame_as_thumbnail') {
+        _thumbnailKey.currentState?.currentFrameAsThumbnail();
       } else if (result == 'open_video_dir') {
         _openFileDirectory(widget.video.videoPath);
       } else if (result == 'open_script_dir') {

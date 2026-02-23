@@ -261,6 +261,10 @@ class MpvVideoplayer with EventSubscriber, EffectDispose {
   //   _player.setPropertyString("ontop", "no");
   // }
 
+  void screenshot(String path) {
+    _player.command(["screenshot-to-file", path, "video"]);
+  }
+
   void toggleLooping() =>
       _player.setPropertyString('loop-file', loopFile.value ? 'no' : 'inf');
 

@@ -2,10 +2,13 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 import "package:async_locks/async_locks.dart";
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:syncopathy/player/mpv.dart';
 
 import 'package:syncopathy/sqlite/models/video_model.dart';
 
@@ -38,6 +41,85 @@ class VideoThumbnailState extends State<VideoThumbnail> {
     }
   }
 
+  // TODO: refactor me
+  void currentFrameAsThumbnail() async {
+    final player = context.read<MpvVideoplayer>();
+    final appDataPath = await getApplicationSupportDirectory();
+    final screenshot = p.join(appDataPath.path, "tmp.jpg");
+
+    final thumbDir = Directory(p.join(appDataPath.path, 'thumbnails'));
+    final filename = widget.video.videoHash;
+    final thumbnailFile = File(p.join(thumbDir.path, filename));
+
+    if (await thumbnailFile.exists()) {
+      try {
+        await thumbnailFile.delete();
+        await Future.delayed(
+          const Duration(milliseconds: 50),
+        ); // Add a small delay
+      } catch (e) {
+        Logger.error('Error deleting thumbnail file: $e');
+      }
+    }
+
+    // Clear the existing thumbnail path and remove from cache to force regeneration
+    setState(() {
+      _thumbnailFutures.remove(widget.video.videoHash);
+    });
+
+    if (!mounted) return;
+
+    setState(() {
+      _isGenerating = true;
+    });
+
+    player.screenshot(screenshot);
+    try {
+      // 1. Load the file from the path
+      final File file = File(screenshot);
+      final Uint8List bytes = await file.readAsBytes();
+
+      // 2. Decode the JPG data
+      final img.Image? originalImage = img.decodeImage(bytes);
+
+      if (originalImage != null) {
+        // 3. Resize to 300 width (Aspect ratio is kept if height is omitted)
+        final img.Image resizedImage = img.copyResize(
+          originalImage,
+          width: 300,
+          interpolation:
+              img.Interpolation.average, // Better quality for downscaling
+        );
+
+        // 4. Encode back to JPG
+        final List<int> jpgBytes = img.encodeJpg(resizedImage, quality: 85);
+        // 5. Save to the new path
+        await File(thumbnailFile.path).writeAsBytes(jpgBytes);
+
+        final path = thumbnailFile.path;
+        final bytes = await File(path).readAsBytes();
+        if (mounted) {
+          setState(() {
+            _thumbnailBytes = bytes;
+          });
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _thumbnailBytes = null;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGenerating = false;
+        });
+      }
+    }
+  }
+
+  // TODO: refactor me
   void regenerateThumbnail() async {
     // Temporarily set thumbnail path to null to force widget rebuild
     setState(() {
@@ -115,6 +197,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
     }
   }
 
+  // TODO: refactor me
   static Future<String?> generateThumbnailAndGetPath(
     Video video,
     double seekFraction,
