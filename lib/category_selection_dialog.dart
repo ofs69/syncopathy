@@ -11,10 +11,12 @@ class CategorySelectionDialog extends StatefulWidget {
   final UserCategory uncategorized;
   final bool showUncategorizedOption;
   final bool showAllCategoriesOption;
+  final Set<int>? preFilterCategoriesIds;
 
   const CategorySelectionDialog({
     super.key,
     this.initialSelectedCategory,
+    this.preFilterCategoriesIds,
     this.showAddCategory = true,
     required this.uncategorized,
     this.showUncategorizedOption = false,
@@ -78,10 +80,12 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
             _searchController.text.toLowerCase(),
           ),
         )
+        .where(
+          (item) => widget.preFilterCategoriesIds?.contains(item.id!) ?? true,
+        )
         .toList();
 
-    final bool isSearching = _searchController.text.isNotEmpty;
-
+    final isSearching = _searchController.text.isNotEmpty;
     return DraggableScrollableSheet(
       expand: false,
       builder: (BuildContext context, ScrollController scrollController) {

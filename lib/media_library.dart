@@ -440,7 +440,14 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
   Future<void> _showBulkRemoveCategoryDialog() async {
     final mediaManager = context.read<MediaManager>();
-    final category = await _showCategorySelectionDialog(showAddCategory: false);
+    final categoriesToSelect = _selectedVideos.value
+        .expand((v) => v.categories)
+        .map((c) => c.id!)
+        .toSet();
+    final category = await _showCategorySelectionDialog(
+      showAddCategory: false,
+      preFilterCategories: categoriesToSelect,
+    );
     if (category != null) {
       await mediaManager.removeVideosFromCategory(
         _selectedVideos.toList(),
@@ -462,6 +469,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
   Future<UserCategory?> _showCategorySelectionDialog({
     bool showAddCategory = true,
+    Set<int>? preFilterCategories,
   }) async {
     return await showModalBottomSheet<UserCategory?>(
       context: context,
@@ -470,6 +478,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
         return CategorySelectionDialog(
           uncategorized: _uncategorized,
           showAddCategory: showAddCategory,
+          preFilterCategoriesIds: preFilterCategories,
           showAllCategoriesOption: false,
           showUncategorizedOption: false,
         );
