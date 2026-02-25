@@ -1,13 +1,12 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/extensions.dart';
-import 'package:syncopathy/player/mpv.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
 
 class CustomMpvVideoWidget extends StatefulWidget {
-  final MpvVideoplayer player;
+  final MediaKitPlayer player;
   final bool isFullscreen;
 
   const CustomMpvVideoWidget({
@@ -23,7 +22,7 @@ class CustomMpvVideoWidget extends StatefulWidget {
 class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
   @override
   Widget build(BuildContext context) {
-    final player = context.read<MpvVideoplayer>();
+    final player = widget.player;
 
     return Watch.builder(
       builder: (context) {
@@ -44,8 +43,8 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
                     child: FittedBox(
                       fit: BoxFit.cover,
                       child: SizedBox(
-                        width: videoParams.value.dw.toDouble(),
-                        height: videoParams.value.dh.toDouble(),
+                        width: videoParams.value.dw!.toDouble(),
+                        height: videoParams.value.dh!.toDouble(),
                         child: Texture(textureId: player.textureId.value),
                       ),
                     ),
@@ -73,7 +72,7 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
                     ],
                   ),
                   child: AspectRatio(
-                    aspectRatio: videoParams.value.dw / videoParams.value.dh,
+                    aspectRatio: videoParams.value.dw! / videoParams.value.dh!,
                     child: Texture(textureId: player.textureId.value),
                   ),
                 ),

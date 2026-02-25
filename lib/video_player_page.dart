@@ -11,7 +11,7 @@ import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
-import 'package:syncopathy/player/mpv.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
 import 'package:syncopathy/scrolling_graph.dart';
 import 'package:syncopathy/video_controls.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
@@ -23,47 +23,6 @@ class VideoPlayerPage extends StatefulWidget {
 
   @override
   State<VideoPlayerPage> createState() => _VideoPlayerPageState();
-}
-
-class TogglePauseIntent extends Intent {
-  const TogglePauseIntent();
-}
-
-class TogglePauseAction extends Action<TogglePauseIntent> {
-  TogglePauseAction(this.player);
-
-  final MpvVideoplayer player;
-
-  @override
-  void invoke(TogglePauseIntent intent) {
-    player.togglePause();
-  }
-}
-
-class NextPlaylistEntryIntent extends Intent {
-  const NextPlaylistEntryIntent();
-}
-
-class NextPlaylistEntryAction extends Action<NextPlaylistEntryIntent> {
-  NextPlaylistEntryAction();
-
-  @override
-  void invoke(NextPlaylistEntryIntent intent) {
-    Events.emit(PlaylistNextEvent());
-  }
-}
-
-class PreviousPlaylistEntryIntent extends Intent {
-  const PreviousPlaylistEntryIntent();
-}
-
-class PreviousPlaylistEntryAction extends Action<PreviousPlaylistEntryIntent> {
-  PreviousPlaylistEntryAction();
-
-  @override
-  void invoke(PreviousPlaylistEntryIntent intent) {
-    Events.emit(PlaylistPreviousEvent());
-  }
 }
 
 class _VideoPlayerPageState extends State<VideoPlayerPage>
@@ -96,7 +55,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   Widget build(BuildContext context) {
     super.build(context);
     final settings = context.watch<SettingsModel>();
-    final player = context.watch<MpvVideoplayer>();
+    final player = context.watch<MediaKitPlayer>();
     final playerModel = context.watch<PlayerModel>();
     final embeddedVideoPlayer = settings.embeddedVideoPlayer.watch(context);
     final noFunscriptLoaded =
@@ -186,7 +145,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
 
   ClipRect _funscriptGraph(
     ReadonlySignal<Funscript?> funscript,
-    MpvVideoplayer player,
+    MediaKitPlayer player,
     SettingsModel settings,
   ) {
     return ClipRect(

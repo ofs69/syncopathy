@@ -8,7 +8,7 @@ import 'package:syncopathy/home_button.dart';
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/player_model.dart';
-import 'package:syncopathy/player/mpv.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
 import 'package:syncopathy/playlist_controls.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/helper/constants.dart';
@@ -30,7 +30,7 @@ class CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
     final mediaManager = context.read<MediaManager?>();
-    final player = context.read<MpvVideoplayer>();
+    final player = context.read<MediaKitPlayer>();
     final batteryModel = context.read<BatteryModel>();
     final playerModel = context.read<PlayerModel>();
 

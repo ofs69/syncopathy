@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
@@ -15,7 +16,7 @@ import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/timesource_model.dart';
-import 'package:syncopathy/player/mpv.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/sqlite/repository/kv_repository.dart';
 import 'package:syncopathy/syncopathy.dart';
@@ -76,7 +77,7 @@ Future<Widget> _initializeAppAndRun(
   }
 
   var batteryModel = BatteryModel();
-  var mpvPlayer = MpvVideoplayer(
+  var mpvPlayer = MediaKitPlayer(
     videoOutput: settings.embeddedVideoPlayer.value,
   );
 
@@ -104,6 +105,7 @@ void main(List<String> args) async {
   // comment this out if you want to use the signals devtools
   SignalsObserver.instance = null;
   WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
 
   // Initialize FFI for SQLite on desktop
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {

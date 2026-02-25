@@ -7,7 +7,7 @@ import 'package:syncopathy/focus_numeric_input.dart';
 import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
-import 'package:syncopathy/player/mpv.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
 
 class ScriptPlayerSettingsOverlay extends StatelessWidget {
   final Function toggleSettings;
@@ -352,7 +352,7 @@ class _DesktopGlassSettingsState extends State<DesktopGlassSettings> {
 
   Widget _buildTimingSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    final player = context.read<MpvVideoplayer>();
+    final player = context.read<MediaKitPlayer>();
     final playerModel = context.read<PlayerModel>();
 
     return Column(

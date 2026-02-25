@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/heatmap.dart';
 import 'package:syncopathy/model/player_model.dart';
-import 'package:syncopathy/player/mpv.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
 
 class VideoControls extends StatefulWidget {
   final VoidCallback onFullscreenToggle;
@@ -35,7 +35,7 @@ class _VideoControlsState extends State<VideoControls> {
 
   @override
   Widget build(BuildContext context) {
-    final player = context.read<MpvVideoplayer>();
+    final player = context.read<MediaKitPlayer>();
     final playerModel = context.read<PlayerModel>();
     final iconSize = Theme.of(context).iconTheme.size ?? 24.0;
 

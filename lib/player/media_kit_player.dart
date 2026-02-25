@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:libmpv_dart/libmpv.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/events/event_bus.dart';
@@ -70,7 +70,7 @@ class SmoothVideoSignals with EffectDispose {
   }
 }
 
-class MpvVideoplayer with EventSubscriber, EffectDispose {
+class MediaKitPlayer with EventSubscriber, EffectDispose {
   late Player _player;
 
   late final ReadonlySignal<int> textureId;
@@ -87,7 +87,7 @@ class MpvVideoplayer with EventSubscriber, EffectDispose {
   late final ReadonlySignal<VideoParams> videoParams;
   late final ReadonlySignal<bool> loopFile;
   late final ReadonlySignal<String> loadedPath;
-  late final ReadonlySignal<String> playlist;
+  late final ReadonlySignal<Playlist> playlist;
 
   late final ReadonlySignal<PlaylistModel> currentPlaylist;
   final Signal<bool> _playlistShuffled = signal(false);
@@ -97,43 +97,81 @@ class MpvVideoplayer with EventSubscriber, EffectDispose {
   final Signal<List<Video>> _previouslyLoadedVideos = listSignal([]);
   late final ReadonlySignal<Video?> currentVideo;
 
-  MpvVideoplayer({required bool videoOutput}) {
+  MediaKitPlayer({required bool videoOutput}) {
     _player = Player(
-      {
-        'config': 'yes',
-        'config-dir': '',
-        'input-default-bindings': 'yes',
-        'vo': 'gpu-next',
-        'osc': 'yes',
-        'hwdec': 'auto-safe',
-        'border': 'yes',
-        'geometry': "1280x720",
-        'idle': 'yes',
-        'force-window': 'yes',
-      },
-      videoOutput: videoOutput,
-      initialize: true,
+      configuration: const PlayerConfiguration(
+        // This tells libmpv to handle its own windowing
+        osc: true,
+        vo: 'gpu-next'
+      ),
     );
 
-    _player.setPropertyString('keep-open', 'yes');
-    _player.setPropertyString('loop-file', 'no');
-    _player.setPropertyString('loop-playlist', 'inf');
-    _player.setPropertyString("pause", 'yes');
-    _player.setPropertyDouble("volume", 100.0);
+    NativePlayer? nativePlayer;
+    if (_player.platform is NativePlayer) {
+      nativePlayer = _player.platform as NativePlayer;
+    }
 
-    _player.command(["keybind", "CLOSE_WIN", "ignore"]);
-    _player.command(["keybind", "q", "ignore"]);
+    // _player = Player(
+    //   {
+    //     'config': 'yes',
+    //     'config-dir': '',
+    //     'input-default-bindings': 'yes',
+    //     'vo': 'gpu-next',
+    //     'osc': 'yes',
+    //     'hwdec': 'auto-safe',
+    //     'border': 'yes',
+    //     'geometry': "1280x720",
+    //     'idle': 'yes',
+    //     'force-window': 'yes',
+    //   },
+    //   videoOutput: videoOutput,
+    //   initialize: true,
+    // );
 
-    textureId = _player.id.toSignal();
-    volume = _player.volume.toSignal();
-    duration = _player.duration.toSignal();
-    playbackSpeed = _player.speed.toSignal();
-    paused = _player.paused.toSignal();
-    videoParams = _player.videoParams.toSignal();
-    loopFile = _player.loopFile.toSignal();
-    loadedPath = _player.path.toSignal();
-    playlist = _player.playlist.toSignal();
-    currentPlaylist = computed(() => PlaylistModel.fromJson(playlist.value));
+    nativePlayer?.setProperty('keep-open', 'yes');
+    nativePlayer?.setProperty('loop-file', 'no');
+    nativePlayer?.setProperty('loop-playlist', 'inf');
+    nativePlayer?.setProperty("pause", 'yes');
+    nativePlayer?.setProperty("volume", "100.0");
+
+    nativePlayer?.command(["keybind", "CLOSE_WIN", "ignore"]);
+    nativePlayer?.command(["keybind", "q", "ignore"]);
+    textureId = signal(0); //_player.id.toSignal();
+    volume = _player.stream.volume.toSyncSignal(100);
+    duration = _player.stream.duration
+        .map((d) => d.inMilliseconds / 1000.0)
+        .toSyncSignal(0);
+    playbackSpeed = _player.stream.rate.toSyncSignal(1);
+    paused = _player.stream.playing
+        .map((p) => !p)
+        .toSyncSignal(!_player.state.playing);
+    videoParams = _player.stream.videoParams.toSyncSignal(
+      _player.state.videoParams,
+    );
+    loopFile = _player.stream.playlistMode
+        .map((mode) => mode == PlaylistMode.single)
+        .toSyncSignal(_player.state.playlistMode == PlaylistMode.single);
+
+    playlist = _player.stream.playlist.toSyncSignal(_player.state.playlist);
+    loadedPath = computed(() {
+      final currentPlaylist = playlist.value;
+      final index = currentPlaylist.index;
+      if (index >= 0 && currentPlaylist.medias.length < index) {
+        return currentPlaylist.medias[index].uri;
+      }
+      return "";
+    });
+    currentPlaylist = computed(() {
+      final currentPlaylist = playlist.value;
+      final currentIndex = currentPlaylist.index;
+      int counter = 0;
+      final entries = currentPlaylist.medias.map((media) {
+        final item = PlaylistItem(counter, media.uri, currentIndex == counter);
+        counter += 1;
+        return item;
+      }).toList();
+      return PlaylistModel(entries);
+    });
     currentVideo = computed(() {
       final playlist = currentPlaylist.value;
       final entry = playlist.currentPlaylistItem.value;
@@ -145,7 +183,9 @@ class MpvVideoplayer with EventSubscriber, EffectDispose {
     });
 
     _smoothVideoSignals = SmoothVideoSignals(
-      _player.position.toSignal(),
+      _player.stream.position
+          .map((d) => d.inMilliseconds / 1000.0)
+          .toSyncSignal(_player.state.position.inMilliseconds / 1000.0),
       paused,
       playbackSpeed,
     );
@@ -157,7 +197,8 @@ class MpvVideoplayer with EventSubscriber, EffectDispose {
         final video = ev.video;
         final index = playlist.getIndexForVideo(video);
         if (index >= 0 && index < playlist.entries.length) {
-          _player.setPropertyInt64('playlist-pos', index);
+          _player.jump(index);
+          //_player.setPropertyInt64('playlist-pos', index);
           return;
         }
 
@@ -194,7 +235,7 @@ class MpvVideoplayer with EventSubscriber, EffectDispose {
     );
 
     if (newIndex != playlist.currentIndex.value) {
-      _player.setPropertyInt64('playlist-pos', newIndex);
+      _player.jump(newIndex);
     }
   }
 
@@ -206,7 +247,7 @@ class MpvVideoplayer with EventSubscriber, EffectDispose {
     );
 
     if (newIndex != playlist.currentIndex.value) {
-      _player.setPropertyInt64('playlist-pos', newIndex);
+      _player.jump(newIndex);
     }
   }
 
@@ -231,27 +272,29 @@ class MpvVideoplayer with EventSubscriber, EffectDispose {
   }
 
   void _loadList(String playlistFile, String mode) {
-    final _ = _player.command(["loadlist", playlistFile, mode]);
+    //final _ = _player.command(["loadlist", playlistFile, mode]);
+    _player.open(Media(playlistFile));
     _playlistShuffled.value = false;
   }
 
   // ignore: unused_element
   Future<bool> _loadFile(String filepath, String mode) async {
-    final _ = _player.command(["loadfile", filepath, mode]);
+    //final _ = _player.command(["loadfile", filepath, mode]);
     return true;
   }
 
   Future<void> _closeFile() async {
-    _player.command(["stop"]);
-    _player.path.value = "";
-    _player.duration.value = 0.0;
+    await _player.stop();
+    // _player.command(["stop"]);
+    // _player.path.value = "";
+    // _player.duration.value = 0.0;
     _playlistShuffled.value = false;
   }
 
-  void dispose() {
+  void dispose() async {
     eventDispose();
     effectDispose();
-    _player.destroy();
+    await _player.dispose();
     _smoothVideoSignals.dispose();
   }
 
@@ -261,46 +304,62 @@ class MpvVideoplayer with EventSubscriber, EffectDispose {
   //   _player.setPropertyString("ontop", "no");
   // }
 
-  void screenshot(String path) {
-    _player.command(["screenshot-to-file", path, "video"]);
+  void screenshot(String path) async {
+    //_player.command(["screenshot-to-file", path, "video"]);
+    final buffer = await _player.screenshot();
+    if (buffer != null) {
+      File(path).writeAsBytesSync(buffer.toList());
+    }
   }
 
-  void toggleLooping() =>
-      _player.setPropertyString('loop-file', loopFile.value ? 'no' : 'inf');
+  void toggleLooping() {
+    if (_player.state.playlistMode == PlaylistMode.loop) {
+      _player.setPlaylistMode(PlaylistMode.single);
+    } else {
+      _player.setPlaylistMode(PlaylistMode.loop);
+    }
+  }
 
-  void setSizeAndPosition(int width, int height, int x, int y) =>
-      _player.setPropertyString("geometry", "${width}x$height+$x+$y");
+  //_player.setPropertyString('loop-file', loopFile.value ? 'no' : 'inf');
+  void setSizeAndPosition(int width, int height, int x, int y) {
+    // =>
+    //   _player.setPropertyString("geometry", "${width}x$height+$x+$y");
+    throw UnimplementedError();
+  }
 
-  void _seekToRelative(double positionPercent) => _player.command([
-    "seek",
-    (positionPercent * 100.0).toString(),
-    "absolute-percent+exact",
-  ]);
+  void _seekToRelative(double positionPercent) {
+    _player.seek(
+      Duration(milliseconds: ((duration * 1000.0) * positionPercent).round()),
+    );
+  }
+  // => _player.command([
+  //   "seek",
+  //   (positionPercent * 100.0).toString(),
+  //   "absolute-percent+exact",
+  // ]);
 
-  void seekTo(Duration seek) => _seekToRelative(
-    ((seek.inMilliseconds.toDouble() / 1000.0) / duration.value).clamp(
-      0.0,
-      1.0,
-    ),
-  );
+  void seekTo(Duration seek) => _player.seek(seek);
 
-  void setSpeed(double speed) => _player.command([
-    "set",
-    "speed",
-    speed.clamp(0.5, 2.0).toStringAsPrecision(3),
-  ]);
+  void setSpeed(double speed) => _player.setRate(speed.clamp(0.5, 2.0));
+  // .command([
+  //   "set",
+  //   "speed",
+  //   speed.clamp(0.5, 2.0).toStringAsPrecision(3),
+  // ]);
 
-  void setVolume(double volume) =>
-      _player.setPropertyDouble('volume', volume.clamp(0, 130));
+  void setVolume(double volume) => _player.setVolume(volume.clamp(0, 130));
+  //      _player.setPropertyDouble('volume', volume.clamp(0, 130));
 
-  void togglePause() => _player.setPropertyFlag('pause', !paused.value);
+  void togglePause() =>
+      _player.playOrPause(); // _player.setPropertyFlag('pause', !paused.value);
 
   void _onPlaylistShuffle(PlaylistSetShuffleEvent event) {
+    throw UnimplementedError();
     if (playlistShuffled.value != event.shuffle) {
       if (event.shuffle) {
-        _player.command(['playlist-shuffle']);
+        //_player.command(['playlist-shuffle']);
       } else {
-        _player.command(['playlist-unshuffle']);
+        //_player.command(['playlist-unshuffle']);
       }
       _playlistShuffled.value = event.shuffle;
     }

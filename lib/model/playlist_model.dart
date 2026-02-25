@@ -109,7 +109,7 @@ class PlaylistModel {
 
         if (id != null && filename != null) {
           items.add(
-            PlaylistItem(id, filename, current ?? false, playing ?? false),
+            PlaylistItem(id, filename, current ?? false /*, playing ?? false*/),
           );
         }
       }
@@ -124,6 +124,6 @@ class PlaylistItem {
   final int id;
   final String filename;
   final bool current;
-  final bool playing;
-  PlaylistItem(this.id, this.filename, this.current, this.playing);
+  //final bool playing;
+  PlaylistItem(this.id, this.filename, this.current);
 }

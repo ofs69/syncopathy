@@ -35,10 +35,23 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   provider: ^6.1.5
-  libmpv_dart:
+
+  media_kit:
     git:
-      url: https://github.com/ofs69/libmpv_dart.git
+      url: https://github.com/ofs69/media-kit.git
+      path: media_kit
       ref: main
+  media_kit_video:
+    git:
+      url: https://github.com/ofs69/media-kit.git
+      path: media_kit_video
+      ref: main
+  media_kit_libs_video:
+    git:
+      url: https://github.com/ofs69/media-kit.git
+      path: libs/universal/media_kit_libs_video
+      ref: main
+      
   buttplug:
     git:
       url: https://github.com/buttplugio/buttplug_dart
@@ -62,7 +75,6 @@ dependencies:
   string_scanner: ^1.4.1
   sqflite: ^2.4.2
   sqflite_common_ffi: ^2.4.0
-  # drift: ^2.31.0
   signals: ^6.3.0
   event_bus: ^2.0.1
   flutter_staggered_grid_view: ^0.7.0
@@ -71,6 +83,40 @@ dependencies:
   get_it: ^9.2.1
   freezed: ^3.2.5
   image: ^4.8.0
+
+dependency_overrides:
+  media_kit:
+    git:
+      url: https://github.com/ofs69/media-kit.git
+      path: media_kit
+      ref: main      
+  media_kit_video:
+    git:
+      url: https://github.com/ofs69/media-kit.git
+      path: media_kit_video
+      ref: main
+  media_kit_libs_windows_video:
+    git:
+      url: https://github.com/ofs69/media-kit.git
+      path: libs/windows/media_kit_libs_windows_video
+      ref: main
+  media_kit_libs_linux:
+    git:
+      url: https://github.com/ofs69/media-kit.git
+      path: libs/linux/media_kit_libs_linux
+  media_kit_libs_android_video:
+    git:
+      url: https://github.com/ofs69/media-kit.git
+      path: libs/android/media_kit_libs_android_video
+  media_kit_libs_macos_video:
+    git:
+      url: https://github.com/ofs69/media-kit.git
+      path: libs/macos/media_kit_libs_macos_video
+  media_kit_libs_ios_video:
+    git:
+      url: https://github.com/ofs69/media-kit.git
+      path: libs/ios/media_kit_libs_ios_video
+
 
 dev_dependencies:
   flutter_test:

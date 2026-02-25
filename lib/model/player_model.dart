@@ -14,7 +14,7 @@ import 'package:syncopathy/model/timesource_model.dart';
 import 'package:syncopathy/player/buttplug_stroker_backend.dart';
 import 'package:syncopathy/player/handy_native_command_backend.dart';
 import 'package:syncopathy/player/handy_native_hsp_backend.dart';
-import 'package:syncopathy/player/mpv.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
 import 'package:syncopathy/player/player_backend.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
@@ -57,7 +57,7 @@ class PlayerModel with EventSubscriber, EffectDispose {
   PlayerModel(
     this._settings,
     this.timeSource,
-    MpvVideoplayer player,
+    MediaKitPlayer player,
     BatteryModel batteryModel,
   ) {
     playerBackend = signal(null);

@@ -1,6 +1,6 @@
-import 'package:libmpv_dart/video/video_params.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/player/mpv.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
 
 class TimesourceModel {
   final ReadonlySignal<int> textureId;
@@ -30,7 +30,7 @@ class TimesourceModel {
     required this.loadedPath,
   });
 
-  static TimesourceModel fromPlayer(MpvVideoplayer player) => TimesourceModel(
+  static TimesourceModel fromPlayer(MediaKitPlayer player) => TimesourceModel(
     textureId: player.textureId,
     volume: player.volume,
     duration: player.duration,
