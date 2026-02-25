@@ -108,8 +108,8 @@ jobs:
         run: flutter build macos --release
 
       - name: Zip Release
-        run: zip -r syncopathy-macos-${{ github.ref_name }}.zip build/macos/Build/Products/Release/syncopathy.app
-
+        run: zip -ry syncopathy-macos-${{ github.ref_name }}.zip build/macos/Build/Products/Release/syncopathy.app
+        
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
