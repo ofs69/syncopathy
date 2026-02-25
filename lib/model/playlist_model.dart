@@ -62,7 +62,11 @@ class PlaylistModel {
   // }
 
   int getIndexForVideo(Video video) {
-    return _entries.indexWhere((v) => v.filename == video.videoPath);
+    final videoPath = Uri.file(video.videoPath).toFilePath(windows: false);
+
+    return _entries.indexWhere(
+      (v) => Uri.file(v.filename).toFilePath(windows: false) == videoPath,
+    );
   }
 
   // void setIndexFromVideoPath(String newPath) {
@@ -124,6 +128,5 @@ class PlaylistItem {
   final int id;
   final String filename;
   final bool current;
-  //final bool playing;
   PlaylistItem(this.id, this.filename, this.current);
 }

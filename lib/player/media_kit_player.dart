@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart' hide Video;
 import 'package:path_provider/path_provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/events/event_bus.dart';
@@ -72,8 +73,8 @@ class SmoothVideoSignals with EffectDispose {
 
 class MediaKitPlayer with EventSubscriber, EffectDispose {
   late Player _player;
+  late final VideoController controller;
 
-  late final ReadonlySignal<int> textureId;
   late final ReadonlySignal<double> volume;
   late final ReadonlySignal<double> duration;
   late final ReadonlySignal<double> playbackSpeed;
@@ -100,11 +101,12 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
   MediaKitPlayer({required bool videoOutput}) {
     _player = Player(
       configuration: const PlayerConfiguration(
-        // This tells libmpv to handle its own windowing
         osc: true,
-        vo: 'gpu-next'
+        vo: 'gpu-next',
+        title: "syncopathy",
       ),
     );
+    controller = VideoController(_player);
 
     NativePlayer? nativePlayer;
     if (_player.platform is NativePlayer) {
@@ -132,11 +134,11 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     nativePlayer?.setProperty('loop-file', 'no');
     nativePlayer?.setProperty('loop-playlist', 'inf');
     nativePlayer?.setProperty("pause", 'yes');
+    _player.pause();
     nativePlayer?.setProperty("volume", "100.0");
 
     nativePlayer?.command(["keybind", "CLOSE_WIN", "ignore"]);
     nativePlayer?.command(["keybind", "q", "ignore"]);
-    textureId = signal(0); //_player.id.toSignal();
     volume = _player.stream.volume.toSyncSignal(100);
     duration = _player.stream.duration
         .map((d) => d.inMilliseconds / 1000.0)
@@ -172,14 +174,20 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
       }).toList();
       return PlaylistModel(entries);
     });
+
     currentVideo = computed(() {
       final playlist = currentPlaylist.value;
       final entry = playlist.currentPlaylistItem.value;
-      final filename = entry?.filename;
-      final video = _previouslyLoadedVideos.value.firstWhereOrNull(
-        (v) => v.videoPath == filename,
-      );
-      return video;
+      var filename = entry?.filename;
+      if (filename != null) {
+        filename = Uri.file(filename).toFilePath(windows: false);
+        final video = _previouslyLoadedVideos.value.firstWhereOrNull((v) {
+          final videoPath = Uri.file(v.videoPath).toFilePath(windows: false);
+          return videoPath == filename;
+        });
+        return video;
+      }
+      return null;
     });
 
     _smoothVideoSignals = SmoothVideoSignals(
@@ -198,7 +206,6 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
         final index = playlist.getIndexForVideo(video);
         if (index >= 0 && index < playlist.entries.length) {
           _player.jump(index);
-          //_player.setPropertyInt64('playlist-pos', index);
           return;
         }
 
@@ -223,8 +230,8 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
   Future<void> _onOpenPlaylist(OpenPlaylistEvent event) async {
     if (event.videos.isEmpty) return;
     _previouslyLoadedVideos.value = event.videos;
-    final playlistFile = await _createPlaylistM3U(event.videos);
-    if (playlistFile != null) _loadList(playlistFile, 'replace');
+    // final playlistFile = await _createPlaylistM3U(event.videos);
+    _loadList(event.videos);
   }
 
   void _onPlaylistPrevious(PlaylistPreviousEvent event) {
@@ -271,24 +278,21 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     return file.path;
   }
 
-  void _loadList(String playlistFile, String mode) {
-    //final _ = _player.command(["loadlist", playlistFile, mode]);
-    _player.open(Media(playlistFile));
+  void _loadList(List<Video> videos) {
+    final playlist = Playlist(videos.map((v) => Media(v.videoPath)).toList());
+    _player.open(playlist, play: false);
     _playlistShuffled.value = false;
   }
 
   // ignore: unused_element
-  Future<bool> _loadFile(String filepath, String mode) async {
-    //final _ = _player.command(["loadfile", filepath, mode]);
+  Future<bool> _loadFile(String filepath) async {
+    _player.open(Media(filepath));
     return true;
   }
 
   Future<void> _closeFile() async {
     await _player.stop();
-    // _player.command(["stop"]);
-    // _player.path.value = "";
-    // _player.duration.value = 0.0;
-    _playlistShuffled.value = false;
+    _player.setShuffle(false);
   }
 
   void dispose() async {
@@ -305,7 +309,6 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
   // }
 
   void screenshot(String path) async {
-    //_player.command(["screenshot-to-file", path, "video"]);
     final buffer = await _player.screenshot();
     if (buffer != null) {
       File(path).writeAsBytesSync(buffer.toList());
@@ -320,47 +323,23 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     }
   }
 
-  //_player.setPropertyString('loop-file', loopFile.value ? 'no' : 'inf');
   void setSizeAndPosition(int width, int height, int x, int y) {
     // =>
     //   _player.setPropertyString("geometry", "${width}x$height+$x+$y");
-    throw UnimplementedError();
+    // throw UnimplementedError();
   }
-
-  void _seekToRelative(double positionPercent) {
-    _player.seek(
-      Duration(milliseconds: ((duration * 1000.0) * positionPercent).round()),
-    );
-  }
-  // => _player.command([
-  //   "seek",
-  //   (positionPercent * 100.0).toString(),
-  //   "absolute-percent+exact",
-  // ]);
 
   void seekTo(Duration seek) => _player.seek(seek);
 
   void setSpeed(double speed) => _player.setRate(speed.clamp(0.5, 2.0));
-  // .command([
-  //   "set",
-  //   "speed",
-  //   speed.clamp(0.5, 2.0).toStringAsPrecision(3),
-  // ]);
 
   void setVolume(double volume) => _player.setVolume(volume.clamp(0, 130));
-  //      _player.setPropertyDouble('volume', volume.clamp(0, 130));
 
-  void togglePause() =>
-      _player.playOrPause(); // _player.setPropertyFlag('pause', !paused.value);
+  void togglePause() => _player.playOrPause();
 
   void _onPlaylistShuffle(PlaylistSetShuffleEvent event) {
-    throw UnimplementedError();
     if (playlistShuffled.value != event.shuffle) {
-      if (event.shuffle) {
-        //_player.command(['playlist-shuffle']);
-      } else {
-        //_player.command(['playlist-unshuffle']);
-      }
+      _player.setShuffle(event.shuffle);
       _playlistShuffled.value = event.shuffle;
     }
   }

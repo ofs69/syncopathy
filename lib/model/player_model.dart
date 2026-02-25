@@ -41,9 +41,9 @@ class PlayerModel with EventSubscriber, EffectDispose {
           return video.funscript;
         }
       } finally {
-        if (video?.funscript == null) {
-          Events.emit(CloseMediaEvent());
-        }
+        // if (video?.funscript == null) {
+        //   Events.emit(CloseMediaEvent());
+        // }
       }
       return null;
     },

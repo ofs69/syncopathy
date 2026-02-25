@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
@@ -27,7 +28,8 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
     return Watch.builder(
       builder: (context) {
         final videoParams = player.videoParams;
-        if (videoParams.value.dw == 0 || videoParams.value.dh == 0) {
+        if ((videoParams.value.dw == 0 || videoParams.value.dw == null) ||
+            (videoParams.value.dh == 0 || videoParams.value.dh == null)) {
           return SizedBox.expand();
         }
 
@@ -45,7 +47,7 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
                       child: SizedBox(
                         width: videoParams.value.dw!.toDouble(),
                         height: videoParams.value.dh!.toDouble(),
-                        child: Texture(textureId: player.textureId.value),
+                        child: Video(controller: player.controller),
                       ),
                     ),
                   ),
@@ -73,7 +75,7 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
                   ),
                   child: AspectRatio(
                     aspectRatio: videoParams.value.dw! / videoParams.value.dh!,
-                    child: Texture(textureId: player.textureId.value),
+                    child: Video(controller: player.controller),
                   ),
                 ),
               ),

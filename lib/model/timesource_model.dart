@@ -3,7 +3,6 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
 
 class TimesourceModel {
-  final ReadonlySignal<int> textureId;
   final ReadonlySignal<double> volume;
   final ReadonlySignal<double> duration;
   final ReadonlySignal<double> playbackSpeed;
@@ -18,7 +17,6 @@ class TimesourceModel {
   int get currentRawMs => (rawPosition.value * 1000.0).round();
 
   TimesourceModel({
-    required this.textureId,
     required this.volume,
     required this.duration,
     required this.playbackSpeed,
@@ -31,7 +29,6 @@ class TimesourceModel {
   });
 
   static TimesourceModel fromPlayer(MediaKitPlayer player) => TimesourceModel(
-    textureId: player.textureId,
     volume: player.volume,
     duration: player.duration,
     playbackSpeed: player.playbackSpeed,
