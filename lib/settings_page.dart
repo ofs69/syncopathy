@@ -199,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage>
     return SwitchListTile(
       title: const Text('Use Embedded Video Player'),
       subtitle: const Text(
-        'Enables an embedded video player (requires restart, Windows only).',
+        'Enables an embedded video player (Requires Restart).',
       ),
       value: settings.embeddedVideoPlayer.watch(context),
       onChanged: (value) {

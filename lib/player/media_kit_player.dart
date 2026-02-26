@@ -123,6 +123,7 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     if (_player.platform is NativePlayer) {
       nativePlayer = _player.platform as NativePlayer;
     }
+    assert(nativePlayer != null, "Non MPV player not supported");
 
     nativePlayer?.setProperty('keep-open', 'yes');
     nativePlayer?.setProperty('loop-file', 'no');
@@ -139,9 +140,11 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
         .toSyncSignal(0);
     playbackSpeed = _player.stream.rate.toSyncSignal(1);
 
-    final pausedSignal = _player.stream.playing
-        .map((p) => !p)
-        .toSyncSignal(!_player.state.playing);
+    final pausedSignal = signal(!_player.state.playing);
+    nativePlayer?.observeProperty('pause', (value) async {
+      pausedSignal.value = value == 'yes' ? true : false;
+    });
+
     final bufferingSignal = _player.stream.buffering.toSyncSignal(
       _player.state.buffering,
     );
@@ -325,12 +328,6 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     } else {
       _player.setPlaylistMode(PlaylistMode.loop);
     }
-  }
-
-  void setSizeAndPosition(int width, int height, int x, int y) {
-    // =>
-    //   _player.setPropertyString("geometry", "${width}x$height+$x+$y");
-    // throw UnimplementedError();
   }
 
   void seekTo(Duration seek) => _player.seek(seek);
