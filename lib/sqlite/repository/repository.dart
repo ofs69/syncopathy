@@ -50,24 +50,13 @@ abstract class Repository<TKey, T extends DbEntity<TKey>> {
     final map = entity.toMap();
     final db = await dbHelper.database;
 
-    // If doesn't have an id insert. Otherwise update
-    if (entity.id == null) {
-      final id = await db.insert(
-        tableName,
-        map,
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-      if (id case TKey key) {
-        entity.id = key;
-      }
-    } else {
-      await db.update(
-        tableName,
-        map,
-        where: 'id = ?',
-        whereArgs: [entity.id],
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+    final id = await db.insert(
+      tableName,
+      map,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    if (id case TKey key) {
+      entity.id = key;
     }
 
     final cachedRef = _identityMap[entity.id];
