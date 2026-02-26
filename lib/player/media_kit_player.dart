@@ -124,23 +124,6 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
       nativePlayer = _player.platform as NativePlayer;
     }
 
-    // _player = Player(
-    //   {
-    //     'config': 'yes',
-    //     'config-dir': '',
-    //     'input-default-bindings': 'yes',
-    //     'vo': 'gpu-next',
-    //     'osc': 'yes',
-    //     'hwdec': 'auto-safe',
-    //     'border': 'yes',
-    //     'geometry': "1280x720",
-    //     'idle': 'yes',
-    //     'force-window': 'yes',
-    //   },
-    //   videoOutput: videoOutput,
-    //   initialize: true,
-    // );
-
     nativePlayer?.setProperty('keep-open', 'yes');
     nativePlayer?.setProperty('loop-file', 'no');
     nativePlayer?.setProperty('loop-playlist', 'inf');
@@ -155,9 +138,19 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
         .map((d) => d.inMilliseconds / 1000.0)
         .toSyncSignal(0);
     playbackSpeed = _player.stream.rate.toSyncSignal(1);
-    paused = _player.stream.playing
+
+    final pausedSignal = _player.stream.playing
         .map((p) => !p)
         .toSyncSignal(!_player.state.playing);
+    final bufferingSignal = _player.stream.buffering.toSyncSignal(
+      _player.state.buffering,
+    );
+    paused = computed(() {
+      final paused = pausedSignal.value;
+      final buffering = bufferingSignal.value;
+      return buffering ? true : paused;
+    });
+
     videoParams = _player.stream.videoParams.toSyncSignal(
       _player.state.videoParams,
     );
