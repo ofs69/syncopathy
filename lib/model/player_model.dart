@@ -1,7 +1,5 @@
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/events/event_bus.dart';
 import 'package:syncopathy/events/event_subscriber_mixin.dart';
-import 'package:syncopathy/events/player_event.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
@@ -40,11 +38,8 @@ class PlayerModel with EventSubscriber, EffectDispose {
           }
           return video.funscript;
         }
-      } finally {
-        // if (video?.funscript == null) {
-        //   Events.emit(CloseMediaEvent());
-        // }
       }
+      catch(_) {}
       return null;
     },
   );
