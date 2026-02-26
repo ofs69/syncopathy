@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:syncopathy/helper/constants.dart';
-import 'package:syncopathy/sqlite/models/user_category.dart';
-import 'package:syncopathy/sqlite/models/video_model.dart';
-import 'package:syncopathy/video_thumbnail.dart';
+import 'package:syncopathy/media_thumbnail.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/persistence/entities/media_file.dart';
 
-class VideoItem extends StatefulWidget {
-  const VideoItem({
+class MediaItem extends StatefulWidget {
+  const MediaItem({
     super.key,
-    required this.video,
-    required this.onVideoTapped,
+    required this.media,
+    required this.onMediaTapped,
     required this.onFavoriteChanged,
     required this.onDislikeChanged,
-    required this.onCategoryChanged,
     required this.onDelete,
     required this.showAverageSpeed,
     required this.showAverageMinMax,
@@ -25,12 +23,11 @@ class VideoItem extends StatefulWidget {
     this.onLongPress,
   });
 
-  final Video video;
-  final void Function(Video) onVideoTapped;
-  final void Function(Video) onFavoriteChanged;
-  final void Function(Video) onDislikeChanged;
-  final void Function(Video, UserCategory, bool) onCategoryChanged;
-  final void Function(Video) onDelete;
+  final MediaFile media;
+  final void Function(MediaFile) onMediaTapped;
+  final void Function(MediaFile) onFavoriteChanged;
+  final void Function(MediaFile) onDislikeChanged;
+  final void Function(MediaFile) onDelete;
   final bool showTitle;
   final bool isSelected;
   final VoidCallback? onLongPress;
@@ -40,11 +37,11 @@ class VideoItem extends StatefulWidget {
   final bool showPlayCount;
 
   @override
-  State<VideoItem> createState() => _VideoItemState();
+  State<MediaItem> createState() => _MediaItemState();
 }
 
-class _VideoItemState extends State<VideoItem> {
-  final GlobalKey<VideoThumbnailState> _thumbnailKey = GlobalKey();
+class _MediaItemState extends State<MediaItem> {
+  final GlobalKey<MediaThumbnailState> _thumbnailKey = GlobalKey();
   bool _isHovering = false;
   bool _isTapped = false;
 
@@ -72,7 +69,7 @@ class _VideoItemState extends State<VideoItem> {
                   'Are you sure you want to delete the following files?',
                 ),
                 const SizedBox(height: 16),
-                Text('Video: ${widget.video.videoPath}'),
+                Text('Video: ${widget.media.mediaPath}'),
                 if (widget.video.funscriptPath.isNotEmpty)
                   Text('Script: ${widget.video.funscriptPath}'),
               ],
@@ -106,7 +103,7 @@ class _VideoItemState extends State<VideoItem> {
         value: 'regenerate_thumbnail',
         child: Text('Regenerate Thumbnail'),
       ),
-      if (playerModel.currentVideo.value?.id == widget.video.id!)
+      if (playerModel.currentVideo.value?.id == widget.media.id)
         const PopupMenuItem<String>(
           value: 'current_frame_as_thumbnail',
           child: Text('Current frame as thumbnail'),
@@ -117,7 +114,7 @@ class _VideoItemState extends State<VideoItem> {
       ),
     ];
 
-    if (widget.video.funscriptPath.isNotEmpty) {
+    if (widget.media.funscriptPath.isNotEmpty) {
       menuItems.add(
         const PopupMenuItem<String>(
           value: 'open_script_dir',
@@ -154,9 +151,9 @@ class _VideoItemState extends State<VideoItem> {
       } else if (result == 'current_frame_as_thumbnail') {
         _thumbnailKey.currentState?.currentFrameAsThumbnail();
       } else if (result == 'open_video_dir') {
-        _openFileDirectory(widget.video.videoPath);
+        _openFileDirectory(widget.media.mediaPath);
       } else if (result == 'open_script_dir') {
-        _openFileDirectory(widget.video.funscriptPath);
+        _openFileDirectory(widget.media.funscriptPath);
       } else if (result == 'delete') {
         _showDeleteConfirmationDialog();
       }
@@ -176,11 +173,11 @@ class _VideoItemState extends State<VideoItem> {
         );
 
         final BorderSide borderSide;
-        if (widget.video.id == currentVideoId) {
+        if (widget.media.id == currentVideoId) {
           borderSide = BorderSide(color: Colors.green, width: 6.0);
-        } else if (widget.video.isFavorite) {
+        } else if (widget.media.rating == MediaRating.like) {
           borderSide = BorderSide(color: favoriteColor, width: 3.0);
-        } else if (widget.video.isDislike) {
+        } else if (widget.media.rating == MediaRating.dislike) {
           borderSide = BorderSide(color: dislikeColor, width: 3.0);
         } else {
           borderSide = BorderSide.none;
@@ -215,7 +212,7 @@ class _VideoItemState extends State<VideoItem> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    VideoThumbnail(key: _thumbnailKey, video: widget.video),
+                    MediaThumbnail(key: _thumbnailKey, mediaFile: widget.media),
                     if (widget.isSelected)
                       Container(
                         color: Theme.of(context).primaryColor.withAlpha(130),
@@ -242,9 +239,9 @@ class _VideoItemState extends State<VideoItem> {
                           ),
                           padding: const EdgeInsets.all(8.0),
                           child: Tooltip(
-                            message: getVideoTooltip(widget.video),
+                            message: getVideoTooltip(widget.media),
                             child: Text(
-                              widget.video.title,
+                              widget.media.name,
                               style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(color: Colors.white),
                               maxLines: 2,
@@ -264,14 +261,14 @@ class _VideoItemState extends State<VideoItem> {
                           if (widget.showDuration)
                             _buildStatisticItem(
                               icon: Icons.timer,
-                              text: _formatDuration(widget.video.duration),
+                              text: _formatDuration(widget.media.duration),
                               tooltipMessage: "Duration",
                             ),
                           if (widget.showDuration) const SizedBox(height: 4.0),
                           if (widget.showAverageSpeed)
                             _buildStatisticItem(
                               icon: Icons.speed,
-                              text: '${widget.video.averageSpeed.round()}',
+                              text: '${widget.media.averageSpeed.round()}',
                               tooltipMessage: "Average Speed",
                             ),
                           if (widget.showAverageSpeed)
@@ -280,23 +277,23 @@ class _VideoItemState extends State<VideoItem> {
                             _buildStatisticItem(
                               icon: Icons.stacked_line_chart,
                               text:
-                                  '${widget.video.averageMin.round()}-${widget.video.averageMax.round()}',
+                                  '${widget.media.averageMin.round()}-${widget.media.averageMax.round()}',
                               tooltipMessage: "Average Min / Max",
                             ),
                           if (widget.showPlayCount) const SizedBox(height: 4.0),
                           // Play count indicator
                           if (widget.showPlayCount)
                             _buildStatisticItem(
-                              icon: widget.video.playCount > 0
+                              icon: widget.media.playCount > 0
                                   ? Icons.play_arrow
                                   : Icons.visibility_off,
-                              text: widget.video.playCount > 0
-                                  ? widget.video.playCount > 999
+                              text: widget.media.playCount > 0
+                                  ? widget.media.playCount > 999
                                         ? '999+'
-                                        : '${widget.video.playCount}'
+                                        : '${widget.media.playCount}'
                                   : null,
-                              tooltipMessage: widget.video.playCount > 0
-                                  ? 'Watched ${widget.video.playCount} times'
+                              tooltipMessage: widget.media.playCount > 0
+                                  ? 'Watched ${widget.media.playCount} times'
                                   : 'Not watched yet',
                               color: Colors.black54,
                             ),
@@ -380,8 +377,8 @@ class _VideoItemState extends State<VideoItem> {
     );
   }
 
-  String getVideoTooltip(Video video) {
-    return video.title;
+  String getVideoTooltip(MediaFile media) {
+    return media.name;
   }
 
   Widget _buildStatisticItem({

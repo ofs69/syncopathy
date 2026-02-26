@@ -1,5 +1,5 @@
 import 'package:objectbox/objectbox.dart';
-import 'package:syncopathy/persistence/entities/funscript.dart';
+import 'package:syncopathy/persistence/entities/funscript_file.dart';
 
 class FunscriptService {
   final Box<FunscriptFile> _box;

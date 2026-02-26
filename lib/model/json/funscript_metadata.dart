@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-// These embedded classes are simple data holders, so we can define them here.
-// In a larger application, they might get their own files.
+// TODO: use json_annotations for this
 
 class Bookmark {
   String? name;

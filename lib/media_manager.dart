@@ -10,8 +10,8 @@ import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/funscript_algo.dart';
 
-import 'package:syncopathy/sqlite/database_helper.dart';
-import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
+import 'package:syncopathy/sqlite/sqlite_helper.dart';
+import 'package:syncopathy/model/json/funscript_metadata.dart';
 import 'package:syncopathy/sqlite/models/user_category.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
 

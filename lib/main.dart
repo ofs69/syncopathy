@@ -19,7 +19,7 @@ import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/timesource_model.dart';
 import 'package:syncopathy/persistence/objectbox.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
-import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/sqlite/sqlite_helper.dart';
 import 'package:syncopathy/syncopathy.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -139,7 +139,7 @@ void main(List<String> args) async {
   if (sqliteDbExists && !objectBoxExists) {
     // Migrate SQLite to objectbox
     oBox = await ObjectBox.create(appSupportDir.path);
-    await DatabaseHelper().initDb(directory: appSupportDir.path);
+    await SQLiteHelper().initDb(directory: appSupportDir.path);
     return runApp(
       MaterialApp(
         home: MigrationScreen(

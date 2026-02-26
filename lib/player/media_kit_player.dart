@@ -12,8 +12,8 @@ import 'package:syncopathy/events/event_subscriber_mixin.dart';
 import 'package:syncopathy/events/player_event.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/model/playlist_model.dart';
-import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:path/path.dart' as p;
+import 'package:syncopathy/persistence/entities/media_file.dart';
 
 class SmoothVideoSignals with EffectDispose {
   final ReadonlySignal<double> rawPosition;
@@ -95,8 +95,8 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
   ReadonlySignal<bool> get playlistShuffled => _playlistShuffled;
 
   // TODO: remove _previouslyLoadedVideos and find a better way to resolve the filename from the playlist back to a video
-  final Signal<List<Video>> _previouslyLoadedVideos = listSignal([]);
-  late final ReadonlySignal<Video?> currentVideo;
+  final Signal<List<MediaFile>> _previouslyLoadedMedia = listSignal([]);
+  late final ReadonlySignal<MediaFile?> currentMedia;
 
   MediaKitPlayer({required bool videoOutput}) {
     _player = Player(
@@ -182,14 +182,16 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
       return PlaylistModel(entries);
     });
 
-    currentVideo = computed(() {
+    currentMedia = computed(() {
       final playlist = currentPlaylist.value;
       final entry = playlist.currentPlaylistItem.value;
       var filename = entry?.filename;
       if (filename != null) {
         filename = Uri.file(filename).toFilePath(windows: false);
-        final video = _previouslyLoadedVideos.value.firstWhereOrNull((v) {
-          final videoPath = Uri.file(v.videoPath).toFilePath(windows: false);
+        final video = _previouslyLoadedMedia.value.firstWhereOrNull((media) {
+          final videoPath = Uri.file(
+            media.mediaPath,
+          ).toFilePath(windows: false);
           return videoPath == filename;
         });
         return video;
@@ -236,7 +238,7 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
 
   Future<void> _onOpenPlaylist(OpenPlaylistEvent event) async {
     if (event.videos.isEmpty) return;
-    _previouslyLoadedVideos.value = event.videos;
+    _previouslyLoadedMedia.value = event.videos;
     // final playlistFile = await _createPlaylistM3U(event.videos);
     _loadList(event.videos);
   }
@@ -265,7 +267,7 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     }
   }
 
-  Future<String?> _createPlaylistM3U(List<Video> videos) async {
+  Future<String?> _createPlaylistM3U(List<MediaFile> videos) async {
     final directory = await getApplicationSupportDirectory();
     final file = File(p.join(directory.path, 'playlist.m3u'));
     final sink = file.openWrite(mode: FileMode.write);
@@ -274,7 +276,7 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
       // Write the header
       sink.writeln('#EXTM3U');
       for (var v in videos) {
-        sink.writeln(v.videoPath);
+        sink.writeln(v.mediaPath);
       }
     } catch (e) {
       return null;
@@ -285,8 +287,10 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     return file.path;
   }
 
-  void _loadList(List<Video> videos) {
-    final playlist = Playlist(videos.map((v) => Media(v.videoPath)).toList());
+  void _loadList(List<MediaFile> mediaFiles) {
+    final playlist = Playlist(
+      mediaFiles.map((v) => Media(v.mediaPath)).toList(),
+    );
     _player.open(playlist, play: false);
     _playlistShuffled.value = false;
   }

@@ -15,7 +15,7 @@ import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/video_player_page.dart';
 
 import 'package:syncopathy/custom_app_bar.dart';
-import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/sqlite/sqlite_helper.dart';
 import 'package:syncopathy/widgets/database_reset_dialog.dart';
 
 class Syncopathy extends StatelessWidget {

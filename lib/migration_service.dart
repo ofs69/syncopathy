@@ -1,18 +1,16 @@
-import 'dart:convert';
-
 import 'package:syncopathy/main.dart';
 import 'package:syncopathy/objectbox.g.dart';
-import 'package:syncopathy/persistence/entities/funscript.dart';
+import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/key_value.dart';
-import 'package:syncopathy/persistence/entities/media.dart';
+import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/persistence/entities/media_list.dart';
-import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/sqlite/sqlite_helper.dart';
 
 class MigrationService {
   Future<void> migrate() async {
-    final videos = await DatabaseHelper().getAllVideos();
-    final categories = await DatabaseHelper().getAllUserCategories();
-    final keyValues = await DatabaseHelper().getAllKeyValues();
+    final videos = await SQLiteHelper().getAllVideos();
+    final categories = await SQLiteHelper().getAllUserCategories();
+    final keyValues = await SQLiteHelper().getAllKeyValues();
 
     await oBox.store.runInTransactionAsync(TxMode.write, (store, parameter) {
       final kvBox = store.box<KeyValue>();
@@ -29,12 +27,12 @@ class MigrationService {
           description: category.description,
           sortOrder: category.sortOrder,
         );
-        final listId = listBox.put(list);
+        final _ = listBox.put(list);
         categoryMap[category.id!] = list;
       }
 
       final funscriptBox = store.box<FunscriptFile>();
-      final mediaBox = store.box<Media>();
+      final mediaBox = store.box<MediaFile>();
       for (final video in videos) {
         final funscript = FunscriptFile(
           path: video.funscriptPath,
@@ -50,7 +48,7 @@ class MigrationService {
           (false, true) => MediaRating.dislike,
           (_, _) => MediaRating.noRating,
         };
-        final media = Media(
+        final media = MediaFile(
           duration: video.duration,
           mediaPath: video.videoPath,
           name: video.title,

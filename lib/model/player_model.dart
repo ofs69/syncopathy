@@ -16,7 +16,7 @@ import 'package:syncopathy/player/handy_native_hsp_backend.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
 import 'package:syncopathy/player/player_backend.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
-import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/sqlite/sqlite_helper.dart';
 
 import 'package:syncopathy/sqlite/models/video_model.dart';
 

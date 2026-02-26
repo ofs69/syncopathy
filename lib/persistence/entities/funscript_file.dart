@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:objectbox/objectbox.dart';
-import 'package:syncopathy/persistence/entities/media.dart';
-import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
+import 'package:syncopathy/persistence/entities/media_file.dart';
+import 'package:syncopathy/model/json/funscript_metadata.dart';
 
 @Entity()
 class FunscriptFile {
@@ -21,7 +21,7 @@ class FunscriptFile {
   double? averageMax;
 
   @Backlink('funscripts')
-  final media = ToMany<Media>();
+  final media = ToMany<MediaFile>();
 
   FunscriptFile({
     required this.path,

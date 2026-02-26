@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:crypto/crypto.dart';
 import 'package:objectbox/objectbox.dart';
-import 'package:syncopathy/persistence/entities/funscript.dart';
+import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/media_list.dart';
 
 enum MediaType {
@@ -35,7 +39,7 @@ enum MediaRating {
 }
 
 @Entity()
-class Media {
+class MediaFile {
   @Id()
   int id = 0;
 
@@ -55,13 +59,25 @@ class Media {
   String mediaPath;
   double? duration;
   int playCount;
-  
+
   final funscripts = ToMany<FunscriptFile>();
 
   @Backlink('entries')
   final lists = ToMany<MediaList>();
 
-  Media({
+  @Transient()
+  Future<String> get mediaHash async {
+    // final bytes = utf8.encode(mediaPath);
+    // final digest = sha256.convert(bytes);
+    // return digest.toString();
+    final stat = await File(mediaPath).stat();
+    final dataToHash = "${stat.modified.millisecondsSinceEpoch}-${stat.size}";
+    final bytes = utf8.encode(dataToHash);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  MediaFile({
     required this.name,
     required this.mediaPath,
     required this.playCount,

@@ -8,16 +8,18 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
+import 'package:syncopathy/main.dart';
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
+import 'package:syncopathy/objectbox.g.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
-import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/sqlite/sqlite_helper.dart';
 import 'package:syncopathy/update_checker.dart';
-import 'package:syncopathy/video_thumbnail.dart';
+import 'package:syncopathy/media_thumbnail.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:flutter/foundation.dart';
 
@@ -358,7 +360,7 @@ class _SettingsPageState extends State<SettingsPage>
             return Watch(
               (context) => ListTile(
                 title: Text(
-                  '${info.appName} v${info.version}+${info.buildNumber}\n${DatabaseHelper().dbVersion}\n${DatabaseHelper().userDbVersion}',
+                  '${info.appName} v${info.version}+${info.buildNumber}',
                 ),
                 subtitle: statusUpdateMessageSignal.value != null
                     ? Text(statusUpdateMessageSignal.value!)
@@ -456,7 +458,7 @@ class _SettingsPageState extends State<SettingsPage>
     if (mediaManager == null || mediaSettings == null) {
       return;
     }
-    await DatabaseHelper().resetAllVideosPlayCount();
+    oBox.mediaService.resetAllVideosPlayCount();
     // HACK: trigger a UI refresh
     await mediaManager.load();
     mediaSettings.isSortAscending.set(
