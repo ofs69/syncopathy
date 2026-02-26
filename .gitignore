@@ -45,3 +45,5 @@ app.*.map.json
 /android/app/release
 .vscode/launch.json
 .vscode/settings.json
+pubspec_local.yaml
+*.7z
