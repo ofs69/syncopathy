@@ -48,3 +48,4 @@ app.*.map.json
 *.7z
 *.dll
 pubspec_local.yaml
+objectbox.bat

@@ -78,11 +78,12 @@ dependencies:
   signals: ^6.3.0
   event_bus: ^2.0.1
   flutter_staggered_grid_view: ^0.7.0
-  json_annotation: ^4.10.0
+  json_annotation: ^4.11.0
   args: ^2.7.0
-  get_it: ^9.2.1
   freezed: ^3.2.5
   image: ^4.8.0
+  objectbox: ^5.2.0
+  objectbox_flutter_libs: any
 
 dependency_overrides:
   media_kit:
@@ -132,6 +133,7 @@ dev_dependencies:
   flutter_launcher_icons: "^0.14.4"
   json_serializable: ^6.12.0
   build_runner: ^2.11.1 # run: dart run build_runner build # used to generate json_serializable code
+  objectbox_generator: any
 
 # run: dart run flutter_launcher_icons
 flutter_launcher_icons:

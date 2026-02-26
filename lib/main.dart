@@ -2,33 +2,30 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
+import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_manager.dart';
+import 'package:syncopathy/migration_screen.dart';
 
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/timesource_model.dart';
+import 'package:syncopathy/persistence/objectbox.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
-import 'package:syncopathy/sqlite/repository/kv_repository.dart';
 import 'package:syncopathy/syncopathy.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'package:flutter/foundation.dart';
 
-final getIt = GetIt.instance;
-
-void _registerServices() {
-  getIt.registerSingleton(KeyValueRepository());
-}
+late ObjectBox oBox;
 
 bool isDesktop() {
   return defaultTargetPlatform == TargetPlatform.windows ||
@@ -36,15 +33,10 @@ bool isDesktop() {
       defaultTargetPlatform == TargetPlatform.linux;
 }
 
-Future<Widget> _initializeAppAndRun(
-  Directory appSupportDir, {
+Future<Widget> _initializeAppAndRun({
   required bool simple,
   required String? file,
 }) async {
-  await DatabaseHelper().initDb(directory: appSupportDir.path);
-  Logger.info('SQLite initialized.');
-  _registerServices();
-
   if (isDesktop()) {
     await windowManager.ensureInitialized();
   }
@@ -112,7 +104,6 @@ void main(List<String> args) async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
-  final appSupportDir = await getApplicationSupportDirectory();
 
   final parser = ArgParser()
     ..addFlag(
@@ -136,13 +127,69 @@ void main(List<String> args) async {
     return;
   }
 
+  // Objectbox migration logic
+  final appSupportDir = await getApplicationSupportDirectory();
+  final sqliteDbExists = await File(
+    p.join(appSupportDir.path, "syncopathyDB.sqlite"),
+  ).exists();
+  final objectBoxExists = await Directory(
+    p.join(appSupportDir.path, "objectbox"),
+  ).exists();
+
+  if (sqliteDbExists && !objectBoxExists) {
+    // Migrate SQLite to objectbox
+    oBox = await ObjectBox.create(appSupportDir.path);
+    await DatabaseHelper().initDb(directory: appSupportDir.path);
+    return runApp(
+      MaterialApp(
+        home: MigrationScreen(
+          onMigrationComplete: (context, result) async {
+            switch (result) {
+              case MigrationResult.success:
+                _showMigrationDialog(
+                  context,
+                  "Migration success",
+                  'The data migration has completed successfully. Please restart the application to apply the changes.',
+                );
+              case MigrationResult.error:
+                _showMigrationDialog(
+                  context,
+                  "Migration failed",
+                  '(╯°□°)╯︵ ┻━┻ ... I hope this doesn\'t happen',
+                );
+              case MigrationResult.skipped:
+                _showMigrationDialog(
+                  context,
+                  "Migration skipped",
+                  'Please restart the application to apply the changes.',
+                );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  oBox = await ObjectBox.create(appSupportDir.path);
   final String? filePath = results.rest.isNotEmpty ? results.rest.first : null;
   final bool isSimple = (results['simple'] as bool) || (filePath != null);
 
-  final mainApp = await _initializeAppAndRun(
-    appSupportDir,
-    simple: isSimple,
-    file: filePath,
-  );
+  final mainApp = await _initializeAppAndRun(simple: isSimple, file: filePath);
   runApp(mainApp);
+}
+
+void _showMigrationDialog(BuildContext context, String title, String message) {
+  showDialog(
+    context: context,
+    barrierDismissible: false, // Prevents closing by tapping outside
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(child: const Text('OK'), onPressed: () => exit(0)),
+        ],
+      );
+    },
+  );
 }

@@ -1,0 +1,170 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:6336503572128758716",
+      "lastPropertyId": "6:4024860914835720402",
+      "name": "FunscriptFile",
+      "properties": [
+        {
+          "id": "1:5204507680085067774",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:555857619558970040",
+          "name": "path",
+          "type": 9
+        },
+        {
+          "id": "3:171346948306968217",
+          "name": "metadataDb",
+          "type": 9
+        },
+        {
+          "id": "4:6662490761287938469",
+          "name": "averageSpeed",
+          "type": 8
+        },
+        {
+          "id": "5:8876777613061484524",
+          "name": "averageMin",
+          "type": 8
+        },
+        {
+          "id": "6:4024860914835720402",
+          "name": "averageMax",
+          "type": 8
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:7258241673948349047",
+      "lastPropertyId": "3:1414269244050387444",
+      "name": "KeyValue",
+      "properties": [
+        {
+          "id": "1:1110636866453135931",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5324733068088730942",
+          "name": "key",
+          "indexId": "1:7710736713395324780",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:1414269244050387444",
+          "name": "value",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:7413207220464161675",
+      "lastPropertyId": "7:8980549126330725608",
+      "name": "Media",
+      "properties": [
+        {
+          "id": "1:2272196324513795759",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8752328575883400114",
+          "name": "dbType",
+          "type": 6
+        },
+        {
+          "id": "3:2012092204144470782",
+          "name": "dbRating",
+          "type": 6
+        },
+        {
+          "id": "4:1805444033031759801",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "5:7116599105536418738",
+          "name": "mediaPath",
+          "type": 9
+        },
+        {
+          "id": "6:5675724617542944058",
+          "name": "duration",
+          "type": 8
+        },
+        {
+          "id": "7:8980549126330725608",
+          "name": "playCount",
+          "type": 6
+        }
+      ],
+      "relations": [
+        {
+          "id": "1:1036988608575817632",
+          "name": "funscripts",
+          "targetId": "1:6336503572128758716"
+        }
+      ]
+    },
+    {
+      "id": "4:8423154730704696626",
+      "lastPropertyId": "4:2292070019112880722",
+      "name": "MediaList",
+      "properties": [
+        {
+          "id": "1:4957973923938783710",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2125805251190299749",
+          "name": "name",
+          "indexId": "2:4073660022278031961",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:383115343253487673",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "4:2292070019112880722",
+          "name": "sortOrder",
+          "type": 6
+        }
+      ],
+      "relations": [
+        {
+          "id": "2:8426637893943230846",
+          "name": "entries",
+          "targetId": "3:7413207220464161675"
+        }
+      ]
+    }
+  ],
+  "lastEntityId": "4:8423154730704696626",
+  "lastIndexId": "2:4073660022278031961",
+  "lastRelationId": "2:8426637893943230846",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

@@ -4,6 +4,7 @@ import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:syncopathy/main.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/json/buttplug_stroker_backend_settings.dart';
@@ -16,7 +17,6 @@ import 'package:syncopathy/player/media_kit_player.dart';
 import 'package:syncopathy/player/player_backend.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
-import 'package:syncopathy/sqlite/key_value_store.dart';
 
 import 'package:syncopathy/sqlite/models/video_model.dart';
 
@@ -38,8 +38,7 @@ class PlayerModel with EventSubscriber, EffectDispose {
           }
           return video.funscript;
         }
-      }
-      catch(_) {}
+      } catch (_) {}
       return null;
     },
   );
@@ -101,17 +100,16 @@ class PlayerModel with EventSubscriber, EffectDispose {
         switch (_settings.playerBackendType.value) {
           case PlayerBackendType.buttplugStrokerCommand:
             if (playerBackend.value is! ButtplugStrokerBackend) {
-              final settings = await KeyValueStore.get(
+              final settings = oBox.keyValueService.get(
                 ButtplugStrokerBackendSettings.key,
+                ButtplugStrokerBackendSettings.fromJson,
               );
 
               newBackend = ButtplugStrokerBackend(
                 timesource: timeSource,
                 currentFunscript: currentFunscript,
                 settingsModel: _settings,
-                settings: settings != null
-                    ? ButtplugStrokerBackendSettings.fromJson(settings)
-                    : ButtplugStrokerBackendSettings(),
+                settings: settings ?? ButtplugStrokerBackendSettings(),
                 batteryModel: batteryModel,
               );
             }

@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:syncopathy/main.dart';
 import 'package:syncopathy/model/json/buttplug_stroker_backend_settings.dart';
 import 'package:syncopathy/player/player_backend.dart';
-import 'package:syncopathy/sqlite/key_value_store.dart';
 
 class ButtplugStrokerBackend extends PlayerBackend with CommandPacketBackend {
   final Signal<bool> _connected = signal(false);
@@ -45,7 +45,7 @@ class ButtplugStrokerBackend extends PlayerBackend with CommandPacketBackend {
 
   Future<void> _saveSettings() async {
     _saveDebounce.run(() async {
-      await KeyValueStore.put(
+      oBox.keyValueService.putJsonMap(
         ButtplugStrokerBackendSettings.key,
         settings.toJson(),
       );

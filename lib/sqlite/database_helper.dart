@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
+import 'package:syncopathy/sqlite/models/key_value_pair.dart';
 import 'package:syncopathy/sqlite/models/user_category.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
 
@@ -492,5 +493,11 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) {
       return UserCategory.fromMap(maps[i]);
     });
+  }
+
+  Future<List<KeyValuePair>> getAllKeyValues() async {
+    final db = await database;
+    final maps = await db.query('key_value_store');
+    return maps.map((m) => KeyValuePair.fromMap(m)).toList();
   }
 }

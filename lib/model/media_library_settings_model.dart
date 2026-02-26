@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:syncopathy/main.dart';
 import 'package:syncopathy/media_library.dart';
-import 'package:syncopathy/sqlite/key_value_store.dart';
 import 'package:syncopathy/model/json/media_library_settings.dart';
 
 class MediaLibrarySettingsModel {
@@ -30,10 +30,11 @@ class MediaLibrarySettingsModel {
   }
 
   Future<void> load() async {
-    final settings = await KeyValueStore.get(MediaLibrarySettings.key);
-    _entity = settings != null
-        ? MediaLibrarySettings.fromJson(settings)
-        : MediaLibrarySettings();
+    final settings = oBox.keyValueService.get(
+      MediaLibrarySettings.key,
+      MediaLibrarySettings.fromJson,
+    );
+    _entity = settings ?? MediaLibrarySettings();
     sortOption.value = _entity.sortOption;
     isSortAscending.value = _entity.isSortAscending;
     videosPerRow.value = _entity.videosPerRow;
@@ -65,7 +66,7 @@ class MediaLibrarySettingsModel {
   }
 
   Future<void> _saveInternal() async {
-    KeyValueStore.put(MediaLibrarySettings.key, _entity.toJson());
+    oBox.keyValueService.putJsonMap(MediaLibrarySettings.key, _entity.toJson());
     Logger.debug("Media library settings save");
   }
 }
