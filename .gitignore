@@ -47,3 +47,4 @@ app.*.map.json
 .vscode/settings.json
 *.7z
 *.dll
+pubspec_local.yaml

@@ -107,6 +107,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                       tag: 'videoPlayer',
                       child: CustomMpvVideoWidget(
                         player: widget.player,
+                        controller: widget.player.controller!,
                         isFullscreen: true,
                       ),
                     ),

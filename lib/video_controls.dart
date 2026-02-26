@@ -7,7 +7,7 @@ import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
 
 class VideoControls extends StatefulWidget {
-  final VoidCallback onFullscreenToggle;
+  final VoidCallback? onFullscreenToggle;
   final VoidCallback? onInteractionStart;
   final VoidCallback? onInteractionEnd;
   final Signal<bool>? showFunscriptGraph;

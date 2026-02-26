@@ -83,7 +83,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
               if (embeddedVideoPlayer)
                 Hero(
                   tag: 'videoPlayer',
-                  child: CustomMpvVideoWidget(player: player),
+                  child: CustomMpvVideoWidget(
+                    player: player,
+                    controller: player.controller!,
+                  ),
                 )
               else
                 Center(
@@ -134,7 +137,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
         Hero(
           tag: 'videoControls',
           child: VideoControls(
-            onFullscreenToggle: enterFullscreen,
+            onFullscreenToggle: player.controller != null ? enterFullscreen : null,
             showFunscriptGraph: _showFunscriptGraph,
             showSettings: _showSettings,
           ),

@@ -8,11 +8,13 @@ import 'package:syncopathy/player/media_kit_player.dart';
 
 class CustomMpvVideoWidget extends StatefulWidget {
   final MediaKitPlayer player;
+  final VideoController controller;
   final bool isFullscreen;
 
   const CustomMpvVideoWidget({
     super.key,
     required this.player,
+    required this.controller,
     this.isFullscreen = false,
   });
 
@@ -47,7 +49,7 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
                       child: SizedBox(
                         width: videoParams.value.dw!.toDouble(),
                         height: videoParams.value.dh!.toDouble(),
-                        child: Video(controller: player.controller),
+                        child: Video(controller: widget.controller),
                       ),
                     ),
                   ),
@@ -75,7 +77,7 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
                   ),
                   child: AspectRatio(
                     aspectRatio: videoParams.value.dw! / videoParams.value.dh!,
-                    child: Video(controller: player.controller),
+                    child: Video(controller: widget.controller),
                   ),
                 ),
               ),

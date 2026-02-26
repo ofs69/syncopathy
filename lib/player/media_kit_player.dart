@@ -73,7 +73,7 @@ class SmoothVideoSignals with EffectDispose {
 
 class MediaKitPlayer with EventSubscriber, EffectDispose {
   late Player _player;
-  late final VideoController controller;
+  late final VideoController? controller;
 
   late final ReadonlySignal<double> volume;
   late final ReadonlySignal<double> duration;
@@ -100,13 +100,24 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
 
   MediaKitPlayer({required bool videoOutput}) {
     _player = Player(
-      configuration: const PlayerConfiguration(
-        osc: true,
+      configuration: PlayerConfiguration(
+        osc: !videoOutput,
+        externalWindow: !videoOutput,
+        aditionalLibMpvOptions: {
+          'config': 'yes',
+          'config-dir': '',
+          'input-default-bindings': 'yes',
+          'hwdec': 'auto-safe',
+          'border': 'yes',
+          'geometry': "1280x720",
+          'idle': 'yes',
+          'force-window': 'yes',
+        },
         vo: 'gpu-next',
         title: "syncopathy",
       ),
     );
-    controller = VideoController(_player);
+    controller = videoOutput ? VideoController(_player) : null;
 
     NativePlayer? nativePlayer;
     if (_player.platform is NativePlayer) {
@@ -311,7 +322,7 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
   void screenshot(String path) async {
     final buffer = await _player.screenshot();
     if (buffer != null) {
-      File(path).writeAsBytesSync(buffer.toList());
+      File(path).writeAsBytesSync(buffer.toList(), flush: true);
     }
   }
 
