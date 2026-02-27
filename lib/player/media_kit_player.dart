@@ -78,10 +78,13 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
   late final ReadonlySignal<double> playbackSpeed;
   late final ReadonlySignal<bool> paused;
 
-  late final SmoothVideoSignals _smoothVideoSignals;
-  ReadonlySignal<double> get smoothPosition =>
-      _smoothVideoSignals.smoothPosition;
-  ReadonlySignal<double> get rawPosition => _smoothVideoSignals.rawPosition;
+  // late final SmoothVideoSignals _smoothVideoSignals;
+  // ReadonlySignal<double> get smoothPosition =>
+  //     _smoothVideoSignals.smoothPosition;
+  // ReadonlySignal<double> get rawPosition => _smoothVideoSignals.rawPosition;
+
+  late final ReadonlySignal<double> smoothPosition;
+  late final ReadonlySignal<double> rawPosition;
 
   late final ReadonlySignal<int?> videoWidth;
   late final ReadonlySignal<int?> videoHeight;
@@ -181,13 +184,18 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
       return null;
     });
 
-    _smoothVideoSignals = SmoothVideoSignals(
-      _player.stream.position
-          .map((d) => d.inMilliseconds / 1000.0)
-          .toSyncSignal(_player.state.position.inMilliseconds / 1000.0),
-      paused,
-      playbackSpeed,
-    );
+    // _smoothVideoSignals = SmoothVideoSignals(
+    //   _player.stream.position
+    //       .map((d) => d.inMilliseconds / 1000.0)
+    //       .toSyncSignal(_player.state.position.inMilliseconds / 1000.0),
+    //   paused,
+    //   playbackSpeed,
+    // );
+
+    rawPosition = _player.stream.position
+        .map((d) => d.inMilliseconds / 1000.0)
+        .toSyncSignal(_player.state.position.inMilliseconds / 1000.0);
+    smoothPosition = rawPosition;
 
     eventSubs([
       Events.on<OpenVideoEvent>().listen((ev) async {
@@ -270,7 +278,7 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     eventDispose();
     effectDispose();
     await _player.dispose();
-    _smoothVideoSignals.dispose();
+    //_smoothVideoSignals.dispose();
   }
 
   void screenshot(String path) async {
