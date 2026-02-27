@@ -32,7 +32,7 @@ class ProtobufWorker {
 
   Future<void> spawn() async {
     // Serialization isolate
-    {
+    if (!kIsWeb) {
       final receiveSerializePort = ReceivePort();
       _isolateSerialize = await Isolate.spawn(
         _isolateSerializeEntry,
@@ -51,7 +51,7 @@ class ProtobufWorker {
     }
 
     // Deserialization isolate
-    {
+    if (!kIsWeb) {
       final receiveDeserializePort = ReceivePort();
       _isolateDeserialize = await Isolate.spawn(
         _isolateDeserializeEntry,
@@ -75,10 +75,23 @@ class ProtobufWorker {
     _isolateSerialize.kill();
   }
 
-  void sendToSerialize(RpcMessage message) => _sendSerializePort?.send(message);
+  void sendToSerialize(RpcMessage message) {
+    if (!kIsWeb) {
+      _sendSerializePort?.send(message);
+    } else {
+      final Uint8List buffer = message.writeToBuffer();
+      _resultSerializeController.add(buffer);
+    }
+  }
 
-  void sendToDeserialize(Uint8List message) =>
+  void sendToDeserialize(Uint8List message) {
+    if (!kIsWeb) {
       _sendDeserializePort?.send(message);
+    } else {
+      final msg = RpcMessage.fromBuffer(message);
+      _resultDeserializeController.add(msg);
+    }
+  }
 
   // This runs in the separate thread
   static void _isolateSerializeEntry(SendPort mainSendPort) {
