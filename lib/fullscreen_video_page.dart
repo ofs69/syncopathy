@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
 import 'package:syncopathy/video_controls.dart';
+import 'package:web/web.dart' as web;
 
 class FullscreenVideoPage extends StatefulWidget {
   final MediaKitPlayer player;
@@ -27,24 +28,24 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    // SystemChrome.setPreferredOrientations([
+    //   DeviceOrientation.landscapeLeft,
+    //   DeviceOrientation.landscapeRight,
+    // ]);
     _startHideControlsTimer();
   }
 
   @override
   void dispose() {
     _hideControlsTimer?.cancel();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // SystemChrome.setPreferredOrientations([
+    //   DeviceOrientation.portraitUp,
+    //   DeviceOrientation.portraitDown,
+    //   DeviceOrientation.landscapeLeft,
+    //   DeviceOrientation.landscapeRight,
+    // ]);
     super.dispose();
   }
 
@@ -123,7 +124,9 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                         child: Hero(
                           tag: 'videoControls',
                           child: VideoControls(
-                            onFullscreenToggle: () => Navigator.pop(context),
+                            onFullscreenToggle: () {
+                              Navigator.pop(context);
+                            },
                             onInteractionStart: () {
                               _hideControlsTimer?.cancel();
                             },

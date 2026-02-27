@@ -6,7 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/logging.dart';
-import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
+import 'package:syncopathy/model/funscript_metadata.dart';
 
 /// Represents a single action in a Funscript file.
 class FunscriptAction implements Comparable<FunscriptAction> {

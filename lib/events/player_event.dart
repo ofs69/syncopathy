@@ -1,4 +1,4 @@
-import 'package:syncopathy/sqlite/models/video_model.dart';
+import 'package:syncopathy/model/video.dart';
 
 abstract class PlayerEvent {}
 

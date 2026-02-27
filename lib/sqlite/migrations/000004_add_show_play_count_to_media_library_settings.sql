@@ -1,1 +1,0 @@
-ALTER TABLE media_library_settings ADD COLUMN showPlayCount INTEGER NOT NULL DEFAULT 1;

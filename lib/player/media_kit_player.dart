@@ -5,15 +5,13 @@ import 'package:collection/collection.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
-import 'package:path_provider/path_provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/events/event_bus.dart';
 import 'package:syncopathy/events/event_subscriber_mixin.dart';
 import 'package:syncopathy/events/player_event.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/model/playlist_model.dart';
-import 'package:syncopathy/sqlite/models/video_model.dart';
-import 'package:path/path.dart' as p;
+import 'package:syncopathy/model/video.dart';
 
 class SmoothVideoSignals with EffectDispose {
   final ReadonlySignal<double> rawPosition;
@@ -85,7 +83,8 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
       _smoothVideoSignals.smoothPosition;
   ReadonlySignal<double> get rawPosition => _smoothVideoSignals.rawPosition;
 
-  late final ReadonlySignal<VideoParams> videoParams;
+  late final ReadonlySignal<int?> videoWidth;
+  late final ReadonlySignal<int?> videoHeight;
   late final ReadonlySignal<bool> loopFile;
   late final ReadonlySignal<String> loadedPath;
   late final ReadonlySignal<Playlist> playlist;
@@ -119,44 +118,29 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     );
     controller = videoOutput ? VideoController(_player) : null;
 
-    NativePlayer? nativePlayer;
-    if (_player.platform is NativePlayer) {
-      nativePlayer = _player.platform as NativePlayer;
-    }
-    assert(nativePlayer != null, "Non MPV player not supported");
-
-    nativePlayer?.setProperty('keep-open', 'yes');
-    nativePlayer?.setProperty('loop-file', 'no');
-    nativePlayer?.setProperty('loop-playlist', 'inf');
-    nativePlayer?.setProperty("pause", 'yes');
+    _player.setPlaylistMode(PlaylistMode.single);
     _player.pause();
-    nativePlayer?.setProperty("volume", "100.0");
-
-    nativePlayer?.command(["keybind", "CLOSE_WIN", "ignore"]);
-    nativePlayer?.command(["keybind", "q", "ignore"]);
     volume = _player.stream.volume.toSyncSignal(100);
     duration = _player.stream.duration
         .map((d) => d.inMilliseconds / 1000.0)
         .toSyncSignal(0);
     playbackSpeed = _player.stream.rate.toSyncSignal(1);
 
-    final pausedSignal = signal(!_player.state.playing);
-    nativePlayer?.observeProperty('pause', (value) async {
-      pausedSignal.value = value == 'yes' ? true : false;
-    });
-
     final bufferingSignal = _player.stream.buffering.toSyncSignal(
       _player.state.buffering,
     );
+    final playingSignal = _player.stream.playing.toSyncSignal(
+      _player.state.playing,
+    );
     paused = computed(() {
-      final paused = pausedSignal.value;
+      final paused = !playingSignal.value;
       final buffering = bufferingSignal.value;
       return buffering ? true : paused;
     });
 
-    videoParams = _player.stream.videoParams.toSyncSignal(
-      _player.state.videoParams,
-    );
+    videoWidth = _player.stream.width.toSyncSignal(_player.state.width);
+    videoHeight = _player.stream.height.toSyncSignal(_player.state.height);
+
     loopFile = _player.stream.playlistMode
         .map((mode) => mode == PlaylistMode.single)
         .toSyncSignal(_player.state.playlistMode == PlaylistMode.single);
@@ -189,7 +173,7 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
       if (filename != null) {
         filename = Uri.file(filename).toFilePath(windows: false);
         final video = _previouslyLoadedVideos.value.firstWhereOrNull((v) {
-          final videoPath = Uri.file(v.videoPath).toFilePath(windows: false);
+          final videoPath = Uri.file(v.url).toFilePath(windows: false);
           return videoPath == filename;
         });
         return video;
@@ -265,28 +249,8 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     }
   }
 
-  Future<String?> _createPlaylistM3U(List<Video> videos) async {
-    final directory = await getApplicationSupportDirectory();
-    final file = File(p.join(directory.path, 'playlist.m3u'));
-    final sink = file.openWrite(mode: FileMode.write);
-
-    try {
-      // Write the header
-      sink.writeln('#EXTM3U');
-      for (var v in videos) {
-        sink.writeln(v.videoPath);
-      }
-    } catch (e) {
-      return null;
-    } finally {
-      await sink.close();
-    }
-
-    return file.path;
-  }
-
   void _loadList(List<Video> videos) {
-    final playlist = Playlist(videos.map((v) => Media(v.videoPath)).toList());
+    final playlist = Playlist(videos.map((v) => Media(v.url)).toList());
     _player.open(playlist, play: false);
     _playlistShuffled.value = false;
   }
@@ -309,12 +273,6 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     _smoothVideoSignals.dispose();
   }
 
-  // void bringToFront() async {
-  //   _player.setPropertyString("ontop", "yes");
-  //   await Future.delayed(Duration(microseconds: 100));
-  //   _player.setPropertyString("ontop", "no");
-  // }
-
   void screenshot(String path) async {
     final buffer = await _player.screenshot();
     if (buffer != null) {
@@ -334,7 +292,7 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
 
   void setSpeed(double speed) => _player.setRate(speed.clamp(0.5, 2.0));
 
-  void setVolume(double volume) => _player.setVolume(volume.clamp(0, 130));
+  void setVolume(double volume) => _player.setVolume(volume.clamp(0, 100));
 
   void togglePause() => _player.playOrPause();
 

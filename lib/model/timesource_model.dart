@@ -1,4 +1,3 @@
-import 'package:media_kit/media_kit.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
 
@@ -9,7 +8,8 @@ class TimesourceModel {
   final ReadonlySignal<bool> paused;
   final ReadonlySignal<double> rawPosition;
   final ReadonlySignal<double> smoothPosition;
-  final ReadonlySignal<VideoParams> videoParams;
+  final ReadonlySignal<int?> videoWidth;
+  final ReadonlySignal<int?> videoHeight;
   final ReadonlySignal<bool> loopFile;
   final ReadonlySignal<String> loadedPath;
 
@@ -23,7 +23,8 @@ class TimesourceModel {
     required this.paused,
     required this.rawPosition,
     required this.smoothPosition,
-    required this.videoParams,
+    required this.videoWidth,
+    required this.videoHeight,
     required this.loopFile,
     required this.loadedPath,
   });
@@ -35,7 +36,8 @@ class TimesourceModel {
     paused: player.paused,
     rawPosition: player.rawPosition,
     smoothPosition: player.smoothPosition,
-    videoParams: player.videoParams,
+    videoWidth: player.videoWidth,
+    videoHeight: player.videoHeight,
     loopFile: player.loopFile,
     loadedPath: player.loadedPath,
   );

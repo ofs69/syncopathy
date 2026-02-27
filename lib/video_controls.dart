@@ -149,12 +149,12 @@ class _VideoControlsState extends State<VideoControls> {
                             child: Slider(
                               padding: EdgeInsets.symmetric(
                                 vertical: 0.0,
-                                horizontal: 8.0,
+                                horizontal: 16.0,
                               ),
                               value: volume,
                               min: 0,
-                              max: 130,
-                              divisions: 130 ~/ 5,
+                              max: 100,
+                              divisions: 100 ~/ 5,
                               label: '${volume.round()}%',
                               onChanged: player.setVolume,
                               onChangeStart: (_) =>

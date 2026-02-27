@@ -7,7 +7,7 @@ import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/json/buttplug_stroker_backend_settings.dart';
 import 'package:syncopathy/player/player_backend.dart';
-import 'package:syncopathy/sqlite/key_value_store.dart';
+import 'package:syncopathy/web_key_value_store.dart';
 
 class ButtplugStrokerBackend extends PlayerBackend with CommandPacketBackend {
   final Signal<bool> _connected = signal(false);

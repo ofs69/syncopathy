@@ -18,14 +18,11 @@ class ScriptPlayerSettingsOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRect(
       // Prevents the blur from spreading outside the container
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
-        child: Container(
-          padding: EdgeInsets.all(8.0),
-          decoration: BoxDecoration(color: Colors.black.withAlphaF(0.4)),
-          alignment: Alignment.topCenter,
-          child: DesktopGlassSettings(),
-        ),
+      child: Container(
+        padding: EdgeInsets.all(8.0),
+        decoration: BoxDecoration(color: Colors.black.withAlphaF(0.7)),
+        alignment: Alignment.topCenter,
+        child: DesktopGlassSettings(),
       ),
     );
   }

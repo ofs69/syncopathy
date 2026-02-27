@@ -17,6 +17,7 @@ import 'package:syncopathy/video_controls.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
 import 'package:syncopathy/fullscreen_video_page.dart';
 import 'package:syncopathy/video_player_settings_overlay.dart';
+import 'package:web/web.dart' as web;
 
 class VideoPlayerPage extends StatefulWidget {
   const VideoPlayerPage({super.key});
@@ -57,19 +58,20 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
     final settings = context.watch<SettingsModel>();
     final player = context.watch<MediaKitPlayer>();
     final playerModel = context.watch<PlayerModel>();
-    final embeddedVideoPlayer = settings.embeddedVideoPlayer.watch(context);
     final noFunscriptLoaded =
         playerModel.currentFunscript.watch(context) == null;
 
-    enterFullscreen() => Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FullscreenVideoPage(
-          player: player,
-          isEmbeddedPlayerEnabled: settings.embeddedVideoPlayer.value,
+    enterFullscreen() {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FullscreenVideoPage(
+            player: player,
+            isEmbeddedPlayerEnabled: true,
+          ),
         ),
-      ),
-    );
+      );
+    }
 
     toggleSettings() => _showSettings.value = !_showSettings.value;
 
@@ -80,7 +82,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              if (embeddedVideoPlayer && player.controller != null)
+              if (player.controller != null)
                 Hero(
                   tag: 'videoPlayer',
                   child: CustomMpvVideoWidget(
@@ -137,7 +139,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
         Hero(
           tag: 'videoControls',
           child: VideoControls(
-            onFullscreenToggle: player.controller != null ? enterFullscreen : null,
+            onFullscreenToggle: player.controller != null
+                ? enterFullscreen
+                : null,
             showFunscriptGraph: _showFunscriptGraph,
             showSettings: _showSettings,
           ),
@@ -152,16 +156,13 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
     SettingsModel settings,
   ) {
     return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          decoration: BoxDecoration(color: Colors.black.withAlphaF(0.3)),
-          child: InteractiveScrollingGraph(
-            funscript: funscript,
-            videoPosition: player.smoothPosition,
-            viewDuration: settings.funscriptGraphViewDuration,
-          ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        decoration: BoxDecoration(color: Colors.black.withAlphaF(0.7)),
+        child: InteractiveScrollingGraph(
+          funscript: funscript,
+          videoPosition: player.smoothPosition,
+          viewDuration: settings.funscriptGraphViewDuration,
         ),
       ),
     );

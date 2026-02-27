@@ -29,9 +29,11 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
 
     return Watch.builder(
       builder: (context) {
-        final videoParams = player.videoParams;
-        if ((videoParams.value.dw == 0 || videoParams.value.dw == null) ||
-            (videoParams.value.dh == 0 || videoParams.value.dh == null)) {
+        final videoWidth = player.videoWidth.value;
+        final videoHeight = player.videoHeight.value;
+
+        if ((videoWidth == 0 || videoWidth == null) ||
+            (videoHeight == 0 || videoHeight == null)) {
           return SizedBox.expand();
         }
 
@@ -39,30 +41,30 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
           child: Stack(
             children: [
               // Layer 1: The Blurred Backlight
-              Positioned.fill(
-                child: Transform.scale(
-                  scale: 1.1,
-                  child: ImageFiltered(
-                    imageFilter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      child: SizedBox(
-                        width: videoParams.value.dw!.toDouble(),
-                        height: videoParams.value.dh!.toDouble(),
-                        child: Video(
-                          controller: widget.controller,
-                          controls: null,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              // Positioned.fill(
+              //   child: Transform.scale(
+              //     scale: 1.1,
+              //     child: ImageFiltered(
+              //       imageFilter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+              //       child: FittedBox(
+              //         fit: BoxFit.cover,
+              //         child: SizedBox(
+              //           width: videoWidth.toDouble(),
+              //           height: videoHeight.toDouble(),
+              //           child: Video(
+              //             controller: widget.controller,
+              //             controls: null,
+              //           ),
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              // ),
 
               // Layer 2: Black overlay (optional, for better contrast)
-              Positioned.fill(
-                child: Container(color: Colors.black.withAlphaF(0.5)),
-              ),
+              // Positioned.fill(
+              //   child: Container(color: Colors.black.withAlphaF(0.5)),
+              // ),
 
               // Layer 3: The Main Video
               Center(
@@ -79,7 +81,7 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
                     ],
                   ),
                   child: AspectRatio(
-                    aspectRatio: videoParams.value.dw! / videoParams.value.dh!,
+                    aspectRatio: videoWidth / videoHeight,
                     child: Video(controller: widget.controller, controls: null),
                   ),
                 ),

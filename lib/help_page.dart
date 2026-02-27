@@ -35,29 +35,8 @@ class _HelpPageState extends State<HelpPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'To begin, navigate to the "Settings" tab. Under "Media Library Paths", add the directories where your video and funscript files are stored. Syncopathy will automatically scan these directories for compatible media.',
+                      'Connect the Handy and drag and drop local videos and funscripts from your filesystem onto the application to play them.\nScript token playback is not supported.',
                       style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Video Players',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInfoPoint(
-                          context,
-                          'Embedded Player: This MPV-based player is integrated directly into the application and is currently only available on Windows. You can enable or disable the embedded player in the settings.',
-                        ),
-                        _buildInfoPoint(
-                          context,
-                          'External Player: When the embedded player is disabled, Syncopathy will utilize an external MPV player. It is available across all supported platforms. To use it disable the embedded player in the settings.',
-                        ),
-                      ],
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -83,65 +62,13 @@ class _HelpPageState extends State<HelpPage> {
                       context,
                       'Bluetooth must be enabled and your device must support Bluetooth Low Energy (BLE) for the connection.',
                     ),
+                    _buildInfoPoint(
+                      context,
+                      'The browser will prompt you to pair a device. Pick the one starting with OHD',
+                    ),
                   ],
                 ),
               ),
-              // const SizedBox(width: 24),
-              // Expanded(
-              //   child: Column(
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     children: [
-              //       Text(
-              //         'Available Shortcuts',
-              //         style: Theme.of(context).textTheme.headlineMedium
-              //             ?.copyWith(fontWeight: FontWeight.bold),
-              //       ),
-              //       const SizedBox(height: 16),
-              //       _buildShortcutItem(
-              //         context,
-              //         Icons.space_bar,
-              //         'Toggle video playback (Play/Pause)',
-              //         'Spacebar',
-              //       ),
-              //       _buildShortcutItem(
-              //         context,
-              //         Icons.arrow_forward,
-              //         'Next playlist entry',
-              //         'Arrow Right',
-              //       ),
-              //       _buildShortcutItem(
-              //         context,
-              //         Icons.arrow_back,
-              //         'Previous playlist entry',
-              //         'Arrow Left',
-              //       ),
-              //       _buildShortcutItem(
-              //         context,
-              //         Icons.looks_one,
-              //         'Switch to Media tab',
-              //         'Ctrl+1',
-              //       ),
-              //       _buildShortcutItem(
-              //         context,
-              //         Icons.looks_two,
-              //         'Switch to Video Player tab',
-              //         'Ctrl+2',
-              //       ),
-              //       _buildShortcutItem(
-              //         context,
-              //         Icons.looks_3,
-              //         'Switch to Settings tab',
-              //         'Ctrl+3',
-              //       ),
-              //       _buildShortcutItem(
-              //         context,
-              //         Icons.looks_4,
-              //         'Switch to Help tab',
-              //         'Ctrl+4',
-              //       ),
-              //     ],
-              //   ),
-              // ),
             ],
           ),
         ],
