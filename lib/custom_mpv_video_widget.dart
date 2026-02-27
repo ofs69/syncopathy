@@ -49,7 +49,10 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
                       child: SizedBox(
                         width: videoParams.value.dw!.toDouble(),
                         height: videoParams.value.dh!.toDouble(),
-                        child: Video(controller: widget.controller),
+                        child: Video(
+                          controller: widget.controller,
+                          controls: null,
+                        ),
                       ),
                     ),
                   ),
@@ -77,7 +80,7 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
                   ),
                   child: AspectRatio(
                     aspectRatio: videoParams.value.dw! / videoParams.value.dh!,
-                    child: Video(controller: widget.controller),
+                    child: Video(controller: widget.controller, controls: null),
                   ),
                 ),
               ),
