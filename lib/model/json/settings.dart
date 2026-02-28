@@ -15,6 +15,7 @@ class Settings {
   bool autoSwitchToVideoPlayerTab;
   bool invert;
   PlayerBackendType playerBackendType;
+  int dismissedStartModal;
 
   static const String key = "MainAppSettings";
 
@@ -30,6 +31,7 @@ class Settings {
     this.autoSwitchToVideoPlayerTab = false,
     this.invert = false,
     this.playerBackendType = PlayerBackendType.handyStrokerStreamingBluetooth,
+    this.dismissedStartModal = 0,
   });
 
   factory Settings.fromJson(Map<String, dynamic> json) =>

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/help_page.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
+import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/settings_page.dart';
 import 'package:syncopathy/video_player_page.dart';
 import 'package:syncopathy/custom_app_bar.dart';
+import 'package:syncopathy/web/start_modal.dart';
 import 'package:syncopathy/web_drag_and_drop.dart';
 
 class Syncopathy extends StatelessWidget {
@@ -47,6 +49,28 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
   late final PageController _pageController = PageController(
     initialPage: _selectedIndex,
   );
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Show start modal
+      final settingsModel = context.read<SettingsModel>();
+      if (settingsModel.dismissedStartModal.value <
+          StartupModal.currentModalVersion) {
+        final dismiss = await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const StartupModal(),
+        );
+        if (dismiss) {
+          settingsModel.dismissedStartModal.value =
+              StartupModal.currentModalVersion;
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {

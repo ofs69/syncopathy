@@ -126,7 +126,12 @@ class PlayerModel with EventSubscriber, EffectDispose {
       final funscriptJson = await readAsString();
       final funscriptMap = jsonDecode(funscriptJson);
       final funscript = Funscript.fromJson(funscriptMap, path);
-      currentFunscript.value = funscript;
+      if (!funscript.likelyScriptToken) {
+        currentFunscript.value = funscript;
+      } else {
+        currentFunscript.value = null;
+        Logger.error("Script token playback is not supported.");
+      }
     } else {
       if (mimeType != null && !_canPlayVideo(mimeType)) {
         Logger.error("Can't play $name");

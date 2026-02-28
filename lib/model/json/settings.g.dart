@@ -23,6 +23,7 @@ Settings _$SettingsFromJson(Map<String, dynamic> json) => Settings(
         json['playerBackendType'],
       ) ??
       PlayerBackendType.handyStrokerStreamingBluetooth,
+  dismissedStartModal: (json['dismissedStartModal'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$SettingsToJson(Settings instance) => <String, dynamic>{
@@ -36,6 +37,7 @@ Map<String, dynamic> _$SettingsToJson(Settings instance) => <String, dynamic>{
   'autoSwitchToVideoPlayerTab': instance.autoSwitchToVideoPlayerTab,
   'invert': instance.invert,
   'playerBackendType': _$PlayerBackendTypeEnumMap[instance.playerBackendType]!,
+  'dismissedStartModal': instance.dismissedStartModal,
 };
 
 const _$SettingsJsonSchema = {
@@ -52,6 +54,7 @@ const _$SettingsJsonSchema = {
     'autoSwitchToVideoPlayerTab': {'type': 'boolean', 'default': false},
     'invert': {'type': 'boolean', 'default': false},
     'playerBackendType': {'type': 'object'},
+    'dismissedStartModal': {'type': 'integer', 'default': 0},
   },
 };
 

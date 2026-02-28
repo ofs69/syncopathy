@@ -26,6 +26,7 @@ class SettingsModel {
   final Signal<PlayerBackendType> playerBackendType = signal(
     PlayerBackendType.handyStrokerStreamingBluetooth,
   );
+  final Signal<int> dismissedStartModal = signal(0);
 
   // Not persisted in the database
   Signal<bool> showDebugNotifications = signal(kDebugMode);
@@ -52,6 +53,7 @@ class SettingsModel {
     skipToAction.value = _entity.skipToAction;
     invert.value = _entity.invert;
     playerBackendType.value = _entity.playerBackendType;
+    dismissedStartModal.value = _entity.dismissedStartModal;
 
     _saveEffectDispose = effect(() async {
       _entity.min = min.value;
@@ -63,6 +65,7 @@ class SettingsModel {
       _entity.skipToAction = skipToAction.value;
       _entity.invert = invert.value;
       _entity.playerBackendType = playerBackendType.value;
+      _entity.dismissedStartModal = dismissedStartModal.value;
       await _save();
     });
   }
