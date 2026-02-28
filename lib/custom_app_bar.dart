@@ -74,12 +74,12 @@ class CustomAppBarState extends State<CustomAppBar> with SignalsMixin {
             final element = web.document.documentElement;
 
             if (element != null) {
-              // Check if we are already in fullscreen
               if (web.document.fullscreenElement == null) {
-                // Request Fullscreen
-                element.requestFullscreen();
+                // Request Fullscreen with 'immersive' navigation
+                element.requestFullscreen(
+                  web.FullscreenOptions(navigationUI: 'hide'),
+                );
               } else {
-                // Exit Fullscreen
                 web.document.exitFullscreen();
               }
             }
