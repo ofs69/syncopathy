@@ -1,6 +1,7 @@
 # syncopathy
 
-An offline bluetooth script player for the handy made with flutter.
+An offline bluetooth script player for the handy made with flutter.  
+There's also a [web branch](https://github.com/ofs69/syncopathy/tree/simple-web-version) deployed over [here](https://ofs69.github.io/syncopathy-web/)
 
 ## Dev stuff
 ```

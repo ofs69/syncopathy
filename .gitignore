@@ -47,3 +47,5 @@ app.*.map.json
 .vscode/settings.json
 pubspec_local.yaml
 *.7z
+objectbox.bat
+TODO
