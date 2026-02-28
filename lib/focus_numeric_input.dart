@@ -63,6 +63,13 @@ class _FocusNumericInputState extends State<FocusNumericInput> {
         widget.onChanged(parsedValue);
       }
     }
+
+    if (_focusNode.hasFocus) {
+      _controller.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _controller.text.length,
+      );
+    }
   }
 
   @override
