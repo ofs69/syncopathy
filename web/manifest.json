@@ -3,9 +3,9 @@
     "short_name": "syncopathy",
     "start_url": ".",
     "display": "fullscreen",
-    "background_color": "#hexcode",
-    "theme_color": "#hexcode",
-    "description": "A new Flutter project.",
+    "background_color": "#FF448AFF",
+    "theme_color": "#FF448AFF",
+    "description": "funscript player",
     "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
