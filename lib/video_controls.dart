@@ -40,7 +40,7 @@ class _VideoControlsState extends State<VideoControls> {
     final iconSize = Theme.of(context).iconTheme.size ?? 24.0;
 
     // Use a breakpoint to detect mobile
-    final bool isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Material(
       type: MaterialType.transparency,
@@ -74,7 +74,7 @@ class _VideoControlsState extends State<VideoControls> {
                   ),
                 ),
 
-                _buildVolumeSlider(player),
+                _buildVolumeSlider(player, isMobile),
 
                 const SizedBox(width: 4.0),
 
@@ -220,7 +220,7 @@ class _VideoControlsState extends State<VideoControls> {
     );
   }
 
-  Widget _buildVolumeSlider(MediaKitPlayer player) {
+  Widget _buildVolumeSlider(MediaKitPlayer player, bool isMobile) {
     return Watch.builder(
       builder: (context) {
         return Row(
@@ -228,7 +228,7 @@ class _VideoControlsState extends State<VideoControls> {
           children: [
             _buildMuteButton(player),
             SizedBox(
-              width: 75,
+              width: isMobile ? 75 : 150,
               child: Slider(
                 padding: EdgeInsets.fromLTRB(4.0, 0.0, 16.0, 0.0),
                 value: player.volume.value,

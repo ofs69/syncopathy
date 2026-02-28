@@ -142,7 +142,6 @@ class _SettingsPageState extends State<SettingsPage>
             borderRadius: BorderRadius.circular(16.0),
             isExpanded: true,
             items: PlayerBackendType.values
-                .where((e) => e != PlayerBackendType.buttplugStrokerCommand)
                 .map(
                   (e) => DropdownMenuItem<String>(
                     value: e.toString(),
