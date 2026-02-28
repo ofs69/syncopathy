@@ -66,7 +66,7 @@ class CustomAppBarState extends State<CustomAppBar> with SignalsMixin {
       ),
       actions: [
         HomeButton(),
-        SizedBox(width: 16),
+        SizedBox(width: 4),
         IconButton(
           icon: const Icon(Icons.fullscreen),
           tooltip: "Fullscreen",
@@ -85,7 +85,7 @@ class CustomAppBarState extends State<CustomAppBar> with SignalsMixin {
             }
           },
         ),
-        SizedBox(width: 16),
+        SizedBox(width: 4),
         TextButton.icon(
           label: Text("Open files..."),
           onPressed: _loadFile,
@@ -105,7 +105,7 @@ class CustomAppBarState extends State<CustomAppBar> with SignalsMixin {
         //   child: actionRow(currentVideo, currentPlaylist.entries.length > 1),
         // ),
         // const PlaylistControls(),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
 
         if (hasBattery)
           Padding(

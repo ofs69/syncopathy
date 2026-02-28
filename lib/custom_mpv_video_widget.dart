@@ -1,4 +1,3 @@
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -9,13 +8,11 @@ import 'package:syncopathy/player/media_kit_player.dart';
 class CustomMpvVideoWidget extends StatefulWidget {
   final MediaKitPlayer player;
   final VideoController controller;
-  final bool isFullscreen;
 
   const CustomMpvVideoWidget({
     super.key,
     required this.player,
     required this.controller,
-    this.isFullscreen = false,
   });
 
   @override

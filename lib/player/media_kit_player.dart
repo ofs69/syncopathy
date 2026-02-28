@@ -75,7 +75,7 @@ class SmoothVideoSignals with EffectDispose {
 
 class MediaKitPlayer with EventSubscriber, EffectDispose {
   late Player _player;
-  late final VideoController? controller;
+  late final VideoController controller;
 
   late final ReadonlySignal<double> volume;
   late final ReadonlySignal<double> duration;
@@ -101,26 +101,9 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
   final Signal<List<Video>> _previouslyLoadedVideos = listSignal([]);
   late final ReadonlySignal<Video?> currentVideo;
 
-  MediaKitPlayer({required bool videoOutput}) {
-    _player = Player(
-      configuration: PlayerConfiguration(
-        osc: !videoOutput,
-        externalWindow: !videoOutput,
-        aditionalLibMpvOptions: {
-          'config': 'yes',
-          'config-dir': '',
-          'input-default-bindings': 'yes',
-          'hwdec': 'auto-safe',
-          'border': 'yes',
-          'geometry': "1280x720",
-          'idle': 'yes',
-          'force-window': 'yes',
-        },
-        vo: 'gpu-next',
-        title: "syncopathy",
-      ),
-    );
-    controller = videoOutput ? VideoController(_player) : null;
+  MediaKitPlayer() {
+    _player = Player(configuration: PlayerConfiguration(title: "syncopathy"));
+    controller = VideoController(_player);
 
     _player.setPlaylistMode(PlaylistMode.single);
     _player.pause();
@@ -305,5 +288,9 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
       _player.setShuffle(event.shuffle);
       _playlistShuffled.value = event.shuffle;
     }
+  }
+
+  void play() {
+    _player.play();
   }
 }

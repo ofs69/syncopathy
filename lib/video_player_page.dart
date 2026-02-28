@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +15,6 @@ import 'package:syncopathy/video_controls.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
 import 'package:syncopathy/fullscreen_video_page.dart';
 import 'package:syncopathy/video_player_settings_overlay.dart';
-import 'package:web/web.dart' as web;
 
 class VideoPlayerPage extends StatefulWidget {
   const VideoPlayerPage({super.key});
@@ -82,20 +79,13 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              if (player.controller != null)
-                Hero(
-                  tag: 'videoPlayer',
-                  child: CustomMpvVideoWidget(
-                    player: player,
-                    controller: player.controller!,
-                  ),
-                )
-              else
-                Center(
-                  child: noFunscriptLoaded
-                      ? SizedBox.shrink()
-                      : Text('Embedded player disabled'),
+              Hero(
+                tag: 'videoPlayer',
+                child: CustomMpvVideoWidget(
+                  player: player,
+                  controller: player.controller,
                 ),
+              ),
 
               if (noFunscriptLoaded)
                 Container(
@@ -139,9 +129,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
         Hero(
           tag: 'videoControls',
           child: VideoControls(
-            onFullscreenToggle: player.controller != null
-                ? enterFullscreen
-                : null,
+            onFullscreenToggle: enterFullscreen,
             showFunscriptGraph: _showFunscriptGraph,
             showSettings: _showSettings,
           ),

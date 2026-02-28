@@ -30,6 +30,7 @@ class _SettingsPageState extends State<SettingsPage>
     return SingleChildScrollView(
       padding: EdgeInsets.all(24.0),
       child: MasonryGridView.count(
+        physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         crossAxisCount: (MediaQuery.of(context).size.width / 500.0)
             .clamp(1, 3)
@@ -114,9 +115,7 @@ class _SettingsPageState extends State<SettingsPage>
           ),
           value: settings.showDebugNotifications.value,
           onChanged: (value) {
-            setState(() {
-              settings.showDebugNotifications.value = value;
-            });
+            settings.showDebugNotifications.value = value;
           },
           secondary: const Icon(Icons.bug_report),
         ),

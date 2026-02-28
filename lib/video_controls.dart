@@ -15,7 +15,7 @@ class VideoControls extends StatefulWidget {
 
   const VideoControls({
     super.key,
-    required this.onFullscreenToggle,
+    this.onFullscreenToggle,
     this.onInteractionStart,
     this.onInteractionEnd,
     this.showFunscriptGraph,
@@ -39,194 +39,72 @@ class _VideoControlsState extends State<VideoControls> {
     final playerModel = context.read<PlayerModel>();
     final iconSize = Theme.of(context).iconTheme.size ?? 24.0;
 
-    final showFunscriptGraph = widget.showFunscriptGraph;
-    final showSettings = widget.showSettings;
+    // Use a breakpoint to detect mobile
+    final bool isMobile = MediaQuery.of(context).size.width < 600;
 
     return Material(
       type: MaterialType.transparency,
       child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
-            colors: [Colors.black, Colors.black, Colors.transparent],
-            stops: [0.0, 0.1, 1.0],
+            colors: [Colors.black87, Colors.transparent],
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Heatmap
-                  Expanded(
-                    child: MouseRegion(
-                      onEnter: (_) {
-                        _hoverExitTimer?.cancel();
-                        _hoverEnterTimer = Timer(
-                          const Duration(milliseconds: 250),
-                          () => setState(() => _hovering = true),
-                        );
-                      },
-                      onExit: (_) {
-                        _hoverEnterTimer?.cancel();
-                        _hoverExitTimer = Timer(
-                          const Duration(milliseconds: 500),
-                          () => setState(() => _hovering = false),
-                        );
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        curve: Curves.easeInOut,
-                        height: _hovering ? iconSize * 2.5 : iconSize * 1.0,
-                        child: Watch.builder(
-                          builder: (context) {
-                            final funscript =
-                                playerModel.currentFunscript.value;
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 1. Heatmap Row (Remains the same)
+            _buildHeatmapRow(player, playerModel, iconSize),
 
-                            final actions = funscript?.actions.value ?? [];
-                            return Heatmap(
-                              actions: actions,
-                              totalDuration: player.duration,
-                              videoPosition: player.rawPosition,
-                              onClick: (d) => player.seekTo(d),
-                              onInteractionStart: widget.onInteractionStart,
-                              onInteractionEnd: widget.onInteractionEnd,
-                            );
-                          },
-                        ),
-                      ),
+            const SizedBox(height: 4.0),
+
+            // 2. Main Controls Row
+            Row(
+              children: [
+                // Play/Pause
+                Watch.builder(
+                  builder: (context) => IconButton(
+                    icon: Icon(
+                      player.paused.value ? Icons.play_arrow : Icons.pause,
                     ),
+                    onPressed: player.togglePause,
                   ),
-                ],
-              ),
-              const SizedBox(height: 4.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Play/Pause Button
-                  Watch.builder(
-                    builder: (context) {
-                      final isPaused = player.paused.value;
-                      return IconButton(
-                        icon: Icon(isPaused ? Icons.play_arrow : Icons.pause),
-                        iconSize:
-                            (Theme.of(context).iconTheme.size ?? 24.0) * 1.5,
-                        onPressed: player.togglePause,
-                      );
-                    },
-                  ),
-                  // Padding
-                  const SizedBox(width: 8.0),
-                  // Volume Slider + Mute/Unmute Button
-                  Watch.builder(
-                    builder: (context) {
-                      final volume = player.volume.value;
-                      return Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              volume <= 0.1
-                                  ? Icons.volume_off
-                                  : Icons.volume_up,
-                            ),
-                            onPressed: () {
-                              if (volume <= 0.1) {
-                                player.setVolume(_lastVolume);
-                              } else {
-                                player.setVolume(0.0);
-                                _lastVolume = player.volume.value;
-                              }
-                            },
-                          ),
-                          SizedBox(
-                            width: 150, // Adjust width as needed
-                            height: Theme.of(context).iconTheme.size ?? 24.0,
-                            child: Slider(
-                              padding: EdgeInsets.symmetric(
-                                vertical: 0.0,
-                                horizontal: 16.0,
-                              ),
-                              value: volume,
-                              min: 0,
-                              max: 100,
-                              divisions: 100 ~/ 5,
-                              label: '${volume.round()}%',
-                              onChanged: player.setVolume,
-                              onChangeStart: (_) =>
-                                  widget.onInteractionStart?.call(),
-                              onChangeEnd: (_) =>
-                                  widget.onInteractionEnd?.call(),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  // Time / Duration Display
-                  Watch.builder(
-                    builder: (context) {
-                      final currentTime = Duration(
-                        milliseconds: (player.rawPosition.value * 1000.0)
-                            .toInt(),
-                      );
-                      final duration = Duration(
-                        milliseconds: (player.duration.value * 1000.0).toInt(),
-                      );
-                      return Text(
-                        "${_formatFullTimestamp(currentTime)} / "
-                        "${_formatFullTimestamp(duration)}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'monospace',
-                        ),
-                      );
-                    },
-                  ),
-                  const Spacer(),
-                  // Toggle Graph Button
-                  showFunscriptGraph != null
-                      ? IconButton(
-                          icon: Icon(
-                            showFunscriptGraph.watch(context)
-                                ? Icons.timeline
-                                : Icons.timeline_sharp,
-                          ),
-                          tooltip: showFunscriptGraph.watch(context)
-                              ? "Hide Graph"
-                              : "Show Graph",
-                          onPressed: () => showFunscriptGraph.value =
-                              !showFunscriptGraph.value,
-                        )
-                      : const SizedBox.shrink(),
-                  // Settings
-                  showSettings != null
-                      ? IconButton(
-                          onPressed: () =>
-                              showSettings.value = !showSettings.value,
-                          icon: Icon(
-                            showSettings.watch(context)
-                                ? Icons.settings
-                                : Icons.settings_outlined,
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                  const SizedBox(width: 8.0),
-                  // Fullscreen Button
-                  IconButton(
-                    icon: const Icon(Icons.fullscreen),
-                    tooltip: "Fullscreen",
-                    onPressed: widget.onFullscreenToggle,
-                    alignment: AlignmentDirectional.centerEnd,
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+
+                _buildVolumeSlider(player),
+
+                const SizedBox(width: 4.0),
+
+                // Time Display - Simplified for Mobile
+                Watch.builder(
+                  builder: (context) {
+                    return Text(
+                      _formatResponsiveTimestamp(player, isMobile),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontFamily: 'monospace',
+                      ),
+                    );
+                  },
+                ),
+
+                const Spacer(),
+
+                // Action Buttons
+                if (widget.showFunscriptGraph != null) _buildGraphButton(),
+                if (widget.showSettings != null) _buildSettingsButton(),
+
+                IconButton(
+                  icon: const Icon(Icons.fullscreen),
+                  onPressed: widget.onFullscreenToggle,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -239,15 +117,128 @@ class _VideoControlsState extends State<VideoControls> {
     super.dispose();
   }
 
-  String _formatFullTimestamp(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, "0");
-    String threeDigits(int n) => n.toString().padLeft(3, "0");
+  String _formatResponsiveTimestamp(MediaKitPlayer player, bool isMobile) {
+    final current = Duration(
+      milliseconds: (player.rawPosition.value * 1000).toInt(),
+    );
+    final total = Duration(
+      milliseconds: (player.duration.value * 1000).toInt(),
+    );
 
-    final hours = twoDigits(duration.inHours);
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    final ms = threeDigits(duration.inMilliseconds.remainder(1000));
+    String format(Duration d) {
+      String twoDigits(int n) => n.toString().padLeft(2, "0");
+      final hours = d.inHours;
+      final mins = twoDigits(d.inMinutes.remainder(60));
+      final secs = twoDigits(d.inSeconds.remainder(60));
 
-    return "$hours:$minutes:$seconds.$ms";
+      // Hide milliseconds on mobile, hide hours if video is short
+      String base = hours > 0 ? "$hours:$mins:$secs" : "$mins:$secs";
+      if (!isMobile) {
+        final ms = d.inMilliseconds.remainder(1000).toString().padLeft(3, "0");
+        return "$base.$ms";
+      }
+      return base;
+    }
+
+    return "${format(current)} / ${format(total)}";
+  }
+
+  Widget _buildHeatmapRow(
+    MediaKitPlayer player,
+    PlayerModel playerModel,
+    double iconSize,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: MouseRegion(
+            onEnter: (_) => setState(() => _hovering = true),
+            onExit: (_) => setState(() => _hovering = false),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              height: _hovering ? iconSize * 2.5 : iconSize * 1.0,
+              child: Watch.builder(
+                builder: (context) {
+                  final funscript = playerModel.currentFunscript.value;
+                  final actions = funscript?.actions.value ?? [];
+                  return Heatmap(
+                    actions: actions,
+                    totalDuration: player.duration,
+                    videoPosition: player.rawPosition,
+                    onClick: (d) => player.seekTo(d),
+                    onInteractionStart: widget.onInteractionStart,
+                    onInteractionEnd: widget.onInteractionEnd,
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMuteButton(MediaKitPlayer player) {
+    return Watch.builder(
+      builder: (context) {
+        final volume = player.volume.value;
+        return IconButton(
+          icon: Icon(volume <= 0.1 ? Icons.volume_off : Icons.volume_up),
+          onPressed: () {
+            if (volume <= 0.1) {
+              player.setVolume(_lastVolume);
+            } else {
+              _lastVolume = volume;
+              player.setVolume(0.0);
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildGraphButton() {
+    return IconButton(
+      icon: Icon(
+        widget.showFunscriptGraph!.watch(context)
+            ? Icons.timeline
+            : Icons.timeline_outlined,
+      ),
+      onPressed: () =>
+          widget.showFunscriptGraph!.value = !widget.showFunscriptGraph!.value,
+    );
+  }
+
+  Widget _buildSettingsButton() {
+    return IconButton(
+      icon: Icon(
+        widget.showSettings!.watch(context)
+            ? Icons.settings
+            : Icons.settings_outlined,
+      ),
+      onPressed: () => widget.showSettings!.value = !widget.showSettings!.value,
+    );
+  }
+
+  Widget _buildVolumeSlider(MediaKitPlayer player) {
+    return Watch.builder(
+      builder: (context) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildMuteButton(player),
+            SizedBox(
+              width: 75,
+              child: Slider(
+                padding: EdgeInsets.fromLTRB(4.0, 0.0, 16.0, 0.0),
+                value: player.volume.value,
+                max: 100,
+                onChanged: player.setVolume,
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

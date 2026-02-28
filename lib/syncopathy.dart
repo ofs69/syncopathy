@@ -90,20 +90,43 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
         ),
       ];
 
+  List<NavigationDestination> _bottomDestinations() {
+    return _destinations()
+        .map(
+          (d) => NavigationDestination(
+            icon: d.icon,
+            selectedIcon: d.selectedIcon,
+            label: (d.label as Text)
+                .data!, // Extracts the string from the Text widget
+          ),
+        )
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return LogNotificationObserver(
       child: Scaffold(
         appBar: CustomAppBar(widgetTitle: widget.title),
+        bottomNavigationBar: isMobile
+            ? NavigationBar(
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: _onTabChanged,
+                destinations: _bottomDestinations(), // Same icons as your rail
+              )
+            : null,
         body: WebDragAndDrop(
           child: Row(
             children: [
-              NavigationRail(
-                selectedIndex: _selectedIndex,
-                onDestinationSelected: _onTabChanged,
-                labelType: NavigationRailLabelType.all,
-                destinations: _destinations(),
-              ),
+              if (!isMobile)
+                NavigationRail(
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: _onTabChanged,
+                  labelType: NavigationRailLabelType.all,
+                  destinations: _destinations(),
+                ),
               const VerticalDivider(thickness: 1, width: 1),
               Expanded(
                 child: Stack(
@@ -151,7 +174,7 @@ class _PageContentState extends State<PageContent> {
     return PageView(
       controller: widget.pageController,
       onPageChanged: widget.onPageChanged,
-      children: <Widget>[VideoPlayerPage(), SettingsPage(), HelpPage()],
+      children: [VideoPlayerPage(), SettingsPage(), HelpPage()],
     );
   }
 }

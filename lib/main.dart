@@ -26,7 +26,7 @@ Future<Widget> _initializeAppAndRun({
   await settings.load();
 
   var batteryModel = BatteryModel();
-  var mpvPlayer = MediaKitPlayer(videoOutput: true);
+  var mpvPlayer = MediaKitPlayer();
 
   var playerModel = PlayerModel(
     settings,
