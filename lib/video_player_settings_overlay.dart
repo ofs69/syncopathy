@@ -7,6 +7,7 @@ import 'package:syncopathy/focus_numeric_input.dart';
 import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
+import 'package:syncopathy/player/handy_bluetooth_backend_base.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
 
 class ScriptPlayerSettingsOverlay extends StatelessWidget {
@@ -406,6 +407,27 @@ class _DesktopGlassSettingsState extends State<DesktopGlassSettings> {
               ),
               isThreeLine: true,
             );
+          },
+        ),
+        Watch.builder(
+          builder: (context) {
+            final backend = playerModel.playerBackend.value;
+            if (backend
+                case HandyBluetoothBackendBase handyBluetoothBackendBase) {
+              final hspState =
+                  handyBluetoothBackendBase.handyBle?.hspState.value;
+              if (hspState == null) return const SizedBox.shrink();
+              return ListTile(
+                leading: const Icon(Icons.bug_report),
+                title: Text('Stats for nerds'),
+                subtitle: Text(
+                  '''${hspState.toString()}''',
+                  style: TextStyle(fontFamily: 'monospace'),
+                ),
+                isThreeLine: true,
+              );
+            } else {}
+            return const SizedBox.shrink();
           },
         ),
       ],

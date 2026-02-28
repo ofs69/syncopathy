@@ -6,13 +6,16 @@ import 'package:syncopathy/player/player_backend.dart';
 abstract class HandyBluetoothBackendBase extends PlayerBackend {
   @override
   ReadonlySignal<bool> get connected => _connected;
-  final Signal<bool> _connected = signal(false);
+  late final ReadonlySignal<bool> _connected = computed(() {
+    return handyBle?.isConnected.value ?? false;
+  });
 
   @override
   ReadonlySignal<bool> get isConnecting => _isConnecting;
   final Signal<bool> _isConnecting = signal(false);
 
-  HandyBle? handyBle;
+  HandyBle? get handyBle => _handyBle.value;
+  final Signal<HandyBle?> _handyBle = signal(null);
 
   HandyBluetoothBackendBase({
     required super.settingsModel,
@@ -24,7 +27,7 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend {
       effect(() {
         if (!connected.value) {
           handyBle?.dispose();
-          handyBle = null;
+          _handyBle.value = null;
           batteryModel.hasBattery.value = false;
         }
       }),
@@ -39,10 +42,10 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend {
   @override
   Future<void> tryConnect() async {
     await handyBle?.dispose();
-    handyBle = null;
+    _handyBle.value = null;
 
     _isConnecting.value = true;
-    handyBle = await HandyBle.startScanning(
+    _handyBle.value = await HandyBle.startScanning(
       settingsModel.min,
       settingsModel.max,
     );
@@ -57,9 +60,6 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend {
           batteryModel.chargerConntected.value = battery.chargerConnected;
           batteryModel.batteryLevel.value = battery.level;
         }
-      }),
-      effect(() {
-        _connected.value = handyBle?.isConnected.value ?? false;
       }),
     ]);
   }

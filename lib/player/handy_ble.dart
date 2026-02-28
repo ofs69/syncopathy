@@ -147,7 +147,6 @@ class HandyBle with EffectDispose {
   final ProtobufWorker _worker = ProtobufWorker();
 
   final _applyStrokeRangeDebouncer = Debouncer(milliseconds: 500);
-
   int estimatedAverageOffset = 0;
 
   HandyBle(this._device, this._strokeRangeMin, this._strokeRangeMax) {
