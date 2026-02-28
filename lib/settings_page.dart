@@ -106,12 +106,11 @@ class _SettingsPageState extends State<SettingsPage>
         title: 'App',
         children: [_buildUpdateChecker(context)],
       ),
-      if (kDebugMode)
-        _buildSettingsCard(
-          context,
-          title: 'Debug',
-          children: [_buildDebugSettings(context)],
-        ),
+      _buildSettingsCard(
+        context,
+        title: 'Debug',
+        children: [_buildDebugSettings(context)],
+      ),
     ];
   }
 
