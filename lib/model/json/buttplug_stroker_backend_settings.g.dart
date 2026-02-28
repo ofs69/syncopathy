@@ -21,8 +21,7 @@ const _$ButtplugStrokerBackendSettingsJsonSchema = {
   r'$schema': 'https://json-schema.org/draft/2020-12/schema',
   'type': 'object',
   'properties': {
-    'host': {'type': 'string'},
-    'port': {'type': 'integer'},
+    'host': {'type': 'string', 'default': 'localhost'},
+    'port': {'type': 'integer', 'default': 12345},
   },
-  'required': ['host', 'port'],
 };
