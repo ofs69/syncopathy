@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/connection_button.dart';
+import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/home_button.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
@@ -9,6 +11,10 @@ import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/playlist_controls.dart';
+import 'package:syncopathy/simple/stub.dart'
+    if (dart.library.html) 'package:syncopathy/simple/web.dart'
+    if (dart.library.io) 'package:syncopathy/simple/native.dart';
+
 import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:window_manager/window_manager.dart';
@@ -66,7 +72,22 @@ class CustomAppBarState extends State<CustomAppBar> {
       ),
       actions: [
         HomeButton(),
-        SizedBox(width: 8),
+        if (kIsWeb) SizedBox(width: 4),
+        if (kIsWeb) SimpleMode.webFullscreenButton(),
+        if (syncopathySimpleMode) SizedBox(width: 4),
+        if (syncopathySimpleMode)
+          TextButton.icon(
+            label: Text("Open files..."),
+            onPressed: () =>
+                SimpleMode.pickAndLoadFiles(context.read<PlayerModel>()),
+            icon: Icon(Icons.open_in_browser),
+            style: TextButton.styleFrom(
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.outline.withAlphaF(0.5),
+                width: 1.0,
+              ),
+            ),
+          ),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           transitionBuilder: (Widget child, Animation<double> animation) {
@@ -78,9 +99,9 @@ class CustomAppBarState extends State<CustomAppBar> {
             currentPlaylist.entries.length > 1,
           ),
         ),
-        if (currentlyOpen?.media != null) const SizedBox(width: 16),
+        if (currentlyOpen?.media != null) const SizedBox(width: 4),
         const PlaylistControls(),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
 
         if (hasBattery)
           Row(
@@ -114,20 +135,23 @@ class CustomAppBarState extends State<CustomAppBar> {
           child: ConnectionButton(),
         ),
         // Window control buttons
-        WindowCaptionButton.minimize(
-          brightness: Theme.of(context).brightness,
-          onPressed: () => windowManager.minimize(),
-        ),
-        WindowCaptionButton.maximize(
-          brightness: Theme.of(context).brightness,
-          onPressed: () async => await windowManager.isMaximized()
-              ? windowManager.restore()
-              : windowManager.maximize(),
-        ),
-        WindowCaptionButton.close(
-          brightness: Theme.of(context).brightness,
-          onPressed: () => windowManager.close(),
-        ),
+        if (!kIsWeb)
+          WindowCaptionButton.minimize(
+            brightness: Theme.of(context).brightness,
+            onPressed: () => windowManager.minimize(),
+          ),
+        if (!kIsWeb)
+          WindowCaptionButton.maximize(
+            brightness: Theme.of(context).brightness,
+            onPressed: () async => await windowManager.isMaximized()
+                ? windowManager.restore()
+                : windowManager.maximize(),
+          ),
+        if (!kIsWeb)
+          WindowCaptionButton.close(
+            brightness: Theme.of(context).brightness,
+            onPressed: () => windowManager.close(),
+          ),
       ],
     );
   }

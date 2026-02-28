@@ -11,6 +11,7 @@ import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/notification_feed.dart';
 
 import 'package:syncopathy/settings_page.dart';
+import 'package:syncopathy/simple/simple_drag_and_drop.dart';
 import 'package:syncopathy/video_player_page.dart';
 
 import 'package:syncopathy/custom_app_bar.dart';
@@ -147,38 +148,63 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
         ),
       ];
 
+  List<NavigationDestination> _bottomDestinations(bool withMedia) {
+    return _destinations(withMedia)
+        .map(
+          (d) => NavigationDestination(
+            icon: d.icon,
+            selectedIcon: d.selectedIcon,
+            label: (d.label as Text)
+                .data!, // Extracts the string from the Text widget
+          ),
+        )
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
     final withMedia = context.read<MediaManager?>() != null;
+
     return LogNotificationObserver(
       child: Scaffold(
         appBar: CustomAppBar(widgetTitle: widget.title),
-        body: Row(
-          children: <Widget>[
-            NavigationRail(
-              selectedIndex: _selectedIndex,
-              onDestinationSelected: _onTabChanged,
-              labelType: NavigationRailLabelType.all,
-              destinations: _destinations(withMedia),
-            ),
-            const VerticalDivider(thickness: 1, width: 1),
-            Expanded(
-              child: Stack(
-                children: [
-                  PageContent(
-                    selectedIndex: _selectedIndex,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _selectedIndex = index;
-                      });
-                    },
-                    pageController: _pageController,
-                  ),
-                  const NotificationFeed(),
-                ],
+        bottomNavigationBar: isMobile
+            ? NavigationBar(
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: _onTabChanged,
+                destinations: _bottomDestinations(withMedia),
+              )
+            : null,
+        body: SimpleModeDragAndDrop(
+          child: Row(
+            children: [
+              if (!isMobile)
+                NavigationRail(
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: _onTabChanged,
+                  labelType: NavigationRailLabelType.all,
+                  destinations: _destinations(withMedia),
+                ),
+              const VerticalDivider(thickness: 1, width: 1),
+              Expanded(
+                child: Stack(
+                  children: [
+                    PageContent(
+                      selectedIndex: _selectedIndex,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _selectedIndex = index;
+                        });
+                      },
+                      pageController: _pageController,
+                    ),
+                    const NotificationFeed(),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

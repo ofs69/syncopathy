@@ -61,7 +61,9 @@ class SmoothVideoSignals with EffectDispose {
   void update(double newPos, bool playing, double speed, bool buffering) {
     _lastUpdateWallClock = DateTime.now();
 
-    if (playing && !_ticker.isTicking) _ticker.start();
-    if ((!playing || buffering) && _ticker.isTicking) _ticker.stop();
+    try {
+      if (playing && !_ticker.isTicking) _ticker.start();
+      if ((!playing || buffering) && _ticker.isTicking) _ticker.stop();
+    } catch (_) {}
   }
 }

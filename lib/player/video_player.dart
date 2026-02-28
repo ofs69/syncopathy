@@ -20,7 +20,8 @@ abstract class VideoPlayer with EffectDispose {
   late final ReadonlySignal<bool> seeking;
   late final ReadonlySignal<double> volume;
   late final ReadonlySignal<double> playbackSpeed;
-  late final ReadonlySignal<VideoParams> videoParams;
+  late final ReadonlySignal<int?> videoWidth;
+  late final ReadonlySignal<int?> videoHeight;
   late final ReadonlySignal<Playlist> playlist;
   late final ReadonlySignal<bool> loopFile;
   late final ReadonlySignal<String> loadedPath;
@@ -53,9 +54,8 @@ abstract class VideoPlayer with EffectDispose {
     seeking = player.stream.seeking.toSyncSignal(player.state.seeking);
     volume = player.stream.volume.toSyncSignal(player.state.volume);
     playbackSpeed = player.stream.rate.toSyncSignal(player.state.rate);
-    videoParams = player.stream.videoParams.toSyncSignal(
-      player.state.videoParams,
-    );
+    videoWidth = player.stream.width.toSyncSignal(player.state.width);
+    videoHeight = player.stream.height.toSyncSignal(player.state.height);
     playlist = player.stream.playlist.toSyncSignal(player.state.playlist);
 
     final playlistModeSignal = player.stream.playlistMode.toSyncSignal(

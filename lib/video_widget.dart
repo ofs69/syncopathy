@@ -27,9 +27,11 @@ class _VideoWidgetState extends State<VideoWidget> {
 
     return Watch.builder(
       builder: (context) {
-        final videoParams = player.videoParams;
-        if ((videoParams.value.dw == 0 || videoParams.value.dw == null) ||
-            (videoParams.value.dh == 0 || videoParams.value.dh == null)) {
+        final videoWidth = player.videoWidth.value;
+        final videoHeight = player.videoHeight.value;
+
+        if ((videoWidth == 0 || videoWidth == null) ||
+            (videoHeight == 0 || videoHeight == null)) {
           return SizedBox.expand();
         }
 
@@ -50,7 +52,7 @@ class _VideoWidgetState extends State<VideoWidget> {
                     ],
                   ),
                   child: AspectRatio(
-                    aspectRatio: videoParams.value.dw! / videoParams.value.dh!,
+                    aspectRatio: videoWidth / videoHeight,
                     child: Video(controller: widget.controller, controls: null),
                   ),
                 ),

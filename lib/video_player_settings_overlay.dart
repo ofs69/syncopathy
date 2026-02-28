@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
@@ -74,6 +75,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
           minWidth: MediaQuery.of(context).size.width,
         ),
         child: MasonryGridView.count(
+          physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           crossAxisCount: (MediaQuery.of(context).size.width / 500.0)
               .clamp(1, 3)

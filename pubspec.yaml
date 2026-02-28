@@ -85,7 +85,9 @@ dependencies:
   pool: ^1.5.2
   http_interceptor: ^2.0.0
   shared_preferences: ^2.5.4
-
+  desktop_drop: ^0.7.0
+  web: ^1.1.1
+  
 dependency_overrides:
   media_kit:
     git:
