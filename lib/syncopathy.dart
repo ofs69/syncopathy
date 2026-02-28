@@ -1,10 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:signals/signals_core.dart';
 import 'package:syncopathy/help_page.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
-
 import 'package:syncopathy/media_library/media_page.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
@@ -12,10 +13,11 @@ import 'package:syncopathy/notification_feed.dart';
 
 import 'package:syncopathy/settings_page.dart';
 import 'package:syncopathy/simple/simple_drag_and_drop.dart';
+import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/video_player_page.dart';
 
 import 'package:syncopathy/custom_app_bar.dart';
-import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/web/start_modal.dart';
 import 'package:syncopathy/widgets/database_reset_dialog.dart';
 
 class Syncopathy extends StatelessWidget {
@@ -55,12 +57,13 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
     with EffectDispose {
   int _selectedIndex = 0;
 
-  late final PageController _pageController;
+  late final PageController _pageController = PageController(
+    initialPage: _selectedIndex,
+  );
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: _selectedIndex);
     final playerModel = context.read<PlayerModel>();
 
     effectAdd([
@@ -77,6 +80,29 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
           showDatabaseResetDialog(
             context,
             DatabaseHelper().databaseWasResetName!,
+          );
+        }
+      });
+    }
+    _startupModal();
+  }
+
+  Future<void> _startupModal() async {
+    final sharedPref = await SharedPreferences.getInstance();
+    final dismissedStartModal = sharedPref.getInt('dismissedStartModal') ?? 0;
+    if (dismissedStartModal >= StartupModal.currentModalVersion) return;
+    if (kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        // Show start modal
+        final dismiss = await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const StartupModal(),
+        );
+        if (dismiss) {
+          sharedPref.setInt(
+            'dismissedStartModal',
+            StartupModal.currentModalVersion,
           );
         }
       });
