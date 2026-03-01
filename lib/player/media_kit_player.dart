@@ -43,12 +43,8 @@ class SmoothVideoSignals with EffectDispose {
           now.difference(_lastUpdateWallClock).inMilliseconds / 1000.0;
 
       // Adjust drift based on playback speed
-      final adjustedDrift = wallClockDrift * speed;
-      final smoothTime = pos + adjustedDrift;
-      if (smoothTime < 0.0) {
-        return pos;
-      }
-      return smoothTime;
+      final extrapolated = pos + (wallClockDrift * speed);
+      return extrapolated < pos ? pos : extrapolated;
     });
 
     effectAdd([
@@ -151,7 +147,6 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     );
     paused = computed(() {
       final paused = pausedSignal.value;
-      _toggleBackgroundPersistence(!paused);
       final buffering = bufferingSignal.value;
       return buffering ? true : paused;
     });
@@ -230,28 +225,6 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
       Events.on<PlaylistSetShuffleEvent>().listen(_onPlaylistShuffle),
       loadedPath.toStream().listen(_onPathChange),
     ]);
-  }
-
-  bool _isForcingFrames = false;
-  void _toggleBackgroundPersistence(bool play) {
-    if (play && !_isForcingFrames) {
-      _isForcingFrames = true;
-      _persistentFrameLoop();
-    } else if (!play) {
-      _isForcingFrames = false;
-    }
-  }
-
-  void _persistentFrameLoop() {
-    if (!_isForcingFrames) return;
-
-    // Schedules a single frame to be drawn
-    WidgetsBinding.instance.scheduleFrame();
-
-    // Re-run this on the next frame to keep the loop alive
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _persistentFrameLoop();
-    });
   }
 
   void _onPathChange(String newPath) {
