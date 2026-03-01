@@ -82,23 +82,31 @@ class CustomAppBarState extends State<CustomAppBar> {
         const SizedBox(width: 8),
 
         if (hasBattery)
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: Row(
-              children: [
-                Icon(
-                  chargerConnected
-                      ? Icons.battery_charging_full
-                      : Icons.battery_full,
-                  color: chargerConnected
-                      ? Colors.green
-                      : (batteryModel.batteryLevel.value < 20
-                            ? Colors.red
-                            : null),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                child: Text(
+                  '${batteryModel.batteryLevel.watch(context).toString().padLeft(3, ' ')}%',
+                  textAlign: TextAlign.end, // Aligns text against the icon
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
                 ),
-                Text('${batteryModel.batteryLevel.watch(context)}%'),
-              ],
-            ),
+              ),
+              const SizedBox(width: 4), // Small gap between text and icon
+              Icon(
+                chargerConnected
+                    ? Icons.battery_charging_full
+                    : Icons.battery_full,
+                color: chargerConnected
+                    ? Colors.green
+                    : (batteryModel.batteryLevel.value < 20
+                          ? Colors.red
+                          : null),
+              ),
+            ],
           ),
         const Padding(
           padding: EdgeInsets.only(right: 8.0),

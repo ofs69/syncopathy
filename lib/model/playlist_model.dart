@@ -109,6 +109,7 @@ class PlaylistModel {
         final id = item['id'] as int?;
         final filename = item['filename'] as String?;
         final current = item['current'] as bool?;
+        // ignore: unused_local_variable
         final playing = item['playing'] as bool?;
 
         if (id != null && filename != null) {

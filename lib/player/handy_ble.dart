@@ -214,7 +214,7 @@ class HandyBle with EffectDispose {
         final server = DateTime.now().millisecondsSinceEpoch;
         final end = server;
         final rtd = end - start;
-        final offset = (server + (rtd / 2)) - end;
+        final offset = (server + (rtd / 2.0)) - end;
         offsetAggregated += offset;
       }
       estimatedAverageOffset = (offsetAggregated / syncTries).round();

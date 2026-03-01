@@ -28,25 +28,31 @@ class ConnectionButton extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  "Scanning for device...",
+                  (backend?.isBluetooth ?? true)
+                      ? "Scanning for device..."
+                      : "Connecting...",
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
               ],
             ),
           );
         }
-
         return Watch.builder(
           builder: (context) {
             final connected = backend?.connected.value ?? false;
+            final connectedIcon = (backend?.isBluetooth ?? true)
+                ? Icons.bluetooth_connected
+                : Icons.wifi;
+            final disconnectedIcon = (backend?.isBluetooth ?? true)
+                ? Icons.bluetooth_disabled
+                : Icons.wifi_off;
+
             return Tooltip(
               message: connected ? "Connected" : "Disconnected",
               child: TextButton.icon(
                 label: Text(connected ? "Connected" : "Disconnected"),
                 icon: Icon(
-                  connected
-                      ? Icons.bluetooth_connected
-                      : Icons.bluetooth_disabled,
+                  connected ? connectedIcon : disconnectedIcon,
                   color: connected ? Colors.green : Colors.red,
                 ),
                 onPressed: isConnecting ? null : () => backend?.tryConnect(),

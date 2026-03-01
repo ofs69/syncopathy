@@ -6,12 +6,14 @@ import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/funscript.dart';
-import 'package:syncopathy/model/json/buttplug_stroker_backend_settings.dart';
+import 'package:syncopathy/model/json/buttplug_backend_settings.dart';
+import 'package:syncopathy/model/json/handy_native_web_backend_settings.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/timesource_model.dart';
 import 'package:syncopathy/player/buttplug_stroker_backend.dart';
 import 'package:syncopathy/player/handy_native_command_backend.dart';
-import 'package:syncopathy/player/handy_native_hsp_backend.dart';
+import 'package:syncopathy/player/handy_native_hsp_bt_backend.dart';
+import 'package:syncopathy/player/handy_native_hsp_web_backend.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
 import 'package:syncopathy/player/player_backend.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
@@ -38,8 +40,7 @@ class PlayerModel with EventSubscriber, EffectDispose {
           }
           return video.funscript;
         }
-      }
-      catch(_) {}
+      } catch (_) {}
       return null;
     },
   );
@@ -102,7 +103,7 @@ class PlayerModel with EventSubscriber, EffectDispose {
           case PlayerBackendType.buttplugStrokerCommand:
             if (playerBackend.value is! ButtplugStrokerBackend) {
               final settings = await KeyValueStore.get(
-                ButtplugStrokerBackendSettings.key,
+                ButtplugBackendSettings.key,
               );
 
               newBackend = ButtplugStrokerBackend(
@@ -110,8 +111,8 @@ class PlayerModel with EventSubscriber, EffectDispose {
                 currentFunscript: currentFunscript,
                 settingsModel: _settings,
                 settings: settings != null
-                    ? ButtplugStrokerBackendSettings.fromJson(settings)
-                    : ButtplugStrokerBackendSettings(),
+                    ? ButtplugBackendSettings.fromJson(settings)
+                    : ButtplugBackendSettings(),
                 batteryModel: batteryModel,
               );
             }
@@ -127,8 +128,24 @@ class PlayerModel with EventSubscriber, EffectDispose {
             }
             break;
           case PlayerBackendType.handyStrokerStreamingBluetooth:
-            if (playerBackend.value is! HandyNativeHspBackend) {
-              newBackend = HandyNativeHspBackend(
+            if (playerBackend.value is! HandyNativeHspBluetoothBackend) {
+              newBackend = HandyNativeHspBluetoothBackend(
+                currentFunscript: currentFunscript,
+                timesource: timeSource,
+                settingsModel: _settings,
+                batteryModel: batteryModel,
+              );
+            }
+            break;
+          case PlayerBackendType.handyStrokerStreamingWeb:
+            if (playerBackend.value is! HandyNativeHspWebBackend) {
+              final settings = await KeyValueStore.get(
+                HandyNativeWebBackendSettings.key,
+              );
+              newBackend = HandyNativeHspWebBackend(
+                webSettings: settings != null
+                    ? HandyNativeWebBackendSettings.fromJson(settings)
+                    : HandyNativeWebBackendSettings(),
                 currentFunscript: currentFunscript,
                 timesource: timeSource,
                 settingsModel: _settings,

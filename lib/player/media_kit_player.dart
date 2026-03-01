@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
@@ -20,6 +19,7 @@ class SmoothVideoSignals with EffectDispose {
   final ReadonlySignal<double> rawPosition;
   final ReadonlySignal<bool> isPaused;
   final ReadonlySignal<double> playbackSpeed;
+  final ReadonlySignal<bool> buffering;
 
   final _frameTick = signal(DateTime.now());
   late final Ticker _ticker;
@@ -27,7 +27,12 @@ class SmoothVideoSignals with EffectDispose {
 
   late final ReadonlySignal<double> smoothPosition;
 
-  SmoothVideoSignals(this.rawPosition, this.isPaused, this.playbackSpeed) {
+  SmoothVideoSignals(
+    this.rawPosition,
+    this.isPaused,
+    this.playbackSpeed,
+    this.buffering,
+  ) {
     _ticker = Ticker((_) => _frameTick.value = DateTime.now());
 
     smoothPosition = computed(() {
@@ -35,8 +40,9 @@ class SmoothVideoSignals with EffectDispose {
       final playing = !isPaused.value;
       final speed = playbackSpeed.value;
       final now = _frameTick.value;
+      final isBuffering = buffering.value;
 
-      if (!playing) return pos;
+      if (!playing || isBuffering) return pos;
 
       // Calculate real-world time passed
       final wallClockDrift =
@@ -49,7 +55,12 @@ class SmoothVideoSignals with EffectDispose {
 
     effectAdd([
       effect(() {
-        update(rawPosition.value, !isPaused.value, playbackSpeed.value);
+        update(
+          rawPosition.value,
+          !isPaused.value,
+          playbackSpeed.value,
+          buffering.value,
+        );
       }),
     ]);
   }
@@ -60,11 +71,11 @@ class SmoothVideoSignals with EffectDispose {
   }
 
   // Update this from your VideoPlayerController listener
-  void update(double newPos, bool playing, double speed) {
+  void update(double newPos, bool playing, double speed, bool buffering) {
     _lastUpdateWallClock = DateTime.now();
 
     if (playing && !_ticker.isTicking) _ticker.start();
-    if (!playing && _ticker.isTicking) _ticker.stop();
+    if ((!playing || buffering) && _ticker.isTicking) _ticker.stop();
   }
 }
 
@@ -75,7 +86,9 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
   late final ReadonlySignal<double> volume;
   late final ReadonlySignal<double> duration;
   late final ReadonlySignal<double> playbackSpeed;
-  late final ReadonlySignal<bool> paused;
+
+  ReadonlySignal<bool> get paused => _paused;
+  final Signal<bool> _paused = signal(true);
 
   late final SmoothVideoSignals _smoothVideoSignals;
   ReadonlySignal<double> get smoothPosition =>
@@ -137,18 +150,9 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
         .toSyncSignal(0);
     playbackSpeed = _player.stream.rate.toSyncSignal(1);
 
-    final pausedSignal = signal(!_player.state.playing);
+    _paused.value = !_player.state.playing;
     nativePlayer?.observeProperty('pause', (value) async {
-      pausedSignal.value = value == 'yes' ? true : false;
-    });
-
-    final bufferingSignal = _player.stream.buffering.toSyncSignal(
-      _player.state.buffering,
-    );
-    paused = computed(() {
-      final paused = pausedSignal.value;
-      final buffering = bufferingSignal.value;
-      return buffering ? true : paused;
+      _paused.value = value == 'yes' ? true : false;
     });
 
     videoParams = _player.stream.videoParams.toSyncSignal(
@@ -194,12 +198,16 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
       return null;
     });
 
+    final bufferingSignal = _player.stream.buffering.toSyncSignal(
+      _player.state.buffering,
+    );
     _smoothVideoSignals = SmoothVideoSignals(
       _player.stream.position
           .map((d) => d.inMilliseconds / 1000.0)
           .toSyncSignal(_player.state.position.inMilliseconds / 1000.0),
       paused,
       playbackSpeed,
+      bufferingSignal,
     );
 
     eventSubs([
@@ -262,6 +270,7 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     }
   }
 
+  // ignore: unused_element
   Future<String?> _createPlaylistM3U(List<Video> videos) async {
     final directory = await getApplicationSupportDirectory();
     final file = File(p.join(directory.path, 'playlist.m3u'));

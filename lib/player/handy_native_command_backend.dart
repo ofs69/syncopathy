@@ -18,7 +18,7 @@ class HandyNativeCommandBackend extends HandyBluetoothBackendBase
 
   @override
   Future<void> updateCommand(CommandPacket cmd) async {
-    if ((!connected.value || handyBle == null) && !kDebugMode) return;
+    if ((!connected.value || hspState.value == null) && !kDebugMode) return;
 
     if (cmd.moveOverTimeMs > 0 && cmd.logicalMoveToPos != _lastPosition) {
       final speed =
@@ -33,7 +33,7 @@ class HandyNativeCommandBackend extends HandyBluetoothBackendBase
         return;
       }
       // stroke range is handled by the device itself which is why actualMovePos is passed
-      handyBle?.positionWithDuration(
+      positionWithDuration(
         (cmd.actualMoveToPos / 100.0).clamp(0.0, 1.0),
         cmd.moveOverTimeMs,
       );

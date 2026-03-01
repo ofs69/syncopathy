@@ -72,6 +72,7 @@ const _$SettingsJsonSchema = {
 const _$PlayerBackendTypeEnumMap = {
   PlayerBackendType.handyStrokerStreamingBluetooth:
       'handyStrokerStreamingBluetooth',
+  PlayerBackendType.handyStrokerStreamingWeb: 'handyStrokerStreamingWeb',
   PlayerBackendType.handyStrokerCommand: 'handyStrokerCommand',
   PlayerBackendType.buttplugStrokerCommand: 'buttplugStrokerCommand',
 };

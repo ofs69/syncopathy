@@ -83,6 +83,8 @@ dependencies:
   get_it: ^9.2.1
   freezed: ^3.2.5
   image: ^4.8.0
+  pool: ^1.5.2
+  http_interceptor: ^2.0.0
 
 dependency_overrides:
   media_kit:

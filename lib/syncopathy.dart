@@ -9,7 +9,6 @@ import 'package:syncopathy/media_page.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/notification_feed.dart';
-import 'package:syncopathy/player/media_kit_player.dart';
 
 import 'package:syncopathy/settings_page.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';

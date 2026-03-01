@@ -21,7 +21,8 @@ class ActionBuffer {
   ActionBuffer(this.id, this.bufferActions, this.allActions);
 
   List<Point> toPoints() =>
-      bufferActions.map((a) => Point(t: a.at, x: a.pos.clamp(0, 100))).toList();
+      bufferActions.map((a) => Point(t: a.at, x: a.pos)).toList();
+  List<FunscriptAction> toActions() => bufferActions.toList();
 
   static ActionBuffer? fromActions(
     int bufferIndex,
@@ -55,6 +56,8 @@ abstract class PlayerBackend with EffectDispose {
   ReadonlySignal<bool> get connected;
   ReadonlySignal<bool> get isConnecting;
 
+  bool get isBluetooth;
+
   // HACK: this should be readonly
   final Signal<int?> playbackDelta = signal(null);
 
@@ -86,6 +89,11 @@ abstract class PlayerBackend with EffectDispose {
   }
 }
 
+// TODO: rewrite the command based logic
+abstract class ICommandBackendBase {
+  void positionWithDuration(double relPos, int moveOverTimeMs);
+}
+
 class CommandPacket {
   final int actualMoveToPos;
   final int moveOverTimeMs;
@@ -103,7 +111,7 @@ class CommandPacket {
   );
 }
 
-mixin CommandPacketBackend {
+mixin CommandPacketBackend on ICommandBackendBase {
   void Function() commandEffect(
     TimesourceModel timesource,
     SettingsModel settingsModel,

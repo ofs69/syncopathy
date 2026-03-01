@@ -20,8 +20,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Create config file
+        shell: bash
+        run: |
+          echo '{ "HANDY_APPLICATION_ID": "${{ secrets.HANDY_APPLICATION_ID }}" }' > config.json
+
       - name: Build Windows release
-        run: flutter build windows --release
+        run: flutter build windows --release --dart-define-from-file=config.json
 
       - name: Download FFmpeg
         run: |
@@ -68,8 +73,13 @@ jobs:
           sudo apt update
           sudo apt install libmpv-dev mpv build-essential libgtk-3-dev
 
+      - name: Create config file
+        shell: bash
+        run: |
+          echo '{ "HANDY_APPLICATION_ID": "${{ secrets.HANDY_APPLICATION_ID }}" }' > config.json
+
       - name: Build Linux release
-        run: flutter build linux --release
+        run: flutter build linux --release --dart-define-from-file=config.json
 
       - name: Zip Release
         run: zip -r syncopathy-linux-${{ github.ref_name }}.zip build/linux/x64/release/bundle/
@@ -104,8 +114,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Create config file
+        shell: bash
+        run: |
+          echo '{ "HANDY_APPLICATION_ID": "${{ secrets.HANDY_APPLICATION_ID }}" }' > config.json
+
       - name: Build macOS release
-        run: flutter build macos --release
+        run: flutter build macos --release --dart-define-from-file=config.json
 
       - name: Zip Release
         run: zip -ry syncopathy-macos-${{ github.ref_name }}.zip build/macos/Build/Products/Release/syncopathy.app

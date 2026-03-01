@@ -137,7 +137,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
         Hero(
           tag: 'videoControls',
           child: VideoControls(
-            onFullscreenToggle: player.controller != null ? enterFullscreen : null,
+            onFullscreenToggle: player.controller != null
+                ? enterFullscreen
+                : null,
             showFunscriptGraph: _showFunscriptGraph,
             showSettings: _showSettings,
           ),

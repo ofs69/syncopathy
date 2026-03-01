@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:async_locks/async_locks.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -19,7 +20,6 @@ import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/update_checker.dart';
 import 'package:syncopathy/video_thumbnail.dart';
 import 'package:syncopathy/notification_feed.dart';
-import 'package:flutter/foundation.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -106,11 +106,12 @@ class _SettingsPageState extends State<SettingsPage>
         title: 'App',
         children: [_buildUpdateChecker(context)],
       ),
-      _buildSettingsCard(
-        context,
-        title: 'Debug',
-        children: [_buildDebugSettings(context)],
-      ),
+      if (kDebugMode)
+        _buildSettingsCard(
+          context,
+          title: 'Debug',
+          children: [_buildDebugSettings(context)],
+        ),
     ];
   }
 

@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
@@ -409,27 +410,27 @@ class _DesktopGlassSettingsState extends State<DesktopGlassSettings> {
             );
           },
         ),
-        Watch.builder(
-          builder: (context) {
-            final backend = playerModel.playerBackend.value;
-            if (backend
-                case HandyBluetoothBackendBase handyBluetoothBackendBase) {
-              final hspState =
-                  handyBluetoothBackendBase.handyBle?.hspState.value;
-              if (hspState == null) return const SizedBox.shrink();
-              return ListTile(
-                leading: const Icon(Icons.bug_report),
-                title: Text('Stats for nerds'),
-                subtitle: Text(
-                  hspState.toString(),
-                  style: TextStyle(fontFamily: 'monospace'),
-                ),
-                isThreeLine: true,
-              );
-            } else {}
-            return const SizedBox.shrink();
-          },
-        ),
+        if (kDebugMode)
+          Watch.builder(
+            builder: (context) {
+              final backend = playerModel.playerBackend.value;
+              if (backend
+                  case HandyBluetoothBackendBase handyBluetoothBackendBase) {
+                final hspState = handyBluetoothBackendBase.hspState.value;
+                if (hspState == null) return const SizedBox.shrink();
+                return ListTile(
+                  leading: const Icon(Icons.bug_report),
+                  title: Text('Stats for nerds'),
+                  subtitle: Text(
+                    hspState.toString(),
+                    style: TextStyle(fontFamily: 'monospace'),
+                  ),
+                  isThreeLine: true,
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
       ],
     );
   }
