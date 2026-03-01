@@ -9,6 +9,7 @@ import 'package:syncopathy/media_page.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/notification_feed.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
 
 import 'package:syncopathy/settings_page.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
@@ -61,11 +62,11 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _selectedIndex);
-    final player = context.read<PlayerModel>();
+    final playerModel = context.read<PlayerModel>();
 
     effectAdd([
       effect(() {
-        _handleVideoChange(player.currentVideo.value);
+        _handleVideoChange(playerModel.currentVideo.value);
       }),
     ]);
 

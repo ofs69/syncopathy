@@ -421,7 +421,7 @@ class _DesktopGlassSettingsState extends State<DesktopGlassSettings> {
                 leading: const Icon(Icons.bug_report),
                 title: Text('Stats for nerds'),
                 subtitle: Text(
-                  '''${hspState.toString()}''',
+                  hspState.toString(),
                   style: TextStyle(fontFamily: 'monospace'),
                 ),
                 isThreeLine: true,
