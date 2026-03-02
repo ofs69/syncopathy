@@ -27,10 +27,10 @@ class PlayerModel with EventSubscriber, EffectDispose {
   final TimesourceModel timeSource;
   late final Signal<PlayerBackend?> playerBackend;
 
-  late final ReadonlySignal<Video?> currentVideo;
+  late final ReadonlySignal<Video?> _currentPlayerVideo;
   late final AsyncSignal<Funscript?> _asyncCurrentFunscript = computedAsync(
     () async {
-      final video = currentVideo.value;
+      final video = _currentPlayerVideo.value;
       try {
         if (video != null) {
           if (video.funscript == null) await video.loadFunscript();
@@ -43,6 +43,11 @@ class PlayerModel with EventSubscriber, EffectDispose {
       } catch (_) {}
       return null;
     },
+  );
+  late final ReadonlySignal<Video?> currentVideo = computed(
+    () => _asyncCurrentFunscript.value.value != null
+        ? _currentPlayerVideo.value
+        : null,
   );
   late final ReadonlySignal<Funscript?> currentFunscript = computed(
     () => _asyncCurrentFunscript.value.value,
@@ -57,7 +62,7 @@ class PlayerModel with EventSubscriber, EffectDispose {
     BatteryModel batteryModel,
   ) {
     playerBackend = signal(null);
-    currentVideo = player.currentVideo;
+    _currentPlayerVideo = player.currentVideo;
 
     effectAdd([
       // View counting logic
@@ -177,5 +182,15 @@ class PlayerModel with EventSubscriber, EffectDispose {
   void dispose() {
     eventDispose();
     effectDispose();
+  }
+
+  void disconnectBackend() {
+    playerBackend.value?.dispose();
+    playerBackend.value = null; // this should cause the backend to recreated
+  }
+
+  void connectBackend() {
+    // TODO: dispose and recreate the backend
+    playerBackend.value?.tryConnect();
   }
 }

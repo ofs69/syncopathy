@@ -73,14 +73,12 @@ class VideoThumbnailState extends State<VideoThumbnail> {
       _isGenerating = true;
     });
 
-    player.screenshot(screenshot);
     try {
       // 1. Load the file from the path
-      final File file = File(screenshot);
-      final Uint8List bytes = await file.readAsBytes();
+      final jpgBytes = (await player.screenshot(screenshot))!;
 
       // 2. Decode the JPG data
-      final img.Image? originalImage = img.decodeImage(bytes);
+      final img.Image? originalImage = img.decodeImage(jpgBytes);
 
       if (originalImage != null) {
         // 3. Resize to 300 width (Aspect ratio is kept if height is omitted)

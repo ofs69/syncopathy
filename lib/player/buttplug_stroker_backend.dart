@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:syncopathy/player/buttplug_base_backend.dart';
 import 'package:syncopathy/player/player_backend.dart';
+import 'package:syncopathy/player/player_backend_type.dart';
 
 class ButtplugStrokerBackend extends ButtplugBaseBackend
     with CommandPacketBackend {
@@ -15,7 +16,7 @@ class ButtplugStrokerBackend extends ButtplugBaseBackend
     required super.settingsModel,
     required super.batteryModel,
     required super.settings,
-  }) {
+  }) : super(backendType: PlayerBackendType.buttplugStrokerCommand) {
     effectAdd([commandEffect(timesource, settingsModel, currentActions)]);
   }
 

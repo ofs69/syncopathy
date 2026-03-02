@@ -44,3 +44,16 @@ Map<String, dynamic> _$HandyDeviceStatusToJson(HandyDeviceStatus instance) =>
       'connection_key': instance.connectionKey,
       'data': instance.data,
     };
+
+HandyHspStatusEvent _$HandyHspStatusEventFromJson(Map<String, dynamic> json) =>
+    HandyHspStatusEvent(
+      connectionKey: json['connection_key'] as String,
+      data: HandyHspState.fromJson(json['data'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$HandyHspStatusEventToJson(
+  HandyHspStatusEvent instance,
+) => <String, dynamic>{
+  'connection_key': instance.connectionKey,
+  'data': instance.data,
+};

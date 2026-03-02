@@ -141,6 +141,8 @@ class HandyBle with EffectDispose {
   // Called when paused on starving notification is received
   Function()? hspPausedOnStarving;
 
+  Function()? hspLooped;
+
   late final StreamSubscription _bufferReceivedSubscription;
   late final StreamSubscription _deserializeSubscription;
   late final StreamSubscription _serializeSubscription;
@@ -215,6 +217,8 @@ class HandyBle with EffectDispose {
         final end = server;
         final rtd = end - start;
         final offset = (server + (rtd / 2.0)) - end;
+
+        Logger.debug('RTD: $rtd\tOffset: $offset');
         offsetAggregated += offset;
       }
       estimatedAverageOffset = (offsetAggregated / syncTries).round();
@@ -285,6 +289,7 @@ class HandyBle with EffectDispose {
         break;
       case Notification_Notification.notificationHspLooping:
         _hspState.value = message.notification.notificationHspLooping.state;
+        hspLooped?.call();
         break;
       case Notification_Notification.notificationHspStarving:
         _hspState.value = message.notification.notificationHspStarving.state;
@@ -325,6 +330,7 @@ class HandyBle with EffectDispose {
   }
 
   void _sendRequest(Request request) {
+    if (kDebugMode) debugPrint(request.whichParams().toString());
     request.id = noCompletionId;
     final message = RpcMessage(
       type: MessageType.MESSAGE_TYPE_REQUEST,
@@ -477,14 +483,11 @@ class HandyBle with EffectDispose {
     _sendRequest(Request(requestHspPause: request));
   }
 
-  void hspCurrentTimeSet({
-    required int currentTime,
-    required bool forceCurrentTime,
-  }) {
+  void hspCurrentTimeSet({required int currentTime, required double filter}) {
     final request = RequestHspCurrentTimeSet(
       currentTime: currentTime,
       serverTime: Int64(serverTime()),
-      filter: forceCurrentTime ? 1.0 : 0.6,
+      filter: filter,
     );
     _sendRequest(Request(requestHspCurrentTimeSet: request));
   }
@@ -492,6 +495,11 @@ class HandyBle with EffectDispose {
   void hspStop() {
     final request = RequestHspStop();
     _sendRequest(Request(requestHspStop: request));
+  }
+
+  void hspLoop(bool loop) {
+    final request = RequestHspLoopSet(loop: loop);
+    _sendRequest(Request(requestHspLoopSet: request));
   }
 
   Future<ResponseClockOffsetGet?> getClockOffset() async {

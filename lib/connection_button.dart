@@ -55,7 +55,11 @@ class ConnectionButton extends StatelessWidget {
                   connected ? connectedIcon : disconnectedIcon,
                   color: connected ? Colors.green : Colors.red,
                 ),
-                onPressed: isConnecting ? null : () => backend?.tryConnect(),
+                onPressed: isConnecting
+                    ? null
+                    : () => connected
+                          ? playerModel.disconnectBackend()
+                          : playerModel.connectBackend(),
                 style: TextButton.styleFrom(
                   side: BorderSide(
                     color: Theme.of(

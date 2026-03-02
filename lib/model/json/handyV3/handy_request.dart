@@ -139,3 +139,24 @@ class HandyStrokeSet {
       _$HandyStrokeSetFromJson(json);
   Map<String, dynamic> toJson() => _$HandyStrokeSetToJson(this);
 }
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class HspThreshold {
+  final int tailPointThreshold;
+  HspThreshold({required this.tailPointThreshold});
+
+  factory HspThreshold.fromJson(Map<String, dynamic> json) =>
+      _$HspThresholdFromJson(json);
+  Map<String, dynamic> toJson() => _$HspThresholdToJson(this);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class HspLoop {
+  final bool loop;
+
+  HspLoop({required this.loop});
+
+  factory HspLoop.fromJson(Map<String, dynamic> json) =>
+      _$HspLoopFromJson(json);
+  Map<String, dynamic> toJson() => _$HspLoopToJson(this);
+}

@@ -21,6 +21,7 @@ abstract class HandyWebBackendBase extends PlayerBackend
     required super.settingsModel,
     required super.batteryModel,
     required this.webSettings,
+    required super.backendType,
   }) {
     handy = HandyWeb(settingsModel.min, settingsModel.max);
   }
@@ -34,6 +35,9 @@ abstract class HandyWebBackendBase extends PlayerBackend
   @override
   ReadonlySignal<bool> get isConnecting => _isConnecting;
   final Signal<bool> _isConnecting = signal(false);
+
+  Function(bool)? hspThresholdReachedHandler;
+  Function()? hspLoopedHandler;
 
   static const String applicationKey = String.fromEnvironment(
     'HANDY_APPLICATION_ID',
@@ -80,6 +84,12 @@ abstract class HandyWebBackendBase extends PlayerBackend
   }
 
   @override
+  Future<void> dispose() async {
+    await super.dispose();
+    await handy.disconnect();
+  }
+
+  @override
   Future<void> tryConnect() async {
     try {
       _isConnecting.value = true;
@@ -88,6 +98,10 @@ abstract class HandyWebBackendBase extends PlayerBackend
         webSettings.connectionKey,
         webSettings.applicationKeyOverride ?? applicationKey,
       );
+      // TODO: this is jank
+      handy.hspThresholdReached = (starving) =>
+          hspThresholdReachedHandler?.call(starving);
+      handy.hspLooped = () => hspLoopedHandler?.call();
     } finally {
       _isConnecting.value = false;
     }
@@ -107,13 +121,8 @@ abstract class HandyWebBackendBase extends PlayerBackend
   );
 
   @override
-  void hspCurrentTimeSet({
-    required int currentTime,
-    required bool forceCurrentTime,
-  }) => handy.hspCurrentTimeSet(
-    currentTime: currentTime,
-    forceCurrentTime: forceCurrentTime,
-  );
+  void hspCurrentTimeSet({required int currentTime, required double filter}) =>
+      handy.hspCurrentTimeSet(currentTime: currentTime, filter: filter);
 
   @override
   void hspFlush() => handy.hspFlush();
@@ -140,6 +149,9 @@ abstract class HandyWebBackendBase extends PlayerBackend
 
   @override
   void hspStop() => handy.hspStop();
+
+  @override
+  void hspLoop(bool loop) => handy.hspLoop(loop);
 
   @override
   void positionWithDuration(double relPos, int moveOverTimeMs) =>

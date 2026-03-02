@@ -19,6 +19,7 @@ class ButtplugBaseBackend extends PlayerBackend implements ICommandBackendBase {
     required super.settingsModel,
     required super.batteryModel,
     required this.settings,
+    required super.backendType,
   });
 
   ButtplugWebsocketClientConnector? _connector;
@@ -190,7 +191,7 @@ class ButtplugBaseBackend extends PlayerBackend implements ICommandBackendBase {
 
   @override
   Future<void> dispose() async {
-    super.dispose();
+    await super.dispose();
     try {
       await _client?.disconnect();
       await _connector?.disconnect();

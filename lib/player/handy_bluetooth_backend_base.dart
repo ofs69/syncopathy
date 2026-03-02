@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/generated/constants.pb.dart';
@@ -27,6 +26,9 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
     return _handyBle.value?.hspState.value;
   });
 
+  Function(bool)? hspThresholdReachedHandler;
+  Function()? hspLoopHandler;
+
   @override
   ReadonlySignal<HspStateAdapter?> get hspStateAdapter => _hspStateAdapter;
   late final ReadonlySignal<HspStateAdapter?> _hspStateAdapter;
@@ -36,6 +38,7 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
     required super.batteryModel,
     required super.timesource,
     required super.currentFunscript,
+    required super.backendType,
   }) {
     _hspStateAdapter = computed(() {
       final state = hspState.value;
@@ -58,6 +61,7 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
         firstPointTime: state.firstPointTime,
         lastPointTime: state.lastPointTime,
         currentTime: state.currentTime,
+        points: state.points,
       );
     });
     effectAdd([
@@ -73,7 +77,7 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
 
   @override
   Widget settingsWidget(BuildContext context) {
-    return Text("Only use this with Firmware 4.1.0+");
+    return Text("Only use this with Firmware 4.1.1+");
   }
 
   @override
@@ -88,7 +92,11 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
     );
     await _handyBle.value?.init();
     _isConnecting.value = false;
-    _handyBle.value?.hspThresholdReached = handleThresholdReached;
+
+    // TODO: this is jank
+    _handyBle.value?.hspThresholdReached = (starving) =>
+        hspThresholdReachedHandler?.call(starving);
+    _handyBle.value?.hspLooped = () => hspLoopHandler?.call();
 
     effectAdd([
       effect(() {
@@ -104,7 +112,7 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
 
   @override
   Future<void> dispose() async {
-    effectDispose();
+    await super.dispose();
     await _handyBle.value?.dispose();
   }
 
@@ -122,13 +130,11 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
   );
 
   @override
-  void hspCurrentTimeSet({
-    required int currentTime,
-    required bool forceCurrentTime,
-  }) => _handyBle.value?.hspCurrentTimeSet(
-    currentTime: currentTime,
-    forceCurrentTime: forceCurrentTime,
-  );
+  void hspCurrentTimeSet({required int currentTime, required double filter}) =>
+      _handyBle.value?.hspCurrentTimeSet(
+        currentTime: currentTime,
+        filter: filter,
+      );
 
   @override
   void hspFlush() => _handyBle.value?.hspFlush();
@@ -158,14 +164,9 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
   void hspStop() => _handyBle.value?.hspStop();
 
   @override
+  void hspLoop(bool loop) => _handyBle.value?.hspLoop(loop);
+
+  @override
   void positionWithDuration(double relPos, int moveOverTimeMs) =>
       _handyBle.value?.positionWithDuration(relPos, moveOverTimeMs);
-
-  void handleThresholdReached(bool starving) {
-    if (kDebugMode) {
-      debugPrint(
-        "!!! handleThresholdReached($starving) was called without a handler !!!",
-      );
-    }
-  }
 }

@@ -138,12 +138,16 @@ class HandyWeb with EffectDispose {
         firstPointTime: state.firstPointTime,
         lastPointTime: state.lastPointTime,
         currentTime: state.currentTime,
+        points: state.points,
       );
     });
   }
 
   // ReadonlySignal<bool> get connected => _connected;
   int estimatedAverageOffset = 0;
+  Function(bool)? hspThresholdReached;
+  Function()? hspLooped;
+
   int estimatedServerTime() =>
       DateTime.now().millisecondsSinceEpoch + estimatedAverageOffset;
 
@@ -286,6 +290,19 @@ class HandyWeb with EffectDispose {
       case "device_disconnected": // Received when the device disconnects.
         disconnect();
         break;
+      case "hsp_threshold_reached": // Received when the HSP data threshold is reached.
+        hspThresholdReached?.call(false);
+        break;
+      case "hsp_starving": // Received when the HSP is starving (no more data to play). Only sent if pause_on_starving is disabled.
+        hspThresholdReached?.call(true);
+        break;
+      case "hsp_looping": // Received when the HSP starts a new loop.
+        hspLooped?.call();
+        break;
+      case "hsp_state_changed": // Received when the HSP state have changed.
+        final ev = HandyHspStatusEvent.fromJson(json);
+        _hspState.value = ev.data;
+        break;
       case "battery_changed": // Received when the battery status have changed.
       case "ble_status_changed": // Received when the BLE status have changed.
       case "button_event": // Received in case of an unhandled button event. Eg. the user uses a device button in a way ignored by the current device mode.
@@ -295,10 +312,6 @@ class HandyWeb with EffectDispose {
       case "hamp_state_changed": // Received when the HAMP state have changed.
       case "hrpp_state_changed": // Received when the HRPP state have changed.
       case "hdsp_state_changed": // Received when the HDSP state have changed.
-      case "hsp_looping": // Received when the HSP starts a new loop.
-      case "hsp_starving": // Received when the HSP is starving (no more data to play). Only sent if pause_on_starving is disabled.
-      case "hsp_state_changed": // Received when the HSP state have changed.
-      case "hsp_threshold_reached": // Received when the HSP data threshold is reached.
       case "hsp_paused_on_starving": // Received when the HSP is paused due to starvation. Only sent if pause_on_starving is enabled.
       case "hsp_resumed_on_not_starving": // Received when the HSP is resumed after starvation and playable data is available. Only sent if pause_on_starving is enabled.
       case "stream_end_reached": // Received when the end of a closed stream have been reached. This includes scripts played with the HSSP protocol or closed streams played with STREAM protocol.
@@ -460,35 +473,60 @@ class HandyWeb with EffectDispose {
       tailPointStreamIndex: tailPointStreamIndex,
       tailPointThreshold: tailPointThreshold,
     );
-    final url = baseApiUrl.resolve('hsp/add');
-    _apiQueue.makeRequest(
-      (client) => client
-          .put(
-            url,
-            headers: _defaultHeaders,
-            body: jsonEncode(request.toJson()),
-          )
-          .then((response) {
-            if (response.statusCode == 200) {
-              var state = HandyResponse<HandyHspState>.fromJson(
-                jsonDecode(response.body),
-                (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
-              );
-              _handleStateResponse(state);
-            }
-          }),
-    );
+
+    {
+      final url = baseApiUrl.resolve('hsp/add');
+      _apiQueue.makeRequest(
+        (client) => client
+            .put(
+              url,
+              headers: _defaultHeaders,
+              body: jsonEncode(request.toJson()),
+            )
+            .then((response) {
+              if (response.statusCode == 200) {
+                var state = HandyResponse<HandyHspState>.fromJson(
+                  jsonDecode(response.body),
+                  (json) =>
+                      HandyHspState.fromJson(json as Map<String, dynamic>),
+                );
+                _handleStateResponse(state);
+              }
+            }),
+      );
+
+      if (tailPointThreshold != null) {
+        // manually set the threshold
+        final request = HspThreshold(tailPointThreshold: tailPointThreshold);
+        final url = baseApiUrl.resolve('hsp/threshold');
+        _apiQueue.makeRequest(
+          (client) => client
+              .put(
+                url,
+                headers: _defaultHeaders,
+                body: jsonEncode(request.toJson()),
+              )
+              .then((response) {
+                if (response.statusCode == 200) {
+                  var state = HandyResponse<HandyHspState>.fromJson(
+                    jsonDecode(response.body),
+                    (json) =>
+                        HandyHspState.fromJson(json as Map<String, dynamic>),
+                  );
+                  _handleStateResponse(state);
+                }
+              }),
+        );
+      }
+    }
   }
 
-  void hspCurrentTimeSet({
-    required int currentTime,
-    required bool forceCurrentTime,
-  }) {
+  void hspCurrentTimeSet({required int currentTime, required double filter}) {
     if (!_connected.value) return;
     final request = HspSynctime(
       currentTime: currentTime,
       serverTime: estimatedServerTime(),
-      filter: forceCurrentTime ? 1.0 : 0.6,
+      filter: filter,
     );
     final url = baseApiUrl.resolve('hsp/synctime');
     _apiQueue.makeRequest(
@@ -620,13 +658,36 @@ class HandyWeb with EffectDispose {
     );
   }
 
+  void hspLoop(bool loop) {
+    if (!_connected.value) return;
+    final request = HspLoop(loop: loop);
+    final url = baseApiUrl.resolve('hsp/loop');
+    _apiQueue.makeRequest(
+      (client) => client
+          .put(
+            url,
+            headers: _defaultHeaders,
+            body: jsonEncode(request.toJson()),
+          )
+          .then((response) {
+            if (response.statusCode == 200) {
+              var state = HandyResponse<HandyHspState>.fromJson(
+                jsonDecode(response.body),
+                (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
+              );
+              _handleStateResponse(state);
+            }
+          }),
+    );
+  }
+
   void positionWithDuration(double relPos, int moveOverTimeMs) {
     if (!_connected.value) return;
     final request = HdspXpt(
       xp: relPos.clamp(0, 1.0),
       t: moveOverTimeMs,
       stopOnTarget: true,
-      immediateRsp: true,
+      immediateRsp: false,
     );
     final url = baseApiUrl.resolve('hdsp/xpt');
     _apiQueue.makeRequest(

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
@@ -136,14 +137,17 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     assert(nativePlayer != null, "Non MPV player not supported");
 
     nativePlayer?.setProperty('keep-open', 'yes');
-    nativePlayer?.setProperty('loop-file', 'no');
-    nativePlayer?.setProperty('loop-playlist', 'inf');
-    nativePlayer?.setProperty("pause", 'yes');
-    _player.pause();
-    nativePlayer?.setProperty("volume", "100.0");
-
     nativePlayer?.command(["keybind", "CLOSE_WIN", "ignore"]);
     nativePlayer?.command(["keybind", "q", "ignore"]);
+
+    // nativePlayer?.setProperty('loop-file', 'no');
+    // nativePlayer?.setProperty('loop-playlist', 'inf');
+    // nativePlayer?.setProperty("volume", "100.0");
+    // nativePlayer?.setProperty("pause", 'yes');
+
+    _player.setPlaylistMode(PlaylistMode.loop);
+    _player.pause();
+
     volume = _player.stream.volume.toSyncSignal(100);
     duration = _player.stream.duration
         .map((d) => d.inMilliseconds / 1000.0)
@@ -151,6 +155,8 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     playbackSpeed = _player.stream.rate.toSyncSignal(1);
 
     _paused.value = !_player.state.playing;
+
+    // media-kit pause state is weird. listen to mpv directly
     nativePlayer?.observeProperty('pause', (value) async {
       _paused.value = value == 'yes' ? true : false;
     });
@@ -158,15 +164,28 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     videoParams = _player.stream.videoParams.toSyncSignal(
       _player.state.videoParams,
     );
-    loopFile = _player.stream.playlistMode
-        .map((mode) => mode == PlaylistMode.single)
-        .toSyncSignal(_player.state.playlistMode == PlaylistMode.single);
 
     playlist = _player.stream.playlist.toSyncSignal(_player.state.playlist);
+    final playlistModeSignal = _player.stream.playlistMode.toSyncSignal(
+      _player.state.playlistMode,
+    );
+
+    loopFile = computed(() {
+      var playlistCount = playlist.value.medias.length;
+      var playlistMode = playlistModeSignal.value;
+
+      // edge case playlist with one item looping == looping a single file
+      if (playlistCount == 1 && playlistMode == PlaylistMode.loop) {
+        return true;
+      }
+      // otherwise check if single file looping is on
+      return playlistMode == PlaylistMode.single;
+    });
+
     loadedPath = computed(() {
       final currentPlaylist = playlist.value;
       final index = currentPlaylist.index;
-      if (index >= 0 && currentPlaylist.medias.length < index) {
+      if (index >= 0 && index < currentPlaylist.medias.length) {
         return currentPlaylist.medias[index].uri;
       }
       return "";
@@ -293,7 +312,7 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
 
   void _loadList(List<Video> videos) {
     final playlist = Playlist(videos.map((v) => Media(v.videoPath)).toList());
-    _player.open(playlist, play: false);
+    _player.open(playlist, play: _player.state.playing);
     _playlistShuffled.value = false;
   }
 
@@ -321,11 +340,11 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
   //   _player.setPropertyString("ontop", "no");
   // }
 
-  void screenshot(String path) async {
-    final buffer = await _player.screenshot();
-    if (buffer != null) {
-      File(path).writeAsBytesSync(buffer.toList(), flush: true);
-    }
+  Future<Uint8List?> screenshot(String path) async {
+    return await _player.screenshot(
+      format: 'image/jpeg',
+      includeLibassSubtitles: false,
+    );
   }
 
   void toggleLooping() {

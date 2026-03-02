@@ -19,12 +19,14 @@ class HspStateAdapter {
   int firstPointTime;
   int lastPointTime;
   int currentTime;
+  int points;
 
   HspStateAdapter({
     required this.playState,
     required this.firstPointTime,
     required this.lastPointTime,
     required this.currentTime,
+    required this.points,
   });
 }
 
@@ -46,18 +48,18 @@ abstract class IHandyHspBase {
   });
   void hspResume();
   void hspPause();
-  void hspCurrentTimeSet({
-    required int currentTime,
-    required bool forceCurrentTime,
-  });
+  void hspCurrentTimeSet({required int currentTime, required double filter});
   void hspStop();
+  void hspLoop(bool loop);
 }
 
 mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   final _currentlyBufferedBuffers = <int>{};
-  final _bufferNotBufferedThrottle = Throttler(milliseconds: 100);
-  final _currentTimeThrottle = Throttler(milliseconds: 5000);
+  int _syncCounter = 0;
+  final _currentTimeThrottle = Throttler(milliseconds: 2000);
   final _actionsChangeDebounce = Debouncer(milliseconds: 1000);
+  final _bufferNotBufferedThrottle = Throttler(milliseconds: 200);
+  final _loopChangeDebouncer = Debouncer(milliseconds: 200);
 
   List<Function()> addEffects() {
     return [
@@ -65,8 +67,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         final homeMode = settingsModel.homeDeviceEnabled.value;
         untracked(() {
           if (homeMode) {
-            //hspSetup(); // reset
-            hspStop();
+            hspStop(); // stop
             positionWithDuration(0.0, 500);
           } else {
             hspSetup(); // reset
@@ -87,7 +88,10 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         }
       }),
       effect(() {
+        // also run when file changes
+        final file = timesource.loadedPath.value;
         final rawTime = timesource.rawPosition.value;
+        if (file.trim().isEmpty) return;
         if (!settingsModel.homeDeviceEnabled.value) {
           untracked(() => _timeChange(rawTime));
         }
@@ -100,9 +104,26 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
       }),
       effect(() {
         final state = hspStateAdapter.value;
-        untracked(() => _hspStateChange(state));
+        if (!settingsModel.homeDeviceEnabled.value) {
+          untracked(() => _hspStateChange(state));
+        }
+      }),
+      effect(() {
+        final loop = timesource.loopFile.value;
+        if (!settingsModel.homeDeviceEnabled.value) {
+          untracked(() => _loopChanged(loop));
+        }
       }),
     ];
+  }
+
+  void _loopChanged(bool loop) {
+    if (hspStateAdapter.value?.playState ==
+        HspStateAdapterPlayState.hspStatePlaying) {
+      _loopChangeDebouncer.run(() {
+        hspLoop(loop);
+      });
+    }
   }
 
   void _actionChangeChange(List<FunscriptAction>? actions) {
@@ -120,20 +141,26 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     if (state == null) return;
     final isPlaying = !timesource.paused.value;
 
-    _currentTimeThrottle.run(() {
-      if (state.playState == HspStateAdapterPlayState.hspStatePlaying) {
-        if (isPlaying) {
-          if (state.firstPointTime <= currentTimeMs &&
-              state.lastPointTime > currentTimeMs) {
-            hspCurrentTimeSet(
-              currentTime:
-                  timesource.currentSmoothMs + settingsModel.offsetMs.value,
-              forceCurrentTime: false,
-            );
+    _currentTimeThrottle.run(
+      () {
+        if (state.playState == HspStateAdapterPlayState.hspStatePlaying) {
+          if (isPlaying) {
+            if (state.firstPointTime <= currentTimeMs &&
+                state.lastPointTime > currentTimeMs) {
+              hspCurrentTimeSet(
+                currentTime:
+                    timesource.currentSmoothMs + settingsModel.offsetMs.value,
+                filter: _syncCounter < 2 ? 0.9 : 0.5,
+              );
+              _syncCounter += 1;
+              debugPrint("SYNC COUNTER: $_syncCounter ${DateTime.now()}");
+            }
           }
         }
-      }
-    });
+      },
+      throttleTime: _syncCounter < 2 ? 2000 : 10000,
+      immediate: _syncCounter == 0,
+    );
 
     _bufferNotBufferedThrottle.run(() {
       final currentBufferId =
@@ -142,24 +169,35 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
 
       if (!_currentlyBufferedBuffers.contains(currentBufferId)) {
         Logger.debug("Handy stalled restarting...");
-        hspSetup();
-        final buffer = ActionBuffer.fromActions(currentBufferId, actions);
-        if (buffer != null) _bufferPoints(buffer, flush: true);
-      }
+        if (state.points > 0) hspSetup();
 
-      final maxBuffers = (actions.length / ActionBuffer.maxBufferSize).ceil();
-      final nextBufferId = currentBufferId + 1 >= maxBuffers
-          ? 0
-          : currentBufferId + 1;
-      if (!_currentlyBufferedBuffers.contains(nextBufferId)) {
-        final buffer = ActionBuffer.fromActions(nextBufferId, actions);
-        if (buffer != null) _bufferPoints(buffer, flush: false);
+        final prevBuffer = ActionBuffer.fromActions(
+          currentBufferId - 1,
+          actions,
+        );
+        final currentBuffer = ActionBuffer.fromActions(
+          currentBufferId,
+          actions,
+        );
+        final nextBuffer = ActionBuffer.fromActions(
+          currentBufferId + 1,
+          actions,
+        );
+        _bufferPoints([?prevBuffer, ?currentBuffer, ?nextBuffer], flush: true);
+      } else {
+        final maxBuffers = (actions.length / ActionBuffer.maxBufferSize).ceil();
+        final nextBufferId = currentBufferId + 1 >= maxBuffers
+            ? 0
+            : currentBufferId + 1;
+        if (!_currentlyBufferedBuffers.contains(nextBufferId)) {
+          final buffer = ActionBuffer.fromActions(nextBufferId, actions);
+          if (buffer != null) _bufferPoints([buffer], flush: false);
+        }
       }
     });
   }
 
   void _playChange(bool paused) {
-    debugPrint("PLAYCHANGE PAUSED: $paused");
     final state = hspStateAdapter.value;
     if (state == null) return;
 
@@ -212,7 +250,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
             hspPlay(
               startTime: currentTimeMs + settingsModel.offsetMs.value,
               playbackRate: timesource.playbackSpeed.value,
-              loop: true,
+              loop: timesource.loopFile.value,
             );
           }
           playbackDelta.value = 0;
@@ -220,9 +258,9 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         break;
       case HspStateAdapterPlayState.hspStatePlaying:
         playbackDelta.value = currentTimeMs - hspState.currentTime;
-        debugPrint(
-          "$currentTimeMs - ${hspState.currentTime} = ${playbackDelta.value}",
-        );
+        // debugPrint(
+        //   "$currentTimeMs - ${hspState.currentTime} = ${playbackDelta.value}",
+        // );
         break;
       case HspStateAdapterPlayState.hspStateStarving:
         Logger.debug("Handy HSP starved. Restarting...");
@@ -233,40 +271,61 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
 
   @override
   void hspSetup({int? streamId}) {
-    super.hspSetup(streamId: streamId);
     _currentlyBufferedBuffers.clear();
+    _syncCounter = 0;
+    super.hspSetup(streamId: streamId);
   }
 
-  void _bufferPoints(ActionBuffer buffer, {required bool flush}) {
+  // buffers are expected to be sorted by id ascending
+  void _bufferPoints(List<ActionBuffer> buffers, {required bool flush}) {
     if (flush) {
       _currentlyBufferedBuffers.clear();
+      _syncCounter = 0;
     }
-    if (_currentlyBufferedBuffers.contains(buffer.id)) {
+    if (buffers.isEmpty) {
+      if (flush) hspFlush();
       return;
     }
-    final points = buffer.toActions();
+
+    // Merge buffers into one hspAdd
+    final points = <FunscriptAction>[];
+    var tailPointIndex = 0;
+    var tailPointTreshold = 0;
+    for (final buffer in buffers) {
+      if (_currentlyBufferedBuffers.contains(buffer.id)) {
+        continue;
+      }
+      _currentlyBufferedBuffers.add(buffer.id);
+      points.addAll(buffer.toActions());
+      tailPointIndex = buffer.tailPointIndex;
+      tailPointTreshold = buffer.tailPointTreshold;
+    }
+
+    // If the buffer after the last one passed to this function is the last eagerly buffer it
+    final remainingActions =
+        buffers.last.allActions.length - buffers.last.tailPointIndex;
+    if (remainingActions > 0 && remainingActions < ActionBuffer.maxBufferSize) {
+      final lastBuffer = ActionBuffer.fromActions(
+        buffers.last.id + 1,
+        buffers.last.allActions,
+      );
+      if (lastBuffer != null) {
+        _currentlyBufferedBuffers.add(lastBuffer.id);
+        points.addAll(lastBuffer.toActions());
+        tailPointIndex = lastBuffer.tailPointIndex;
+        tailPointTreshold = lastBuffer.tailPointTreshold;
+      }
+    }
+
+    // 100 is the limit but I want to keep messages small
+    assert(points.length <= 50, "Too many points.");
+
     hspAdd(
       points,
       flush: flush,
-      tailPointStreamIndex: buffer.tailPointIndex,
-      tailPointThreshold: buffer.tailPointTreshold,
+      tailPointStreamIndex: tailPointIndex,
+      tailPointThreshold: tailPointTreshold,
     );
-    _currentlyBufferedBuffers.add(buffer.id);
-    // debugPrint(
-    //   "threshold: ${buffer.tailPointTreshold} tail: ${buffer.tailPointIndex}",
-    // );
-
-    // If the buffer after the one passed to this function is the last
-    // eagerly buffer it
-    final remainingActions = buffer.allActions.length - buffer.tailPointIndex;
-    if (remainingActions > 0 && remainingActions < ActionBuffer.maxBufferSize) {
-      final lastBuffer = ActionBuffer.fromActions(
-        buffer.id + 1,
-        buffer.allActions,
-      );
-      if (lastBuffer != null) _bufferPoints(lastBuffer, flush: false);
-      return;
-    }
   }
 
   void _bootstrapBuffer(List<FunscriptAction> actions) {
@@ -276,10 +335,10 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     final bufferId =
         PlayerBackend.getActionIndex(timesource.currentSmoothMs, actions) ~/
         ActionBuffer.maxBufferSize;
+    final prevBuffer = ActionBuffer.fromActions(bufferId - 1, actions);
     final currentBuffer = ActionBuffer.fromActions(bufferId, actions);
-    if (currentBuffer != null) _bufferPoints(currentBuffer, flush: true);
     final nextBuffer = ActionBuffer.fromActions(bufferId + 1, actions);
-    if (nextBuffer != null) _bufferPoints(nextBuffer, flush: false);
+    _bufferPoints([?prevBuffer, ?currentBuffer, ?nextBuffer], flush: true);
   }
 
   void handleThresholdReached(bool starving) {
@@ -295,7 +354,11 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     }
     final actionBuffer = ActionBuffer.fromActions(bufferId, actions);
     if (actionBuffer != null) {
-      _bufferPoints(actionBuffer, flush: false);
+      _bufferPoints([actionBuffer], flush: false);
     }
+  }
+
+  void handleLoop() {
+    _syncCounter = 0;
   }
 }

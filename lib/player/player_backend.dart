@@ -9,6 +9,7 @@ import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/timesource_model.dart';
+import 'package:syncopathy/player/player_backend_type.dart';
 
 class ActionBuffer {
   static const int maxBufferSize = 10;
@@ -58,6 +59,8 @@ abstract class PlayerBackend with EffectDispose {
 
   bool get isBluetooth;
 
+  final PlayerBackendType backendType;
+
   // HACK: this should be readonly
   final Signal<int?> playbackDelta = signal(null);
 
@@ -75,6 +78,7 @@ abstract class PlayerBackend with EffectDispose {
     required this.currentFunscript,
     required this.settingsModel,
     required this.batteryModel,
+    required this.backendType,
   });
 
   Widget settingsWidget(BuildContext context);

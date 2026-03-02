@@ -412,6 +412,11 @@ class _SettingsPageState extends State<SettingsPage>
     final playerModel = context.read<PlayerModel>();
     final backend = playerModel.playerBackend.watch(context);
 
+    final isLoaded =
+        playerModel.playerBackend.value?.backendType != null &&
+        playerModel.playerBackend.value?.backendType ==
+            settings.playerBackendType.value;
+
     return Column(
       children: [
         ListTile(
@@ -419,29 +424,36 @@ class _SettingsPageState extends State<SettingsPage>
             horizontal: 8.0,
             vertical: 0.0,
           ),
-          title: DropdownButton<String>(
-            value: settings.playerBackendType.watch(context).toString(),
-            underline: const SizedBox.shrink(), // Hides the default underline
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-            borderRadius: BorderRadius.circular(16.0),
-            isExpanded: true,
-            items: PlayerBackendType.values
-                .map(
-                  (e) => DropdownMenuItem<String>(
-                    value: e.toString(),
-                    child: Text(e.toDisplayString()),
+          title: !isLoaded
+              ? Center(child: CircularProgressIndicator())
+              : DropdownButton<String>(
+                  value: settings.playerBackendType.watch(context).toString(),
+                  underline:
+                      const SizedBox.shrink(), // Hides the default underline
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 8.0,
                   ),
-                )
-                .toList(),
-            onChanged: (selected) {
-              final selectedEnum = PlayerBackendType.values.firstWhere(
-                (e) => e.toString() == selected,
-              );
-              settings.playerBackendType.value = selectedEnum;
-            },
-          ),
+                  borderRadius: BorderRadius.circular(16.0),
+                  isExpanded: true,
+                  items: PlayerBackendType.values
+                      .map(
+                        (e) => DropdownMenuItem<String>(
+                          value: e.toString(),
+                          child: Text(e.toDisplayString()),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (selected) {
+                    final selectedEnum = PlayerBackendType.values.firstWhere(
+                      (e) => e.toString() == selected,
+                    );
+                    settings.playerBackendType.value = selectedEnum;
+                  },
+                ),
         ),
-        if (backend != null) ListTile(title: backend.settingsWidget(context)),
+        if (backend != null && isLoaded)
+          ListTile(title: backend.settingsWidget(context)),
       ],
     );
   }

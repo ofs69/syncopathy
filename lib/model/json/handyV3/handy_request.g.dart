@@ -93,3 +93,17 @@ HandyStrokeSet _$HandyStrokeSetFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$HandyStrokeSetToJson(HandyStrokeSet instance) =>
     <String, dynamic>{'min': instance.min, 'max': instance.max};
+
+HspThreshold _$HspThresholdFromJson(Map<String, dynamic> json) => HspThreshold(
+  tailPointThreshold: (json['tail_point_threshold'] as num).toInt(),
+);
+
+Map<String, dynamic> _$HspThresholdToJson(HspThreshold instance) =>
+    <String, dynamic>{'tail_point_threshold': instance.tailPointThreshold};
+
+HspLoop _$HspLoopFromJson(Map<String, dynamic> json) =>
+    HspLoop(loop: json['loop'] as bool);
+
+Map<String, dynamic> _$HspLoopToJson(HspLoop instance) => <String, dynamic>{
+  'loop': instance.loop,
+};

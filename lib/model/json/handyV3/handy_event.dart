@@ -80,3 +80,17 @@ class HandyDeviceStatus extends HandyEventData {
   @override
   Map<String, dynamic> toJson() => _$HandyDeviceStatusToJson(this);
 }
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class HandyHspStatusEvent extends HandyEventData {
+  @JsonKey(name: 'data')
+  final HandyHspState data;
+
+  HandyHspStatusEvent({required super.connectionKey, required this.data});
+
+  factory HandyHspStatusEvent.fromJson(Map<String, dynamic> json) =>
+      _$HandyHspStatusEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$HandyHspStatusEventToJson(this);
+}
