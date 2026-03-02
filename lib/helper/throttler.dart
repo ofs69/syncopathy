@@ -7,7 +7,11 @@ class Throttler {
 
   Throttler({required int milliseconds}) : defaultMilliseconds = milliseconds;
 
-  void run(void Function() action, {int? throttleTime, bool immediate = false}) {
+  void run(
+    void Function() action, {
+    int? throttleTime,
+    bool immediate = false,
+  }) {
     // If 'immediate' is true, we bypass the throttle check and reset the timer.
     if (immediate) {
       _execute(action, throttleTime);
@@ -29,7 +33,9 @@ class Throttler {
     _timer?.cancel();
 
     // 3. Start a new cooldown period
-    final duration = Duration(milliseconds: throttleTime ?? defaultMilliseconds);
+    final duration = Duration(
+      milliseconds: throttleTime ?? defaultMilliseconds,
+    );
     _timer = Timer(duration, () {
       _isThrottled = false;
     });
