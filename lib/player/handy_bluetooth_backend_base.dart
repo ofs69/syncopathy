@@ -62,6 +62,7 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
         lastPointTime: state.lastPointTime,
         currentTime: state.currentTime,
         points: state.points,
+        currentPoint: state.currentPoint,
       );
     });
     effectAdd([
@@ -77,7 +78,7 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
 
   @override
   Widget settingsWidget(BuildContext context) {
-    return Text("Only use this with Firmware 4.1.1+");
+    return Text("Only use this with firmware v4.1.1+");
   }
 
   @override
@@ -147,10 +148,12 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
     required int startTime,
     required double playbackRate,
     required bool loop,
+    required bool pauseOnStarving,
   }) => _handyBle.value?.hspPlay(
     startTime: startTime,
     playbackRate: playbackRate,
     loop: loop,
+    pauseOnStarving: pauseOnStarving,
   );
 
   @override

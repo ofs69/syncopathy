@@ -208,11 +208,15 @@ class HandyBle with EffectDispose {
 
     // Sync time
     {
+      final request = RequestClockOffsetGet();
+      final bufferMsg = Request(requestClockOffsetGet: request).writeToBuffer();
+
       const syncTries = 10;
       var offsetAggregated = 0.0;
       for (var index = 0; index < syncTries; index += 1) {
         final start = DateTime.now().millisecondsSinceEpoch;
-        final _ = await getClockOffset();
+        //final _ = await getClockOffset(); // Not sure if this is better
+        final _ = await _device.tx.write(bufferMsg, withResponse: true);
         final server = DateTime.now().millisecondsSinceEpoch;
         final end = server;
         final rtd = end - start;
@@ -220,6 +224,7 @@ class HandyBle with EffectDispose {
 
         Logger.debug('RTD: $rtd\tOffset: $offset');
         offsetAggregated += offset;
+        await Future.delayed(Duration(milliseconds: 100));
       }
       estimatedAverageOffset = (offsetAggregated / syncTries).round();
       Logger.debug("Estimated average offset: $estimatedAverageOffset");
@@ -462,11 +467,12 @@ class HandyBle with EffectDispose {
     required int startTime,
     required double playbackRate,
     required bool loop,
+    required bool pauseOnStarving,
   }) {
     final request = RequestHspPlay(
       startTime: startTime,
       loop: loop,
-      pauseOnStarving: false,
+      pauseOnStarving: pauseOnStarving,
       playbackRate: playbackRate,
       serverTime: Int64(serverTime()),
     );

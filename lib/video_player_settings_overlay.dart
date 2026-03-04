@@ -21,32 +21,26 @@ class ScriptPlayerSettingsOverlay extends StatelessWidget {
     return ClipRect(
       // Prevents the blur from spreading outside the container
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
         child: Container(
           padding: EdgeInsets.all(8.0),
-          decoration: BoxDecoration(color: Colors.black.withAlphaF(0.4)),
+          decoration: BoxDecoration(color: Colors.black.withAlphaF(0.5)),
           alignment: Alignment.topCenter,
-          child: DesktopGlassSettings(),
+          child: ScriptPlayerSettings(),
         ),
       ),
     );
   }
 }
 
-class DesktopGlassSettings extends StatefulWidget {
-  const DesktopGlassSettings({super.key});
+class ScriptPlayerSettings extends StatefulWidget {
+  const ScriptPlayerSettings({super.key});
 
   @override
-  State<DesktopGlassSettings> createState() => _DesktopGlassSettingsState();
+  State<ScriptPlayerSettings> createState() => _ScriptPlayerSettingsState();
 }
 
-class _DesktopGlassSettingsState extends State<DesktopGlassSettings> {
-  // double _fov = 90;
-  // double _volume = 0.75;
-  // bool _vsync = true;
-  // bool _bloom = false;
-  // String _quality = 'Ultra';
-
+class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
   @override
   Widget build(BuildContext context) {
     final cards = [
@@ -73,76 +67,6 @@ class _DesktopGlassSettingsState extends State<DesktopGlassSettings> {
         children: [_buildTimingSettings(context)],
       ),
 
-      // Card 1: Video (Multiple Sliders + Switch)
-      // _settingsCard(
-      //   width: 450,
-      //   title: "Graphics & Viewport",
-      //   children: [
-      //     _rowLabel("Field of View", "${_fov.toInt()}°"),
-      //     Slider(
-      //       value: _fov,
-      //       min: 60,
-      //       max: 120,
-      //       onChanged: (v) => setState(() => _fov = v),
-      //     ),
-      //     _rowLabel("Render Scale", "100%"),
-      //     const Slider(value: 1.0, onChanged: null), // Disabled example
-      //     const Divider(color: Colors.white12, height: 32),
-      //     SwitchListTile(
-      //       title: const Text(
-      //         "Vertical Sync",
-      //         style: TextStyle(color: Colors.white, fontSize: 14),
-      //       ),
-      //       subtitle: const Text(
-      //         "Prevents screen tearing",
-      //         style: TextStyle(color: Colors.white54, fontSize: 12),
-      //       ),
-      //       value: _vsync,
-      //       onChanged: (v) => setState(() => _vsync = v),
-      //       contentPadding: EdgeInsets.zero,
-      //     ),
-      //   ],
-      // ),
-
-      // // Card 2: Audio (Mixed Input Types)
-      // _settingsCard(
-      //   width: 380,
-      //   title: "Audio Engine",
-      //   children: [
-      //     _rowLabel("Master Volume", "${(_volume * 100).toInt()}%"),
-      //     Slider(value: _volume, onChanged: (v) => setState(() => _volume = v)),
-      //     const SizedBox(height: 16),
-      //     _rowLabel("Dynamic Range", ""),
-      //     DropdownButton<String>(
-      //       value: _quality,
-      //       dropdownColor: Colors.grey[900],
-      //       isExpanded: true,
-      //       underline: Container(height: 1, color: Colors.white24),
-      //       style: const TextStyle(color: Colors.white),
-      //       items: ['Low', 'Medium', 'High', 'Ultra'].map((String value) {
-      //         return DropdownMenuItem<String>(value: value, child: Text(value));
-      //       }).toList(),
-      //       onChanged: (v) => setState(() => _quality = v!),
-      //     ),
-      //   ],
-      // ),
-
-      // // Card 3: Advanced (Numeric Fields & Toggles)
-      // _settingsCard(
-      //   width: 320,
-      //   title: "Advanced",
-      //   children: [
-      //     _numericField("Max Frame Rate", "144"),
-      //     const SizedBox(height: 12),
-      //     _numericField("Gamma Correction", "2.2"),
-      //     const SizedBox(height: 20),
-      //     _customToggle(
-      //       "Post-Processing Bloom",
-      //       _bloom,
-      //       (v) => setState(() => _bloom = v),
-      //     ),
-      //   ],
-      // ),
     ];
 
     return SingleChildScrollView(
@@ -466,73 +390,4 @@ class _DesktopGlassSettingsState extends State<DesktopGlassSettings> {
       ),
     );
   }
-
-  // Widget _rowLabel(String label, String value) {
-  //   return Row(
-  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //     children: [
-  //       Text(
-  //         label,
-  //         style: const TextStyle(color: Colors.white70, fontSize: 14),
-  //       ),
-  //       Text(
-  //         value,
-  //         style: const TextStyle(
-  //           color: Colors.white,
-  //           fontWeight: FontWeight.w600,
-  //           fontSize: 14,
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
-  // Widget _numericField(String label, String initial) {
-  //   return Row(
-  //     children: [
-  //       Expanded(
-  //         child: Text(
-  //           label,
-  //           style: const TextStyle(color: Colors.white70, fontSize: 14),
-  //         ),
-  //       ),
-  //       SizedBox(
-  //         width: 60,
-  //         child: TextField(
-  //           controller: TextEditingController(text: initial),
-  //           textAlign: TextAlign.right,
-  //           style: const TextStyle(color: Colors.white, fontSize: 14),
-  //           decoration: const InputDecoration(
-  //             isDense: true,
-  //             enabledBorder: UnderlineInputBorder(
-  //               borderSide: BorderSide(color: Colors.white24),
-  //             ),
-  //           ),
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
-  // Widget _customToggle(String label, bool value, Function(bool) onChanged) {
-  //   return InkWell(
-  //     onTap: () => onChanged(!value),
-  //     child: Row(
-  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //       children: [
-  //         Text(
-  //           label,
-  //           style: const TextStyle(color: Colors.white, fontSize: 14),
-  //         ),
-  //         Checkbox(
-  //           value: value,
-  //           onChanged: (v) => onChanged(v!),
-  //           side: const BorderSide(color: Colors.white38),
-  //           activeColor: Colors.white,
-  //           checkColor: Colors.black,
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 }

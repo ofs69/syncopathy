@@ -74,7 +74,10 @@ class ApiQueue {
   final RatelimitMiddleware rateLimits = RatelimitMiddleware();
 
   ApiQueue() {
-    _clientInternal = InterceptedClient.build(interceptors: [rateLimits]);
+    _clientInternal = InterceptedClient.build(
+      interceptors: [rateLimits],
+      requestTimeout: Duration(seconds: 5),
+    );
   }
 
   Future<T> makeRequest<T>(Future<T> Function(http.Client) request) {
@@ -139,6 +142,7 @@ class HandyWeb with EffectDispose {
         lastPointTime: state.lastPointTime,
         currentTime: state.currentTime,
         points: state.points,
+        currentPoint: state.currentPoint,
       );
     });
   }
@@ -282,6 +286,7 @@ class HandyWeb with EffectDispose {
 
   void _handleSseEvent(HandySseEvent event) {
     final json = jsonDecode(event.data);
+    debugPrint("sse event: ${event.event}");
     switch (event.event) {
       case "device_status": // Received when starting the SSE connection.
         final ev = HandyDeviceStatus.fromJson(json);
@@ -291,18 +296,33 @@ class HandyWeb with EffectDispose {
         disconnect();
         break;
       case "hsp_threshold_reached": // Received when the HSP data threshold is reached.
+        final ev = HandyHspStatusEvent.fromJson(json);
+        _hspState.value = ev.data;
         hspThresholdReached?.call(false);
         break;
       case "hsp_starving": // Received when the HSP is starving (no more data to play). Only sent if pause_on_starving is disabled.
+        final ev = HandyHspStatusEvent.fromJson(json);
+        _hspState.value = ev.data;
         hspThresholdReached?.call(true);
         break;
       case "hsp_looping": // Received when the HSP starts a new loop.
+        final ev = HandyHspStatusEvent.fromJson(json);
+        _hspState.value = ev.data;
         hspLooped?.call();
         break;
       case "hsp_state_changed": // Received when the HSP state have changed.
         final ev = HandyHspStatusEvent.fromJson(json);
         _hspState.value = ev.data;
         break;
+      case "hsp_paused_on_starving": // Received when the HSP is paused due to starvation. Only sent if pause_on_starving is enabled.
+        final ev = HandyHspStatusEvent.fromJson(json);
+        _hspState.value = ev.data;
+        break;
+      case "hsp_resumed_on_not_starving": // Received when the HSP is resumed after starvation and playable data is available. Only sent if pause_on_starving is enabled.
+        final ev = HandyHspStatusEvent.fromJson(json);
+        _hspState.value = ev.data;
+        break;
+
       case "battery_changed": // Received when the battery status have changed.
       case "ble_status_changed": // Received when the BLE status have changed.
       case "button_event": // Received in case of an unhandled button event. Eg. the user uses a device button in a way ignored by the current device mode.
@@ -312,8 +332,6 @@ class HandyWeb with EffectDispose {
       case "hamp_state_changed": // Received when the HAMP state have changed.
       case "hrpp_state_changed": // Received when the HRPP state have changed.
       case "hdsp_state_changed": // Received when the HDSP state have changed.
-      case "hsp_paused_on_starving": // Received when the HSP is paused due to starvation. Only sent if pause_on_starving is enabled.
-      case "hsp_resumed_on_not_starving": // Received when the HSP is resumed after starvation and playable data is available. Only sent if pause_on_starving is enabled.
       case "stream_end_reached": // Received when the end of a closed stream have been reached. This includes scripts played with the HSSP protocol or closed streams played with STREAM protocol.
       case "hvp_state_changed": // Received when the HVP state changes.
       case "low_memory_error": // Received when the device failed to handle some command due to memory limitations.
@@ -588,13 +606,14 @@ class HandyWeb with EffectDispose {
     required int startTime,
     required double playbackRate,
     required bool loop,
+    required bool pauseOnStarving,
   }) {
     if (!_connected.value) return;
     final request = HspPlay(
       startTime: startTime,
       serverTime: estimatedServerTime(),
       playbackRate: playbackRate,
-      pauseOnStarving: false,
+      pauseOnStarving: pauseOnStarving,
       loop: loop,
     );
     final url = baseApiUrl.resolve('hsp/play');
@@ -662,6 +681,29 @@ class HandyWeb with EffectDispose {
     if (!_connected.value) return;
     final request = HspLoop(loop: loop);
     final url = baseApiUrl.resolve('hsp/loop');
+    _apiQueue.makeRequest(
+      (client) => client
+          .put(
+            url,
+            headers: _defaultHeaders,
+            body: jsonEncode(request.toJson()),
+          )
+          .then((response) {
+            if (response.statusCode == 200) {
+              var state = HandyResponse<HandyHspState>.fromJson(
+                jsonDecode(response.body),
+                (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
+              );
+              _handleStateResponse(state);
+            }
+          }),
+    );
+  }
+
+  void hspPauseOnStarving(bool pauseOnStarving) {
+    if (!_connected.value) return;
+    final request = HspPauseOnStarving(pauseOnStarving: pauseOnStarving);
+    final url = baseApiUrl.resolve('hsp/pause/onstarving');
     _apiQueue.makeRequest(
       (client) => client
           .put(

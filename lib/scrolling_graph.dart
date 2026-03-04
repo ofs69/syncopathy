@@ -82,9 +82,9 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
     speeds = computed(() {
       final funscript = widget.funscript.value;
       if (funscript == null) return [];
-      if (funscript.actions.value.length < 2) return [];
+      if (funscript.processedActions.value.length < 2) return [];
 
-      final actions = funscript.actions.value;
+      final actions = funscript.processedActions.value;
       final speeds = <double>[];
       for (int i = 0; i < actions.length - 1; i++) {
         final p1 = actions[i];
@@ -110,7 +110,7 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
         final position = widget.videoPosition.value;
         final viewDuration = widget.viewDuration.value;
         final funscript = widget.funscript.value;
-        final actions = funscript?.actions.value;
+        final actions = funscript?.processedActions.value;
         return ClipRect(
           child: CustomPaint(
             painter: GraphPainter(

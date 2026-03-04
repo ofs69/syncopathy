@@ -20,6 +20,7 @@ class HspStateAdapter {
   int lastPointTime;
   int currentTime;
   int points;
+  int currentPoint;
 
   HspStateAdapter({
     required this.playState,
@@ -27,6 +28,7 @@ class HspStateAdapter {
     required this.lastPointTime,
     required this.currentTime,
     required this.points,
+    required this.currentPoint,
   });
 }
 
@@ -45,6 +47,7 @@ abstract class IHandyHspBase {
     required int startTime,
     required double playbackRate,
     required bool loop,
+    required bool pauseOnStarving,
   });
   void hspResume();
   void hspPause();
@@ -56,8 +59,9 @@ abstract class IHandyHspBase {
 mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   final _currentlyBufferedBuffers = <int>{};
   int _syncCounter = 0;
+
   final _currentTimeThrottle = Throttler(milliseconds: 2000);
-  final _actionsChangeDebounce = Debouncer(milliseconds: 1000);
+  final _actionsChangeDebounce = Debouncer(milliseconds: 300);
   final _bufferNotBufferedThrottle = Throttler(milliseconds: 200);
   final _loopChangeDebouncer = Debouncer(milliseconds: 200);
 
@@ -88,10 +92,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         }
       }),
       effect(() {
-        // also run when file changes
-        final file = timesource.loadedPath.value;
         final rawTime = timesource.rawPosition.value;
-        if (file.trim().isEmpty) return;
         if (!settingsModel.homeDeviceEnabled.value) {
           untracked(() => _timeChange(rawTime));
         }
@@ -125,7 +126,6 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
       });
     }
   }
-
   void _actionChangeChange(List<FunscriptAction>? actions) {
     _actionsChangeDebounce.run(() {
       hspSetup();
@@ -150,7 +150,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
               hspCurrentTimeSet(
                 currentTime:
                     timesource.currentSmoothMs + settingsModel.offsetMs.value,
-                filter: _syncCounter < 2 ? 0.9 : 0.5,
+                filter: _syncCounter < 2 ? 0.8 : 0.5,
               );
               _syncCounter += 1;
               debugPrint("SYNC COUNTER: $_syncCounter ${DateTime.now()}");
@@ -158,23 +158,19 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
           }
         }
       },
-      throttleTime: _syncCounter < 2 ? 2000 : 10000,
+      throttleTime: _syncCounter < 2 ? (_syncCounter + 1) * 2000 : 10000,
       immediate: _syncCounter == 0,
     );
 
     _bufferNotBufferedThrottle.run(() {
       final currentBufferId =
-          PlayerBackend.getActionIndex(currentTimeMs, actions) ~/
+          Funscript.getActionBefore(currentTimeMs, actions) ~/
           ActionBuffer.maxBufferSize;
 
       if (!_currentlyBufferedBuffers.contains(currentBufferId)) {
         Logger.debug("Handy stalled restarting...");
         if (state.points > 0) hspSetup();
 
-        final prevBuffer = ActionBuffer.fromActions(
-          currentBufferId - 1,
-          actions,
-        );
         final currentBuffer = ActionBuffer.fromActions(
           currentBufferId,
           actions,
@@ -183,15 +179,21 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
           currentBufferId + 1,
           actions,
         );
-        _bufferPoints([?prevBuffer, ?currentBuffer, ?nextBuffer], flush: true);
+        _bufferPoints([?currentBuffer, ?nextBuffer], flush: true);
       } else {
+        // This works because it's not a Set<int> preserves insertion order
+        final lastBufferBufferedId = _currentlyBufferedBuffers.last;
         final maxBuffers = (actions.length / ActionBuffer.maxBufferSize).ceil();
-        final nextBufferId = currentBufferId + 1 >= maxBuffers
+        final nextBufferId = lastBufferBufferedId + 1 >= maxBuffers
             ? 0
-            : currentBufferId + 1;
+            : lastBufferBufferedId + 1;
+
         if (!_currentlyBufferedBuffers.contains(nextBufferId)) {
           final buffer = ActionBuffer.fromActions(nextBufferId, actions);
-          if (buffer != null) _bufferPoints([buffer], flush: false);
+          if (buffer != null) {
+            debugPrint("EAGER BUFFER");
+            _bufferPoints([buffer], flush: false);
+          }
         }
       }
     });
@@ -251,6 +253,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
               startTime: currentTimeMs + settingsModel.offsetMs.value,
               playbackRate: timesource.playbackSpeed.value,
               loop: timesource.loopFile.value,
+              pauseOnStarving: false,
             );
           }
           playbackDelta.value = 0;
@@ -258,13 +261,11 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         break;
       case HspStateAdapterPlayState.hspStatePlaying:
         playbackDelta.value = currentTimeMs - hspState.currentTime;
-        // debugPrint(
-        //   "$currentTimeMs - ${hspState.currentTime} = ${playbackDelta.value}",
-        // );
         break;
       case HspStateAdapterPlayState.hspStateStarving:
-        Logger.debug("Handy HSP starved. Restarting...");
-        hspSetup(); // initialize
+        //Logger.debug("Handy HSP starved. Restarting...");
+        //hspSetup(); // initialize
+        debugPrint("STARVED");
         break;
     }
   }
@@ -277,16 +278,15 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   }
 
   // buffers are expected to be sorted by id ascending
-  void _bufferPoints(List<ActionBuffer> buffers, {required bool flush}) {
+  int? _bufferPoints(List<ActionBuffer> buffers, {required bool flush}) {
     if (flush) {
       _currentlyBufferedBuffers.clear();
       _syncCounter = 0;
     }
     if (buffers.isEmpty) {
       if (flush) hspFlush();
-      return;
+      return null;
     }
-
     // Merge buffers into one hspAdd
     final points = <FunscriptAction>[];
     var tailPointIndex = 0;
@@ -326,6 +326,13 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
       tailPointStreamIndex: tailPointIndex,
       tailPointThreshold: tailPointTreshold,
     );
+
+    int startTime = points.first.at;
+    int endTime = points.last.at;
+    debugPrint(
+      "Buffering ${((endTime - startTime) / 1000.0).toStringAsFixed(2)} seconds",
+    );
+    return endTime;
   }
 
   void _bootstrapBuffer(List<FunscriptAction> actions) {
@@ -333,28 +340,39 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     // 2. Buffer the next buffer
     // 3. hspPlay is called when the hspState updates in _hspStateChange
     final bufferId =
-        PlayerBackend.getActionIndex(timesource.currentSmoothMs, actions) ~/
+        Funscript.getActionBefore(timesource.currentSmoothMs, actions) ~/
         ActionBuffer.maxBufferSize;
-    final prevBuffer = ActionBuffer.fromActions(bufferId - 1, actions);
     final currentBuffer = ActionBuffer.fromActions(bufferId, actions);
     final nextBuffer = ActionBuffer.fromActions(bufferId + 1, actions);
-    _bufferPoints([?prevBuffer, ?currentBuffer, ?nextBuffer], flush: true);
+    _bufferPoints([?currentBuffer, ?nextBuffer], flush: true);
   }
 
   void handleThresholdReached(bool starving) {
+    debugPrint("Handy threshold reached. Starving: $starving");
+
     final actions = currentActions.value;
     if (actions == null) return;
+    final hspState = hspStateAdapter.value;
+    if (hspState == null) return;
+
+    // we are here
+    final currentPointIndex = hspState.currentPoint;
 
     // Get the next buffer and buffer it
     var bufferId =
-        PlayerBackend.getActionIndex(timesource.currentRawMs, actions) ~/
+        Funscript.getActionBefore(timesource.currentRawMs, actions) ~/
         ActionBuffer.maxBufferSize;
     while (_currentlyBufferedBuffers.contains(bufferId)) {
       bufferId += 1;
     }
     final actionBuffer = ActionBuffer.fromActions(bufferId, actions);
     if (actionBuffer != null) {
-      _bufferPoints([actionBuffer], flush: false);
+      final currentAt = hspState.currentTime;
+      final lastAt = _bufferPoints([actionBuffer], flush: false);
+      double runWay = (lastAt! - currentAt) / 1000.0;
+      debugPrint(
+        "Runway: ${runWay.toStringAsFixed(2)} seconds StateIndex: $currentPointIndex StateAt: $currentAt PlayerAt: ${timesource.currentRawMs}",
+      );
     }
   }
 

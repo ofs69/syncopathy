@@ -97,7 +97,9 @@ Future<Widget> _initializeAppAndRun(
       if (mediaSettings != null) Provider.value(value: mediaSettings),
       if (mediaManager != null) Provider.value(value: mediaManager),
     ],
-    child: const Syncopathy(),
+    // HACK: I added this ExcludeSemantics because it spams some accessibility error 🤷‍♂️
+    // [ERROR:flutter/shell/platform/common/accessibility_bridge.cc(114)] Failed to update ui::AXTree, error: Nodes left pending by the update: 76
+    child: ExcludeSemantics(child: const Syncopathy()),
   );
 }
 

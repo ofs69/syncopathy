@@ -160,3 +160,15 @@ class HspLoop {
       _$HspLoopFromJson(json);
   Map<String, dynamic> toJson() => _$HspLoopToJson(this);
 }
+
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class HspPauseOnStarving {
+  final bool pauseOnStarving;
+
+  HspPauseOnStarving({required this.pauseOnStarving});
+
+  factory HspPauseOnStarving.fromJson(Map<String, dynamic> json) =>
+      _$HspPauseOnStarvingFromJson(json);
+  Map<String, dynamic> toJson() => _$HspPauseOnStarvingToJson(this);
+}

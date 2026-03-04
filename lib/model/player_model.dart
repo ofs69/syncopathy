@@ -24,6 +24,7 @@ import 'package:syncopathy/sqlite/models/video_model.dart';
 
 class PlayerModel with EventSubscriber, EffectDispose {
   final SettingsModel _settings;
+  final BatteryModel _batteryModel;
   final TimesourceModel timeSource;
   late final Signal<PlayerBackend?> playerBackend;
 
@@ -59,7 +60,7 @@ class PlayerModel with EventSubscriber, EffectDispose {
     this._settings,
     this.timeSource,
     MediaKitPlayer player,
-    BatteryModel batteryModel,
+    this._batteryModel,
   ) {
     playerBackend = signal(null);
     _currentPlayerVideo = player.currentVideo;
@@ -95,77 +96,22 @@ class PlayerModel with EventSubscriber, EffectDispose {
         // Skip to first stroke if enabled
         if (untracked(() => _settings.skipToAction.value)) {
           if (funscript != null && duration > 0.0) {
-            final startTime = FunscriptAlgorithms.findFirstStroke(
-              untracked(() => funscript.actions.value),
-            );
-            player.seekTo(Duration(milliseconds: startTime));
+            final actions = untracked(() => funscript.processedActions.value);
+            if (actions.isNotEmpty) {
+              final startTime = FunscriptAlgorithms.findFirstStroke(actions);
+              player.seekTo(Duration(milliseconds: startTime));
+            }
           }
         }
       }),
       effect(() async {
-        PlayerBackend? newBackend;
-        switch (_settings.playerBackendType.value) {
-          case PlayerBackendType.buttplugStrokerCommand:
-            if (playerBackend.value is! ButtplugStrokerBackend) {
-              final settings = await KeyValueStore.get(
-                ButtplugBackendSettings.key,
-              );
-
-              newBackend = ButtplugStrokerBackend(
-                timesource: timeSource,
-                currentFunscript: currentFunscript,
-                settingsModel: _settings,
-                settings: settings != null
-                    ? ButtplugBackendSettings.fromJson(settings)
-                    : ButtplugBackendSettings(),
-                batteryModel: batteryModel,
-              );
-            }
-            break;
-          case PlayerBackendType.handyStrokerCommand:
-            if (playerBackend.value is! HandyNativeCommandBackend) {
-              newBackend = HandyNativeCommandBackend(
-                settingsModel: _settings,
-                batteryModel: batteryModel,
-                timesource: timeSource,
-                currentFunscript: currentFunscript,
-              );
-            }
-            break;
-          case PlayerBackendType.handyStrokerStreamingBluetooth:
-            if (playerBackend.value is! HandyNativeHspBluetoothBackend) {
-              newBackend = HandyNativeHspBluetoothBackend(
-                currentFunscript: currentFunscript,
-                timesource: timeSource,
-                settingsModel: _settings,
-                batteryModel: batteryModel,
-              );
-            }
-            break;
-          case PlayerBackendType.handyStrokerStreamingWeb:
-            if (playerBackend.value is! HandyNativeHspWebBackend) {
-              final settings = await KeyValueStore.get(
-                HandyNativeWebBackendSettings.key,
-              );
-              newBackend = HandyNativeHspWebBackend(
-                webSettings: settings != null
-                    ? HandyNativeWebBackendSettings.fromJson(settings)
-                    : HandyNativeWebBackendSettings(),
-                currentFunscript: currentFunscript,
-                timesource: timeSource,
-                settingsModel: _settings,
-                batteryModel: batteryModel,
-              );
-            }
-            break;
-        }
-        if (newBackend != null) {
-          await playerBackend.value?.dispose();
-          playerBackend.value = newBackend;
-        }
+        final backendType = _settings.playerBackendType.value;
+        await _updateBackend(backendType, _batteryModel);
       }),
       effect(() {
+        final totalDuration = player.duration.value;
         final funscript = currentFunscript.value;
+        if (totalDuration < 0.1) return;
         if (funscript == null) return;
         final modifiedActions = FunscriptAlgorithms.processForHandy(
           funscript.originalActions,
@@ -173,10 +119,75 @@ class PlayerModel with EventSubscriber, EffectDispose {
           _settings.rdpEpsilon.value,
           _settings.remapFullRange.value ? (0, 100) : null,
           _settings.invert.value,
+          totalDuration,
         );
-        funscript.actions.value = modifiedActions;
+        funscript.processedActions.value = modifiedActions;
       }),
     ]);
+  }
+
+  Future<void> _updateBackend(
+    PlayerBackendType backendType,
+    BatteryModel batteryModel,
+  ) async {
+    PlayerBackend? newBackend;
+    switch (backendType) {
+      case PlayerBackendType.buttplugStrokerCommand:
+        if (playerBackend.value is! ButtplugStrokerBackend) {
+          final settings = await KeyValueStore.get(ButtplugBackendSettings.key);
+
+          newBackend = ButtplugStrokerBackend(
+            timesource: timeSource,
+            currentFunscript: currentFunscript,
+            settingsModel: _settings,
+            settings: settings != null
+                ? ButtplugBackendSettings.fromJson(settings)
+                : ButtplugBackendSettings(),
+            batteryModel: batteryModel,
+          );
+        }
+        break;
+      case PlayerBackendType.handyStrokerCommand:
+        if (playerBackend.value is! HandyNativeCommandBackend) {
+          newBackend = HandyNativeCommandBackend(
+            settingsModel: _settings,
+            batteryModel: batteryModel,
+            timesource: timeSource,
+            currentFunscript: currentFunscript,
+          );
+        }
+        break;
+      case PlayerBackendType.handyStrokerStreamingBluetooth:
+        if (playerBackend.value is! HandyNativeHspBluetoothBackend) {
+          newBackend = HandyNativeHspBluetoothBackend(
+            currentFunscript: currentFunscript,
+            timesource: timeSource,
+            settingsModel: _settings,
+            batteryModel: batteryModel,
+          );
+        }
+        break;
+      case PlayerBackendType.handyStrokerStreamingWeb:
+        if (playerBackend.value is! HandyNativeHspWebBackend) {
+          final settings = await KeyValueStore.get(
+            HandyNativeWebBackendSettings.key,
+          );
+          newBackend = HandyNativeHspWebBackend(
+            webSettings: settings != null
+                ? HandyNativeWebBackendSettings.fromJson(settings)
+                : HandyNativeWebBackendSettings(),
+            currentFunscript: currentFunscript,
+            timesource: timeSource,
+            settingsModel: _settings,
+            batteryModel: batteryModel,
+          );
+        }
+        break;
+    }
+    if (newBackend != null) {
+      await playerBackend.value?.dispose();
+      playerBackend.value = newBackend;
+    }
   }
 
   void dispose() {
@@ -189,8 +200,10 @@ class PlayerModel with EventSubscriber, EffectDispose {
     playerBackend.value = null; // this should cause the backend to recreated
   }
 
-  void connectBackend() {
-    // TODO: dispose and recreate the backend
-    playerBackend.value?.tryConnect();
+  void connectBackend() async {
+    await playerBackend.value?.dispose();
+    playerBackend.value = null;
+    await _updateBackend(_settings.playerBackendType.value, _batteryModel);
+    await playerBackend.value?.tryConnect();
   }
 }

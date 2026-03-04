@@ -38,40 +38,13 @@ class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
         return ClipRect(
           child: Stack(
             children: [
-              // Layer 1: The Blurred Backlight
-              Positioned.fill(
-                child: Transform.scale(
-                  scale: 1.1,
-                  child: ImageFiltered(
-                    imageFilter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      child: SizedBox(
-                        width: videoParams.value.dw!.toDouble(),
-                        height: videoParams.value.dh!.toDouble(),
-                        child: Video(
-                          controller: widget.controller,
-                          controls: null,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // Layer 2: Black overlay (optional, for better contrast)
-              Positioned.fill(
-                child: Container(color: Colors.black.withAlphaF(0.5)),
-              ),
-
-              // Layer 3: The Main Video
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12.0),
+                    borderRadius: BorderRadius.circular(24.0),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withAlphaF(0.3),
+                        color: Colors.black.withAlphaF(0.5),
                         spreadRadius: 5,
                         blurRadius: 7,
                         offset: Offset(0, 3),

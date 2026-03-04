@@ -1,9 +1,7 @@
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/funscript.dart';
@@ -14,16 +12,21 @@ import 'package:syncopathy/player/player_backend_type.dart';
 class ActionBuffer {
   static const int maxBufferSize = 10;
   final int id;
-  final Iterable<FunscriptAction> bufferActions;
   final List<FunscriptAction> allActions;
-  int get tailPointIndex => (id * maxBufferSize) + bufferActions.length;
+  final int startIndex;
+  final int endIndex;
+
+  int get tailPointIndex => (id * maxBufferSize) + (endIndex - startIndex);
   int get tailPointTreshold => (id * maxBufferSize);
 
-  ActionBuffer(this.id, this.bufferActions, this.allActions);
+  ActionBuffer({
+    required this.id,
+    required this.allActions,
+    required this.startIndex,
+    required this.endIndex,
+  });
 
-  List<Point> toPoints() =>
-      bufferActions.map((a) => Point(t: a.at, x: a.pos)).toList();
-  List<FunscriptAction> toActions() => bufferActions.toList();
+  List<FunscriptAction> toActions() => allActions.sublist(startIndex, endIndex);
 
   static ActionBuffer? fromActions(
     int bufferIndex,
@@ -38,9 +41,10 @@ class ActionBuffer {
       return null;
     }
     return ActionBuffer(
-      bufferIndex,
-      actions.skip(startIndex).take(ActionBuffer.maxBufferSize),
-      actions,
+      id: bufferIndex,
+      allActions: actions,
+      startIndex: startIndex,
+      endIndex: endIndex,
     );
   }
 
@@ -70,7 +74,11 @@ abstract class PlayerBackend with EffectDispose {
   final TimesourceModel timesource;
   final ReadonlySignal<Funscript?> currentFunscript;
   late final ReadonlySignal<List<FunscriptAction>?> currentActions = computed(
-    () => currentFunscript.value?.actions.value,
+    () {
+      final actions = currentFunscript.value?.processedActions.value;
+      if (actions?.isEmpty ?? true) return null;
+      return actions;
+    },
   );
 
   PlayerBackend({
@@ -85,11 +93,6 @@ abstract class PlayerBackend with EffectDispose {
   Future<void> tryConnect();
   Future<void> dispose() async {
     effectDispose();
-  }
-
-  static int getActionIndex(int timeMs, List<FunscriptAction> actions) {
-    final index = lowerBound(actions, FunscriptAction(at: timeMs, pos: 0));
-    return index == actions.length ? index - 1 : index;
   }
 }
 
@@ -146,10 +149,8 @@ mixin CommandPacketBackend on ICommandBackendBase {
 
       if (actions != null && !isPaused) {
         final currentMs = (currentTime * 1000.0).round();
-        final index = lowerBound(
-          actions,
-          FunscriptAction(at: currentMs, pos: 0),
-        );
+        final index = Funscript.getActionBefore(currentMs, actions);
+
         if (index >= 0 && index < actions.length) {
           final action = actions[index];
           final strokeDuration =

@@ -135,10 +135,12 @@ abstract class HandyWebBackendBase extends PlayerBackend
     required int startTime,
     required double playbackRate,
     required bool loop,
+    required bool pauseOnStarving
   }) => handy.hspPlay(
     startTime: startTime,
     playbackRate: playbackRate,
     loop: loop,
+    pauseOnStarving: pauseOnStarving
   );
 
   @override

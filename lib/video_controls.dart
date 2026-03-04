@@ -87,7 +87,8 @@ class _VideoControlsState extends State<VideoControls> {
                             final funscript =
                                 playerModel.currentFunscript.value;
 
-                            final actions = funscript?.actions.value ?? [];
+                            final actions =
+                                funscript?.processedActions.value ?? [];
                             return Heatmap(
                               actions: actions,
                               totalDuration: player.duration,

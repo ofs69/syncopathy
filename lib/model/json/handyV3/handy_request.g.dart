@@ -107,3 +107,9 @@ HspLoop _$HspLoopFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$HspLoopToJson(HspLoop instance) => <String, dynamic>{
   'loop': instance.loop,
 };
+
+HspPauseOnStarving _$HspPauseOnStarvingFromJson(Map<String, dynamic> json) =>
+    HspPauseOnStarving(pauseOnStarving: json['pause_on_starving'] as bool);
+
+Map<String, dynamic> _$HspPauseOnStarvingToJson(HspPauseOnStarving instance) =>
+    <String, dynamic>{'pause_on_starving': instance.pauseOnStarving};

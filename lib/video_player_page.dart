@@ -155,10 +155,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   ) {
     return ClipRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          decoration: BoxDecoration(color: Colors.black.withAlphaF(0.3)),
+          decoration: BoxDecoration(color: Colors.black.withAlphaF(0.5)),
           child: InteractiveScrollingGraph(
             funscript: funscript,
             videoPosition: player.smoothPosition,

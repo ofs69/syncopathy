@@ -140,12 +140,12 @@ class MediaManager {
               final validFunscripts = funscripts.nonNulls.toList();
 
               if (validFunscripts.length > 1) {
-                final firstActions = validFunscripts.first.actions;
+                final firstActions = validFunscripts.first.originalActions;
                 bool allActionsSame = true;
                 for (int i = 1; i < validFunscripts.length; i++) {
                   if (!listEquals(
-                    firstActions.value,
-                    validFunscripts[i].actions.value,
+                    firstActions,
+                    validFunscripts[i].originalActions,
                   )) {
                     allActionsSame = false;
                     break;
@@ -181,14 +181,14 @@ class MediaManager {
 
             if (funscript != null) {
               final averageSpeed = FunscriptAlgorithms.averageSpeed(
-                funscript.actions.value,
+                funscript.originalActions,
               );
 
               final averageMin = FunscriptAlgorithms.averageMin(
-                funscript.actions.value,
+                funscript.originalActions,
               );
               final averageMax = FunscriptAlgorithms.averageMax(
-                funscript.actions.value,
+                funscript.originalActions,
               );
               final metadata = await _getVideoMetadata(
                 videoFile.path,

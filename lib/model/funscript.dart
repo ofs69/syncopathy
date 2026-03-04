@@ -62,7 +62,7 @@ class Funscript {
   final int range;
 
   /// The list of actions.
-  late final Signal<List<FunscriptAction>> actions;
+  late final Signal<List<FunscriptAction>> processedActions;
   late final List<FunscriptAction> originalActions;
 
   /// Optional metadata.
@@ -92,7 +92,7 @@ class Funscript {
         uniqueActions.add(action);
       }
     }
-    actions = listSignal(uniqueActions);
+    processedActions = listSignal([]);
     originalActions = List.unmodifiable(uniqueActions);
   }
 
@@ -115,10 +115,10 @@ class Funscript {
     return false;
   }
 
-  int getIndexBefore(int time) {
-    var test = FunscriptAction(at: time, pos: 0);
-    var index = actions.value.lowerBound(test);
-    return max(index - 1, 0);
+   
+  static int getActionBefore(int timeMs, List<FunscriptAction> actions) {
+    final index = lowerBound(actions, FunscriptAction(at: timeMs, pos: 0));
+    return index == actions.length ? index - 1 : index;
   }
 
   /// Creates a [Funscript] object from a JSON map.
