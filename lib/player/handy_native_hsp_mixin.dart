@@ -59,6 +59,7 @@ abstract class IHandyHspBase {
 mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   final _currentlyBufferedBuffers = <int>{};
   int _syncCounter = 0;
+  double _lastTime = 0.0;
 
   final _currentTimeThrottle = Throttler(milliseconds: 2000);
   final _actionsChangeDebounce = Debouncer(milliseconds: 300);
@@ -126,13 +127,14 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
       });
     }
   }
+
   void _actionChangeChange(List<FunscriptAction>? actions) {
     _actionsChangeDebounce.run(() {
       hspSetup();
     });
   }
 
-  void _timeChange(double timeSeconds_) {
+  void _timeChange(double timeSeconds) {
     final currentTimeMs = timesource.currentSmoothMs;
     final actions = currentActions.value;
     if (actions == null) return;
@@ -150,7 +152,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
               hspCurrentTimeSet(
                 currentTime:
                     timesource.currentSmoothMs + settingsModel.offsetMs.value,
-                filter: _syncCounter < 2 ? 0.8 : 0.5,
+                filter: _syncCounter < 2 ? 0.9 : 0.5,
               );
               _syncCounter += 1;
               debugPrint("SYNC COUNTER: $_syncCounter ${DateTime.now()}");
@@ -167,9 +169,10 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
           Funscript.getActionBefore(currentTimeMs, actions) ~/
           ActionBuffer.maxBufferSize;
 
-      if (!_currentlyBufferedBuffers.contains(currentBufferId)) {
+      if (!_currentlyBufferedBuffers.contains(currentBufferId) ||
+          _lastTime > timeSeconds) {
         Logger.debug("Handy stalled restarting...");
-        if (state.points > 0) hspSetup();
+        hspSetup();
 
         final currentBuffer = ActionBuffer.fromActions(
           currentBufferId,
@@ -182,11 +185,11 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         _bufferPoints([?currentBuffer, ?nextBuffer], flush: true);
       } else {
         // This works because it's not a Set<int> preserves insertion order
-        final lastBufferBufferedId = _currentlyBufferedBuffers.last;
+        //final lastBufferBufferedId = _currentlyBufferedBuffers.last;
         final maxBuffers = (actions.length / ActionBuffer.maxBufferSize).ceil();
-        final nextBufferId = lastBufferBufferedId + 1 >= maxBuffers
+        final nextBufferId = currentBufferId + 1 >= maxBuffers
             ? 0
-            : lastBufferBufferedId + 1;
+            : currentBufferId + 1;
 
         if (!_currentlyBufferedBuffers.contains(nextBufferId)) {
           final buffer = ActionBuffer.fromActions(nextBufferId, actions);
@@ -196,6 +199,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
           }
         }
       }
+      _lastTime = timeSeconds;
     });
   }
 
@@ -206,6 +210,8 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     final playing = !paused;
     final actions = currentActions.value;
     if (actions == null) return;
+
+    _lastTime = timesource.rawPosition.value;
 
     final handyPlaying =
         state.playState == HspStateAdapterPlayState.hspStatePlaying;
