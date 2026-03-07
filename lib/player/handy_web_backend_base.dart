@@ -17,7 +17,7 @@ abstract class HandyWebBackendBase extends PlayerBackend
 
   HandyWebBackendBase({
     required super.timesource,
-    required super.currentFunscript,
+    required super.currentlyOpen,
     required super.settingsModel,
     required super.batteryModel,
     required this.webSettings,

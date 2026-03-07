@@ -37,7 +37,7 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
     required super.settingsModel,
     required super.batteryModel,
     required super.timesource,
-    required super.currentFunscript,
+    required super.currentlyOpen,
     required super.backendType,
   }) {
     _hspStateAdapter = computed(() {

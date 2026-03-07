@@ -8,7 +8,7 @@ class HandyNativeCommandBackend extends HandyBluetoothBackendBase
     required super.settingsModel,
     required super.batteryModel,
     required super.timesource,
-    required super.currentFunscript,
+    required super.currentlyOpen,
   }) : super(backendType: PlayerBackendType.handyStrokerCommand) {
     effectAdd([commandEffect(timesource, settingsModel, currentActions)]);
   }

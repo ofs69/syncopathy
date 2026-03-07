@@ -22,16 +22,32 @@ import 'package:syncopathy/sqlite/key_value_store.dart';
 
 import 'package:syncopathy/sqlite/models/video_model.dart';
 
+class MediaFunscript {
+  final Video media;
+  final Funscript funscript;
+  MediaFunscript({required this.media, required this.funscript});
+}
+
 class PlayerModel with EventSubscriber, EffectDispose {
   final SettingsModel _settings;
   final BatteryModel _batteryModel;
   final TimesourceModel timeSource;
   late final Signal<PlayerBackend?> playerBackend;
 
-  late final ReadonlySignal<Video?> _currentPlayerVideo;
-  late final AsyncSignal<Funscript?> _asyncCurrentFunscript = computedAsync(
-    () async {
-      final video = _currentPlayerVideo.value;
+  late final AsyncSignal<Funscript?> _asyncCurrentFunscript;
+  late final ReadonlySignal<MediaFunscript?> currentlyOpen;
+
+  bool _videoViewCounted = false;
+
+  PlayerModel(
+    this._settings,
+    this.timeSource,
+    MediaKitPlayer player,
+    this._batteryModel,
+  ) {
+    playerBackend = signal(null);
+    _asyncCurrentFunscript = computedAsync(() async {
+      final video = player.currentVideo.value;
       try {
         if (video != null) {
           if (video.funscript == null) await video.loadFunscript();
@@ -43,42 +59,50 @@ class PlayerModel with EventSubscriber, EffectDispose {
         }
       } catch (_) {}
       return null;
-    },
-  );
-  late final ReadonlySignal<Video?> currentVideo = computed(
-    () => _asyncCurrentFunscript.value.value != null
-        ? _currentPlayerVideo.value
-        : null,
-  );
-  late final ReadonlySignal<Funscript?> currentFunscript = computed(
-    () => _asyncCurrentFunscript.value.value,
-  );
+    });
 
-  bool _videoViewCounted = false;
+    currentlyOpen = computed(() {
+      final video = untracked(() => player.currentVideo.value);
+      final funscript = _asyncCurrentFunscript.value.value;
 
-  PlayerModel(
-    this._settings,
-    this.timeSource,
-    MediaKitPlayer player,
-    this._batteryModel,
-  ) {
-    playerBackend = signal(null);
-    _currentPlayerVideo = player.currentVideo;
+      final totalDuration = player.duration.value;
+      final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
+      final rdpEpsilon = _settings.rdpEpsilon.value;
+      final remapFullRange = _settings.remapFullRange.value;
+      final invert = _settings.invert.value;
+
+      if (totalDuration < 0.1) return null;
+      if (video != null && funscript != null) {
+        untracked(() {
+          final modifiedActions = FunscriptAlgorithms.processForHandy(
+            funscript.originalActions,
+            slewMaxRateOfChange,
+            rdpEpsilon,
+            remapFullRange ? (0, 100) : null,
+            invert,
+            totalDuration,
+          );
+          funscript.processedActions.value = modifiedActions;
+        });
+        return MediaFunscript(media: video, funscript: funscript);
+      }
+      return null;
+    });
 
     effectAdd([
       // View counting logic
       effect(() {
-        final _ = currentVideo.value;
+        final _ = currentlyOpen.value;
         _videoViewCounted = false;
       }),
       effect(() {
-        final video = currentVideo.value;
+        final video = currentlyOpen.value?.media;
         final playing = !player.paused.value;
         untracked(() {
           if (video != null && playing && !_videoViewCounted) {
             final viewCounter = Debouncer(milliseconds: 5000);
             viewCounter.run(() {
-              final moreCurrentVideo = currentVideo.value;
+              final moreCurrentVideo = currentlyOpen.value?.media;
               if (!player.paused.value) {
                 if (moreCurrentVideo == video && !_videoViewCounted) {
                   // Count the view
@@ -93,19 +117,18 @@ class PlayerModel with EventSubscriber, EffectDispose {
       }),
       // View counting logic end
       effect(() {
-        final funscript = currentFunscript.value;
         final duration = player.duration.value;
-        final video = currentVideo.value;
+        final open = currentlyOpen.value;
 
-        if (video == null) {
+        if (open == null) {
           return;
         }
 
         // Skip to first stroke if enabled
         untracked(() {
           if (_settings.skipToAction.value) {
-            if (funscript != null && duration > 0.0) {
-              final actions = funscript.originalActions;
+            if (duration > 0.0) {
+              final actions = open.funscript.originalActions;
               if (actions.isNotEmpty) {
                 final startTime = FunscriptAlgorithms.findFirstStroke(actions);
                 player.seekTo(Duration(milliseconds: startTime));
@@ -117,29 +140,6 @@ class PlayerModel with EventSubscriber, EffectDispose {
       effect(() {
         final backendType = _settings.playerBackendType.value;
         untracked(() async => await _updateBackend(backendType, _batteryModel));
-      }),
-      effect(() {
-        final totalDuration = player.duration.value;
-        final funscript = untracked(() => currentFunscript.value);
-
-        final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
-        final rdpEpsilon = _settings.rdpEpsilon.value;
-        final remapFullRange = _settings.remapFullRange.value;
-        final invert = _settings.invert.value;
-
-        if (totalDuration < 0.1) return;
-        if (funscript == null) return;
-        untracked(() {
-          final modifiedActions = FunscriptAlgorithms.processForHandy(
-            funscript.originalActions,
-            slewMaxRateOfChange,
-            rdpEpsilon,
-            remapFullRange ? (0, 100) : null,
-            invert,
-            totalDuration,
-          );
-          funscript.processedActions.value = modifiedActions;
-        });
       }),
     ]);
   }
@@ -156,7 +156,7 @@ class PlayerModel with EventSubscriber, EffectDispose {
 
           newBackend = ButtplugStrokerBackend(
             timesource: timeSource,
-            currentFunscript: currentFunscript,
+            currentlyOpen: currentlyOpen,
             settingsModel: _settings,
             settings: settings != null
                 ? ButtplugBackendSettings.fromJson(settings)
@@ -171,14 +171,14 @@ class PlayerModel with EventSubscriber, EffectDispose {
             settingsModel: _settings,
             batteryModel: batteryModel,
             timesource: timeSource,
-            currentFunscript: currentFunscript,
+            currentlyOpen: currentlyOpen,
           );
         }
         break;
       case PlayerBackendType.handyStrokerStreamingBluetooth:
         if (playerBackend.value is! HandyNativeHspBluetoothBackend) {
           newBackend = HandyNativeHspBluetoothBackend(
-            currentFunscript: currentFunscript,
+            currentlyOpen: currentlyOpen,
             timesource: timeSource,
             settingsModel: _settings,
             batteryModel: batteryModel,
@@ -194,7 +194,7 @@ class PlayerModel with EventSubscriber, EffectDispose {
             webSettings: settings != null
                 ? HandyNativeWebBackendSettings.fromJson(settings)
                 : HandyNativeWebBackendSettings(),
-            currentFunscript: currentFunscript,
+            currentlyOpen: currentlyOpen,
             timesource: timeSource,
             settingsModel: _settings,
             batteryModel: batteryModel,

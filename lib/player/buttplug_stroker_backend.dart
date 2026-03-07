@@ -12,7 +12,7 @@ class ButtplugStrokerBackend extends ButtplugBaseBackend
 
   ButtplugStrokerBackend({
     required super.timesource,
-    required super.currentFunscript,
+    required super.currentlyOpen,
     required super.settingsModel,
     required super.batteryModel,
     required super.settings,

@@ -37,7 +37,7 @@ class CustomAppBarState extends State<CustomAppBar> {
     final hasBattery = batteryModel.hasBattery.watch(context);
     final chargerConnected = batteryModel.chargerConntected.watch(context);
     final currentPlaylist = player.currentPlaylist.watch(context);
-    final currentVideo = playerModel.currentVideo.watch(context);
+    final currentlyOpen = playerModel.currentlyOpen.watch(context);
 
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -52,10 +52,12 @@ class CustomAppBarState extends State<CustomAppBar> {
             return FadeTransition(opacity: animation, child: child);
           },
           child: Align(
-            key: ValueKey<String>(currentVideo?.title ?? widget.widgetTitle),
+            key: ValueKey<String>(
+              currentlyOpen?.media.title ?? widget.widgetTitle,
+            ),
             alignment: Alignment.centerLeft,
             child: Text(
-              currentVideo?.title ?? widget.widgetTitle,
+              currentlyOpen?.media.title ?? widget.widgetTitle,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
               softWrap: false,
@@ -72,12 +74,12 @@ class CustomAppBarState extends State<CustomAppBar> {
             return FadeTransition(opacity: animation, child: child);
           },
           child: actionRow(
-            currentVideo,
+            currentlyOpen?.media,
             mediaManager,
             currentPlaylist.entries.length > 1,
           ),
         ),
-        if (currentVideo != null) const SizedBox(width: 16),
+        if (currentlyOpen?.media != null) const SizedBox(width: 16),
         const PlaylistControls(),
         const SizedBox(width: 8),
 

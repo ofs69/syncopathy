@@ -11,7 +11,6 @@ import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/notification_feed.dart';
 
 import 'package:syncopathy/settings_page.dart';
-import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/video_player_page.dart';
 
 import 'package:syncopathy/custom_app_bar.dart';
@@ -65,7 +64,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
 
     effectAdd([
       effect(() {
-        _handleVideoChange(playerModel.currentVideo.value);
+        _handleVideoChange(playerModel.currentlyOpen.value);
       }),
     ]);
 
@@ -106,10 +105,10 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
     );
   }
 
-  void _handleVideoChange(Video? currentVideo) {
+  void _handleVideoChange(MediaFunscript? currentlyOpen) {
     final settings = context.read<SettingsModel>();
 
-    if (currentVideo != null && settings.autoSwitchToVideoPlayerTab.value) {
+    if (currentlyOpen != null && settings.autoSwitchToVideoPlayerTab.value) {
       setState(() {
         _selectedIndex = 1; // Navigate to Video Player tab
       });

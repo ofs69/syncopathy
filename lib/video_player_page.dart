@@ -8,7 +8,6 @@ import 'package:syncopathy/events/event_bus.dart';
 import 'package:syncopathy/events/event_subscriber_mixin.dart';
 import 'package:syncopathy/events/player_event.dart';
 import 'package:syncopathy/helper/extensions.dart';
-import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
@@ -58,8 +57,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
     final player = context.watch<MediaKitPlayer>();
     final playerModel = context.watch<PlayerModel>();
     final embeddedVideoPlayer = settings.embeddedVideoPlayer.watch(context);
-    final noFunscriptLoaded =
-        playerModel.currentFunscript.watch(context) == null;
+    final noFunscriptLoaded = playerModel.currentlyOpen.watch(context) == null;
 
     enterFullscreen() => Navigator.push(
       context,
@@ -122,7 +120,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                         ? Expanded(
                             flex: 1,
                             child: _funscriptGraph(
-                              playerModel.currentFunscript,
+                              playerModel.currentlyOpen,
                               player,
                               settings,
                             ),
@@ -149,7 +147,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   }
 
   ClipRect _funscriptGraph(
-    ReadonlySignal<Funscript?> funscript,
+    ReadonlySignal<MediaFunscript?> currentlyOpen,
     MediaKitPlayer player,
     SettingsModel settings,
   ) {
@@ -160,7 +158,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
           decoration: BoxDecoration(color: Colors.black.withAlphaF(0.5)),
           child: InteractiveScrollingGraph(
-            funscript: funscript,
+            currentlyOpen: currentlyOpen,
             videoPosition: player.smoothPosition,
             viewDuration: settings.funscriptGraphViewDuration,
           ),

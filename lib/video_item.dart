@@ -106,7 +106,7 @@ class _VideoItemState extends State<VideoItem> {
         value: 'regenerate_thumbnail',
         child: Text('Regenerate Thumbnail'),
       ),
-      if (playerModel.currentVideo.value?.id == widget.video.id!)
+      if (playerModel.currentlyOpen.value?.media.id == widget.video.id!)
         const PopupMenuItem<String>(
           value: 'current_frame_as_thumbnail',
           child: Text('Current frame as thumbnail'),
@@ -172,7 +172,7 @@ class _VideoItemState extends State<VideoItem> {
         final double padding = (iconSize / 4).clamp(4.0, 16.0);
 
         final currentVideoId = context.select<PlayerModel, int?>(
-          (p) => p.currentVideo.value?.id,
+          (p) => p.currentlyOpen.value?.media.id,
         );
 
         final BorderSide borderSide;

@@ -85,7 +85,7 @@ class _VideoControlsState extends State<VideoControls> {
                         child: Watch.builder(
                           builder: (context) {
                             final funscript =
-                                playerModel.currentFunscript.value;
+                                playerModel.currentlyOpen.value?.funscript;
 
                             final actions =
                                 funscript?.processedActions.value ?? [];

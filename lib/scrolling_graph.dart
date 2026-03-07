@@ -7,16 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/helper/constants.dart';
+import 'package:syncopathy/model/player_model.dart';
 
 /// A widget that wraps the [ScrollingGraph] with a slider to control the zoom level (view duration).
 class InteractiveScrollingGraph extends StatefulWidget {
-  final ReadonlySignal<Funscript?> funscript;
+  final ReadonlySignal<MediaFunscript?> currentlyOpen;
   final ReadonlySignal<double> videoPosition;
   final Signal<Duration> viewDuration;
 
   const InteractiveScrollingGraph({
     super.key,
-    required this.funscript,
+    required this.currentlyOpen,
     required this.videoPosition,
     required this.viewDuration,
   });
@@ -47,7 +48,7 @@ class _InteractiveScrollingGraphState extends State<InteractiveScrollingGraph> {
           color: Colors.black.withAlpha(25),
         ),
         child: ScrollingGraph(
-          funscript: widget.funscript,
+          currentlyOpen: widget.currentlyOpen,
           videoPosition: widget.videoPosition,
           viewDuration: widget.viewDuration,
         ),
@@ -57,13 +58,13 @@ class _InteractiveScrollingGraphState extends State<InteractiveScrollingGraph> {
 }
 
 class ScrollingGraph extends StatefulWidget {
-  final ReadonlySignal<Funscript?> funscript;
+  final ReadonlySignal<MediaFunscript?> currentlyOpen;
   final ReadonlySignal<double> videoPosition;
   final Signal<Duration> viewDuration;
 
   const ScrollingGraph({
     super.key,
-    required this.funscript,
+    required this.currentlyOpen,
     required this.videoPosition,
     required this.viewDuration,
   });
@@ -80,7 +81,7 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
     super.initState();
 
     speeds = computed(() {
-      final funscript = widget.funscript.value;
+      final funscript = widget.currentlyOpen.value?.funscript;
       if (funscript == null) return [];
       if (funscript.processedActions.value.length < 2) return [];
 
@@ -109,7 +110,7 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
       builder: (context) {
         final position = widget.videoPosition.value;
         final viewDuration = widget.viewDuration.value;
-        final funscript = widget.funscript.value;
+        final funscript = widget.currentlyOpen.value?.funscript;
         final actions = funscript?.processedActions.value;
         return ClipRect(
           child: CustomPaint(

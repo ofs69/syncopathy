@@ -5,6 +5,7 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/timesource_model.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
@@ -72,10 +73,10 @@ abstract class PlayerBackend with EffectDispose {
   final SettingsModel settingsModel;
 
   final TimesourceModel timesource;
-  final ReadonlySignal<Funscript?> currentFunscript;
+  final ReadonlySignal<MediaFunscript?> currentlyOpen;
   late final ReadonlySignal<List<FunscriptAction>?> currentActions = computed(
     () {
-      final actions = currentFunscript.value?.processedActions.value;
+      final actions = currentlyOpen.value?.funscript.processedActions.value;
       if (actions?.isEmpty ?? true) return null;
       return actions;
     },
@@ -83,7 +84,7 @@ abstract class PlayerBackend with EffectDispose {
 
   PlayerBackend({
     required this.timesource,
-    required this.currentFunscript,
+    required this.currentlyOpen,
     required this.settingsModel,
     required this.batteryModel,
     required this.backendType,

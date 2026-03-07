@@ -15,7 +15,7 @@ import 'package:syncopathy/sqlite/key_value_store.dart';
 class ButtplugBaseBackend extends PlayerBackend implements ICommandBackendBase {
   ButtplugBaseBackend({
     required super.timesource,
-    required super.currentFunscript,
+    required super.currentlyOpen,
     required super.settingsModel,
     required super.batteryModel,
     required this.settings,
