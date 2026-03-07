@@ -73,7 +73,7 @@ class BluetoothConnector {
         scanFilter: ScanFilter(withServices: [serviceId]),
       );
       final device = await btDeviceCompleter.future.timeout(
-        Duration(seconds: 10),
+        Duration(seconds: 30),
       );
       return device;
     } on TimeoutException {
