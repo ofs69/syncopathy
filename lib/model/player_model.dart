@@ -48,14 +48,40 @@ class PlayerModel with EventSubscriber, EffectDispose {
     playerBackend = signal(null);
     _asyncCurrentFunscript = computedAsync(() async {
       final video = player.currentVideo.value;
+      final totalDuration = player.duration.value;
+      final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
+      final rdpEpsilon = _settings.rdpEpsilon.value;
+      final remapFullRange = _settings.remapFullRange.value;
+      final invert = _settings.invert.value;
+      if (totalDuration < 0.1) return null;
+      
       try {
         if (video != null) {
-          if (video.funscript == null) await video.loadFunscript();
-          if (video.funscript?.likelyScriptToken ?? false) {
+          if (video.funscript == null) {
+            await video.loadFunscript();
+          }
+
+          final funscript = video.funscript;
+          if (funscript?.likelyScriptToken ?? false) {
             Logger.warning("Script token playback is not supported.");
             return null;
           }
-          return video.funscript;
+          if(funscript != null) 
+          {
+            untracked(() {
+              final modifiedActions = FunscriptAlgorithms.processForHandy(
+                funscript.originalActions,
+                slewMaxRateOfChange,
+                rdpEpsilon,
+                remapFullRange ? (0, 100) : null,
+                invert,
+                totalDuration,
+              );
+              funscript.processedActions.value = modifiedActions;
+            });
+          }
+
+          return funscript;
         }
       } catch (_) {}
       return null;
@@ -65,25 +91,7 @@ class PlayerModel with EventSubscriber, EffectDispose {
       final video = untracked(() => player.currentVideo.value);
       final funscript = _asyncCurrentFunscript.value.value;
 
-      final totalDuration = player.duration.value;
-      final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
-      final rdpEpsilon = _settings.rdpEpsilon.value;
-      final remapFullRange = _settings.remapFullRange.value;
-      final invert = _settings.invert.value;
-
-      if (totalDuration < 0.1) return null;
       if (video != null && funscript != null) {
-        untracked(() {
-          final modifiedActions = FunscriptAlgorithms.processForHandy(
-            funscript.originalActions,
-            slewMaxRateOfChange,
-            rdpEpsilon,
-            remapFullRange ? (0, 100) : null,
-            invert,
-            totalDuration,
-          );
-          funscript.processedActions.value = modifiedActions;
-        });
         return MediaFunscript(media: video, funscript: funscript);
       }
       return null;

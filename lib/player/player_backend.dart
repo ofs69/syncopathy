@@ -76,7 +76,8 @@ abstract class PlayerBackend with EffectDispose {
   final ReadonlySignal<MediaFunscript?> currentlyOpen;
   late final ReadonlySignal<List<FunscriptAction>?> currentActions = computed(
     () {
-      final actions = currentlyOpen.value?.funscript.processedActions.value;
+      final funscript = currentlyOpen.value?.funscript;
+      final actions = funscript?.processedActions.value;
       if (actions?.isEmpty ?? true) return null;
       return actions;
     },
