@@ -8,11 +8,11 @@ import 'package:syncopathy/helper/constants.dart';
 
 class Heatmap extends StatefulWidget {
   final List<FunscriptAction> actions;
-  final ReadonlySignal<double> totalDuration;
+  final ReadonlySignal<double?> totalDuration;
   final ReadonlySignal<double> videoPosition;
 
   late final ReadonlySignal<int> totalDurationMs = computed(
-    () => (totalDuration.value * 1000.0).round(),
+    () => ((totalDuration.value ?? 0.0) * 1000.0).round(),
   );
 
   final void Function(Duration)? onClick;
@@ -44,8 +44,9 @@ class _HeatmapState extends State<Heatmap> {
   }
 
   void _handleInteraction(Offset localPosition, BoxConstraints constraints) {
+    final totalDuration = widget.totalDuration.value ?? 0;
     if (widget.onClick != null &&
-        widget.totalDuration.value > 0 &&
+        totalDuration > 0 &&
         constraints.maxWidth > 0) {
       final dx = localPosition.dx.clamp(0, constraints.maxWidth);
       final clickedMs =
@@ -141,10 +142,10 @@ class _HeatmapState extends State<Heatmap> {
                     Watch.builder(
                       builder: (context) {
                         final position = widget.videoPosition.value;
-                        final double progressWidth =
-                            widget.totalDuration.value > 0
-                            ? constraints.maxWidth *
-                                  (position / widget.totalDuration.value)
+                        final totalDuration = widget.totalDuration.value ?? 0.0;
+
+                        final double progressWidth = totalDuration > 0
+                            ? constraints.maxWidth * (position / totalDuration)
                             : 0.0;
                         return Positioned(
                           top: 0,

@@ -176,7 +176,8 @@ class _VideoControlsState extends State<VideoControls> {
                             .toInt(),
                       );
                       final duration = Duration(
-                        milliseconds: (player.duration.value * 1000.0).toInt(),
+                        milliseconds: ((player.duration.value ?? 0.0) * 1000.0)
+                            .toInt(),
                       );
                       return Text(
                         "${_formatFullTimestamp(currentTime)} / "

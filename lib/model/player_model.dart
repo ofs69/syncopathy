@@ -34,7 +34,9 @@ class PlayerModel with EventSubscriber, EffectDispose {
   final TimesourceModel timeSource;
   late final Signal<PlayerBackend?> playerBackend;
 
-  late final AsyncSignal<Funscript?> _asyncCurrentFunscript;
+  ReadonlySignal<Funscript?> get _currentFunscript => __currentFunscript;
+  final Signal<Funscript?> __currentFunscript = signal(null);
+
   late final ReadonlySignal<MediaFunscript?> currentlyOpen;
 
   bool _videoViewCounted = false;
@@ -46,50 +48,50 @@ class PlayerModel with EventSubscriber, EffectDispose {
     this._batteryModel,
   ) {
     playerBackend = signal(null);
-    _asyncCurrentFunscript = computedAsync(() async {
-      final video = player.currentVideo.value;
-      final totalDuration = player.duration.value;
-      final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
-      final rdpEpsilon = _settings.rdpEpsilon.value;
-      final remapFullRange = _settings.remapFullRange.value;
-      final invert = _settings.invert.value;
-      if (totalDuration < 0.1) return null;
-      
-      try {
-        if (video != null) {
-          if (video.funscript == null) {
-            await video.loadFunscript();
-          }
+    // _currentFunscript = computed(() {
+    //   final video = player.currentVideo.value;
+    //   final totalDuration = player.duration.value;
+    //   final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
+    //   final rdpEpsilon = _settings.rdpEpsilon.value;
+    //   final remapFullRange = _settings.remapFullRange.value;
+    //   final invert = _settings.invert.value;
 
-          final funscript = video.funscript;
-          if (funscript?.likelyScriptToken ?? false) {
-            Logger.warning("Script token playback is not supported.");
-            return null;
-          }
-          if(funscript != null) 
-          {
-            untracked(() {
-              final modifiedActions = FunscriptAlgorithms.processForHandy(
-                funscript.originalActions,
-                slewMaxRateOfChange,
-                rdpEpsilon,
-                remapFullRange ? (0, 100) : null,
-                invert,
-                totalDuration,
-              );
-              funscript.processedActions.value = modifiedActions;
-            });
-          }
+    //   if (totalDuration == null || totalDuration < 0.1) return video?.funscript;
 
-          return funscript;
-        }
-      } catch (_) {}
-      return null;
-    });
+    //   try {
+    //     if (video != null) {
+    //       if (video.funscript == null) {
+    //         video.loadFunscript();
+    //       }
+
+    //       final funscript = video.funscript;
+    //       if (funscript?.likelyScriptToken ?? false) {
+    //         Logger.warning("Script token playback is not supported.");
+    //         return null;
+    //       }
+    //       if (funscript != null) {
+    //         untracked(() {
+    //           final modifiedActions = FunscriptAlgorithms.processForHandy(
+    //             funscript.originalActions,
+    //             slewMaxRateOfChange,
+    //             rdpEpsilon,
+    //             remapFullRange ? (0, 100) : null,
+    //             invert,
+    //             totalDuration,
+    //           );
+    //           funscript.processedActions.value = modifiedActions;
+    //         });
+    //       }
+
+    //       return funscript;
+    //     }
+    //   } catch (_) {}
+    //   return null;
+    // });
 
     currentlyOpen = computed(() {
       final video = untracked(() => player.currentVideo.value);
-      final funscript = _asyncCurrentFunscript.value.value;
+      final funscript = _currentFunscript.value;
 
       if (video != null && funscript != null) {
         return MediaFunscript(media: video, funscript: funscript);
@@ -124,24 +126,59 @@ class PlayerModel with EventSubscriber, EffectDispose {
         });
       }),
       // View counting logic end
+      effect(() async {
+        final video = player.currentVideo.value;
+        final totalDuration = player.duration.value;
+        final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
+        final rdpEpsilon = _settings.rdpEpsilon.value;
+        final remapFullRange = _settings.remapFullRange.value;
+        final invert = _settings.invert.value;
+        if (totalDuration == null || totalDuration < 0.1) {
+          return null;
+        }
+        try {
+          if (video != null) {
+            if (video.funscript == null) {
+              await video.loadFunscript();
+            }
+            final funscript = video.funscript;
+            if (funscript?.likelyScriptToken ?? false) {
+              Logger.warning("Script token playback is not supported.");
+              return null;
+            }
+            if (funscript != null) {
+              untracked(() {
+                final modifiedActions = FunscriptAlgorithms.processForHandy(
+                  funscript.originalActions,
+                  slewMaxRateOfChange,
+                  rdpEpsilon,
+                  remapFullRange ? (0, 100) : null,
+                  invert,
+                  totalDuration,
+                );
+                funscript.processedActions.value = modifiedActions;
+              });
+            }
+            __currentFunscript.value = funscript;
+          }
+        } catch (_) {}
+      }),
       effect(() {
         final duration = player.duration.value;
-        final video = player.currentVideo.value;
-        final funscript = _asyncCurrentFunscript.value.value;
+        //final video = untracked(() => player.currentVideo.value);
+        final funscript = currentlyOpen.value?.funscript;
 
-        if (video == null) {
+        if (duration == null || duration < 0.1 || funscript == null) {
           return;
         }
 
         // Skip to first stroke if enabled
         untracked(() {
           if (_settings.skipToAction.value) {
-            if (funscript != null && duration > 0.0) {
-              final actions = funscript.originalActions;
-              if (actions.isNotEmpty) {
-                final startTime = FunscriptAlgorithms.findFirstStroke(actions);
-                player.seekTo(Duration(milliseconds: startTime));
-              }
+            final actions = funscript.originalActions;
+            if (actions.isNotEmpty) {
+              final startTime = FunscriptAlgorithms.findFirstStroke(actions);
+              player.seekTo(Duration(milliseconds: startTime));
             }
           }
         });

@@ -4,7 +4,7 @@ import 'package:syncopathy/player/media_kit_player.dart';
 
 class TimesourceModel {
   final ReadonlySignal<double> volume;
-  final ReadonlySignal<double> duration;
+  final ReadonlySignal<double?> duration;
   final ReadonlySignal<double> playbackSpeed;
   final ReadonlySignal<bool> paused;
   final ReadonlySignal<double> rawPosition;

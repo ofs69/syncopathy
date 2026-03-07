@@ -85,7 +85,9 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
   late final VideoController? controller;
 
   late final ReadonlySignal<double> volume;
-  late final ReadonlySignal<double> duration;
+  ReadonlySignal<double?> get duration => _duration;
+  final Signal<double?> _duration = signal(0.0);
+
   late final ReadonlySignal<double> playbackSpeed;
   late final ReadonlySignal<bool> seeking;
   late final ReadonlySignal<bool> buffering;
@@ -160,9 +162,7 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
 
     seeking = _player.stream.seeking.toSyncSignal(_player.state.seeking);
     volume = _player.stream.volume.toSyncSignal(100);
-    duration = _player.stream.duration
-        .map((d) => d.inMilliseconds / 1000.0)
-        .toSyncSignal(_player.state.duration.inMilliseconds / 1000.0);
+
     playbackSpeed = _player.stream.rate.toSyncSignal(1);
 
     _paused.value = !_player.state.playing;
@@ -260,6 +260,25 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
       Events.on<PlaylistNextEvent>().listen(_onPlaylistNext),
       Events.on<PlaylistSetShuffleEvent>().listen(_onPlaylistShuffle),
       loadedPath.toStream().listen(_onPathChange),
+    ]);
+
+    final durationSignal = _player.stream.duration
+        .map((d) => d.inMilliseconds / 1000.0)
+        .toSyncSignal(_player.state.duration.inMilliseconds / 1000.0);
+
+    String lastDurationFile = "";
+    effectAdd([
+      effect(() {
+        final path = loadedPath.value;
+        if (path != lastDurationFile) {
+          _duration.value = null;
+        }
+        lastDurationFile = path;
+      }),
+      effect(() {
+        final newDuration = durationSignal.value;
+        _duration.value = newDuration < 0.1 ? null : newDuration;
+      }),
     ]);
   }
 
