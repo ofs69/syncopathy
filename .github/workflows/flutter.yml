@@ -21,9 +21,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Install dependencies libmpv_dart
-        run: dart run libmpv_dart:setup --platform windows 
-
       - name: Analyze project source
         run: flutter analyze
 
