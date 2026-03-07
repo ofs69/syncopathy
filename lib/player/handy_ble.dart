@@ -432,6 +432,12 @@ class HandyBle with EffectDispose {
       case Response_Result.responseHspCurrentTimeSet:
         _hspState.value = response.responseHspCurrentTimeSet.state;
         break;
+      case Response_Result.responseHspLoopSet:
+        _hspState.value = response.responseHspLoopSet.state;
+        break;
+      case Response_Result.responseHspStop:
+        _hspState.value = response.responseHspStop.state;
+        break;
       default:
     }
   }
