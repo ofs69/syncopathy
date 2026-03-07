@@ -114,7 +114,6 @@ class Funscript {
     return false;
   }
 
-   
   static int getActionBefore(int timeMs, List<FunscriptAction> actions) {
     final index = lowerBound(actions, FunscriptAction(at: timeMs, pos: 0));
     return index == actions.length ? index - 1 : index;

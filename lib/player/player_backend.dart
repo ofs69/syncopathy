@@ -10,7 +10,7 @@ import 'package:syncopathy/model/timesource_model.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 
 class ActionBuffer {
-  static const int maxBufferSize = 10;
+  static const int maxBufferSize = 20;
   final int id;
   final List<FunscriptAction> allActions;
   final int startIndex;
@@ -35,7 +35,7 @@ class ActionBuffer {
     final startIndex = bufferIndex * ActionBuffer.maxBufferSize;
     final endIndex = min(
       startIndex + ActionBuffer.maxBufferSize,
-      actions.length - 1,
+      actions.length,
     );
     if (endIndex - startIndex < 0 || startIndex < 0) {
       return null;
@@ -66,7 +66,7 @@ abstract class PlayerBackend with EffectDispose {
   final PlayerBackendType backendType;
 
   // HACK: this should be readonly
-  final Signal<int?> playbackDelta = signal(null);
+  final Signal<int?> debugPlaybackDelta = signal(null);
 
   final BatteryModel batteryModel;
   final SettingsModel settingsModel;

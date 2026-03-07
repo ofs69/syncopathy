@@ -74,39 +74,49 @@ class PlayerModel with EventSubscriber, EffectDispose {
       effect(() {
         final video = currentVideo.value;
         final playing = !player.paused.value;
-        if (video != null && playing && !_videoViewCounted) {
-          final viewCounter = Debouncer(milliseconds: 5000);
-          viewCounter.run(() {
-            final moreCurrentVideo = untracked(() => currentVideo.value);
-            if (!player.paused.value) {
-              if (moreCurrentVideo == video && !_videoViewCounted) {
-                // Count the view
-                _videoViewCounted = true;
-                video.playCount += 1;
-                DatabaseHelper().updateVideo(video);
+        untracked(() {
+          if (video != null && playing && !_videoViewCounted) {
+            final viewCounter = Debouncer(milliseconds: 5000);
+            viewCounter.run(() {
+              final moreCurrentVideo = currentVideo.value;
+              if (!player.paused.value) {
+                if (moreCurrentVideo == video && !_videoViewCounted) {
+                  // Count the view
+                  _videoViewCounted = true;
+                  video.playCount += 1;
+                  DatabaseHelper().updateVideo(video);
+                }
               }
-            }
-          });
-        }
+            });
+          }
+        });
       }),
       // View counting logic end
       effect(() {
         final funscript = currentFunscript.value;
         final duration = player.duration.value;
+        final video = currentVideo.value;
+
+        if (video == null) {
+          return;
+        }
+
         // Skip to first stroke if enabled
-        if (untracked(() => _settings.skipToAction.value)) {
-          if (funscript != null && duration > 0.0) {
-            final actions = untracked(() => funscript.processedActions.value);
-            if (actions.isNotEmpty) {
-              final startTime = FunscriptAlgorithms.findFirstStroke(actions);
-              player.seekTo(Duration(milliseconds: startTime));
+        untracked(() {
+          if (_settings.skipToAction.value) {
+            if (funscript != null && duration > 0.0) {
+              final actions = funscript.originalActions;
+              if (actions.isNotEmpty) {
+                final startTime = FunscriptAlgorithms.findFirstStroke(actions);
+                player.seekTo(Duration(milliseconds: startTime));
+              }
             }
           }
-        }
+        });
       }),
-      effect(() async {
+      effect(() {
         final backendType = _settings.playerBackendType.value;
-        await _updateBackend(backendType, _batteryModel);
+        untracked(() async => await _updateBackend(backendType, _batteryModel));
       }),
       effect(() {
         final totalDuration = player.duration.value;

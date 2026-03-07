@@ -161,7 +161,6 @@ class HspLoop {
   Map<String, dynamic> toJson() => _$HspLoopToJson(this);
 }
 
-
 @JsonSerializable(fieldRename: FieldRename.snake)
 class HspPauseOnStarving {
   final bool pauseOnStarving;

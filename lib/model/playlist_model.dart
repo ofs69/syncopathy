@@ -16,50 +16,6 @@ class PlaylistModel {
       () => _entries.value.firstWhereOrNull((e) => e.current),
     );
   }
-  //UnmodifiableListView<Video> get videos => UnmodifiableListView(_videos);
-  //bool get isShuffled => _isShuffled;
-
-  // void shuffleList() {
-  //   _isShuffled = !_isShuffled;
-  //   if (_isShuffled) {
-  //     _videos.shuffle();
-  //   } else {
-  //     _videos
-  //       ..clear()
-  //       ..addAll(_originalVideos);
-  //   }
-  // }
-
-  // Video? nextVideo() {
-  //   if (_videos.isNotEmpty) {
-  //     final index = (_currentIndex.value + 1) % _videos.length;
-  //     return index >= 0 && index < _videos.length ? _videos[index] : null;
-  //   }
-  //   return null;
-  // }
-
-  // Video? previousVideo() {
-  //   if (_videos.isNotEmpty) {
-  //     final index = (_currentIndex.value - 1 + _videos.length) % _videos.length;
-  //     return index >= 0 && index < _videos.length ? _videos[index] : null;
-  //   }
-  //   return null;
-  // }
-
-  // Video? videoAt(int index) {
-  //   if (index >= 0 && index < _videos.length) {
-  //     return _videos[index];
-  //   }
-  //   return null;
-  // }
-
-  // void setIndexFromVideo(Video video) {
-  //   final index = _videos.indexOf(video);
-  //   if (index < 0) {
-  //     throw Exception("Video not in playlist");
-  //   }
-  //   _currentIndex.value = index;
-  // }
 
   int getIndexForVideo(Video video) {
     final videoPath = Uri.file(video.videoPath).toFilePath(windows: false);
@@ -68,14 +24,6 @@ class PlaylistModel {
       (v) => Uri.file(v.filename).toFilePath(windows: false) == videoPath,
     );
   }
-
-  // void setIndexFromVideoPath(String newPath) {
-  //   final index = _playlistItems.indexWhere((v) => v.filename == newPath);
-  //   if (index < 0 && _playlistItems.isNotEmpty) {
-  //     throw Exception("Video not in playlist");
-  //   }
-  //   _currentIndex.value = index;
-  // }
 
   static PlaylistModel fromJson(String jsonString) {
     /*

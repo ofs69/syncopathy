@@ -143,6 +143,13 @@ class HandyWeb with EffectDispose {
         currentTime: state.currentTime,
         points: state.points,
         currentPoint: state.currentPoint,
+        loop: state.loop,
+        maxPoints: state.maxPoints,
+        pauseOnStarving: state.pauseOnStarving,
+        playbackRate: state.playbackRate,
+        streamId: state.streamId,
+        tailPointStreamIndex: state.tailPointStreamIndex,
+        tailPointStreamIndexThreshold: state.tailPointStreamIndexThreshold,
       );
     });
   }
@@ -215,9 +222,9 @@ class HandyWeb with EffectDispose {
   }
 
   Future<void> disconnect() async {
+    _connected.value = false;
     await sseSubscription?.cancel();
     sseSubscription = null;
-    _connected.value = false;
     await _apiQueue.dispose();
   }
 

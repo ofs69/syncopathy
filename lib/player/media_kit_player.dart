@@ -87,6 +87,8 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
   late final ReadonlySignal<double> volume;
   late final ReadonlySignal<double> duration;
   late final ReadonlySignal<double> playbackSpeed;
+  late final ReadonlySignal<bool> seeking;
+  late final ReadonlySignal<bool> buffering;
 
   ReadonlySignal<bool> get paused => _paused;
   final Signal<bool> _paused = signal(true);
@@ -128,7 +130,15 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
         title: "syncopathy",
       ),
     );
-    controller = videoOutput ? VideoController(_player) : null;
+    controller = videoOutput
+        ? VideoController(
+            _player,
+            configuration: VideoControllerConfiguration(
+              vo: 'libmpv',
+              hwdec: 'auto-safe',
+            ),
+          )
+        : null;
 
     NativePlayer? nativePlayer;
     if (_player.platform is NativePlayer) {
@@ -148,10 +158,11 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     _player.setPlaylistMode(PlaylistMode.loop);
     _player.pause();
 
+    seeking = _player.stream.seeking.toSyncSignal(_player.state.seeking);
     volume = _player.stream.volume.toSyncSignal(100);
     duration = _player.stream.duration
         .map((d) => d.inMilliseconds / 1000.0)
-        .toSyncSignal(0);
+        .toSyncSignal(_player.state.duration.inMilliseconds / 1000.0);
     playbackSpeed = _player.stream.rate.toSyncSignal(1);
 
     _paused.value = !_player.state.playing;
@@ -217,16 +228,14 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
       return null;
     });
 
-    final bufferingSignal = _player.stream.buffering.toSyncSignal(
-      _player.state.buffering,
-    );
+    buffering = _player.stream.buffering.toSyncSignal(_player.state.buffering);
     _smoothVideoSignals = SmoothVideoSignals(
       _player.stream.position
           .map((d) => d.inMilliseconds / 1000.0)
           .toSyncSignal(_player.state.position.inMilliseconds / 1000.0),
       paused,
       playbackSpeed,
-      bufferingSignal,
+      buffering,
     );
 
     eventSubs([

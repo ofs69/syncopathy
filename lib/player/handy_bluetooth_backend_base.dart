@@ -63,6 +63,13 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
         currentTime: state.currentTime,
         points: state.points,
         currentPoint: state.currentPoint,
+        loop: state.loop,
+        maxPoints: state.maxPoints,
+        pauseOnStarving: state.pauseOnStarving,
+        playbackRate: state.playbackRate,
+        streamId: state.streamId,
+        tailPointStreamIndex: state.tailPointStreamIndex,
+        tailPointStreamIndexThreshold: state.tailPointStreamIndexThreshold,
       );
     });
     effectAdd([

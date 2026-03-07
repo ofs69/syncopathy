@@ -12,6 +12,7 @@ class TimesourceModel {
   final ReadonlySignal<VideoParams> videoParams;
   final ReadonlySignal<bool> loopFile;
   final ReadonlySignal<String> loadedPath;
+  final ReadonlySignal<bool> seeking;
 
   int get currentSmoothMs => (smoothPosition.value * 1000.0).round();
   int get currentRawMs => (rawPosition.value * 1000.0).round();
@@ -21,6 +22,7 @@ class TimesourceModel {
     required this.duration,
     required this.playbackSpeed,
     required this.paused,
+    required this.seeking,
     required this.rawPosition,
     required this.smoothPosition,
     required this.videoParams,
@@ -33,6 +35,7 @@ class TimesourceModel {
     duration: player.duration,
     playbackSpeed: player.playbackSpeed,
     paused: player.paused,
+    seeking: player.seeking,
     rawPosition: player.rawPosition,
     smoothPosition: player.smoothPosition,
     videoParams: player.videoParams,

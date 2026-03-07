@@ -8,7 +8,7 @@ import 'package:syncopathy/focus_numeric_input.dart';
 import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
-import 'package:syncopathy/player/handy_bluetooth_backend_base.dart';
+import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
 
 class ScriptPlayerSettingsOverlay extends StatelessWidget {
@@ -66,7 +66,6 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
         title: 'Timing',
         children: [_buildTimingSettings(context)],
       ),
-
     ];
 
     return SingleChildScrollView(
@@ -322,7 +321,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
         Watch.builder(
           builder: (context) {
             final currentDelta =
-                playerModel.playerBackend.value?.playbackDelta.value;
+                playerModel.playerBackend.value?.debugPlaybackDelta.value;
             if (currentDelta == null) return const SizedBox.shrink();
             return ListTile(
               leading: const Icon(Icons.timer_outlined),
@@ -338,9 +337,8 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
           Watch.builder(
             builder: (context) {
               final backend = playerModel.playerBackend.value;
-              if (backend
-                  case HandyBluetoothBackendBase handyBluetoothBackendBase) {
-                final hspState = handyBluetoothBackendBase.hspState.value;
+              if (backend case HandyNativeHspMixin hspMixin) {
+                final hspState = hspMixin.hspStateAdapter.value;
                 if (hspState == null) return const SizedBox.shrink();
                 return ListTile(
                   leading: const Icon(Icons.bug_report),

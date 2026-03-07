@@ -354,7 +354,6 @@ class _SettingsPageState extends State<SettingsPage>
             if (!snapshot.hasData) return const SizedBox.shrink();
             final info = snapshot.data!;
 
-            // 2. Watch the status message signal
             return Watch(
               (context) => ListTile(
                 title: Text(
@@ -368,7 +367,6 @@ class _SettingsPageState extends State<SettingsPage>
             );
           },
         ),
-        // 3. Watch the loading signal to swap the icon
         Watch((context) {
           final isChecking = isUpdateCheckingSignal.value;
 
@@ -387,7 +385,6 @@ class _SettingsPageState extends State<SettingsPage>
             onTap: isChecking
                 ? null
                 : () async {
-                    // 4. Update signal values directly
                     isUpdateCheckingSignal.value = true;
                     statusUpdateMessageSignal.value = "Checking...";
 
