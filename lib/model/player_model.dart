@@ -120,18 +120,26 @@ class PlayerModel with EventSubscriber, EffectDispose {
       }),
       effect(() {
         final totalDuration = player.duration.value;
-        final funscript = currentFunscript.value;
+        final funscript = untracked(() => currentFunscript.value);
+
+        final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
+        final rdpEpsilon = _settings.rdpEpsilon.value;
+        final remapFullRange = _settings.remapFullRange.value;
+        final invert = _settings.invert.value;
+
         if (totalDuration < 0.1) return;
         if (funscript == null) return;
-        final modifiedActions = FunscriptAlgorithms.processForHandy(
-          funscript.originalActions,
-          _settings.slewMaxRateOfChange.value,
-          _settings.rdpEpsilon.value,
-          _settings.remapFullRange.value ? (0, 100) : null,
-          _settings.invert.value,
-          totalDuration,
-        );
-        funscript.processedActions.value = modifiedActions;
+        untracked(() {
+          final modifiedActions = FunscriptAlgorithms.processForHandy(
+            funscript.originalActions,
+            slewMaxRateOfChange,
+            rdpEpsilon,
+            remapFullRange ? (0, 100) : null,
+            invert,
+            totalDuration,
+          );
+          funscript.processedActions.value = modifiedActions;
+        });
       }),
     ]);
   }

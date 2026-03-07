@@ -124,9 +124,9 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
           'border': 'yes',
           'geometry': "1280x720",
           'idle': 'yes',
-          'force-window': 'yes',
+          'force-window': videoOutput ? 'no' : 'yes',
         },
-        vo: 'gpu-next',
+        vo: videoOutput ? 'libmpv' : 'gpu-next',
         title: "syncopathy",
       ),
     );
@@ -342,12 +342,6 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     await _player.dispose();
     _smoothVideoSignals.dispose();
   }
-
-  // void bringToFront() async {
-  //   _player.setPropertyString("ontop", "yes");
-  //   await Future.delayed(Duration(microseconds: 100));
-  //   _player.setPropertyString("ontop", "no");
-  // }
 
   Future<Uint8List?> screenshot(String path) async {
     return await _player.screenshot(

@@ -80,8 +80,13 @@ class ApiQueue {
     );
   }
 
-  Future<T> makeRequest<T>(Future<T> Function(http.Client) request) {
-    return _requestPool.withResource(() => request(_clientInternal));
+  Future<T?> makeRequest<T>(Future<T?> Function(http.Client) request) {
+    try {
+      return _requestPool.withResource(() => request(_clientInternal));
+    } catch (ex) {
+      Logger.error(ex.toString());
+    }
+    return Future.value(null);
   }
 
   Future<void> dispose() async {
@@ -240,9 +245,9 @@ class HandyWeb with EffectDispose {
     request.headers['Accept'] = 'text/event-stream';
 
     try {
-      final response = await _apiQueue.makeRequest(
+      final response = (await _apiQueue.makeRequest(
         (client) => client.send(request),
-      );
+      ))!;
 
       // Temp variables to hold parts of the event as they arrive
       String? currentId;
@@ -362,10 +367,11 @@ class HandyWeb with EffectDispose {
   void _handleDeviceStatus(HandyDeviceStatus handyDeviceStatus) {}
 
   void _handleStateResponse(HandyResponse<HandyHspState> state) {
-    if (state.isError) {
+    if (state.isResult) {
+      _hspState.value = state.result;
+    } else if (state.isError) {
       Logger.error(state.error!.message);
     }
-    _hspState.value = state.result;
   }
 
   Future<int?> getServerTime() async {
@@ -374,6 +380,7 @@ class HandyWeb with EffectDispose {
     final response = await _apiQueue.makeRequest(
       (client) => client.get(url, headers: _defaultHeaders),
     );
+    if (response == null) return null;
 
     if (response.statusCode == 200) {
       var data = HandyServertime.fromJson(jsonDecode(response.body));
@@ -388,6 +395,7 @@ class HandyWeb with EffectDispose {
     final response = await _apiQueue.makeRequest(
       (client) => client.get(url, headers: _defaultHeaders),
     );
+    if (response == null) return HandyResponse.empty();
 
     if (response.statusCode == 200) {
       var data = HandyResponse<HandyConnected>.fromJson(
@@ -406,6 +414,7 @@ class HandyWeb with EffectDispose {
     final response = await _apiQueue.makeRequest(
       (client) => client.get(url, headers: _defaultHeaders),
     );
+    if (response == null) return HandyResponse.empty();
 
     if (response.statusCode == 200) {
       var data = HandyResponse<HandyInfo>.fromJson(
@@ -423,6 +432,7 @@ class HandyWeb with EffectDispose {
     final response = await _apiQueue.makeRequest(
       (client) => client.get(url, headers: _defaultHeaders),
     );
+    if (response == null) return HandyResponse.empty();
 
     if (response.statusCode == 200) {
       var data = HandyResponse<HandyStrokeSettings>.fromJson(
@@ -448,6 +458,7 @@ class HandyWeb with EffectDispose {
         body: jsonEncode(request.toJson()),
       ),
     );
+    if (response == null) return HandyResponse.empty();
 
     if (response.statusCode == 200) {
       var data = HandyResponse<HandyStrokeSettings>.fromJson(
@@ -763,6 +774,8 @@ class HandyWeb with EffectDispose {
     final response = await _apiQueue.makeRequest(
       (client) => client.get(url, headers: _defaultHeaders),
     );
+    if (response == null) return null;
+
     if (response.statusCode == 200) {
       var clock = HandyResponse<HandyClock>.fromJson(
         jsonDecode(response.body),

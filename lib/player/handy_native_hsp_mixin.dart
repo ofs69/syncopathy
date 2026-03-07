@@ -102,6 +102,7 @@ abstract class IHandyHspBase {
 mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   final _currentlyBufferedBuffers = <int>{};
   final _currentlyBufferedActions = <FunscriptAction>[];
+  bool _internalHandyPlaying = false;
   // a reference to check if the actions have changed
   Object? _bufferedActionsReference;
   int _syncCounter = 0;
@@ -164,10 +165,40 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     ];
   }
 
+  @override
+  void hspPlay({
+    required int startTime,
+    required double playbackRate,
+    required bool loop,
+    required bool pauseOnStarving,
+  }) {
+    if (_internalHandyPlaying) return;
+    _internalHandyPlaying = true;
+    super.hspPlay(
+      startTime: startTime,
+      playbackRate: playbackRate,
+      loop: loop,
+      pauseOnStarving: pauseOnStarving,
+    );
+  }
+
+  @override
+  void hspStop() {
+    if (!_internalHandyPlaying) return;
+    _internalHandyPlaying = false;
+    super.hspStop();
+  }
+
+  @override
+  void hspPause() {
+    if (!_internalHandyPlaying) return;
+    _internalHandyPlaying = false;
+    super.hspPause();
+  }
+
   HspStateAdapterPlayState? _lastState;
   void _hspStateChange(HspStateAdapter? hspState) {
     if (hspState == null) return;
-
     final playerPlaying = !timesource.paused.value;
 
     if (kDebugMode) {
@@ -344,6 +375,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   void _resetInternalState() {
     _currentlyBufferedBuffers.clear();
     _currentlyBufferedActions.clear();
+    _internalHandyPlaying = false;
     _bufferedActionsReference = null;
     _syncTimer?.cancel();
     _syncTimer = null;

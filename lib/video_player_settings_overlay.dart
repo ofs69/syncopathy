@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
@@ -333,26 +332,25 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
             );
           },
         ),
-        if (kDebugMode)
-          Watch.builder(
-            builder: (context) {
-              final backend = playerModel.playerBackend.value;
-              if (backend case HandyNativeHspMixin hspMixin) {
-                final hspState = hspMixin.hspStateAdapter.value;
-                if (hspState == null) return const SizedBox.shrink();
-                return ListTile(
-                  leading: const Icon(Icons.bug_report),
-                  title: Text('Stats for nerds'),
-                  subtitle: Text(
-                    hspState.toString(),
-                    style: TextStyle(fontFamily: 'monospace'),
-                  ),
-                  isThreeLine: true,
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
+        Watch.builder(
+          builder: (context) {
+            final backend = playerModel.playerBackend.value;
+            if (backend case HandyNativeHspMixin hspMixin) {
+              final hspState = hspMixin.hspStateAdapter.value;
+              if (hspState == null) return const SizedBox.shrink();
+              return ListTile(
+                leading: const Icon(Icons.bug_report),
+                title: Text('Stats for nerds'),
+                subtitle: Text(
+                  hspState.toString(),
+                  style: TextStyle(fontFamily: 'monospace'),
+                ),
+                isThreeLine: true,
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
       ],
     );
   }
