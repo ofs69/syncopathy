@@ -92,7 +92,7 @@ class PlayerModel with EventSubscriber, EffectDispose {
     effectAdd([
       // View counting logic
       effect(() {
-        final _ = currentlyOpen.value;
+        final _ = player.currentVideo.value;
         _videoViewCounted = false;
       }),
       effect(() {
@@ -118,17 +118,18 @@ class PlayerModel with EventSubscriber, EffectDispose {
       // View counting logic end
       effect(() {
         final duration = player.duration.value;
-        final open = currentlyOpen.value;
+        final video = player.currentVideo.value;
+        final funscript = _asyncCurrentFunscript.value.value;
 
-        if (open == null) {
+        if (video == null) {
           return;
         }
 
         // Skip to first stroke if enabled
         untracked(() {
           if (_settings.skipToAction.value) {
-            if (duration > 0.0) {
-              final actions = open.funscript.originalActions;
+            if (funscript != null && duration > 0.0) {
+              final actions = funscript.originalActions;
               if (actions.isNotEmpty) {
                 final startTime = FunscriptAlgorithms.findFirstStroke(actions);
                 player.seekTo(Duration(milliseconds: startTime));
