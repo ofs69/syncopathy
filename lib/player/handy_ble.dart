@@ -32,7 +32,7 @@ class ProtobufWorker {
 
   Future<void> spawn() async {
     // Serialization isolate
-    {
+    if (!kIsWeb) {
       final receiveSerializePort = ReceivePort();
       _isolateSerialize = await Isolate.spawn(
         _isolateSerializeEntry,
@@ -51,7 +51,7 @@ class ProtobufWorker {
     }
 
     // Deserialization isolate
-    {
+    if (!kIsWeb) {
       final receiveDeserializePort = ReceivePort();
       _isolateDeserialize = await Isolate.spawn(
         _isolateDeserializeEntry,
@@ -75,10 +75,23 @@ class ProtobufWorker {
     _isolateSerialize.kill();
   }
 
-  void sendToSerialize(RpcMessage message) => _sendSerializePort?.send(message);
+  void sendToSerialize(RpcMessage message) {
+    if (!kIsWeb) {
+      _sendSerializePort?.send(message);
+    } else {
+      final Uint8List buffer = message.writeToBuffer();
+      _resultSerializeController.add(buffer);
+    }
+  }
 
-  void sendToDeserialize(Uint8List message) =>
+  void sendToDeserialize(Uint8List message) {
+    if (!kIsWeb) {
       _sendDeserializePort?.send(message);
+    } else {
+      final msg = RpcMessage.fromBuffer(message);
+      _resultDeserializeController.add(msg);
+    }
+  }
 
   // This runs in the separate thread
   static void _isolateSerializeEntry(SendPort mainSendPort) {
@@ -128,13 +141,14 @@ class HandyBle with EffectDispose {
   // Called when paused on starving notification is received
   Function()? hspPausedOnStarving;
 
+  Function()? hspLooped;
+
   late final StreamSubscription _bufferReceivedSubscription;
   late final StreamSubscription _deserializeSubscription;
   late final StreamSubscription _serializeSubscription;
   final ProtobufWorker _worker = ProtobufWorker();
 
   final _applyStrokeRangeDebouncer = Debouncer(milliseconds: 500);
-
   int estimatedAverageOffset = 0;
 
   HandyBle(this._device, this._strokeRangeMin, this._strokeRangeMax) {
@@ -194,16 +208,23 @@ class HandyBle with EffectDispose {
 
     // Sync time
     {
+      final request = RequestClockOffsetGet();
+      final bufferMsg = Request(requestClockOffsetGet: request).writeToBuffer();
+
       const syncTries = 10;
       var offsetAggregated = 0.0;
       for (var index = 0; index < syncTries; index += 1) {
         final start = DateTime.now().millisecondsSinceEpoch;
-        final _ = await getClockOffset();
+        //final _ = await getClockOffset(); // Not sure if this is better
+        final _ = await _device.tx.write(bufferMsg, withResponse: true);
         final server = DateTime.now().millisecondsSinceEpoch;
         final end = server;
         final rtd = end - start;
-        final offset = (server + (rtd / 2)) - end;
+        final offset = (server + (rtd / 2.0)) - end;
+
+        Logger.debug('RTD: $rtd\tOffset: $offset');
         offsetAggregated += offset;
+        await Future.delayed(Duration(milliseconds: 100));
       }
       estimatedAverageOffset = (offsetAggregated / syncTries).round();
       Logger.debug("Estimated average offset: $estimatedAverageOffset");
@@ -273,6 +294,7 @@ class HandyBle with EffectDispose {
         break;
       case Notification_Notification.notificationHspLooping:
         _hspState.value = message.notification.notificationHspLooping.state;
+        hspLooped?.call();
         break;
       case Notification_Notification.notificationHspStarving:
         _hspState.value = message.notification.notificationHspStarving.state;
@@ -313,6 +335,7 @@ class HandyBle with EffectDispose {
   }
 
   void _sendRequest(Request request) {
+    if (kDebugMode) debugPrint(request.whichParams().toString());
     request.id = noCompletionId;
     final message = RpcMessage(
       type: MessageType.MESSAGE_TYPE_REQUEST,
@@ -444,11 +467,12 @@ class HandyBle with EffectDispose {
     required int startTime,
     required double playbackRate,
     required bool loop,
+    required bool pauseOnStarving,
   }) {
     final request = RequestHspPlay(
       startTime: startTime,
       loop: loop,
-      pauseOnStarving: false,
+      pauseOnStarving: pauseOnStarving,
       playbackRate: playbackRate,
       serverTime: Int64(serverTime()),
     );
@@ -465,14 +489,11 @@ class HandyBle with EffectDispose {
     _sendRequest(Request(requestHspPause: request));
   }
 
-  void hspCurrentTimeSet({
-    required int currentTime,
-    required bool forceCurrentTime,
-  }) {
+  void hspCurrentTimeSet({required int currentTime, required double filter}) {
     final request = RequestHspCurrentTimeSet(
       currentTime: currentTime,
       serverTime: Int64(serverTime()),
-      filter: forceCurrentTime ? 1.0 : 0.6,
+      filter: filter,
     );
     _sendRequest(Request(requestHspCurrentTimeSet: request));
   }
@@ -480,6 +501,11 @@ class HandyBle with EffectDispose {
   void hspStop() {
     final request = RequestHspStop();
     _sendRequest(Request(requestHspStop: request));
+  }
+
+  void hspLoop(bool loop) {
+    final request = RequestHspLoopSet(loop: loop);
+    _sendRequest(Request(requestHspLoopSet: request));
   }
 
   Future<ResponseClockOffsetGet?> getClockOffset() async {

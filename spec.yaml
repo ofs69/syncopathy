@@ -1,0 +1,6340 @@
+openapi: 3.0.3
+info:
+    title: Handy API v3-beta
+    version: 3.0.0
+    contact:
+        email: lars@ohdoki.com
+    description: |
+        This API is a beta version of Handy API version 3 (v3) and may change over time.
+
+        The core functionality is considered stable, and we strive to make any future changes backward compatible. Feedback, bug reports, and feature requests are welcome.
+
+        Handy API v3 provides an HTTP interface for interacting with devices and is a complete rewrite of the previous version.
+
+        For more detailed information about the API, concepts, use and code samples, see the <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3">Handy API v3 documentation</a>.
+
+        # Overview
+
+        - Unsupported firmware versions
+        - What's new?
+        - Breaking changes
+        - Commmunity
+
+        ## Unsupported firmware versions
+
+        Devices with firmware older than version 4 (v4) must be updated to v4 before they can be controlled using API v3.
+
+        See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-fw3">Handling older firmware</a> for how to deal with devices with older firmware versions using this API.
+
+        ## What's new?
+
+        ### Authentication
+
+        Unlike version 2 (v2), version 3 requires authentication for all device operations. This means that you need to have a registered account to use the API.
+
+        You can register an account at the <a href="https://user.handyfeeling.com">Handyfeeling User web</a> and read more about <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-auth">authentication</a> in the Handy API v3 documentation.
+
+        ### New protocols
+
+        Version 3 offers additional protocols for controlling the device. These are:
+
+        - <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hvp">Handy Vibration Protocol (HVP)</a>
+        - <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a>
+        - <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-stream">Handy Stream Protocol (STREAM)</a>
+
+        The new protocols enables control of new device models with new capabilities, and offer a more flexible and powerful way to control existing device models.
+
+        ### SSE events
+
+        Version 3 offers SSE (Server-Sent-Events) events. This allows you to subscribe to device events, avoiding the need to poll the device for state updates.
+
+        ## Breaking changes
+
+        The existing v2 protocols are still supported. There are changes to the request and response formats so existing v2 users will need to migrate to handle these changes.
+
+        Functionally, the protocols are more or less the same with a few caveats. HSSP specifically does no longer support setup of scripts hosted on private networks.
+
+        If you need an alternative script host, consider the [Hosting API](https://handyfeeling.com/api/hosting/v2/docs/) for temporary hosting of scripts.
+
+        See the protocol documentation for details:
+
+        - <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hamp">Handy Alternate Motion Protocol (HAMP)</a>
+        - <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hdsp">Handy Direct Streaming Protocol (HDSP)</a>
+        - <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hssp">Handy Synchronized Script Protocol (HSSP)</a>
+
+        ## Community
+
+        Join the community.
+
+        Send us an email or add us on discord for a more technical chat - Handy#8756
+
+        Follow us on Reddit for updates and announcements: [r/theHandy/](https://www.reddit.com/r/theHandy/)
+servers:
+    - url: https://www.handyfeeling.com/api/handy-rest/v3
+      description: Production environment
+tags:
+    - name: AUTH
+      description: Authentication operations.
+    - name: UTILS
+      description: Misc utils.
+    - name: INFO
+      description: Device status and information.
+    - name: HAMP
+      description: Handy Alternate Motion Protocol (HAMP) operations.
+    - name: HRPP
+      description: Handy Repeating Pattern Protocol (HRPP) operations.
+    - name: HDSP
+      description: Handy Direct Streaming Protocol (HDSP) operations.
+    - name: HSP
+      description: Handy Streaming Protocol (HSP) operations.
+    - name: HSSP
+      description: Handy Synchronized Script Protocol (HSSP) operations.
+    - name: HSTP
+      description: HSTP (Handy Simple Timing Protocol) operations and information.
+    - name: HVP
+      description: HVP (Handy Vibration Protocol) operations and information.
+    - name: SLIDER
+      description: Slider operations and information.
+    - name: SSE
+      description: SSE (Server-Sent-Events) device events.
+    - name: STREAM
+      description: STREAM operations and information.
+security:
+    - ApiKeyAuth: []
+    - BearerAuth: []
+components:
+    securitySchemes:
+        ApiKeyAuth:
+            type: apiKey
+            in: header
+            name: X-Api-Key
+        BearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: branca
+        KeyOrTokenQueryParamAuth:
+            type: apiKey
+            in: query
+            name: apikey
+    headers:
+        X-RateLimit-Limit:
+            schema:
+                type: integer
+                minimum: 0
+            example: 240
+            description: >-
+                Request limit per minute window.
+        X-RateLimit-Remaining:
+            schema:
+                type: integer
+                minimum: 0
+            example: 100
+            description: >-
+                The number of requests left in the current window.
+        X-RateLimit-Reset:
+            schema:
+                type: integer
+                minimum: 0
+            example: 6205
+            description: >-
+                Seconds until next window reset.
+    responses:
+        "400":
+            description: Bad request.
+            headers:
+                X-RateLimit-Limit:
+                    $ref: "#/components/headers/X-RateLimit-Limit"
+                X-RateLimit-Remaining:
+                    $ref: "#/components/headers/X-RateLimit-Remaining"
+                X-RateLimit-Reset:
+                    $ref: "#/components/headers/X-RateLimit-Reset"
+        "401":
+            description: Unauthorized
+            headers:
+                X-RateLimit-Limit:
+                    $ref: "#/components/headers/X-RateLimit-Limit"
+                X-RateLimit-Remaining:
+                    $ref: "#/components/headers/X-RateLimit-Remaining"
+                X-RateLimit-Reset:
+                    $ref: "#/components/headers/X-RateLimit-Reset"
+        "403":
+            description: Forbidden
+            headers:
+                X-RateLimit-Limit:
+                    $ref: "#/components/headers/X-RateLimit-Limit"
+                X-RateLimit-Remaining:
+                    $ref: "#/components/headers/X-RateLimit-Remaining"
+                X-RateLimit-Reset:
+                    $ref: "#/components/headers/X-RateLimit-Reset"
+        "404":
+            description: Resource not found.
+            headers:
+                X-RateLimit-Limit:
+                    $ref: "#/components/headers/X-RateLimit-Limit"
+                X-RateLimit-Remaining:
+                    $ref: "#/components/headers/X-RateLimit-Remaining"
+                X-RateLimit-Reset:
+                    $ref: "#/components/headers/X-RateLimit-Reset"
+        "429":
+            description: Too many requests.
+            headers:
+                X-RateLimit-Limit:
+                    $ref: "#/components/headers/X-RateLimit-Limit"
+                X-RateLimit-Remaining:
+                    $ref: "#/components/headers/X-RateLimit-Remaining"
+                X-RateLimit-Reset:
+                    $ref: "#/components/headers/X-RateLimit-Reset"
+        "408":
+            description: Request timeout.
+            headers:
+                X-RateLimit-Limit:
+                    $ref: "#/components/headers/X-RateLimit-Limit"
+                X-RateLimit-Remaining:
+                    $ref: "#/components/headers/X-RateLimit-Remaining"
+                X-RateLimit-Reset:
+                    $ref: "#/components/headers/X-RateLimit-Reset"
+        "500":
+            description: Internal server error.
+            headers:
+                X-RateLimit-Limit:
+                    $ref: "#/components/headers/X-RateLimit-Limit"
+                X-RateLimit-Remaining:
+                    $ref: "#/components/headers/X-RateLimit-Remaining"
+                X-RateLimit-Reset:
+                    $ref: "#/components/headers/X-RateLimit-Reset"
+    schemas:
+        GenericError:
+            description: Generic error response
+            type: object
+            properties:
+                name:
+                    description: The error name.
+                    type: string
+                message:
+                    description: The error message.
+                    type: string
+                code:
+                    description: The error code.
+                    type: integer
+                data:
+                    description: Additional error data.
+                    type: object
+            required:
+                - code
+                - name
+        AuthTokenResponse:
+            description: Auth token response
+            type: object
+            properties:
+                result:
+                    $ref: "#/components/schemas/ClientToken"
+                error:
+                    $ref: "#/components/schemas/GenericError"
+        ClientToken:
+            description: Client token
+            type: object
+            properties:
+                token_ref:
+                    type: string
+                    description: The token reference.
+                created_at:
+                    $ref: "#/components/schemas/DateTime"
+                expires_at:
+                    $ref: "#/components/schemas/DateTime"
+                token:
+                    type: string
+                    description: The issued authentication token.
+                renew:
+                    type: string
+                    description: The url to renew the token.
+            required:
+                - token_ref
+                - created_at
+                - expires_at
+                - token
+                - renew
+            example:
+                token_ref: "01JEKW7H7111JBETJPEVGT10HN"
+                created_at: "2021-04-22T12:32:35.381Z"
+                expires_at: "2021-04-22T12:32:35.381Z"
+                token: "MDFISjNHRUFDN05aTlFTTlpQR0c4UkdZMU4uQTJ6NkM5WVpwRGhLMkZUQUlTYThJUTdnaDNmZWFLT1ZIRWVOYzZtNGp1QnhPeTZNOFRocG13b1Vud3Rkb25pN3FjbG00aDBIUU96cm1QSjBsUWpBVHh4UFFsRXRBUERBT0pCeWhlT3JvUmplN0w4djlqRUZtV0QwdXZyOWhvMFB3WVVab213R2lTMFRuejZnQXN2SXlmMzhxSjNtOWdSUEFmSlRhOVdadEVF"
+                renew: "https://www.handyfeeling.com/api/handy-rest/v3/auth/token/renew?a=aes-128-cbc&d=sNXKI7FC3UUHuEwiTvpos%2Bg99VN6dN3V%2BdkXGK8gOM3vUm%2BIhylz4msZLH40w%2BsbKyUmZihu3Lp1I1djSUrjzYCOc0iZpEZp2wmihYj2K1ifnh6GdKIhnFthGyIhO%2BLS&iv=cE-s2nsh717WGoj-6Kt3Cg&k=01HJ3GEAC7NZNQSNZPGG8RGY1N&s=PgOpBDhi2sDlkbKm2VDjYyvksa7eqfGc1HpQOHyQ7hs&uexp=1703089372707"
+        DeviceModeValue:
+            type: integer
+            description: |
+                Possible device modes.
+                <br><br>
+                - 0: hamp
+                - 1: hssp
+                - 2: hdsp
+                - 3: maintenance
+                - 4: hsp
+                - 5: ota
+                - 6: button
+                - 7: idle
+                - 8: vibrate
+                - 9: hrpp
+            enum:
+                - 0
+                - 1
+                - 2
+                - 3
+                - 4
+                - 5
+                - 6
+                - 7
+                - 8
+            x-enum-varnames:
+                - HAMP
+                - HSSP
+                - HDSP
+                - MAINTENANCE
+                - HSP
+                - OTA
+                - BUTTON
+                - IDLE
+                - VIBRATE
+            x-enum-descriptions:
+                - HAMP
+                - HSSP
+                - HDSP
+                - Maintenance
+                - HSP
+                - OTA
+                - Button
+                - Idle
+                - Vibrate
+        DeviceMode:
+            description: Device mode response
+            type: object
+            properties:
+                mode:
+                    $ref: "#/components/schemas/DeviceModeValue"
+                mode_session_id:
+                    type: number
+                    description: The mode session id. Changes every time the mode changes.
+                    example: 45454
+            required:
+                - mode
+            example:
+                mode: 0
+                mode_session_id: 45454
+        Timestamp:
+            type: integer
+            minimum: 0
+            example: 1619080355381
+        DateTime:
+            type: string
+            format: date-time
+            example: 2021-04-22T12:32:35.381Z
+        ConnectionKey:
+            type: string
+            minLength: 5
+            maxLength: 64
+            pattern: ^[a-zA-Z0-9]{5,64}$
+            example: vUeRWzcy
+        DeviceEnvironment:
+            type: string
+            description: |
+                Device environment.
+                <br><br>
+                - 0: production
+                - 1: staging
+                - 2: development
+            enum:
+                - 0
+                - 1
+                - 2
+            x-enum-varnames:
+                - PRODUCTION
+                - STAGING
+                - DEVELOPMENT
+            x-enum-descriptions:
+                - Production
+                - Staging
+                - Development
+        ConnectionMode:
+            type: number
+            description: |
+                Connection mode.
+                <br><br>
+                - 0: none
+                - 1: WIFI
+                - 2: BLE
+                - 3: WIFI_BLE
+                - 4: OFFLINE
+                - 5: LEGACY_BLE
+            enum:
+                - 0
+                - 1
+                - 2
+                - 3
+                - 4
+                - 5
+            x-enum-varnames:
+                - NONE
+                - WIFI
+                - BLE
+                - WIFI_BLE
+                - OFFLINE
+                - LEGACY_BLE
+            x-enum-descriptions:
+                - None
+                - WIFI
+                - BLE
+                - WIFI BLE
+                - Offline
+                - Legacy BLE
+        ChannelReference:
+            type: string
+            minLength: 5
+            maxLength: 64
+            pattern: ^(chref:?:)?[a-zA-Z0-9]{5,64}$
+            example: "chref:09Amdosdidsamdsa"
+        SSEEventType:
+            type: string
+            description: The event type
+            example: device_connected
+            enum:
+                - battery_changed
+                - ble_status_changed
+                - button_event
+                - device_clock_synchronized
+                - device_connected
+                - device_disconnected
+                - device_error
+                - device_status
+                - hamp_state_changed
+                - hrpp_state_changed
+                - hdsp_state_changed
+                - hsp_looping
+                - hsp_starving
+                - hsp_state_changed
+                - hsp_threshold_reached
+                - stream_end_reached
+                - hvp_state_changed
+                - low_memory_error
+                - low_memory_warning
+                - mode_changed
+                - ota_progress
+                - slider_blocked
+                - slider_unblocked
+                - stroke_changed
+                - temp_high
+                - temp_ok
+                - wifi_scan_complete
+                - wifi_status
+                - wifi_status_changed
+            x-enum-varnames:
+                - BATTERY_CHANGED
+                - BLE_STATUS_CHANGED
+                - BUTTON_EVENT
+                - DEVICE_CLOCK_SYNCHRONIZED
+                - DEVICE_CONNECTED
+                - DEVICE_DISCONNECTED
+                - DEVICE_ERROR
+                - DEVICE_STATUS
+                - HAMP_STATE_CHANGED
+                - HRPP_STATE_CHANGED
+                - HDSP_STATE_CHANGED
+                - HSP_LOOPING
+                - HSP_STARVING
+                - HSP_STATE_CHANGED
+                - HSP_THRESHOLD_REACHED
+                - HVP_STATE_CHANGED
+                - LOW_MEMORY_ERROR
+                - LOW_MEMORY_WARNING
+                - MODE_CHANGED
+                - OTA_PROGRESS
+                - SLIDER_BLOCKED
+                - SLIDER_UNBLOCKED
+                - STROKE_CHANGED
+                - TEMP_HIGH
+                - TEMP_OK
+                - WIFI_SCAN_COMPLETE
+                - WIFI_STATUS
+                - WIFI_STATUS_CHANGED
+            x-enum-descriptions:
+                - Battery changed
+                - BLE status changed
+                - Button event
+                - Device clock synchronized
+                - Device connected
+                - Device disconnected
+                - Device error
+                - Device status
+                - HAMP state changed
+                - HRPP state changed
+                - HDSP state changed
+                - HSP looping
+                - HSP starving
+                - HSP state changed
+                - HSP threshold reached
+                - Stream end reached
+                - HVP state changed
+                - Low memory error
+                - Low memory warning
+                - Mode changed
+                - OTA progress
+                - Slider blocked
+                - Slider unblocked
+                - Stroke changed
+                - Temp high
+                - Temp ok
+                - WIFI scan complete
+                - WIFI status
+                - WIFI status changed
+        SSEEventData:
+            type: object
+            description: SSE device data
+            properties:
+                connection_key:
+                    $ref: "#/components/schemas/ConnectionKey"
+                data:
+                    type: object
+                    description: The device specific event data
+                    oneOf:
+                        - $ref: "#/components/schemas/DeviceInfo"
+                        - $ref: "#/components/schemas/DeviceDisconnected"
+                        - $ref: "#/components/schemas/ButtonEvent"
+                        - $ref: "#/components/schemas/BLEStatus"
+                        - $ref: "#/components/schemas/WifiStatus"
+                        - $ref: "#/components/schemas/WifiScanComplete"
+                        - $ref: "#/components/schemas/LowMemoryWarning"
+                        - $ref: "#/components/schemas/LowMemoryError"
+                        - $ref: "#/components/schemas/BatteryStatus"
+                        - $ref: "#/components/schemas/StrokeStatus"
+                        - $ref: "#/components/schemas/OtaProgress"
+                        - $ref: "#/components/schemas/HdspState"
+                        - $ref: "#/components/schemas/HampState"
+                        - $ref: "#/components/schemas/HspState"
+                        - $ref: "#/components/schemas/HvpState"
+                        - $ref: "#/components/schemas/ErrorData"
+                        - $ref: "#/components/schemas/DeviceStatus"
+                        - $ref: "#/components/schemas/DeviceMode"
+                        - $ref: "#/components/schemas/DeviceTimeInfo"
+            required:
+                - connection_key
+        SSEEvent:
+            description: SSE event
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The event id
+                    example: "12345"
+                type:
+                    $ref: "#/components/schemas/SSEEventType"
+                    example: "device_connected"
+                data:
+                    $ref: "#/components/schemas/SSEEventData"
+            required:
+                - id
+                - type
+                - data
+        HdspStateValue:
+            type: integer
+            description: |
+                The current HDSP state.<br>
+                Possible values:
+                - 0: stopped
+                - 1: moving
+                - 2: point reached
+            enum:
+                - 0
+                - 1
+                - 2
+            x-enum-varnames:
+                - STOPPED
+                - MOVING
+                - POINT_REACHED
+            x-enum-descriptions:
+                - Stopped
+                - Moving
+                - Point reached
+            example: 1
+        HdspState:
+            description: HDSP state
+            type: object
+            properties:
+                state:
+                    $ref: "#/components/schemas/HdspStateValue"
+            required:
+                - state
+        DeviceStatus:
+            description: Device status
+            type: object
+            properties:
+                connected:
+                    type: boolean
+                    description: If the device is connected
+                    example: true
+                info:
+                    $ref: "#/components/schemas/DeviceInfo"
+                    # TODO: add mode and mode state
+                    # mode: 
+                    #   $ref: "#/components/schemas/DeviceModeValue"
+                    # state:
+                    #   description: The device state. The value depends on the current mode.
+                    #   oneOf:
+                    #     - $ref: "#/components/schemas/HampState"
+                    #     - $ref: "#/components/schemas/HdspState"
+                    #     - $ref: "#/components/schemas/HspState"
+                    #     - $ref: "#/components/schemas/HvpState"
+                    #     - $ref: "#/components/schemas/OtaProgress"
+            required:
+                - connected
+        HvpState:
+            description: HVP state
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                    description: Flag to indicate if vibration is enabled.
+                    example: true
+                amplitude:
+                    type: number
+                    description: The vibration amplitude. 0-1 (0-100%, percent of valid output range). For LRA, ERM and sliders with vibration adapter
+                    example: 0.5
+                frequency:
+                    type: number
+                    description: The vibration frequency. 0-10000 (Hz) For LRA only.
+                    example: 50
+                position:
+                    type: number
+                    description: The vibration position (mm). Where on the slider should the vibration be. Only applies to devices with a slider with vibration adapter.
+                    example: 60
+            required:
+                - enabled
+                - amplitude
+                - frequency
+                - position
+        ErrorData:
+            description: Error data
+            type: object
+            properties:
+                code:
+                    type: integer
+                    description: The error code
+                    example: 100
+                message:
+                    type: string
+                    description: The error message
+                    example: "Device not connected"
+            required:
+                - code
+                - message
+        ButtonValue:
+            type: integer
+            enum:
+                - 0
+                - 1
+                - 2
+                - 3
+                - 4
+                - 5
+            x-enum-varnames:
+                - POWER
+                - UP
+                - LEFT
+                - RIGHT
+                - DOWN
+                - WIFI
+            x-enum-descriptions:
+                - Power
+                - Up
+                - Left
+                - Right
+                - Down
+                - Wifi
+            description: |
+                The button pressed.<br>
+                Possible values:
+                - 0: power
+                - 1: up
+                - 2: left
+                - 3: right
+                - 4: down
+                - 5: Wifi
+            example: 1
+        ButtonEventType:
+            type: integer
+            enum:
+                - 0
+                - 1
+                - 2
+                - 3
+                - 4
+                - 5
+            x-enum-varnames:
+                - PRESSED
+                - RELEASED
+                - SHORT_PRESS
+                - LONG_PRESS_START
+                - LONG_PRESS_STEP
+                - LONG_PRESS_END
+            x-enum-descriptions:
+                - Pressed
+                - Released
+                - Short press
+                - Long press start
+                - Long press step
+                - Long press end
+            description: |
+                The button press type.<br>
+                Possible values:
+                - 0: pressed
+                - 1: released
+                - 2: short press
+                - 3: long press start
+                - 4: long press step
+                - 5: long press end
+            example: 0
+        ButtonEvent:
+            description: Button event data
+            type: object
+            properties:
+                button:
+                    $ref: "#/components/schemas/ButtonValue"
+                event:
+                    $ref: "#/components/schemas/ButtonEventType"
+            required:
+                - button
+                - event
+        OtaProgress:
+            description: OTA status
+            type: object
+            properties:
+                done:
+                    type: boolean
+                    description: Ota flag to indicate if the OTA is done.
+                    example: 3
+                progress:
+                    type: number
+                    description: The OTA progress.
+                    example: 0.5
+                failed:
+                    type: boolean
+                    description: Ota flag to indicate if the OTA failed.
+                    example: false
+            required:
+                - done
+                - progress
+                - failed
+        StrokeStatus:
+            description: Stroke status
+            type: object
+            properties:
+                min:
+                    type: number
+                    description: The relative minimum slider position.
+                    example: 0.0
+                max:
+                    type: number
+                    description: The relative maximum slider position.
+                    example: 1.0
+                min_absolute:
+                    type: number
+                    description: The absolute minimum slider position (in millimeter).
+                    example: 0.0
+                max_absolute:
+                    type: number
+                    description: The absolute maximum slider position (in millimeter).
+                    example: 100.0
+            required:
+                - min
+                - max
+                - min_absolute
+                - max_absolute
+        BatteryStatus:
+            description: Battery status
+            type: object
+            properties:
+                level:
+                    type: number
+                    description: The battery level
+                    example: 0.5
+                charger_connected:
+                    type: boolean
+                    description: The charging status
+                    example: true
+                charging_complete:
+                    type: boolean
+                    description: The charging status
+                    example: true
+                usb_voltage:
+                    type: number
+                    description: The USB voltage (in V)
+                    example: 5.0
+                battery_voltage:
+                    type: number
+                    description: The battery voltage (in V)
+                    example: 4.2
+                usb_adc_value:
+                    type: integer
+                    description: The USB ADC value (0-4095)
+                    example: 1024
+                battery_adc_value:
+                    type: integer
+                    description: The battery ADC value (0-4095)
+                    example: 1024
+            required:
+                - level
+                - charger_connected
+                - charging_complete
+                - usb_voltage
+                - battery_voltage
+                - usb_adc_value
+                - battery_adc_value
+        LowMemoryWarning:
+            description: Low memory warning event data
+            type: object
+            properties:
+                available_heap:
+                    type: integer
+                    description: The available heap size
+                    example: 1024
+                larges_free_block:
+                    type: integer
+                    description: The size of the largest free block
+                    example: 1024
+            required:
+                - available_heap
+                - larges_free_block
+        LowMemoryError:
+            description: Low memory error event data
+            type: object
+            properties:
+                available_heap:
+                    type: integer
+                    description: The available heap size
+                    example: 1024
+                larges_free_block:
+                    type: integer
+                    description: The size of the largest free block
+                    example: 1024
+                discarded_msg_size:
+                    type: integer
+                    description: The size of the last discarded message
+                    example: 1024
+            required:
+                - available_heap
+                - larges_free_block
+                - discarded_msg_size
+        WifiScanComplete:
+            description: WIFI scan complete event data
+            type: object
+            properties:
+                nr_of_networks:
+                    type: integer
+                    description: The number of networks found
+                    example: 5
+            required:
+                - nr_of_networks
+        WifiStateValue:
+            type: integer
+            description: |
+                The WIFI state.<br>
+                Possible values:
+                - 0: Disconnected
+                - 1: Connected
+                - 2: Connecting
+                - 3: Reconneting
+                - 4: Failed to connect
+                - 5: Disconnecting
+            enum:
+                - 0
+                - 1
+                - 2
+                - 3
+                - 4
+                - 5
+            x-enum-varnames:
+                - DISCONNECTED
+                - CONNECTED
+                - CONNECTING
+                - RECONNECTING
+                - FAILED_TO_CONNECT
+                - DISCONNECTING
+            x-enum-descriptions:
+                - Disconnected
+                - Connected
+                - Connecting
+                - Reconneting
+                - Failed to connect
+                - Disconnecting
+        WifiStatus:
+            description: WIFI status
+            type: object
+            properties:
+                socket_connected:
+                    type: boolean
+                    description: Flag to indicate if the socket is connected.
+                    example: true
+                state:
+                    $ref: "#/components/schemas/WifiStateValue"
+                    example: 1
+            required:
+                - socket_connected
+                - state
+        BLEStatusValue:
+            type: integer
+            description: |
+                The BLE status.<br>
+                Possible values:
+                - 0: Not initialized
+                - 1: Initializing
+                - 2: Advertising
+                - 3: Connected
+            enum:
+                - 0
+                - 1
+                - 2
+                - 3
+            x-enum-varnames:
+                - NOT_INITIALIZED
+                - INITIALIZING
+                - ADVERTISING
+                - CONNECTED
+            x-enum-descriptions:
+                - Not initialized
+                - Initializing
+                - Advertising
+                - Connected
+        BLEStatus:
+            description: BLE status
+            type: object
+            properties:
+                status:
+                    $ref: "#/components/schemas/BLEStatusValue"
+                    example: 3
+            required:
+                - status
+        DeviceDisconnected:
+            description: Device disconnected event data
+            type: object
+            properties:
+                reason:
+                    type: string
+                    description: The reason for the disconnection
+                    example: "io read error"
+                session_id:
+                    type: string
+                    description: The device session id
+                    example: "d89dsa9idsadsad"
+                timestamp:
+                    type: string
+                    description: The disconnect timestamp
+                    example: "2024-04-03 17:19:03.00849921+0000 UTC"
+            required:
+                - reason
+                - timestamp
+                - session_id
+        DeviceStatistics:
+            description: Device statistics
+            type: object
+            properties:
+                timestamp:
+                    description: The timestamp of the statistics snapshot.
+                    $ref: "#/components/schemas/DateTime"
+                transit_size:
+                    type: integer
+                    description: Current transit size
+                    example: 512
+                max_transit_size:
+                    type: integer
+                    description: Maximum transit size
+                    example: 1024
+                buffer_size:
+                    type: integer
+                    description: Current buffer size
+                    example: 1024
+                max_buffer_size:
+                    type: integer
+                    description: Maximum buffer size
+                    example: 2048
+                total_bytes:
+                    type: integer
+                    description: The total number of bytes sent to the device
+                    example: 2048
+                total_messages:
+                    type: integer
+                    description: The total number of messages sent to the device
+                    example: 1024
+                dropped_bytes:
+                    type: integer
+                    description: The total number of bytes dropped
+                    example: 0
+                dropped_messages:
+                    type: integer
+                    description: The total number of messages dropped
+                    example: 0
+                acked_bytes:
+                    type: integer
+                    description: The total number of acknowledged bytes sent to the device
+                    example: 2048
+                acked_messages:
+                    type: integer
+                    description: The total number of acknowledged messages sent to the device
+                    example: 1024
+            required:
+                - timestamp
+        HampState:
+            description: HAMP state
+            type: object
+            properties:
+                play_state:
+                    $ref: "#/components/schemas/HampPlayState"
+                    description: The current play state
+                    example: 1
+                velocity:
+                    type: number
+                    description: The current velocity
+                    example: 100
+                direction:
+                    type: boolean
+                    description: The current direction. True=UP. False=DOWN.
+                    example: true
+            required:
+                - play_state
+                - velocity
+                - direction
+            example:
+                play_state: 1
+                velocity: 100
+                direction: true
+        HampVelocity:
+            type: number
+            description: The velocity of the HAMP device. [0-1] 1=100% of max velocity.
+            minimum: 0
+            maximum: 1
+            example: 0.8
+        HampPlayState:
+            description: |
+                HAMP play state.
+                <br><br>
+                - 0: stopped
+                - 1: playing
+            type: integer
+            enum:
+                - 0
+                - 1
+            x-enum-varnames:
+                - STOPPED
+                - PLAYING
+            x-enum-descriptions:
+                - STOPPED
+                - PLAYING
+        HsspSetupUrl:
+            type: object
+            properties:
+                url:
+                    type: string
+                    description: The script url.
+                    example: "https://sweettecheu.s3.eu-central-1.amazonaws.com/scripts/admin/dataset.csv"
+            required:
+                - url
+        HsspSetupCsv:
+            type: object
+            properties:
+                csv:
+                    type: string
+                    description: The script csv data.
+                    example: "100,100\n200,200\n300,300"
+            required:
+                - csv
+        HsspSetupFunscript:
+            type: object
+            properties:
+                actions:
+                    type: array
+                    description: The funscript actions.
+                    items:
+                        $ref: "#/components/schemas/Action"
+            required:
+                - actions
+        HspState:
+            description: HSP state
+            type: object
+            properties:
+                play_state:
+                    description: The current play state
+                    $ref: "#/components/schemas/HspPlayState"
+                points:
+                    type: integer
+                    description: The current number of points in the HSP buffer
+                    example: 100
+                pause_on_starving:
+                    $ref: "#/components/schemas/PauseOnStarving"
+                max_points:
+                    type: number
+                    description: The maximum number of points the HSP buffer can hold.
+                current_point:
+                    type: integer
+                    description: The current point position being played.
+                    example: 100
+                current_time:
+                    type: integer
+                    description: The current point time being played.
+                    example: 100
+                loop:
+                    type: boolean
+                    description: The current loop state.
+                    example: true
+                playback_rate:
+                    type: number
+                    description: The current playback rate.
+                    example: 1.0
+                first_point_time:
+                    type: integer
+                    description: The time of the first point in the HSP buffer.
+                    example: 100
+                last_point_time:
+                    type: integer
+                    description: The time of the last point in the HSP buffer.
+                    example: 100
+                stream_id:
+                    type: integer
+                    description: The current stream id.
+                    example: "12345"
+                tail_point_stream_index:
+                    type: integer
+                    description: The tail point stream index. The absolute stream index of the last point in the HSP buffer relative to the overall stream.
+                    example: 100
+                tail_point_stream_index_threshold:
+                    type: integer
+                    description: The tail point stream index threshold. The threshold for when the starving notifications will be sent.
+                    example: 100
+            required:
+                - play_state
+                - pause_on_starving
+                - points
+                - max_points
+                - current_point
+                - current_time
+                - loop
+                - playback_rate
+                - first_point_time
+                - last_point_time
+                - stream_id
+                - tail_point_stream_index
+                - tail_point_stream_index_threshold
+            example:
+                play_state: 0
+                points: 100
+                max_points: 100
+                current_point: 100
+                current_time: 100
+                loop: false
+                playback_rate: 1.0
+                stream_id: 154545601
+                first_point_time: 100
+                last_point_time: 12345
+                tail_point_stream_index: 100
+                tail_point_stream_index_threshold: 100
+        HspPlayState:
+            description: |
+                HSSP play state.<br>
+                - 0: Not initialized
+                - 1: playing
+                - 2: stopped
+                - 3: paused
+                - 4: starving
+            type: integer
+            enum:
+                - 0
+                - 1
+                - 2
+                - 3
+                - 4
+            x-enum-varnames:
+                - NOT_INITIALIZED
+                - PLAYING
+                - STOPPED
+                - PAUSED
+                - STARVING
+            x-enum-descriptions:
+                - Not initialized
+                - Playing
+                - Stopped
+                - Paused
+                - Starving
+        PointPosition:
+            type: integer
+            description: The position of the point. For devices with a slider this is the relative position [0,100] [0=bottom, 100=top] of the slider length.
+            example: 100
+            minimum: 0
+            maximum: 50
+        PointTime:
+            type: integer
+            description: The timestamp of a point in milliseconds relative to the start time (t=0).
+            example: 100
+            minimum: 0
+        Action:
+            description: Funscript action
+            type: object
+            properties:
+                at:
+                    $ref: "#/components/schemas/PointTime"
+                pos:
+                    $ref: "#/components/schemas/PointPosition"
+            required:
+                - at
+                - pos
+        Point:
+            description: HSP point
+            type: object
+            properties:
+                t:
+                    $ref: "#/components/schemas/PointTime"
+                x:
+                    $ref: "#/components/schemas/PointPosition"
+            required:
+                - t
+                - x
+        SliderState:
+            description: Slider state
+            type: object
+            properties:
+                position:
+                    type: number
+                    description: The current relative position [0,1] [0=bottom, 1=top] of the slider.
+                    example: 0.5
+                position_absolute:
+                    type: number
+                    description: The current absolute position (in mm) of the slider.
+                    example: 55.0
+                motor_temp:
+                    type: number
+                    description: The current motor temperature (°C).
+                    example: 56.0
+                speed_absolute:
+                    type: number
+                    description: The current absolute speed (millimeter/s) of the slider.
+                    example: 400.0
+                dir:
+                    type: boolean
+                    description: The current motor direction. True for forware, false for backward.
+                    example: true
+                motor_position:
+                    type: integer
+                    description: The current motor position.
+                motor_temp_adc_value:
+                    type: integer
+                    description: ADC value of the motor temperature sensor (0-4095). Available from firmware v4.0.16
+                    example: 1024
+            required:
+                - position
+                - position_absolute
+                - motor_temp
+                - speed_absolute
+                - dir
+                - motor_position
+        StrokeSettings:
+            type: object
+            properties:
+                min:
+                    type: number
+                    description: Relative minimum slider position. A value between 0.0 and 1.0.
+                    example: 0.0
+                max:
+                    type: number
+                    description: Relative maximum slider position. A value between 0.0 and 1.0.
+                    example: 1.0
+            required:
+                - min
+                - max
+        HampStrokeSettings:
+            type: object
+            properties:
+                min:
+                    type: number
+                    description: Relative minimum slider position (within the current slider settings). A value between 0.0 and 1.0.
+                    example: 0.0
+                max:
+                    type: number
+                    description: Relative maximum slider position (within the current slider settings). A value between 0.0 and 1.0.
+                    example: 1.0
+            required:
+                - min
+                - max
+        StrokeSettingsRsp:
+            type: object
+            properties:
+                min:
+                    type: number
+                    description: Relative minimum slider position. A value between 0.0 and 1.0.
+                    example: 0.0
+                max:
+                    type: number
+                    description: Relative maximum slider position. A value between 0.0 and 1.0.
+                    example: 1.0
+                min_absolute:
+                    type: number
+                    description: Absolute minimum slider position in millimeter.
+                    example: 11.2
+                max_absolute:
+                    type: number
+                    description: Absolute maximum slider position in millimeter.
+                    example: 102.0
+            required:
+                - min
+                - min_absolute
+                - max
+                - max_absolute
+        FirmwareFeatureFlags:
+            type: string
+            description: Firmware feature flags
+            enum:
+                - production
+                - staging
+                - development
+                - other
+            example: "production"
+        DeviceInfo:
+            type: object
+            properties:
+                fw_status:
+                    description: The device firmware status.
+                    $ref: "#/components/schemas/FirmwareStatus"
+                fw_version:
+                    type: string
+                    description: Firmware version
+                    example: "3.2.0"
+                fw_feature_flags:
+                    $ref: "#/components/schemas/FirmwareFeatureFlags"
+                hw_model_no:
+                    type: integer
+                    description: Hardware model number
+                    example: 0
+                hw_model_name:
+                    type: string
+                    description: Hardware model name
+                    example: "H01"
+                hw_model_variant:
+                    type: integer
+                    description: Hardware model variant
+                    example: 0
+                session_id:
+                    type: string
+                    description: The device session id. This id is unique for each device session. A new session id is assigned each time the device connects to the server.
+                    example: "01HYMVKHMPYH1S6WTVD6BM7TQA"
+            required:
+                - fw_status
+                - fw_version
+                - session_id
+        DeviceTimeInfo:
+            type: object
+            properties:
+                time:
+                    type: integer
+                    description: The current time of the device (time since boot in milliseconds).
+                    example: 769799
+                clock_offset:
+                    type: integer
+                    description: The clock offset in milliseconds. This is the offset between the server and the device. The clock of the device starts at 0 on every boot.
+                    example: 1707836664395
+                rtd:
+                    type: integer
+                    description: The round trip delay in milliseconds between the server and the device (observed on the latest clocksync).
+                    example: 100
+            required:
+                - time
+                - clock_offset
+                - rtd
+        FirmwareStatus:
+            description: |
+                Firmware status.
+                <br><br>
+                - 0: up-to-date
+                - 1: update-available
+                - 2: update-required
+            type: integer
+            enum:
+                - 0
+                - 1
+                - 2
+            x-enum-varnames:
+                - UP_TO_DATE
+                - UPDATE_AVAILABLE
+                - UPDATE_REQUIRED
+            x-enum-descriptions:
+                - Up to date
+                - Update available
+                - Update required
+        SliderSettings:
+            description: Device settings
+            type: object
+            properties:
+                x_limit_start:
+                    type: number
+                    description: The start of the slider limit (in mm).
+                    example: 0.0
+                x_limit_stop:
+                    type: number
+                    description: The end of the slider limit (in mm).
+                    example: 100.0
+                x_end_buffer:
+                    type: number
+                    description: The end buffer (in mm). The distance from the end of the stroke where the device will start to slow down.
+                    example: 10.0
+                x_end_zone_size:
+                    type: number
+                    description: The end zone size (in mm). The distance from the end of the stroke where the device start to decelerate.
+                    example: 5.0
+                x_end_zone_speed:
+                    type: number
+                    description: The end zone speed (in mm/s). The speed the device will use in the end zone.
+                    example: 20.0
+                x_min_speed:
+                    type: number
+                    description: The minimum speed (in mm/s). The minimum speed the device will use.
+                    example: 10.0
+                x_max_speed:
+                    type: number
+                    description: The maximum speed (in mm/s). The maximum speed the device will use.
+                    example: 300.0
+                x_min_speed_theoretical:
+                    type: number
+                    description: The theoretical minimum speed (in mm/s). The minimum speed the device can achieve in theory.
+                    example: 5.0
+                x_max_speed_theoretical:
+                    type: number
+                    description: The theoretical maximum speed (in mm/s). The maximum speed the device can achieve in theory.
+                    example: 450.0
+                turn_time:
+                    type: number
+                    description: The turn time (in ms). The time the device will take to turn around at the end of the stroke.
+                    example: 200.0
+                regulator_timeout:
+                    type: number
+                    description: The regulator timeout (in ms).
+                    example: 1000.0
+                temp_high_trigger:
+                    type: number
+                    description: The high temperature trigger (in °C). The temperature at which the device will trigger a high temperature warning.
+                    example: 75.0
+                temp_offset:
+                    type: number
+                    description: The temperature offset (in °C). The offset to apply to the temperature reading.
+                    example: -2.0
+                x_stroke_min:
+                    type: number
+                    description: The minimum stroke (in mm). The minimum distance the slider can move.
+                    example: 50.0
+                x_stroke_max:
+                    type: number
+                    description: The maximum stroke (in mm). The maximum distance the slider can move.
+                    example: 100.0
+                temp_hysteresis:
+                    type: number
+                    description: Hysteresis for the temperature triggers.
+                    example: 5.0
+                overclock_enabled:
+                    type: boolean
+                    description: Flag to indicate if overclocking is enabled.
+                    example: false
+                x_inverse_motor:
+                    type: boolean
+                    description: Flag to indicate if the motor direction is inverted.
+                    example: false
+                x_inverse_hall:
+                    type: boolean
+                    description: Flag to indicate if the hall sensor direction is inverted.
+                    example: false
+            required:
+                - x_limit_start
+                - x_limit_stop
+                - x_end_buffer
+                - x_end_zone_size
+                - x_end_zone_speed
+                - x_min_speed
+                - x_max_speed
+                - x_min_speed_theoretical
+                - x_max_speed_theoretical
+                - turn_time
+                - regulator_timeout
+                - temp_high_trigger
+                - temp_offset
+                - x_stroke_min
+                - x_stroke_max
+                - temp_hysteresis
+                - overclock_enabled
+                - x_inverse_motor
+                - x_inverse_hall
+        DeviceResponse:
+            description: Device response
+            type: object
+            properties:
+                result:
+                    type: object
+                    description: The device response result if the operation was successful and the operation returned data.
+                error:
+                    description: The device error if an error occurred
+                    $ref: "#/components/schemas/DeviceError"
+        DeviceError:
+            description: Device error information
+            type: object
+            properties:
+                connected:
+                    description: The device connection status.
+                    type: boolean
+                name:
+                    description: The error name.
+                    type: string
+                message:
+                    description: The error message.
+                    type: string
+                code:
+                    description: The error code.
+                    type: integer
+                data:
+                    description: Additional error data.
+                    type: object
+            required:
+                - connected
+                - name
+                - message
+                - code
+        ErrorResponse:
+            description: Error response
+            type: object
+            properties:
+                error:
+                    type: object
+                    properties:
+                        connected:
+                            description: The device connection status.
+                            type: boolean
+                        name:
+                            description: The error name.
+                            type: string
+                        message:
+                            description: The error message.
+                            type: string
+                        code:
+                            description: The error code.
+                            type: integer
+                        data:
+                            description: Additional error data.
+                            type: object
+                    required:
+                        - connected
+                        - name
+                        - message
+                        - code
+            example:
+                error:
+                    code: 1001
+                    name: DeviceNotConnected
+                    message: Device not connected
+                    connected: false
+        InterfaceStatus:
+            description: Network status
+            type: object
+            properties:
+                wifi:
+                    type: boolean
+                    description: The WIFI interface status.
+                    example: true
+                ble:
+                    type: boolean
+                    description: The BLE interface status.
+                    example: true
+            required:
+                - wifi
+                - ble
+        DeviceCapabilities:
+            description: Device capabilities
+            type: object
+            properties:
+                vulva_oriented:
+                    type: boolean
+                    description: The device is vulva oriented.
+                    example: true
+                battery:
+                    type: boolean
+                    description: The device has a battery.
+                    example: true
+                slider:
+                    type: integer
+                    description: The number of sliders.
+                    example: 1
+                lra:
+                    type: integer
+                    description: The number of LRA motors.
+                    example: 1
+                erm:
+                    type: integer
+                    description: The number of ERM motors.
+                    example: 1
+                external_memory:
+                    type: boolean
+                    description: The device has external memory.
+                    example: true
+                rgb_led_indicator:
+                    type: boolean
+                    description: The device has an RGB LED indicator.
+                    example: true
+                led_matrix:
+                    type: boolean
+                    description: The device has an LED matrix.
+                    example: true
+                led_matrix_leds_x:
+                    type: integer
+                    description: The number of LEDs in the x direction of the LED matrix.
+                    example: 8
+                led_matrix_leds_y:
+                    type: integer
+                    description: The number of LEDs in the y direction of the LED matrix.
+                    example: 8
+                rgb_ring:
+                    type: boolean
+                    description: The device has an RGB ring.
+                    example: true
+                rgb_ring_leds:
+                    type: integer
+                    description: The number of LEDs in the RGB ring.
+                    example: 8
+        DeviceSessionIds:
+            description: Device ids
+            type: object
+            properties:
+                boot_session_id:
+                    type: integer
+                    description: The device boot session id. Set to a random value on each boot. Can be used to check for reboots.
+                    example: 154248
+                socket_session_id:
+                    type: integer
+                    description: The socket session id. Starts at 0 and increments each time the device connects to the server. Resets on boot. Can be used to check for reconnections within the same boot session.
+                    example: 2
+                mode_session_id:
+                    type: integer
+                    description: The device mode session id. Starts at 0 and increments each time the device mode changes. Resets on boot. Can be used to check for mode changes within the same boot session.
+                    example: 2445
+            required:
+                - device_id
+                - session_id
+        HspAdd:
+            description: HSP add points request.
+            type: object
+            properties:
+                points:
+                    type: array
+                    description: The points to add to the HSP buffer.
+                    items:
+                        $ref: "#/components/schemas/Point"
+                    maxItems: 100
+                flush:
+                    type: boolean
+                    description: Flush the buffer before adding the points. This will remove all points from the buffer before adding the new points.
+                    example: true
+                    default: false
+                tail_point_stream_index:
+                    type: integer
+                    description: The tail point stream index. The index of the last point in the HSP buffer relative to the overall stream of points.
+                    example: 100
+                    minimum: 1
+                tail_point_threshold:
+                    type: integer
+                    description: An optional tail point stream index threshold update. Applied after the points have been added.
+                    example: 100
+                    minimum: 1
+            required:
+                - points
+                - tail_point_stream_index
+        PlaybackRate:
+            type: number
+            description: |
+                The playback rate.
+                A value of 1.0 will play the points at the original speed. A value of 0.5 will play the points at half speed. A value of 2.0 will play the points at double speed.
+            example: 0.5
+            default: 1.0
+        PauseOnStarving:
+            type: boolean
+            description: |
+                When enabled, the device clock will pause when the device enters a starving state and resume when new points are added.
+                This prevents the clock from advancing while waiting for new points, eliminating the need to adjust timestamps to account for the starving period.
+            example: true
+            default: false
+        ServerTimeEstimate:
+            type: integer
+            description: The estimated server time in milliseconds. If not provided, the actual current server time will be used. If you are trying to synchronize the device movement with some external source, this will negativly impact the synchronization accuracy.
+            example: 168711212121
+    parameters:
+        Timeout:
+            name: timeout
+            in: query
+            required: false
+            description: |
+                The timeout in milliseconds for the operation. If the device does not respond within the set timeout, a device timeout error response is returned.
+                If not specified, a default value of 5000 milliseconds is used. The default value should be more then long enough under normal circumstances.
+                If a device has a very high RTD (round trip delay) or is under heavy load, the timeout value may need to be increased.
+                If you experience timeouts, you can try to increase the timeout value.
+            schema:
+                type: integer
+                default: 5000
+                minimum: 5000
+                maximum: 60000
+        ConnectionKey:
+            name: X-Connection-Key
+            in: header
+            required: true
+            description: Device connection key.
+            schema:
+                $ref: "#/components/schemas/ConnectionKey"
+        DeviceReference:
+            name: X-Connection-Key
+            in: header
+            required: true
+            description: A device connection key or a channel reference.
+            schema:
+                oneOf:
+                    - $ref: "#/components/schemas/ConnectionKey"
+                    - $ref: "#/components/schemas/ChannelReference"
+            example: "chref:d89dsa9idsadsad"
+        EventFilter:
+            name: events
+            in: query
+            required: false
+            style: form
+            explode: false
+            description: |
+                Optional event filter. If not specified, all events are pushed to the client.
+            schema:
+                type: array
+                items:
+                    $ref: "#/components/schemas/SSEEventType"
+paths:
+    /auth/token/issue:
+        parameters:
+            - name: ttl
+              in: query
+              description: The time-to-live (ttl) of the token in seconds. This defines how long the token remains valid. If not specified, a default value is used. Default is 1 hour (3600 seconds). Minimum is 60 seconds, maximum is 24 hours (86400 seconds).
+              required: false
+              schema:
+                type: integer
+                default: 3600
+                minimum: 60
+                maximum: 86400
+            - name: to
+              in: query
+              description: The device connection key for which the token is to be issued. Specifying this parameter restricts the use of the token to the specific device.
+              required: false
+              schema:
+                type: string
+            - name: ip
+              in: query
+              description: The client IP address for which the token is to be issued. Specifying this parameter restricts the use of the token to requests originating from the specific IP address.
+              required: false
+              schema:
+                type: string
+            - name: origin
+              in: query
+              description: The client Origin header value prefix for which the token is to be issued. Specifying this parameter restricts the use of the token to requests with the specific Origin header value prefix.
+              required: false
+              schema:
+                type: string
+              example: "https://sweettecheu.s3.eu-central-1.amazonaws.com/scripts/admin/dataset.csv"
+            - name: r
+              in: query
+              description: The client Referer header value prefix for which the token is to be issued. Specifying this parameter restricts the use of the token to requests with the specific Referer header value prefix.
+              required: false
+              schema:
+                type: string
+              example: "https://sweettecheu.s3.eu-central-1.amazonaws.com/scripts/admin/dataset.csv"
+            - name: ua
+              in: query
+              description: The client User-Agent header value prefix for which the token is to be issued. Specifying this parameter restricts the use of the token to requests with the specific User-Agent header value prefix.
+              required: false
+              schema:
+                type: string
+              example: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
+            - name: al
+              in: query
+              description: The client Accept-Language header value for which the token is to be issued. Specifying this parameter restricts the use of the token to requests with the specific Accept-Language header value.
+              required: false
+              schema:
+                type: string
+              example: "en-US"
+            - name: ae
+              in: query
+              description: The client Accept-Encoding header value for which the token is to be issued. Specifying this parameter restricts the use of the token to requests with the specific Accept-Encoding header value.
+              required: false
+              schema:
+                type: string
+              example: "gzip, deflate, br"
+            - name: cc
+              in: query
+              description: The client Cache-Control header value for which the token is to be issued. Specifying this parameter restricts the use of the token to requests with the specific Cache-Control header value.
+              required: false
+              schema:
+                type: string
+        get:
+            security:
+                - ApiKeyAuth: []
+            description: "This endpoint generates a client-token for API authentication. The endpoint can only be accessed with an ApplicationKey.\n\nA client-token authenticates a client with the device API endpoints that requires authentication. Use it by including the token as a Bearer token in the Authorization header.\n\nIt can be used in client applications, including web browsers and mobile apps. It's an alternativ to the ApplicationID that should be harder to abuse outside your application's browser environment.\n\nA token is valid for a limited time, after which it expires. The default lifetime for a token is 1 hour. You can adjust this lifespan up to a maximum of 24 hours using the `ttl` parameter.\n\nA token can be configured with the following optional restrictions:\n- Device connection key\n- Client IP\n- Client Origin\n- Client Referer\n- Client User-Agent\n- Client Accept-Language\n- Client Accept-Encoding\n- Client Cache-Control\n\nSpecifying a device connection key ensures that the token can only be used with a specific device.\n\nThe client values forms a lightweight client fingerprint that makes it harder to abuse the token outside the client environment.\n\n**NOTE**: Issuing a client-token for a specific device does not eliminate the need to include the connection key when sending device commands.\n\nThe `X-Connection-Key` header is still required for device-specific operations, even if the client-token was issued for that device.\n        \n### Token Renewal\n\nAlongside the token, you receive a **renew** URL. Use this URL to extend your token's validity, ensuring uninterrupted service for long-running applications.\n\nThe renew URL remains valid as long as the token is valid. Remember to renew before the token expires; post-expiration, both the token and renew URL become invalid, necessitating a new token issue.\n\nThe renew operation only extends the token's lifespan. It does not alter initial restrictions (device connection key or other client values) set during token issuance.\n"
+            summary: Issue a client API access token.
+            tags:
+                - AUTH
+            operationId: issueToken
+            responses:
+                "200":
+                    description: The issued token.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AuthTokenResponse"
+                "400":
+                    $ref: "#/components/responses/400"
+                "401":
+                    $ref: "#/components/responses/401"
+                "403":
+                    $ref: "#/components/responses/403"
+                "408":
+                    $ref: "#/components/responses/408"
+                "500":
+                    $ref: "#/components/responses/500"
+    /hamp/state:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        get:
+            description: |
+                Get the current HAMP state of the device.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hamp">Handy Alternate Motion Protocol (HAMP)</a> for additional information about the HAMP protocol and code samples.
+            summary: Get the current HAMP state of the device.
+            tags:
+                - HAMP
+            operationId: getHampState
+            responses:
+                "200":
+                    description: HAMP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HampState"
+                            examples:
+                                HampStatePlaying:
+                                    description: HAMP state playing, up.
+                                    value:
+                                        result:
+                                            play_state: 1
+                                            velocity: 0.5
+                                            direction: true
+                                HampStateStopped:
+                                    description: HAMP state stopped, up.
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            velocity: 0
+                                            direction: true
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+    /hamp/start:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            description: |
+                Start the HAMP movement.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hamp">Handy Alternate Motion Protocol (HAMP)</a> for additional information about the HAMP protocol and code samples.
+            summary: Start the HAMP protocol.
+            tags:
+                - HAMP
+            operationId: startHamp
+            responses:
+                "200":
+                    description: HAMP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HampState"
+                            examples:
+                                HampStatePlaying:
+                                    description: HAMP state playing, up.
+                                    value:
+                                        result:
+                                            play_state: 1
+                                            velocity: 0.5
+                                            direction: true
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+    /hamp/stop:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            description: |
+                Stop the HAMP movement.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hamp">Handy Alternate Motion Protocol (HAMP)</a> for additional information about the HAMP protocol and code samples.
+            summary: Stop the HAMP protocol.
+            tags:
+                - HAMP
+            operationId: stopHamp
+            responses:
+                "200":
+                    description: Device response.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HampState"
+                            examples:
+                                HampStateStopped:
+                                    description: HAMP state stopped, up.
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            velocity: 0
+                                            direction: true
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+    /hamp/velocity:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            description: |
+                Set the HAMP velocity.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hamp">Handy Alternate Motion Protocol (HAMP)</a> for additional information about the HAMP protocol and code samples.
+            summary: Set the HAMP velocity.
+            tags:
+                - HAMP
+            operationId: setHampVelocity
+            requestBody:
+                description: HAMP velocity
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                velocity:
+                                    $ref: "#/components/schemas/HampVelocity"
+                            required:
+                                - velocity
+            responses:
+                "200":
+                    description: HAMP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HampState"
+                            examples:
+                                HampStatePlaying:
+                                    description: HAMP state playing, up.
+                                    value:
+                                        result:
+                                            play_state: 1
+                                            velocity: 0.5
+                                            direction: true
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+    /hamp/stroke:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            description: |
+                Set the HAMP stroke region. The HAMP stroke region defines the movement range of the device within the current stroke region.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hamp">Handy Alternate Motion Protocol (HAMP)</a> for additional information about the HAMP protocol and code samples.
+            summary: Set the HAMP stroke region.
+            tags:
+                - HAMP
+            operationId: setHampStroke
+            requestBody:
+                description: HAMP stroke settings
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/HampStrokeSettings"
+            responses:
+                "200":
+                    description: HAMP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HampState"
+                            examples:
+                                HampStatePlaying:
+                                    description: HAMP state playing, up.
+                                    value:
+                                        result:
+                                            play_state: 1
+                                            velocity: 0.5
+                                            direction: true
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+    /settings/slider:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        get:
+            description: |
+                Get the device slider settings.
+
+                To change device slider settings, use the Handy onboarding app.
+            summary: Get the device slider settings.
+            tags:
+                - INFO
+            operationId: getSliderSettings
+            responses:
+                "200":
+                    description: Device slider settings.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/SliderSettings"
+                            examples:
+                                SliderSettings:
+                                    value:
+                                        result:
+                                            x_limit_start: 0
+                                            x_limit_end: 100
+                                            x_end_buffer: 5
+                                            x_end_zone_size: 10
+                                            x_end_zone_speed: 20
+                                            x_min_speed: 10
+                                            x_max_speed: 100
+                                            x_min_speed_theoretical: 5
+                                            x_max_speed_theoretical: 150
+                                            turn_time: 500
+                                            regulator_timeout: 2000
+                                            temp_high_trigger: 75
+                                            temp_offset: 0
+                                            x_stroke_min: 20
+                                            x_stroke_max: 100
+                                            temp_hysteresis: 80
+                                            overclock_enabled: true
+                                            x_inverse_motor: false
+                                            x_inverse_hall: false
+    /info:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        get:
+            description: >-
+                Get the device information.
+            summary: Get the device information.
+            tags:
+                - INFO
+            operationId: getDeviceInfo
+            responses:
+                "200":
+                    description: Device information.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/DeviceInfo"
+                            examples:
+                                DeviceInfo:
+                                    value:
+                                        result:
+                                            fw_status: 0
+                                            fw_version: "3.2.0"
+                                            fw_feature_flags: "production"
+                                            hw_model_no: 0
+                                            hw_model_name: "H01"
+                                            hw_model_variant: 0
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+    /mode:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        get:
+            description: >-
+                Get the current device mode.
+            summary: Get the current device mode.
+            tags:
+                - INFO
+            operationId: getMode
+            responses:
+                "200":
+                    description: Device mode.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/DeviceMode"
+                            examples:
+                                HampMode:
+                                    value:
+                                        result:
+                                            mode: 0
+                                            mode_session_id: 123
+                                HsspMode:
+                                    value:
+                                        result:
+                                            mode: 1
+                                            mode_session_id: 123
+                                HdspMode:
+                                    value:
+                                        result:
+                                            mode: 2
+                                            mode_session_id: 123
+                                MaintenanceMode:
+                                    value:
+                                        result:
+                                            mode: 3
+                                            mode_session_id: 123
+                                HspMode:
+                                    value:
+                                        result:
+                                            mode: 4
+                                            mode_session_id: 123
+                                OtaMode:
+                                    value:
+                                        result:
+                                            mode: 5
+                                            mode_session_id: 123
+                                ButtonMode:
+                                    value:
+                                        result:
+                                            mode: 6
+                                            mode_session_id: 123
+                                IdleMode:
+                                    value:
+                                        result:
+                                            mode: 7
+                                            mode_session_id: 123
+                                VibrateMode:
+                                    value:
+                                        result:
+                                            mode: 8
+                                            mode_session_id: 123
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+        put:
+            description: >-
+                `DEPRECATEAD`. Use `/mode2` endpoint instead which returns additional information in the response. Kept for backwards compatibility. Set the device mode.
+            summary: Set the device mode.
+            deprecated: true
+            tags:
+                - INFO
+            operationId: setMode
+            requestBody:
+                description: Device mode
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                mode:
+                                    $ref: "#/components/schemas/DeviceModeValue"
+                            required:
+                                - mode
+                        examples:
+                            HampMode:
+                                value:
+                                    mode: 0
+                            HsspMode:
+                                value:
+                                    mode: 1
+                            HdspMode:
+                                value:
+                                    mode: 2
+                            MaintenanceMode:
+                                value:
+                                    mode: 3
+                            HspMode:
+                                value:
+                                    mode: 4
+                            OtaMode:
+                                value:
+                                    mode: 5
+                            ButtonMode:
+                                value:
+                                    mode: 6
+                            IdleMode:
+                                value:
+                                    mode: 7
+                            VibrateMode:
+                                value:
+                                    mode: 8
+            responses:
+                "200":
+                    description: Device mode.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            type: string
+                            examples:
+                                DeviceOkRsp:
+                                    value:
+                                        result: "ok"
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+    /mode2:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            description: >-
+                Set the device mode and returns the active mode and mode_session_id.
+            summary: Set the device mode.
+            tags:
+                - INFO
+            operationId: setMode2
+            requestBody:
+                description: Device mode
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                mode:
+                                    $ref: "#/components/schemas/DeviceModeValue"
+                            required:
+                                - mode
+                        examples:
+                            HampMode:
+                                value:
+                                    mode: 0
+                            HsspMode:
+                                value:
+                                    mode: 1
+                            HdspMode:
+                                value:
+                                    mode: 2
+                            MaintenanceMode:
+                                value:
+                                    mode: 3
+                            HspMode:
+                                value:
+                                    mode: 4
+                            OtaMode:
+                                value:
+                                    mode: 5
+                            ButtonMode:
+                                value:
+                                    mode: 6
+                            IdleMode:
+                                value:
+                                    mode: 7
+                            VibrateMode:
+                                value:
+                                    mode: 8
+            responses:
+                "200":
+                    description: Device mode.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/DeviceMode"
+                            examples:
+                                DeviceModeSetOkRsp:
+                                    value:
+                                        result:
+                                            mode: 1
+                                            mode_session_id: 12
+                                DeviceOkRsp:
+                                    value:
+                                        result: "ok"
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+    /connected:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        get:
+            description: |
+                Check if the device with the specific connection key is connected.
+
+                This is the fastest way to check device connectivity.
+
+                To receive continouos updates on device connectivity and device state use the SSE endpoint to subscribe to device events.
+            summary: Check device connectivity.
+            tags:
+                - INFO
+            operationId: isConnected
+            responses:
+                "200":
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+                    description: Machine connected status
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            description: Connected response
+                                            type: object
+                                            properties:
+                                                connected:
+                                                    type: boolean
+                                                    description: Connected status
+                                                    example: true
+                                            required:
+                                                - connected
+                            examples:
+                                DeviceConnected:
+                                    value:
+                                        result:
+                                            connected: true
+                                DeviceNotConnected:
+                                    value:
+                                        result:
+                                            connected: false
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                "400":
+                    $ref: "#/components/responses/400"
+    /sse:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/EventFilter"
+            - $ref: "#/components/parameters/DeviceReference"
+        get:
+            security:
+                - KeyOrTokenQueryParamAuth: []
+            description: >-
+                Starts a Server-Sent Events (SSE) stream for real-time updates on device events.
+
+                It's an efficient way to receive continuous updates on device connectivity, mode changes, and other relevant events without the need to poll API endpoints.
+
+                To reveive events for a single device, specify the device connection key with the `ck` query parameter.
+
+                To receive events for multiple devices, a channel reference can be specified with the `ck` query parameter. This will receive events from all channel subcribers.
+
+                Optionally filter events by specifying the `events` query parameter. If not specified, all events are pushed to the client.
+
+                Ex. events=device_connected,device_disconnected
+
+
+                **NOTE1:**The Swagger UI does not support SSE, so you can not directly test the endpoint from this page. The endpoint works with any SSE-compatible client, such as a browser or a dedicated SSE client.
+
+
+                **NOTE2:**The endpoint requires authentication. Since SSE does not support headers, the credentials must be passed as a query parameter (apikey). You can use an ApplicationID or an issued client token as the apikey value.
+
+
+                This Handy v3 OpenAPI specification defines schema definitions for each event type. If you use a code generation tool that generates schemas, you should be able to use these types when parsing the SSE stream events.
+
+
+                The SSE stream provides the following events:
+
+                - `battery_changed` Received when the battery status have changed.
+
+                - `ble_status_changed` Received when the BLE status have changed.
+
+                - `button_event` Received in case of an unhandled button event. Eg. the user uses a device button in a way ignored by the current device mode.
+
+                - `device_clock_synchronized` Received when the device clock have finished synchronization with the server clock.
+
+                - `device_connected` Received when the device connects.
+
+                - `device_disconnected` Received when the device disconnects.
+
+                - `device_error` Received when a device error occurs.
+
+                - `device_status` Received when starting the SSE connection.
+
+                - `hamp_state_changed` Received when the HAMP state have changed.
+
+                - `hrpp_state_changed` Received when the HRPP state have changed.
+
+                - `hdsp_state_changed` Received when the HDSP state have changed.
+
+                - `hsp_looping` Received when the HSP starts a new loop.
+
+                - `hsp_starving` Received when the HSP is starving (no more data to play). Only sent if pause_on_starving is disabled.
+
+                - `hsp_state_changed` Received when the HSP state have changed.
+
+                - `hsp_threshold_reached` Received when the HSP data threshold is reached.
+
+                - `hsp_paused_on_starving` Received when the HSP is paused due to starvation. Only sent if pause_on_starving is enabled.
+
+                - `hsp_resumed_on_not_starving` Received when the HSP is resumed after starvation and playable data is available. Only sent if pause_on_starving is enabled.
+
+                - `stream_end_reached` Received when the end of a closed stream have been reached. This includes scripts played with the HSSP protocol or closed streams played with STREAM protocol.
+
+                - `hvp_state_changed` Received when the HVP state changes.
+
+                - `low_memory_error` Received when the device failed to handle some command due to memory limitations.
+
+                - `low_memory_warning` Received when the device's available free memory is critically low.
+
+                - `mode_changed` Received when the device mode have changed.
+
+                - `ota_progress` Received when the OTA progress have changed.
+
+                - `slider_blocked` Received when the slider is blocked.
+
+                - `slider_unblocked` Received when the slider is unblocked.
+
+                - `stroke_changed` Received when the stroke region have changed.
+
+                - `temp_high` Received when the device temperature is high.
+
+                - `temp_ok` Received when the device temperature is back to normal.
+
+                - `wifi_scan_complete` Received when a device wifi scan have completed.
+
+                - `wifi_status_changed` Received when the wifi status have changed.
+
+
+                See [Handy v3 API documentation](https://ohdoki.notion.site/Handy-API-v3-ea6c47749f854fbcabcc40c729ea6df4) for more information and code samples.
+            summary: Subscribe to device events over SSE.
+            tags:
+                - SSE
+            operationId: getEvents
+            responses:
+                "200":
+                    description: SSE stream of device events
+                    content:
+                        text/events-stream:
+                            schema:
+                                type: string
+                            examples:
+                                device_connected:
+                                    summary: Device connected
+                                    value: |
+                                        data: {"id": "12345" "type": "device_connected", "data": { "connection_key":"dsaA98ds", "data": { "connected": true, info: { "fw_status" : 0, "fw_version" : "3.2.0", "session_id" : "01HYMVKHMPYH1S6WTVD6BM7TQA", "fw_feature_flags": "production", "hw_model_no": 1, "hw_model_name": "H01",  "hw_model_variant": 1  } } } }\n\n
+                                device_status:
+                                    summary: Device status
+                                    value: |
+                                        data: {"id": "12345" "type": "device_status","data": { "connection_key":"dsaA98ds", "data": { "connected": true, info: { "fw_status" : 0, "fw_version" : "4.0.0", "session_id" : "01HYMVKHMPYH1S6WTVD6BM7TQA", "fw_feature_flags": "production", "hw_model_no": 1, "hw_model_name": "H01",  "hw_model_variant": 1  } } } }\n\n
+                                device_disconnected:
+                                    summary: Device disconnected
+                                    value: |
+                                        data: {"id": "12345" "type": "device_disconnected", "data": { "connection_key":"dsaA98ds", "data": { "session_id" : "01HYMVKHMPYH1S6WTVD6BM7TQA", "reason" : "io error", "description": "", "timestamp":"2024-04-03 17:19:03.00849921 +0000 UTC" } } }\n\n
+                                device_mode_changed:
+                                    summary: Device mode changed
+                                    value: |
+                                        data: {"id": "12345" "type": "device_mode_changed", "data": { "connection_key":"dsaA98ds", "data": { "mode": 1, "mode_session_id": 452121 } } }\n\n
+                                hamp_state_changed:
+                                    summary: HAMP state changed
+                                    value: |
+                                        data: {"id": "12345" "type": "hamp_state_changed", "data": { "connection_key":"dsaA98ds", "data": { "play_state": 1, "velocity": 100, "direction": true } } }\n\n
+                                hrpp_state_changed:
+                                    summary: HRPP state changed
+                                    value: |
+                                        data: {"id": "12345" "type": "hrpp_state_changed", "data": { "connection_key":"dsaA98ds", "data": { "current_pattern_nr": 1, "no_of_patterns": 1, "enabled": true, "amplitude": 0.1, "playback_speed": 1.0, "current_pattern": { "id": 1191391529, "name": "pattern-1", "version": 1, "slot": 1, "type": 1, "pause_randon_min": 0, "pause_random_max": 0, "custom_pattern": false} } } }\n\n
+                                hsp_state_changed:
+                                    summary: HSP state changed
+                                    value: |
+                                        data: {"id": "12345" "type": "hsp_state_changed", "data": { "connection_key":"dsaA98ds", "data": {
+                                            "play_state": 0,
+                                            "points": 100,
+                                            "max_points": 100,
+                                            "current_point": 100,
+                                            "current_time": 100,
+                                            "loop": false,
+                                            "playback_rate": 1,
+                                            "first_point_time": 100,
+                                            "last_point_time": 12345,
+                                            "stream_id": 154545601,
+                                            "tail_point_stream_index": 100,
+                                            "tail_point_stream_index_threshold": 100
+                                          } } }\n\n
+                                hsp_looping:
+                                    summary: HSP looping
+                                    value: |
+                                        data: {"id": "12345" "type": "hsp_state_changed", "data": { "connection_key":"dsaA98ds", "data": {
+                                            "play_state": 0,
+                                            "points": 100,
+                                            "max_points": 100,
+                                            "current_point": 100,
+                                            "current_time": 100,
+                                            "loop": false,
+                                            "playback_rate": 1,
+                                            "first_point_time": 100,
+                                            "last_point_time": 12345,
+                                            "stream_id": 154545601,
+                                            "tail_point_stream_index": 100,
+                                            "tail_point_stream_index_threshold": 100
+                                          } } }\n\n
+                                hsp_starving:
+                                    summary: HSP starving
+                                    value: |
+                                        data: {"id": "12345" "type": "hsp_starving", "data": { "connection_key":"dsaA98ds", "data": { "play_state": 0, "points": 100, "max_points": 100, "current_point": 100, "current_time": 100, "loop": false, "playback_rate": 1, "first_point_time": 100, "last_point_time": 12345, "stream_id": 154545601, "tail_point_stream_index": 100, "tail_point_stream_index_threshold": 100 } } }\n\n
+                                hsp_threshold_reached:
+                                    summary: HSP threshold reached
+                                    value: |
+                                        data: {"id": "12345" "type": "hsp_threshold_reached", "data": { "connection_key":"dsaA98ds", "data": { "play_state": 0, "points": 100, "max_points": 100, "current_point": 100, "current_time": 100, "loop": false, "playback_rate": 1, "first_point_time": 100, "last_point_time": 12345, "stream_id": 154545601, "tail_point_stream_index": 100, "tail_point_stream_index_threshold": 100 } } }\n\n
+                                stream_end_reached:
+                                    summary: Stream end reached
+                                    value: |
+                                        data: {"id": "12345" "type": "stream_end_reached", "data": { "connection_key":"dsaA98ds", "data": { "play_state": 0, "points": 100, "max_points": 100, "current_point": 100, "current_time": 100, "loop": false, "playback_rate": 1, "first_point_time": 100, "last_point_time": 12345, "stream_id": 154545601, "tail_point_stream_index": 100, "tail_point_stream_index_threshold": 100 } } }\n\n
+                                hdsp_state_changed:
+                                    summary: HDSP state
+                                    value: |
+                                        data: {"id": "12345" "type": "hdsp_state_changed", "data": { "connection_key":"dsaA98ds", "data": { "state": 1} } }\n\n
+                                hvp_state_changed:
+                                    summary: HVP state changed
+                                    value: |
+                                        data: {"id": "12345" "type": "hvp_state_changed", "data": { "connection_key":"dsaA98ds", "data": { "state": { "enabled": true, "aplitude": 60, "frequency": 50, "position": 50 } } } }\n\n
+                                stroke_changed:
+                                    summary: Stroke region changed
+                                    value: |
+                                        data: {"id": "12345" "type": "stroke_changed", "data": { "connection_key":"dsaA98ds", "data": { "min": 0.1, "max": 1.0, "min_absolute": 10.0 , "max_absolute": 98.0 } } }\n\n
+                                ota_progress:
+                                    summary: OTA progress
+                                    value: |
+                                        data: {"id": "12345" "type": "ota_progress", "data": { "connection_key":"dsaA98ds", "data": { "progress": 0.5, "done": false, "failed": false } } }\n\n
+                                battery_changed:
+                                    summary: Battery changed
+                                    value: |
+                                        data: {"id": "12345" "type": "battery_changed", "data": { "connection_key":"dsaA98ds", "data": { "level": 0.5, "charger_connected": true, "charging_complete": false, "usb_voltage": 3.5, "battery_voltage": 3.5, "usb_adc_value": 452, "battery_adc_value": 125 } } }\n\n
+                                low_memory_error:
+                                    summary: Low memory error
+                                    value: |
+                                        data: {"id": "12345" "type": "low_memory_error", "data": { "connection_key":"dsaA98ds", "data": { "available_heap": 12, "larges_free_block": 13, "discarded_msg_size": 21 } } }\n\n
+                                low_memory_warning:
+                                    summary: Low memory warning
+                                    value: |
+                                        data: {"id": "12345" "type": "low_memory_warning", "data": { "connection_key":"dsaA98ds", "data": { "available_heap": 12, "larges_free_block": 13 } } }\n\n
+                                slider_blocked:
+                                    summary: Slider blocked
+                                    value: |
+                                        data: {"id": "12345" "type": "slider_blocked" }\n\n
+                                slider_unblocked:
+                                    summary: Slider unblocked
+                                    value: |
+                                        data: {"id": "12345" "type": "slider_unblocked" }\n\n
+                                temp_high:
+                                    summary: Temperature high
+                                    value: |
+                                        data: {"id": "12345" "type": "temp_high" }\n\n
+                                temp_ok:
+                                    summary: Temperature ok
+                                    value: |
+                                        data: {"id": "12345" "type": "temp_ok" }\n\n
+                                wifi_scan_complete:
+                                    summary: WIFI scan complete
+                                    value: |
+                                        data: {"id": "12345" "type": "wifi_scan_complete", "data": { "connection_key":"dsaA98ds", "data": { "nr_of_networks": 3 } } }\n\n
+                                wifi_status_changed:
+                                    summary: WIFI status changed
+                                    value: |
+                                        data: {"id": "12345" "type": "wifi_status_changed", "data": { "connection_key":"dsaA98ds", "data": { "socket_connected": true, "state": 1 } } }\n\n
+                                ble_status_changed:
+                                    summary: BLE status changed
+                                    value: |
+                                        data: {"id": "12345" "type": "ble_status_changed", "data": { "connection_key":"dsaA98ds", "data": { "state": 1 } } }\n\n
+    /servertime:
+        get:
+            security: []
+            description: |4
+                This endpoint provides the current server time, necessary for calculating the client-server offset (cs_offset). This offset is crucial for estimating the server time on the client side (Tcest).
+
+                **Calculating Client-Server Offset (cs_offset)**
+
+                1. **Sample Collection**: Obtain N samples of server time (Ts) from the endpoint. More samples improve accuracy but increase estimation time. A good starting point is 30 samples.
+                2. **Round-Trip Delay (RTD) Measurement**: For each sample, record the send time (Tsend) and receive time (Treceive). Calculate RTD as Treceive - Tsend.
+                3. **Server Time Estimation (Ts_est)**: Estimate the server time at response receipt by adding half of the RTD to the server time (Ts). Formula: Ts_est = Ts + RTD/2.
+                4. **Offset Calculation**: Determine the offset between Ts_est and client time (Tc) at response receipt. Since Tc equals Treceive, the offset is Ts_est - Treceive.
+                5. **Aggregate Offset Update**: Update the aggregated offset value (offset_agg) by adding the new offset. Formula: offset_agg = offset_agg + offset.
+                6. **Average Offset (cs_offset)**: After all samples are processed, calculate the average offset by dividing offset_agg by the number of samples (X). Formula: cs_offset = offset_agg / X.
+
+                This method provides a reliable estimate of the client-server offset (cs_offset).
+
+                Typically, cs_offset is calculated once and used for future Tcest calculations. However, if synchronization issues arise (due to network changes, clock drift, etc.), recalculating cs_offset may be beneficial.
+
+                **Calculating Client-Side Estimated Server Time (Tcest)**
+
+                The Tcest value, required for certain API endpoints (e.g., /hssp/play), is calculated as follows:
+
+                Tcest = Tc + cs_offset
+
+                where Tc is the current client time and cs_offset is the pre-calculated client-server offset.
+            summary: Get the current server time.
+            tags:
+                - UTILS
+            operationId: getServerTime
+            responses:
+                "200":
+                    description: Server time.
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    server_time:
+                                        $ref: "#/components/schemas/Timestamp"
+                                required:
+                                    - server_time
+                            examples:
+                                ServerTime:
+                                    value:
+                                        server_time: 1619080355381
+    /statistics:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        get:
+            description: The device message statistics provides information about the device message traffic.
+            summary: Device message statistics.
+            tags:
+                - INFO
+            operationId: getStatistics
+            responses:
+                "200":
+                    description: Device statistics.
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/DeviceStatistics"
+    /capabilities:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        get:
+            description: >-
+                Get the device capabilities.
+            summary: Get the device capabilities.
+            tags:
+                - INFO
+            operationId: getDeviceCapabilities
+            responses:
+                "200":
+                    description: Device capabilities.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/DeviceCapabilities"
+                            examples:
+                                DeviceCapabilities:
+                                    value:
+                                        result:
+                                            vulva_oriented: true
+                                            battery: true
+                                            slider: 1
+                                            lra: 1
+                                            erm: 1
+                                            external_memory: true
+                                            rgb_led_indicator: true
+                                            led_matrix: true
+                                            led_matrix_leds_x: 8
+                                            led_matrix_leds_y: 8
+                                            rgb_ring: true
+                                            rgb_ring_leds: 8
+    /sids:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        get:
+            description: >-
+                Get the device's session IDs.
+            summary: Get the device session IDs.
+            tags:
+                - INFO
+            operationId: getDeviceSessionIds
+            responses:
+                "200":
+                    description: Device sessions IDs.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/DeviceSessionIds"
+                            examples:
+                                DeviceSessionIds:
+                                    value:
+                                        result:
+                                            boot_session_id: 4545
+                                            socket_session_id: 1
+                                            mode_session_id: 1245
+    /hdsp/xava:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Sets the next absolute position (xa) of the device, and the absolute velocity (va) the device should use to reach the position.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hdsp">Handy Direct Streaming Protocol (HDSP)</a> for additional information about the HDSP protocol and code samples.
+            summary: Send a XAVA message to the device.
+            tags:
+                - HDSP
+            operationId: sendXava
+            requestBody:
+                description: XAVA message
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                xa:
+                                    type: number
+                                    description: The absolute position to move the slider to.
+                                    example: 100
+                                va:
+                                    type: number
+                                    description: The absolute velocity to use when moving the slider to the target position.
+                                    example: 100
+                                stop_on_target:
+                                    type: boolean
+                                    description: Stop the device slider when the target position is reached.
+                                    default: false
+                                    example: true
+                                immediate_rsp:
+                                    type: boolean
+                                    description: Immediate response. Do not wait for device response.
+                                    default: false
+                                    example: true
+                            required:
+                                - xa
+                                - va
+            responses:
+                "200":
+                    description: Command response.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result: {}
+                            examples:
+                                Ok:
+                                    value:
+                                        result: "ok"
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hdsp/xavp:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Sets the next absolute position (xa) of the device, and the percent velocity (vp) the device should use to reach the position.
+
+                See the request schema definition for more information.
+
+                See <a href="">Notion</a> for additional information and code samples.
+            summary: Send a XAVP message to the device.
+            tags:
+                - HDSP
+            operationId: sendXavp
+            requestBody:
+                description: XAVP message
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                xa:
+                                    type: number
+                                    description: The relative position to move the slider to.
+                                    example: 100
+                                vp:
+                                    type: number
+                                    description: The relative velocity to use when moving the slider to the target position.
+                                    example: 100
+                                    maximum: 100
+                                    minimum: 0
+                                stop_on_target:
+                                    type: boolean
+                                    description: Stop the device slider when the target position is reached.
+                                    default: false
+                                    example: true
+                                immediate_rsp:
+                                    type: boolean
+                                    description: Immediate response. Do not wait for device response.
+                                    default: false
+                                    example: true
+                            required:
+                                - xa
+                                - vp
+            responses:
+                "200":
+                    description: Command response. In case of a device error, the response will contain an ErrorResponse object.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result: {}
+                            examples:
+                                Ok:
+                                    value:
+                                        result: "ok"
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hdsp/xpva:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Sets the next percent position (xp) of the device, and the absolute velocity (va) the device should use to reach the position.
+
+                See the request schema definition for more information.
+
+                See <a href="">Notion</a> for additional information and code samples.
+            summary: Send a XPVA message to the device.
+            tags:
+                - HDSP
+            operationId: sendXpva
+            requestBody:
+                description: XPVA message
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                xp:
+                                    type: number
+                                    description: The relative position to move the slider to.
+                                    example: 100
+                                    maximum: 100
+                                    minimum: 0
+                                va:
+                                    type: number
+                                    description: The absolute velocity to use when moving the slider to the target position.
+                                    example: 100
+                                stop_on_target:
+                                    type: boolean
+                                    description: Stop the device slider when the target position is reached.
+                                    default: false
+                                    example: true
+                                immediate_rsp:
+                                    type: boolean
+                                    description: Immediate response. Do not wait for device response.
+                                    default: false
+                                    example: true
+                            required:
+                                - xp
+                                - va
+            responses:
+                "200":
+                    description: Command response. In case of a device error, the response will contain an ErrorResponse object.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result: {}
+                            examples:
+                                Ok:
+                                    value:
+                                        result: "ok"
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hdsp/xpvp:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Sets the next percent position (xp) of the device, and the percent velocity (vp) the device should use to reach the position.
+
+                See the request schema definition for more information
+
+                See <a href="">Notion</a> for additional information and code samples.
+            summary: Send a XPVP message to the device.
+            tags:
+                - HDSP
+            operationId: sendXpvp
+            requestBody:
+                description: XPVP message
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                xp:
+                                    type: number
+                                    description: The relative position to move the slider to.
+                                    example: 100
+                                    maximum: 100
+                                    minimum: 0
+                                va:
+                                    type: number
+                                    description: The relative velocity to use when moving the slider to the target position.
+                                    example: 100
+                                    maximum: 100
+                                    minimum: 0
+                                stop_on_target:
+                                    type: boolean
+                                    description: Stop the device slider when the target position is reached.
+                                    default: false
+                                    example: true
+                                immediate_rsp:
+                                    type: boolean
+                                    description: Immediate response. Do not wait for device response.
+                                    default: false
+                                    example: true
+                            required:
+                                - xp
+                                - va
+            responses:
+                "200":
+                    description: Command response. In case of a device error, the response will contain an ErrorResponse object.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result: {}
+                            examples:
+                                Ok:
+                                    value:
+                                        result: "ok"
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hdsp/xat:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Sets the next absolute position (xa) of the device, and the time (t) the device should use to reach the position.
+
+                See the request schema definition for more information.
+
+                See <a href="">Notion</a> for additional information and code samples.
+            summary: Send a XAT message to the device.
+            tags:
+                - HDSP
+            operationId: sendXat
+            requestBody:
+                description: XAT message
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                xa:
+                                    type: number
+                                    description: The absolute position to move the slider to.
+                                    example: 100
+                                t:
+                                    type: number
+                                    description: The time to use when moving the slider to the target position.
+                                    example: 100
+                                stop_on_target:
+                                    type: boolean
+                                    description: Stop the device slider when the target position is reached.
+                                    default: false
+                                    example: true
+                                immediate_rsp:
+                                    type: boolean
+                                    description: Immediate response. Do not wait for device response.
+                                    default: false
+                                    example: true
+                            required:
+                                - xa
+                                - t
+            responses:
+                "200":
+                    description: Device response. In case of a device error, the response will contain an ErrorResponse object.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result: {}
+                            examples:
+                                Ok:
+                                    value:
+                                        result: "ok"
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hdsp/xpt:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Sets the next percent position (xp) of the device, and the time (t) the device should use to reach the position.
+
+                See the request schema definition for more information.
+
+                See <a href="">Notion</a> for additional information and code samples.
+            summary: Send a XAT message to the device.
+            tags:
+                - HDSP
+            operationId: sendXpt
+            requestBody:
+                description: XAT message
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                xp:
+                                    type: number
+                                    description: The absolute position to move the slider to.
+                                    example: 100
+                                    maximum: 100
+                                    minimum: 0
+                                t:
+                                    type: number
+                                    description: The time to use when moving the slider to the target position.
+                                    example: 100
+                                stop_on_target:
+                                    type: boolean
+                                    description: Stop the device slider when the target position is reached.
+                                    default: false
+                                    example: true
+                                immediate_rsp:
+                                    type: boolean
+                                    description: Immediate response. Do not wait for device response.
+                                    default: false
+                                    example: true
+                            required:
+                                - xa
+                                - va
+            responses:
+                "200":
+                    description: Command response. In case of a device error, the response will contain an ErrorResponse object.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result: {}
+                            examples:
+                                Ok:
+                                    value:
+                                        result: "ok"
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hssp/state:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        get:
+            description: |
+                Get the current HSSP state of the device.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hssp">Handy Synchronized Script Protocol (HSSP)</a> for additional information about the HSSP protocol and code samples.
+            summary: Get the current HSSP state of the device.
+            tags:
+                - HSSP
+            operationId: getHsspState
+            responses:
+                "200":
+                    description: HSSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hssp/setup:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            description: |
+                Setup the HSSP protocol.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hssp">Handy Synchronized Script Protocol (HSSP)</a> for additional information about the HSSP protocol and code samples.
+
+                If you can't host your own scripts, you can use our script hosting service to get a temporary script download URL:
+
+                See the [Hosting API](https://www.handyfeeling.com/api/hosting/v2/docs/) or the [Hosting API docs](https://ohdoki.notion.site/Hosting-API-v2-814e654381e74f2faebe2ebd908a878f)
+            summary: Setup the HSSP protocol.
+            tags:
+                - HSSP
+            operationId: hsspSetup
+            requestBody:
+                description: HSSP setup
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                notify:
+                                    type: boolean
+                                    description: When enabled the server will send HSP state change notifications over SSE.
+                                    default: false
+                                    example: true
+                            oneOf:
+                                - $ref: "#/components/schemas/HsspSetupUrl"
+                                  # - $ref: "#/components/schemas/HsspSetupCsv"
+                                  # - $ref: "#/components/schemas/HsspSetupFunscript"
+                        examples:
+                            HsspSetupUrl:
+                                value:
+                                    url: "https://sweettecheu.s3.eu-central-1.amazonaws.com/scripts/admin/dataset.csv"
+                            HsspSetupUrlWithNotifyEnabled:
+                                value:
+                                    notify: true
+                                    url: "https://sweettecheu.s3.eu-central-1.amazonaws.com/scripts/admin/dataset.csv"
+            responses:
+                "200":
+                    description: HSSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hssp/play:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            description: |
+                Start the HSSP playback.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hssp">Handy Synchronized Script Protocol (HSSP)</a> for additional information about the HSSP protocol and code samples.
+            summary: Start the HSSP playback.
+            tags:
+                - HSSP
+            operationId: hsspPlay
+            requestBody:
+                description: HSSP play
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                start_time:
+                                    type: integer
+                                    description: The start time in milliseconds.
+                                    example: 5000
+                                server_time:
+                                    $ref: "#/components/schemas/ServerTimeEstimate"
+                                playback_rate:
+                                    $ref: "#/components/schemas/PlaybackRate"
+                                loop:
+                                    type: boolean
+                                    description: The loop state.
+                                    example: true
+                                    default: false
+                            required:
+                                - start_time
+                                - server_time
+            responses:
+                "200":
+                    description: HSSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hssp/stop:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            description: |
+                Stop the HSSP playback.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hssp">Handy Synchronized Script Protocol (HSSP)</a> for additional information about the HSSP protocol and code samples.
+            summary: Stop the HSSP playback.
+            tags:
+                - HSSP
+            operationId: hsspStop
+            responses:
+                "200":
+                    description: HSSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hssp/pause:
+        parameters:
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Pause the HSSP playback.
+
+                Pause will pause the playback, but keep the current position. A subsequent resume command will continue playback from the paused position or from the current 'live' script position/time, depending on the resume `pickUp` flag.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            summary: Pause the HSSP playback.
+            tags:
+                - HSSP
+            operationId: hsspPause
+            responses:
+                "200":
+                    description: HSSP state.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/HspState"
+    /hssp/resume:
+        parameters:
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Resume the HSSP playback.
+
+                Depending on the `pickUp` parameter, resume will either continue from the paused position (`pickUp` = false) or jump to the current 'live' position/time of the script (`pickUp` = true).
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            summary: Resume the HSSP playback.
+            tags:
+                - HSSP
+            operationId: hsspResume
+            requestBody:
+                description: HSSP resume
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                pickUp:
+                                    type: boolean
+                                    description: If `true`, the playback will resume from the current 'live' position of the stream. If `false`, it will resume from the paused position.
+                                    example: true
+                                    default: false
+            responses:
+                "200":
+                    description: HSSP state.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/HspState"
+    /hssp/synctime:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            summary: Adjust the stream synchronization.
+            description: |
+                Adjust the stream playtime using the provided current time sample from the external source and filter.
+
+                This can improve the synchronization between the device and the external source when the current time samples have some variable inaccuracies.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hssp">Handy Synchronized Script Protocol (HSSP)</a> for additional information about the HSSP protocol and code samples.
+            tags:
+                - HSSP
+            operationId: setHsspTime
+            requestBody:
+                description: HSSP time
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                current_time:
+                                    type: integer
+                                    description: The time.
+                                    example: 100
+                                server_time:
+                                    $ref: "#/components/schemas/ServerTimeEstimate"
+                                filter:
+                                    type: number
+                                    description: The filter to use when setting the time.
+                                    example: 0.5
+                            required:
+                                - current_time
+                                - server_time
+            responses:
+                "200":
+                    description: HSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hsp/setup:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            summary: >-
+                Setup a new HSP session on the device.
+            description: |
+                Setup initializes a new HSP session on the device. This ensures both the device and server are properly prepared, clearing any existing HSP session state.
+
+                If the device is already in an HSP session and no setup command is issued, all HSP commands will modify the existing session, which may lead to unexpected behavior.
+
+                The `stream_id` is an optional session identifier. If it changes during a HSP session, it indicates that a new session has been initiated by a client. If no `stream_id` is provided, one will be generated and returned in the setup response.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            tags:
+                - HSP
+            operationId: hspSetup
+            requestBody:
+                description: HSP setup
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                stream_id:
+                                    type: integer
+                                    minimum: 1
+                                    maximum: 4294967295
+                                    description: The stream id.
+                                    example: 123456
+            responses:
+                "200":
+                    description: HSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hsp/flush:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Flush will remove all existing points from the device point buffer.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            summary: Flush the HSP buffer.
+            tags:
+                - HSP
+            operationId: hspFlush
+            responses:
+                "200":
+                    description: HSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hsp/add:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                You can add up to 100 points to the device's point buffer in a single command.
+
+                If the buffer is full, adding N points will remove the first N points to make room for the new ones.
+
+                The `flush` flag can be used to remove all existing points from the buffer before adding the new points.
+
+                The `tail_point_threshold` parameter can be used to update the tail point stream index threshold after the points have been added.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            summary: Add points to the device HSP point buffer.
+            tags:
+                - HSP
+            operationId: hspAdd
+            requestBody:
+                description: HSP point
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/HspAdd"
+            responses:
+                "200":
+                    description: HSSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hsp/play:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            summary: Start the HSP playback.
+            description: |
+                Start the HSP playback.
+
+                An optional add points command can be embedded in the play command. The add command (if present) will be executed before the playback starts.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            tags:
+                - HSP
+            operationId: hspPlay
+            requestBody:
+                description: HSP play
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                start_time:
+                                    type: integer
+                                    description: The start time in milliseconds.
+                                    example: 5000
+                                server_time:
+                                    $ref: "#/components/schemas/ServerTimeEstimate"
+                                playback_rate:
+                                    $ref: "#/components/schemas/PlaybackRate"
+                                pause_on_starving:
+                                    $ref: "#/components/schemas/PauseOnStarving"
+                                loop:
+                                    type: boolean
+                                    description: The loop state.
+                                    example: true
+                                    default: false
+                                add:
+                                    $ref: "#/components/schemas/HspAdd"
+                            required:
+                                - start_time
+            responses:
+                "200":
+                    description: HSSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hsp/stop:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Stop the HSP playback.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            summary: Stop the HSP playback.
+            tags:
+                - HSP
+            operationId: hspStop
+            responses:
+                "200":
+                    description: HSSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hsp/state:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        get:
+            description: |
+                Get the current HSP state of the device.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            summary: Get the current HSP state of the device.
+            tags:
+                - HSP
+            operationId: getHspState
+            responses:
+                "200":
+                    description: HSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+    /hsp/threshold:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Set the HSP tail point stream index threshold.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            summary: Set the HSP tail point stream index threshold.
+            tags:
+                - HSP
+            operationId: setHspThreshold
+            requestBody:
+                description: HSP threshold
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                tail_point_threshold:
+                                    type: integer
+                                    description: The HSP tail point stream index threshold.
+                                    example: 100
+                                    minimum: 1
+                            required:
+                                - tail_point_threshold
+            responses:
+                "200":
+                    description: HSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hsp/pause:
+        parameters:
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Pause the HSP playback.
+
+                Pause will pause the playback, but keep the current position. A subsequent resume command will continue playback from the paused position or from the current 'live' stream position, depending on the resume command parameters.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            summary: Pause the HSP playback.
+            tags:
+                - HSP
+            operationId: hspPause
+            responses:
+                "200":
+                    description: HSP state.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/HspState"
+    /hsp/resume:
+        parameters:
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Resume the HSP playback.
+
+                Depending on the `pick_up` parameter, resume will either continue from the paused position (`pick_up` = false) or jump to the current 'live' position of the stream (`pick_up` = true).
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            summary: Resume the HSP playback.
+            tags:
+                - HSP
+            operationId: hspResume
+            requestBody:
+                description: HSP resume
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                pick_up:
+                                    type: boolean
+                                    description: If `true`, the playback will resume from the current 'live' position of the stream. If `false`, it will resume from the paused position.
+                                    example: true
+                                    default: false
+            responses:
+                "200":
+                    description: HSP state.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/HspState"
+    /hsp/pause/onstarving:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Set the HSP pause-on-starving flag.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            summary: Set the HSP pause-on-starving flag.
+            tags:
+                - HSP
+            operationId: setHspPauseOnStarving
+            requestBody:
+                description: HSP pause-on-starving
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                pause_on_starving:
+                                    type: boolean
+                                    description: The HSP pause-on-starving flag.
+                                    example: true
+                                    default: false
+                            required:
+                                - pause_on_starving
+            responses:
+                "200":
+                    description: HSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hsp/synctime:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Adjust the stream playtime using the provided current time sample from the external source and filter.
+
+                This can improve the synchronization between the device and the external source when the current time samples have some variable inaccuracies.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            summary: Adjust the stream synchronization.
+            tags:
+                - HSP
+            operationId: setHspTime
+            requestBody:
+                description: HSP time
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                current_time:
+                                    type: integer
+                                    description: The time.
+                                    example: 100
+                                server_time:
+                                    $ref: "#/components/schemas/ServerTimeEstimate"
+                                filter:
+                                    type: number
+                                    description: The filter to use when setting the time.
+                                    example: 0.5
+                            required:
+                                - current_time
+                                - server_time
+            responses:
+                "200":
+                    description: HSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hsp/loop:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Set the HSP loop flag.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            summary: Set the HSP loop flag.
+            tags:
+                - HSP
+            operationId: setHspLoop
+            requestBody:
+                description: HSP loop
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                loop:
+                                    type: boolean
+                                    description: The HSP loop flag.
+                                    example: true
+                                    default: false
+                            required:
+                                - loop
+            responses:
+                "200":
+                    description: HSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hsp/playbackrate:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Set the HSP playback rate.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hsp">Handy Streaming Protocol (HSP)</a> for additional information about the HSP protocol and code samples.
+            summary: Set the HSP playback rate.
+            tags:
+                - HSP
+            operationId: setHspPaybackRate
+            requestBody:
+                description: HSP playback rate
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                playback_rate:
+                                    type: number
+                                    description: The HSP playback_rate
+                                    example: 0.5
+                                    default: 1.0
+                            required:
+                                - playback_rate
+            responses:
+                "200":
+                    description: HSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hstp/info:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        get:
+            description: "Get the current device time information."
+            summary: Get the current device time information.
+            tags:
+                - HSTP
+            operationId: getDeviceTimeInfo
+            responses:
+                "200":
+                    description: DeviceTimeResponse
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/DeviceTimeInfo"
+                            examples:
+                                DeviceResponse:
+                                    value:
+                                        result:
+                                            time: 769799
+                                            clock_offset: 1707836664395
+                                            rtd: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+                "400":
+                    $ref: "#/components/responses/400"
+    /hstp/clocksync:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+            - in: query
+              name: s
+              schema:
+                type: boolean
+              example: true
+              description: "If true, the clock sync response will be synchronous and the sync result will be returned in the response, in addition to published on the SSE stream. If false, the sync result will only be published on the SSE stream."
+        get:
+            description: "Initiate a server-device clock synchronization."
+            summary: Initiate a server-device clock synchronization.
+            tags:
+                - HSTP
+            operationId: clockSync
+            responses:
+                "200":
+                    description: DeviceTimeResponse
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/DeviceTimeInfo"
+                            examples:
+                                DeviceResponse:
+                                    value:
+                                        result:
+                                            time: 769799
+                                            clock_offset: 1707836664395
+                                            rtd: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+                "400":
+                    $ref: "#/components/responses/400"
+    /hstp/offset:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: "Set the user adjusted device time offset."
+            summary: Set the user adjusted device time offset.
+            tags:
+                - HSTP
+            operationId: setOffset
+            requestBody:
+                description: Offset value
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                offset:
+                                    type: number
+                                    description: The offset value in milliseconds.
+                                    example: 100
+                            required:
+                                - offset
+                        examples:
+                            NegativeOffset:
+                                value:
+                                    offset: -100
+                            PositiveOffset:
+                                value:
+                                    offset: 100
+            responses:
+                "200":
+                    description: DeviceTimeResponse
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            type: string
+                            examples:
+                                Ok:
+                                    value:
+                                        result: "ok"
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                "400":
+                    $ref: "#/components/responses/400"
+        get:
+            description: "Get the user adjusted device time offset."
+            summary: Get the device time offset.
+            tags:
+                - HSTP
+            operationId: getOffset
+            responses:
+                "200":
+                    description: DeviceTimeResponse
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            type: object
+                                            properties:
+                                                offset:
+                                                    $ref: "#/components/schemas/Timestamp"
+                                            required:
+                                                - offset
+                            examples:
+                                OffsetResponsePositive:
+                                    value:
+                                        result:
+                                            offset: 125
+                                OffsetResponseNegative:
+                                    value:
+                                        result:
+                                            offset: -125
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                "400":
+                    $ref: "#/components/responses/400"
+    /hvp/state:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        get:
+            description: |
+                Get the current HVP state of the device.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hvp">Handy Vibration Protocol (HVP)</a> for additional information about the HVP protocol and code samples.
+            summary: Get the current HVP state of the device.
+            tags:
+                - HVP
+            operationId: getHvpState
+            responses:
+                "200":
+                    description: HVP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HvpState"
+                            examples:
+                                HvpStateEnabled:
+                                    value:
+                                        result:
+                                            enabled: true
+                                            amplitude: 0.5
+                                            frequency: 100
+                                            position: 100
+                                HvpStateDisabled:
+                                    value:
+                                        result:
+                                            enabled: false
+                                            amplitude: 0.5
+                                            frequency: 100
+                                            position: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+        put:
+            description: |
+                Set the HVP state of the device.
+
+                 See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hvp">Handy Vibration Protocol (HVP)</a> for additional information about the HVP protocol and code samples.
+            summary: Set the current HVP state of the device.
+            tags:
+                - HVP
+            operationId: setHvpState
+            requestBody:
+                description: HVP set
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                amplitude:
+                                    type: number
+                                    description: The amplitude. A value between 0 and 1 (0-100%). For LRA, ERM and Sliders with vibration adapter (percent of valid output range)
+                                    example: 0.1
+                                    minimum: 0
+                                    maximum: 1
+                                frequency:
+                                    type: integer
+                                    description: The frequency in Hz. 0-10000Hz. For LRA only
+                                    example: 100
+                                    minimum: 0
+                                    maximum: 10000
+                                position:
+                                    type: number
+                                    description: The position of the vibration (mm). Where on the slider should the vibration be. For slider with vibration adapter only.
+                                    example: 0.5
+                                    default: 200
+                            required:
+                                - amplitude
+                                - frequency
+                                - position
+            responses:
+                "200":
+                    description: HVP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HvpState"
+                            examples:
+                                HvpStateEnabled:
+                                    value:
+                                        result:
+                                            enabled: true
+                                            amplitude: 0.5
+                                            frequency: 100
+                                            position: 100
+                                HvpStateDisabled:
+                                    value:
+                                        result:
+                                            enabled: false
+                                            amplitude: 0.5
+                                            frequency: 100
+                                            position: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hvp/start:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Start the HVP playback.
+
+                 See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hvp">Handy Vibration Protocol (HVP)</a> for additional information about the HVP protocol and code samples.
+            summary: Start the HVP playback.
+            tags:
+                - HVP
+            operationId: hvpStart
+            responses:
+                "200":
+                    description: HVP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HvpState"
+                            examples:
+                                DeviceResponse:
+                                    value:
+                                        result:
+                                            enabled: true
+                                            amplitude: 0.5
+                                            frequency: 100
+                                            position: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /hvp/stop:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        put:
+            description: |
+                Stop the HVP playback.
+
+                 See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-hvp">Handy Vibration Protocol (HVP)</a> for additional information about the HVP protocol and code samples.
+            summary: Stop the HVP playback.
+            tags:
+                - HVP
+            operationId: hvpStop
+            responses:
+                "200":
+                    description: HVP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HvpState"
+                            examples:
+                                DeviceResponse:
+                                    value:
+                                        result:
+                                            enabled: false
+                                            amplitude: 0.5
+                                            frequency: 100
+                                            position: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /slider/state:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/ConnectionKey"
+        get:
+            description: |
+                Get the current state of the device slider.
+            summary: Get the current state of the device slider.
+            tags:
+                - SLIDER
+            operationId: getSlideState
+            responses:
+                "200":
+                    description: Slider state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/SliderState"
+                            examples:
+                                DeviceResponse:
+                                    value:
+                                        result:
+                                            position: 0.43
+                                            position_absolute: 256.50
+                                            motor_temp: 34.0
+                                            speed_absolute: 300.0
+                                            dir: true
+                                            motor_position: 3
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /slider/stroke:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            description: |
+                Set the minimum and/or maximum allowed relative slider position of the device.
+                The slider will not move outside the specified stroke zone.
+            summary: Set the stroke settings of the device slider.
+            tags:
+                - SLIDER
+            operationId: setStroke
+            requestBody:
+                description: Stroke settings
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/StrokeSettings"
+            responses:
+                "200":
+                    description: Device response. In case of a device error, the response will contain an ErrorResponse object.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/StrokeSettingsRsp"
+                            examples:
+                                DeviceResponse:
+                                    value:
+                                        result:
+                                            min: 0.0
+                                            max: 1.0
+                                            min_absolute: 11.2
+                                            max_absolute: 102.0
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+        get:
+            description: >-
+                Get the minimum and maximum allowed relative slider position of the device.
+            summary: Get the stroke settings of the device slider.
+            tags:
+                - SLIDER
+            operationId: getStroke
+            responses:
+                "200":
+                    description: Device response. In case of a device error, the response will contain an ErrorResponse object.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/StrokeSettingsRsp"
+                            examples:
+                                DeviceResponse:
+                                    value:
+                                        result:
+                                            min: 0.0
+                                            max: 1.0
+                                            min_absolute: 11.2
+                                            max_absolute: 102.0
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+                "400":
+                    $ref: "#/components/responses/400"
+    /stream/setup:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            description: |
+                Setup the stream protocol to play a stream.
+
+                 See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-stream">Stream Protocol (STREAM)</a> for additional information about the STREAM protocol and code samples.
+            summary: Setup the stream protocol.
+            tags:
+                - STREAM
+            operationId: setupStream
+            requestBody:
+                description: Stream setup
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                stream_ref:
+                                    type: string
+                                    description: The stream reference of the stream to play.
+                                    example: 01JAZ8AZMBGQGWXA719SEKG1N2
+                                notify:
+                                    type: boolean
+                                    description: Enable HSP notifications for the stream playback. STREAM supresses HSP notifications by default since for most use cases they are not needed, since pushing data to the device is handled server side.
+                                    example: true
+                                    default: false
+                            required:
+                                - stream_ref
+            responses:
+                "200":
+                    description: Stream state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /stream/play:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            description: |
+                Start the stream playback.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-stream">Stream Protocol (STREAM)</a> for additional information about the STREAM protocol and code samples.
+            summary: Start the stream playback.
+            tags:
+                - STREAM
+            operationId: streamPlay
+            requestBody:
+                description: Stream play
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                start_time:
+                                    type: integer
+                                    description: The start time in milliseconds.
+                                    example: 5000
+                                server_time:
+                                    $ref: "#/components/schemas/ServerTimeEstimate"
+                                playback_rate:
+                                    $ref: "#/components/schemas/PlaybackRate"
+                                loop:
+                                    type: boolean
+                                    description: The loop state.
+                                    example: true
+                                    default: false
+                                pause_on_starving:
+                                    $ref: "#/components/schemas/PauseOnStarving"
+                            required:
+                                - start_time
+                                - server_time
+            responses:
+                "200":
+                    description: Stream state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /stream/stop:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            description: |
+                Stop the stream playback.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-stream">Stream Protocol (STREAM)</a> for additional information about the STREAM protocol and code samples.
+            summary: Stop the stream playback.
+            tags:
+                - STREAM
+            operationId: streamStop
+            responses:
+                "200":
+                    description: Stream state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /stream/state:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        get:
+            description: |
+                Get the current stream state of the device.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-stream">Stream Protocol (STREAM)</a> for additional information about the STREAM protocol and code samples.
+            summary: Get the current stream state of the device.
+            tags:
+                - STREAM
+            operationId: getStreamState
+            responses:
+                "200":
+                    description: Stream state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.
+    /stream/synctime:
+        parameters:
+            - $ref: "#/components/parameters/Timeout"
+            - $ref: "#/components/parameters/DeviceReference"
+        put:
+            description: |
+                Adjust the stream playtime using the provided current time sample from the external source and filter.
+
+                This can improve the synchronization between the device and the external source when the current time samples have some variable inaccuracies.
+
+                See the request body schema definition for details.<br><br>See <a href="https://links.handyfeeling.com/docs-api-handy-rest-v3-stream">Stream Protocol (STREAM)</a> for additional information about the STREAM protocol and code samples.
+            summary: Adjust the stream synchronization.
+            tags:
+                - STREAM
+            operationId: setStreamTime
+            requestBody:
+                description: STREAM time
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                current_time:
+                                    type: integer
+                                    description: The time.
+                                    example: 100
+                                server_time:
+                                    $ref: "#/components/schemas/ServerTimeEstimate"
+                                filter:
+                                    type: number
+                                    description: The filter to use when setting the time.
+                                    example: 0.5
+                            required:
+                                - current_time
+                                - server_time
+            responses:
+                "200":
+                    description: HSP state.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: "#/components/schemas/DeviceResponse"
+                                    - type: object
+                                      properties:
+                                        result:
+                                            $ref: "#/components/schemas/HspState"
+                            examples:
+                                Ok:
+                                    value:
+                                        result:
+                                            play_state: 0
+                                            pause_on_starving: false
+                                            points: 100
+                                            max_points: 100
+                                            current_point: 100
+                                            current_time: 100
+                                            loop: false
+                                            playback_rate: 1.0
+                                            first_point_time: 100
+                                            last_point_time: 12345
+                                            stream_id: 154545601
+                                            tail_point_stream_index: 100
+                                            tail_point_stream_index_threshold: 100
+                                DeviceTimeout:
+                                    description: Device timeout error.
+                                    value:
+                                        error:
+                                            code: 1002
+                                            name: DeviceTimeout
+                                            message: Device timeout
+                                            connected: true
+                                DeviceNotConnected:
+                                    description: Device not connected error.
+                                    value:
+                                        error:
+                                            code: 1001
+                                            name: DeviceNotConnected
+                                            message: Device not connected
+                                            connected: false
+                    headers:
+                        X-RateLimit-Limit:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 240
+                            description: >-
+                                Request limit per minute window.
+                        X-RateLimit-Remaining:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 100
+                            description: >-
+                                The number of requests left in the current window.
+                        X-RateLimit-Reset:
+                            schema:
+                                type: integer
+                                minimum: 0
+                            example: 6205
+                            description: >-
+                                Seconds until next window reset.

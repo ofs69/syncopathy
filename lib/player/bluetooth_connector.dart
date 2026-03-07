@@ -34,11 +34,12 @@ class BluetoothConnector {
     String txId,
     String rxId,
   ) async {
+    StreamSubscription<BleDevice>? subscription;
     try {
       await _scanLock.acquire();
       final connectLock = Lock();
       final Completer<BtDevice?> btDeviceCompleter = Completer();
-      final subscription = deviceScan.listen((device) async {
+      subscription = deviceScan.listen((device) async {
         try {
           await connectLock.acquire();
           for (var i = 0; i < 3; i += 1) {
@@ -71,10 +72,17 @@ class BluetoothConnector {
       await UniversalBle.startScan(
         scanFilter: ScanFilter(withServices: [serviceId]),
       );
-      final device = await btDeviceCompleter.future;
-      await subscription.cancel();
+      final device = await btDeviceCompleter.future.timeout(
+        Duration(seconds: 10),
+      );
       return device;
+    } on TimeoutException {
+      return null;
     } finally {
+      await subscription?.cancel();
+      try {
+        await UniversalBle.stopScan();
+      } catch (_) {}
       _scanLock.release();
     }
   }

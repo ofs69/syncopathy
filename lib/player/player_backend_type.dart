@@ -1,17 +1,19 @@
 enum PlayerBackendType {
   handyStrokerStreamingBluetooth,
+  handyStrokerStreamingWeb,
   handyStrokerCommand,
   buttplugStrokerCommand;
-  // handyStrokerStreamingWeb ??
 
   String toDisplayString() {
     switch (this) {
       case PlayerBackendType.buttplugStrokerCommand:
         return "Buttplug Stroker";
       case PlayerBackendType.handyStrokerCommand:
-        return "Handy Native (Command Based)";
+        return "Handy HDSP (Command Based)";
       case PlayerBackendType.handyStrokerStreamingBluetooth:
-        return "Handy Native HSP (Recommended)";
+        return "Handy HSP Bluetooth (Recommended)";
+      case PlayerBackendType.handyStrokerStreamingWeb:
+        return "Handy HSP Web";
     }
   }
 }

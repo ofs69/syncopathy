@@ -1,9 +1,8 @@
-import 'package:libmpv_dart/video/video_params.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/player/mpv.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
 
 class TimesourceModel {
-  final ReadonlySignal<int> textureId;
   final ReadonlySignal<double> volume;
   final ReadonlySignal<double> duration;
   final ReadonlySignal<double> playbackSpeed;
@@ -13,16 +12,17 @@ class TimesourceModel {
   final ReadonlySignal<VideoParams> videoParams;
   final ReadonlySignal<bool> loopFile;
   final ReadonlySignal<String> loadedPath;
+  final ReadonlySignal<bool> seeking;
 
   int get currentSmoothMs => (smoothPosition.value * 1000.0).round();
   int get currentRawMs => (rawPosition.value * 1000.0).round();
 
   TimesourceModel({
-    required this.textureId,
     required this.volume,
     required this.duration,
     required this.playbackSpeed,
     required this.paused,
+    required this.seeking,
     required this.rawPosition,
     required this.smoothPosition,
     required this.videoParams,
@@ -30,12 +30,12 @@ class TimesourceModel {
     required this.loadedPath,
   });
 
-  static TimesourceModel fromPlayer(MpvVideoplayer player) => TimesourceModel(
-    textureId: player.textureId,
+  static TimesourceModel fromPlayer(MediaKitPlayer player) => TimesourceModel(
     volume: player.volume,
     duration: player.duration,
     playbackSpeed: player.playbackSpeed,
     paused: player.paused,
+    seeking: player.seeking,
     rawPosition: player.rawPosition,
     smoothPosition: player.smoothPosition,
     videoParams: player.videoParams,

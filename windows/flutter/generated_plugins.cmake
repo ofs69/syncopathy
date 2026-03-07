@@ -3,7 +3,8 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  libmpv_dart
+  media_kit_libs_windows_video
+  media_kit_video
   screen_retriever_windows
   universal_ble
   url_launcher_windows

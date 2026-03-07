@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:async_locks/async_locks.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -19,7 +20,6 @@ import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/update_checker.dart';
 import 'package:syncopathy/video_thumbnail.dart';
 import 'package:syncopathy/notification_feed.dart';
-import 'package:flutter/foundation.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -199,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage>
     return SwitchListTile(
       title: const Text('Use Embedded Video Player'),
       subtitle: const Text(
-        'Enables an embedded video player (requires restart, Windows only).',
+        'Enables an embedded video player (Requires Restart).',
       ),
       value: settings.embeddedVideoPlayer.watch(context),
       onChanged: (value) {
@@ -354,7 +354,6 @@ class _SettingsPageState extends State<SettingsPage>
             if (!snapshot.hasData) return const SizedBox.shrink();
             final info = snapshot.data!;
 
-            // 2. Watch the status message signal
             return Watch(
               (context) => ListTile(
                 title: Text(
@@ -368,7 +367,6 @@ class _SettingsPageState extends State<SettingsPage>
             );
           },
         ),
-        // 3. Watch the loading signal to swap the icon
         Watch((context) {
           final isChecking = isUpdateCheckingSignal.value;
 
@@ -387,7 +385,6 @@ class _SettingsPageState extends State<SettingsPage>
             onTap: isChecking
                 ? null
                 : () async {
-                    // 4. Update signal values directly
                     isUpdateCheckingSignal.value = true;
                     statusUpdateMessageSignal.value = "Checking...";
 
@@ -412,6 +409,11 @@ class _SettingsPageState extends State<SettingsPage>
     final playerModel = context.read<PlayerModel>();
     final backend = playerModel.playerBackend.watch(context);
 
+    final isLoaded =
+        playerModel.playerBackend.value?.backendType != null &&
+        playerModel.playerBackend.value?.backendType ==
+            settings.playerBackendType.value;
+
     return Column(
       children: [
         ListTile(
@@ -419,29 +421,36 @@ class _SettingsPageState extends State<SettingsPage>
             horizontal: 8.0,
             vertical: 0.0,
           ),
-          title: DropdownButton<String>(
-            value: settings.playerBackendType.watch(context).toString(),
-            underline: const SizedBox.shrink(), // Hides the default underline
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-            borderRadius: BorderRadius.circular(16.0),
-            isExpanded: true,
-            items: PlayerBackendType.values
-                .map(
-                  (e) => DropdownMenuItem<String>(
-                    value: e.toString(),
-                    child: Text(e.toDisplayString()),
+          title: !isLoaded
+              ? Center(child: CircularProgressIndicator())
+              : DropdownButton<String>(
+                  value: settings.playerBackendType.watch(context).toString(),
+                  underline:
+                      const SizedBox.shrink(), // Hides the default underline
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 8.0,
                   ),
-                )
-                .toList(),
-            onChanged: (selected) {
-              final selectedEnum = PlayerBackendType.values.firstWhere(
-                (e) => e.toString() == selected,
-              );
-              settings.playerBackendType.value = selectedEnum;
-            },
-          ),
+                  borderRadius: BorderRadius.circular(16.0),
+                  isExpanded: true,
+                  items: PlayerBackendType.values
+                      .map(
+                        (e) => DropdownMenuItem<String>(
+                          value: e.toString(),
+                          child: Text(e.toDisplayString()),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (selected) {
+                    final selectedEnum = PlayerBackendType.values.firstWhere(
+                      (e) => e.toString() == selected,
+                    );
+                    settings.playerBackendType.value = selectedEnum;
+                  },
+                ),
         ),
-        if (backend != null) ListTile(title: backend.settingsWidget(context)),
+        if (backend != null && isLoaded)
+          ListTile(title: backend.settingsWidget(context)),
       ],
     );
   }

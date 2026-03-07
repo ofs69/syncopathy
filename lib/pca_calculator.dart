@@ -53,7 +53,7 @@ class PcaCalculator {
     if (videosWithFunscript.length >= 2) {
       final features = videosWithFunscript.map((v) {
         final funscript = v.funscript!;
-        final actions = funscript.actions.value;
+        final actions = funscript.originalActions;
         final positions = actions.map((a) => a.pos.toDouble()).toList();
         final speeds = <double>[];
         for (var i = 0; i < actions.length - 1; i++) {

@@ -247,12 +247,27 @@ class FunscriptAlgorithms {
     double? rdpEpsilon,
     (int minRange, int maxRange)? remapRange,
     bool invert,
+    double totalDuration,
   ) {
     if (actions.isEmpty) {
       return actions;
     }
 
     actions = List.of(actions);
+
+    // Insert point at 0
+    // Important for looping correctly
+    if (actions.first.at != 0) {
+      actions.insert(0, FunscriptAction(at: 0, pos: actions.first.pos));
+    }
+    // Insert point at end of video
+    // Important for looping correctly
+    final end = (totalDuration * 1000.0).round();
+    if (actions.last.at != end) {
+      actions.add(FunscriptAction(at: end, pos: actions.last.pos));
+    }
+    // remove anything beyond the video duration
+    actions.removeWhere((a) => a.at > end);
 
     if (remapRange != null) {
       actions = FunscriptAlgorithms.remapRange(actions, remapRange);

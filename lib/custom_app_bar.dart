@@ -8,7 +8,7 @@ import 'package:syncopathy/home_button.dart';
 import 'package:syncopathy/media_manager.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/player_model.dart';
-import 'package:syncopathy/player/mpv.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
 import 'package:syncopathy/playlist_controls.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/helper/constants.dart';
@@ -30,7 +30,7 @@ class CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
     final mediaManager = context.read<MediaManager?>();
-    final player = context.read<MpvVideoplayer>();
+    final player = context.read<MediaKitPlayer>();
     final batteryModel = context.read<BatteryModel>();
     final playerModel = context.read<PlayerModel>();
 
@@ -82,23 +82,31 @@ class CustomAppBarState extends State<CustomAppBar> {
         const SizedBox(width: 8),
 
         if (hasBattery)
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: Row(
-              children: [
-                Icon(
-                  chargerConnected
-                      ? Icons.battery_charging_full
-                      : Icons.battery_full,
-                  color: chargerConnected
-                      ? Colors.green
-                      : (batteryModel.batteryLevel.value < 20
-                            ? Colors.red
-                            : null),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                child: Text(
+                  '${batteryModel.batteryLevel.watch(context).toString().padLeft(3, ' ')}%',
+                  textAlign: TextAlign.end, // Aligns text against the icon
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
                 ),
-                Text('${batteryModel.batteryLevel.watch(context)}%'),
-              ],
-            ),
+              ),
+              const SizedBox(width: 4), // Small gap between text and icon
+              Icon(
+                chargerConnected
+                    ? Icons.battery_charging_full
+                    : Icons.battery_full,
+                color: chargerConnected
+                    ? Colors.green
+                    : (batteryModel.batteryLevel.value < 20
+                          ? Colors.red
+                          : null),
+              ),
+            ],
           ),
         const Padding(
           padding: EdgeInsets.only(right: 8.0),

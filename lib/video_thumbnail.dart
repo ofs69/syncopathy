@@ -8,7 +8,7 @@ import "package:async_locks/async_locks.dart";
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/logging.dart';
-import 'package:syncopathy/player/mpv.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
 
 import 'package:syncopathy/sqlite/models/video_model.dart';
 
@@ -43,7 +43,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
 
   // TODO: refactor me
   void currentFrameAsThumbnail() async {
-    final player = context.read<MpvVideoplayer>();
+    final player = context.read<MediaKitPlayer>();
     final appDataPath = await getApplicationSupportDirectory();
     final screenshot = p.join(appDataPath.path, "tmp.jpg");
 
@@ -73,14 +73,12 @@ class VideoThumbnailState extends State<VideoThumbnail> {
       _isGenerating = true;
     });
 
-    player.screenshot(screenshot);
     try {
       // 1. Load the file from the path
-      final File file = File(screenshot);
-      final Uint8List bytes = await file.readAsBytes();
+      final jpgBytes = (await player.screenshot(screenshot))!;
 
       // 2. Decode the JPG data
-      final img.Image? originalImage = img.decodeImage(bytes);
+      final img.Image? originalImage = img.decodeImage(jpgBytes);
 
       if (originalImage != null) {
         // 3. Resize to 300 width (Aspect ratio is kept if height is omitted)

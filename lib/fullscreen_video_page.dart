@@ -3,12 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:syncopathy/custom_mpv_video_widget.dart';
-import 'package:syncopathy/player/mpv.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
 import 'package:syncopathy/video_controls.dart';
-import 'package:window_manager/window_manager.dart';
 
 class FullscreenVideoPage extends StatefulWidget {
-  final MpvVideoplayer player;
+  final MediaKitPlayer player;
   final bool isEmbeddedPlayerEnabled;
 
   const FullscreenVideoPage({
@@ -107,43 +106,8 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                       tag: 'videoPlayer',
                       child: CustomMpvVideoWidget(
                         player: widget.player,
+                        controller: widget.player.controller!,
                         isFullscreen: true,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: AnimatedOpacity(
-                      opacity: _showControls ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 300),
-                      child: IgnorePointer(
-                        ignoring: !_showControls,
-                        child: widget.isEmbeddedPlayerEnabled
-                            ? const SizedBox.shrink()
-                            : Tooltip(
-                                message:
-                                    'Set external player size and position',
-                                child: IconButton(
-                                  icon: const Icon(
-                                    Icons.aspect_ratio,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: () async {
-                                    final windowBounds = await windowManager
-                                        .getBounds();
-                                    final titleBarHeight = await windowManager
-                                        .getTitleBarHeight();
-                                    widget.player.setSizeAndPosition(
-                                      constraints.maxWidth.toInt(),
-                                      constraints.maxHeight.toInt(),
-                                      windowBounds.left.toInt(),
-                                      (windowBounds.top + titleBarHeight)
-                                          .toInt(),
-                                    );
-                                  },
-                                ),
-                              ),
                       ),
                     ),
                   ),

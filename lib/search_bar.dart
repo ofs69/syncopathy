@@ -16,7 +16,6 @@ class MediaSearchBar<T> extends StatefulWidget {
 
 class _MediaSearchBarState<T> extends State<MediaSearchBar<T>> {
   final _searchController = TextEditingController();
-  final _searchFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -30,7 +29,6 @@ class _MediaSearchBarState<T> extends State<MediaSearchBar<T>> {
   @override
   void dispose() {
     _searchController.dispose();
-    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -40,7 +38,6 @@ class _MediaSearchBarState<T> extends State<MediaSearchBar<T>> {
       padding: const EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 8.0),
       child: FocusScope(
         child: TextField(
-          focusNode: _searchFocusNode,
           controller: _searchController,
           decoration: InputDecoration(
             labelText: 'Search Videos',

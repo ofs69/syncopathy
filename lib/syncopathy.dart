@@ -61,11 +61,11 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _selectedIndex);
-    final player = context.read<PlayerModel>();
+    final playerModel = context.read<PlayerModel>();
 
     effectAdd([
       effect(() {
-        _handleVideoChange(player.currentVideo.value);
+        _handleVideoChange(playerModel.currentVideo.value);
       }),
     ]);
 

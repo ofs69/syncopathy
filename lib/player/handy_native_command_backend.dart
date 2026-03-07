@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:syncopathy/player/handy_bluetooth_backend_base.dart';
 import 'package:syncopathy/player/player_backend.dart';
+import 'package:syncopathy/player/player_backend_type.dart';
 
 class HandyNativeCommandBackend extends HandyBluetoothBackendBase
     with CommandPacketBackend {
@@ -9,7 +9,7 @@ class HandyNativeCommandBackend extends HandyBluetoothBackendBase
     required super.batteryModel,
     required super.timesource,
     required super.currentFunscript,
-  }) {
+  }) : super(backendType: PlayerBackendType.handyStrokerCommand) {
     effectAdd([commandEffect(timesource, settingsModel, currentActions)]);
   }
 
@@ -18,7 +18,7 @@ class HandyNativeCommandBackend extends HandyBluetoothBackendBase
 
   @override
   Future<void> updateCommand(CommandPacket cmd) async {
-    if ((!connected.value || handyBle == null) && !kDebugMode) return;
+    if (!connected.value) return;
 
     if (cmd.moveOverTimeMs > 0 && cmd.logicalMoveToPos != _lastPosition) {
       final speed =
@@ -33,7 +33,7 @@ class HandyNativeCommandBackend extends HandyBluetoothBackendBase
         return;
       }
       // stroke range is handled by the device itself which is why actualMovePos is passed
-      handyBle?.positionWithDuration(
+      positionWithDuration(
         (cmd.actualMoveToPos / 100.0).clamp(0.0, 1.0),
         cmd.moveOverTimeMs,
       );

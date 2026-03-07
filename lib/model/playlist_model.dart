@@ -16,62 +16,14 @@ class PlaylistModel {
       () => _entries.value.firstWhereOrNull((e) => e.current),
     );
   }
-  //UnmodifiableListView<Video> get videos => UnmodifiableListView(_videos);
-  //bool get isShuffled => _isShuffled;
-
-  // void shuffleList() {
-  //   _isShuffled = !_isShuffled;
-  //   if (_isShuffled) {
-  //     _videos.shuffle();
-  //   } else {
-  //     _videos
-  //       ..clear()
-  //       ..addAll(_originalVideos);
-  //   }
-  // }
-
-  // Video? nextVideo() {
-  //   if (_videos.isNotEmpty) {
-  //     final index = (_currentIndex.value + 1) % _videos.length;
-  //     return index >= 0 && index < _videos.length ? _videos[index] : null;
-  //   }
-  //   return null;
-  // }
-
-  // Video? previousVideo() {
-  //   if (_videos.isNotEmpty) {
-  //     final index = (_currentIndex.value - 1 + _videos.length) % _videos.length;
-  //     return index >= 0 && index < _videos.length ? _videos[index] : null;
-  //   }
-  //   return null;
-  // }
-
-  // Video? videoAt(int index) {
-  //   if (index >= 0 && index < _videos.length) {
-  //     return _videos[index];
-  //   }
-  //   return null;
-  // }
-
-  // void setIndexFromVideo(Video video) {
-  //   final index = _videos.indexOf(video);
-  //   if (index < 0) {
-  //     throw Exception("Video not in playlist");
-  //   }
-  //   _currentIndex.value = index;
-  // }
 
   int getIndexForVideo(Video video) {
-    return _entries.indexWhere((v) => v.filename == video.videoPath);
-  }
+    final videoPath = Uri.file(video.videoPath).toFilePath(windows: false);
 
-  // void setIndexFromVideoPath(String newPath) {
-  //   final index = _playlistItems.indexWhere((v) => v.filename == newPath);
-  //   if (index < 0 && _playlistItems.isNotEmpty) {
-  //     throw Exception("Video not in playlist");
-  //   }
-  //   _currentIndex.value = index;
-  // }
+    return _entries.indexWhere(
+      (v) => Uri.file(v.filename).toFilePath(windows: false) == videoPath,
+    );
+  }
 
   static PlaylistModel fromJson(String jsonString) {
     /*
@@ -105,11 +57,12 @@ class PlaylistModel {
         final id = item['id'] as int?;
         final filename = item['filename'] as String?;
         final current = item['current'] as bool?;
+        // ignore: unused_local_variable
         final playing = item['playing'] as bool?;
 
         if (id != null && filename != null) {
           items.add(
-            PlaylistItem(id, filename, current ?? false, playing ?? false),
+            PlaylistItem(id, filename, current ?? false /*, playing ?? false*/),
           );
         }
       }
@@ -124,6 +77,5 @@ class PlaylistItem {
   final int id;
   final String filename;
   final bool current;
-  final bool playing;
-  PlaylistItem(this.id, this.filename, this.current, this.playing);
+  PlaylistItem(this.id, this.filename, this.current);
 }
