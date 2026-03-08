@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:syncopathy/media_library.dart';
+import 'package:syncopathy/media_library/media_library.dart';
 
 part 'media_library_settings.g.dart';
 

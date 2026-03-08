@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:syncopathy/search_expression_ast.dart';
-import 'package:syncopathy/search_expression_parser.dart';
+import 'package:syncopathy/media_library/search_expression_ast.dart';
+import 'package:syncopathy/media_library/search_expression_parser.dart';
 
 class ExpressionVisualizer extends StatelessWidget {
   final String expression;

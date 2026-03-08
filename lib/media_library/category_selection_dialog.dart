@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:syncopathy/media_manager.dart';
+import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/sqlite/models/user_category.dart';
 import 'package:syncopathy/notification_feed.dart';

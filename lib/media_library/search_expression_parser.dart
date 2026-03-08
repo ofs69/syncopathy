@@ -1,5 +1,5 @@
-import 'package:syncopathy/search_expression_ast.dart';
-import 'package:syncopathy/search_expression_lexer.dart';
+import 'package:syncopathy/media_library/search_expression_ast.dart';
+import 'package:syncopathy/media_library/search_expression_lexer.dart';
 
 class TokenIterator {
   final List<Token> _tokens;

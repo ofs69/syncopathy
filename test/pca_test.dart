@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:syncopathy/pca.dart';
+import 'package:syncopathy/media_library/pca.dart';
 
 void main() {
   group('PCA', () {

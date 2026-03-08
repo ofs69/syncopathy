@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncopathy/events/event_bus.dart';
 import 'package:syncopathy/events/player_event.dart';
-import 'package:syncopathy/media_library.dart';
+import 'package:syncopathy/media_library/media_library.dart';
 
 class MediaPage extends StatefulWidget {
   const MediaPage({super.key});

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:syncopathy/search_expression_visualizer.dart';
+import 'package:syncopathy/media_library/search_expression_visualizer.dart';
 
 void main() {
   group('ExpressionVisualizer', () {

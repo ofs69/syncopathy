@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/logging.dart';
-import 'package:syncopathy/media_library.dart';
+import 'package:syncopathy/media_library/media_library.dart';
 import 'package:syncopathy/sqlite/key_value_store.dart';
 import 'package:syncopathy/model/json/media_library_settings.dart';
 

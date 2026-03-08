@@ -9,7 +9,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
-import 'package:syncopathy/media_manager.dart';
+import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';

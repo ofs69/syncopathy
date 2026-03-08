@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
-import 'package:syncopathy/pca.dart';
-import 'package:syncopathy/media_manager.dart';
+import 'package:syncopathy/media_library/pca.dart';
+import 'package:syncopathy/media_library/media_manager.dart';
 
 /// Helper class to hold stroke data
 class Stroke {

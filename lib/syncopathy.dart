@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:signals/signals_core.dart';
 import 'package:syncopathy/help_page.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
-import 'package:syncopathy/media_manager.dart';
+import 'package:syncopathy/media_library/media_manager.dart';
 
-import 'package:syncopathy/media_page.dart';
+import 'package:syncopathy/media_library/media_page.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/notification_feed.dart';

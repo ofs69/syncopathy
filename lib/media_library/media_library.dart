@@ -6,23 +6,23 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/events/event_bus.dart';
 import 'package:syncopathy/events/player_event.dart';
 
-import 'package:syncopathy/funscript_metadata_filter_bottom_sheet.dart';
+import 'package:syncopathy/media_library/funscript_metadata_filter_bottom_sheet.dart';
 
-import 'package:syncopathy/media_manager.dart';
-import 'package:syncopathy/media_search_service.dart';
+import 'package:syncopathy/media_library/media_manager.dart';
+import 'package:syncopathy/media_library/media_search_service.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/sqlite/models/user_category.dart';
 import 'package:syncopathy/video_item.dart';
-import 'package:syncopathy/search_expression_visualizer.dart';
+import 'package:syncopathy/media_library/search_expression_visualizer.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
-import 'package:syncopathy/wheel_of_fortune.dart';
+import 'package:syncopathy/media_library/wheel_of_fortune.dart';
 import 'package:provider/provider.dart';
-import 'package:syncopathy/category_selection_dialog.dart';
+import 'package:syncopathy/media_library/category_selection_dialog.dart';
 import 'package:syncopathy/notification_feed.dart';
-import 'package:syncopathy/pca_calculator.dart';
-import 'package:syncopathy/pca_progress_dialog.dart';
-import 'package:syncopathy/search_bar.dart';
+import 'package:syncopathy/media_library/pca_calculator.dart';
+import 'package:syncopathy/media_library/pca_progress_dialog.dart';
+import 'package:syncopathy/media_library/search_bar.dart';
 
 enum SortOption {
   title('Title'),

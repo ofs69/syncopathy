@@ -5,7 +5,7 @@ import 'package:syncopathy/connection_button.dart';
 import 'package:syncopathy/events/event_bus.dart';
 import 'package:syncopathy/events/player_event.dart';
 import 'package:syncopathy/home_button.dart';
-import 'package:syncopathy/media_manager.dart';
+import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/player/media_kit_player.dart';

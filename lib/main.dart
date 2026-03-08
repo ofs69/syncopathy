@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:syncopathy/logging.dart';
-import 'package:syncopathy/media_manager.dart';
+import 'package:syncopathy/media_library/media_manager.dart';
 
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';

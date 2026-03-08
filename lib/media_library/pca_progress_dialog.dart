@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:syncopathy/pca_calculator.dart';
+import 'package:syncopathy/media_library/pca_calculator.dart';
 
 class PcaProgressDialog extends StatefulWidget {
   final PcaCalculator pcaCalculator;

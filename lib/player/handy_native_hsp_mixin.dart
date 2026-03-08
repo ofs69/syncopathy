@@ -282,13 +282,15 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     }
 
     final actions = currentActions.value;
-    if (actions == null) return;
 
     // Check if actions have changed
     if (_bufferedActionsReference != null &&
         _bufferedActionsReference != actions) {
       _resetPlayback(actions);
+    } else if (actions == null) {
+      // actions is null ?? hspFlush or hspSetup?
     }
+    if (actions == null) return;
 
     final isPlaying = !timesource.paused.value;
     final currentTime = timesource.currentRawMs;

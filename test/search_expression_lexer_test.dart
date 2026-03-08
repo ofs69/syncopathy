@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:syncopathy/search_expression_lexer.dart';
+import 'package:syncopathy/media_library/search_expression_lexer.dart';
 
 void main() {
   group('SearchExpressionTokenizer', () {

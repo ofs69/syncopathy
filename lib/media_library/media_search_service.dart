@@ -1,5 +1,5 @@
-import 'package:syncopathy/search_expression_parser.dart';
-import 'package:syncopathy/search_expression_ast.dart';
+import 'package:syncopathy/media_library/search_expression_parser.dart';
+import 'package:syncopathy/media_library/search_expression_ast.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
 
 class MediaSearchService {
