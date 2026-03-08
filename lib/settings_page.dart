@@ -9,6 +9,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
+import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
@@ -80,27 +81,30 @@ class _SettingsPageState extends State<SettingsPage>
         title: 'Player Backend',
         children: [_buildPlayerBackendSettings(context)],
       ),
-      _buildSettingsCard(
-        context,
-        title: 'Media Library Paths',
-        subtitle:
-            'Folders to search for videos and funscripts (searched recursively).',
-        children: [_buildMediaPaths(context)],
-      ),
+      if (!syncopathySimpleMode)
+        _buildSettingsCard(
+          context,
+          title: 'Media Library Paths',
+          subtitle:
+              'Folders to search for videos and funscripts (searched recursively).',
+          children: [_buildMediaPaths(context)],
+        ),
       _buildSettingsCard(
         context,
         title: 'Video Player',
         children: [
-          _buildEmbeddedVideoPlayerSettings(context),
-          _buildAutoSwitchToVideoPlayerTabSettings(context),
+          if (!kIsWeb) _buildEmbeddedVideoPlayerSettings(context),
+          if (!syncopathySimpleMode)
+            _buildAutoSwitchToVideoPlayerTabSettings(context),
           _buildSkipToActionSettings(context),
         ],
       ),
-      _buildSettingsCard(
-        context,
-        title: 'Data Management',
-        children: [_buildAppDataSettings(context)],
-      ),
+      if (!kIsWeb)
+        _buildSettingsCard(
+          context,
+          title: 'Data Management',
+          children: [_buildAppDataSettings(context)],
+        ),
       _buildSettingsCard(
         context,
         title: 'App',
@@ -357,7 +361,9 @@ class _SettingsPageState extends State<SettingsPage>
             return Watch(
               (context) => ListTile(
                 title: Text(
-                  '${info.appName} v${info.version}+${info.buildNumber}\n${DatabaseHelper().dbVersion}\n${DatabaseHelper().userDbVersion}',
+                  !syncopathySimpleMode
+                      ? '${info.appName} v${info.version}+${info.buildNumber}\n${DatabaseHelper().dbVersion}\n${DatabaseHelper().userDbVersion}'
+                      : '${info.appName} v${info.version}+${info.buildNumber}',
                 ),
                 subtitle: statusUpdateMessageSignal.value != null
                     ? Text(statusUpdateMessageSignal.value!)
