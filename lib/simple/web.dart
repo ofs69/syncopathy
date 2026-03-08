@@ -1,8 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:js_interop';
 
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
+import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/player/video_player.dart';
+import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:web/web.dart' as web;
 
 class SimpleMode {
@@ -25,6 +32,27 @@ class SimpleMode {
         }
       },
     );
+  }
+
+  static Future<String> _readBlobUrlAsString(String blobUrl) async {
+    // 1. Fetch the data from the Blob URL
+    final response = await web.window.fetch(blobUrl.toJS).toDart;
+
+    // 2. Convert the response body to a Blob object
+    final web.Blob blob = await response.blob().toDart;
+
+    // 3. Create a FileReader to read the Blob as text
+    final reader = web.FileReader();
+    final completer = Completer<String>();
+
+    reader.onLoadEnd.listen((event) {
+      // The result contains the string content of the file
+      completer.complete(reader.result.toString());
+    });
+
+    reader.readAsText(blob);
+
+    return completer.future;
   }
 
   static Future<List<(String, String, String)>> _pickFileAndGetBlobUrl() async {
@@ -70,17 +98,60 @@ class SimpleMode {
     if (result.isNotEmpty) {
       try {
         for (final file in result) {
-          throw UnimplementedError();
-          // playerModel.openFile(
-          //   file.$1,
-          //   file.$2,
-          //   file.$3,
-          //   () => readBlobUrlAsString(file.$2),
-          // );
+          await openFile(
+            playerModel,
+            file.$1,
+            file.$2,
+            file.$3,
+            () => _readBlobUrlAsString(file.$2),
+          );
         }
       } catch (e) {
         Logger.error(e.toString());
       }
     }
+  }
+
+  static Future<void> openFile(
+    PlayerModel playerModel,
+    String name,
+    String path,
+    String? mimeType,
+    Future<String> Function() readAsString,
+  ) async {
+    final ext = p.extension(name).toLowerCase();
+    if (ext == ".funscript") {
+      final funscriptJson = await readAsString();
+      final funscriptMap = jsonDecode(funscriptJson);
+      final funscript = Funscript.fromJson(funscriptMap, path);
+      if (!funscript.likelyScriptToken) {
+        playerModel.simpleModeFunscript.value = funscript;
+      } else {
+        playerModel.simpleModeFunscript.value = null;
+        Logger.error("Script token playback is not supported.");
+      }
+    } else {
+      if (mimeType != null && !_canPlayVideo(mimeType)) {
+        Logger.error("Can't play $name");
+      } else {
+        getIt.get<VideoPlayer>().openSingleVideo(
+          Video(
+            title: name,
+            videoPath: path,
+            funscriptPath: "",
+            averageSpeed: 0.0,
+            averageMin: 0.0,
+            averageMax: 100.0,
+            dateFirstFound: DateTime.now(),
+          ),
+        );
+      }
+    }
+  }
+
+  static bool _canPlayVideo(String mimeType) {
+    final video = web.document.createElement('video') as web.HTMLVideoElement;
+    final support = video.canPlayType(mimeType);
+    return support == 'probably' || support == 'maybe';
   }
 }

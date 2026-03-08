@@ -7,8 +7,7 @@ import 'package:window_manager/window_manager.dart';
 
 class PlatformInit {
   static Future<void> initPlatform(bool simpleMode) async {
-    if(!simpleMode)
-    {
+    if (!simpleMode) {
       // Initialize FFI for SQLite on desktop
       if (isDesktop()) {
         sqfliteFfiInit();

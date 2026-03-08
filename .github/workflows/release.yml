@@ -28,6 +28,9 @@ jobs:
       - name: Build Windows release
         run: flutter build windows --release --dart-define-from-file=config.json
 
+      - name: Copy helper bat file
+        run: cp "launchSimpleMode.bat" "build/windows/x64/runner/Release/launchSimpleMode.bat"
+
       - name: Download FFmpeg
         run: |
           Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-essentials.7z" -OutFile "ffmpeg.7z"

@@ -338,7 +338,7 @@ class _SettingsPageState extends State<SettingsPage>
           subtitle: const Text(
             'Shows extra notifications with debug information.',
           ),
-          value: settings.showDebugNotifications.value,
+          value: settings.showDebugNotifications.watch(context),
           onChanged: (value) {
             settings.showDebugNotifications.value = value;
           },

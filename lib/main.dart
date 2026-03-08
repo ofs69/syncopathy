@@ -86,25 +86,12 @@ void main(List<String> args) async {
   if (!kIsWeb) {
     final parser = ArgParser()
       ..addFlag(
-        'help',
-        abbr: 'h',
-        negatable: false,
-        help: 'Print this usage information.',
-      )
-      ..addFlag(
         'simple',
         abbr: 's',
         negatable: false,
         help: 'Enable simple interface (automatic if [file] is provided).',
       );
     final results = parser.parse(args);
-
-    if (results['help']) {
-      stdout.writeln('Usage: syncopathy [options] [file]');
-      stdout.writeln(parser.usage);
-      await stdout.flush();
-      return;
-    }
 
     openFile = results.rest.isNotEmpty ? results.rest.first : null;
     isSimple = (results['simple'] as bool) || (openFile != null);

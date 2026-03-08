@@ -2,6 +2,7 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
+import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/funscript.dart';
@@ -38,6 +39,8 @@ class PlayerModel with EffectDispose {
 
   late final ReadonlySignal<MediaFunscript?> currentlyOpen;
 
+  final Signal<Funscript?> simpleModeFunscript = signal(null);
+
   bool _videoViewCounted = false;
 
   PlayerModel(
@@ -58,7 +61,133 @@ class PlayerModel with EffectDispose {
       return null;
     });
 
+    if (syncopathySimpleMode) {
+      simpleModeEffects(player);
+    } else {
+      regularEffects(player);
+    }
+
     effectAdd([
+      effect(() {
+        final duration = player.duration.value;
+        final funscript = currentlyOpen.value?.funscript;
+
+        if (duration == null || duration < 0.1 || funscript == null) {
+          return;
+        }
+
+        // Skip to first stroke if enabled
+        untracked(() {
+          if (_settings.skipToAction.value) {
+            final actions = funscript.originalActions;
+            if (actions.isNotEmpty) {
+              final startTime = FunscriptAlgorithms.findFirstStroke(actions);
+              player.seekTo(Duration(milliseconds: startTime));
+            }
+          }
+        });
+      }),
+      effect(() {
+        final backendType = _settings.playerBackendType.value;
+        untracked(() async => await _updateBackend(backendType, _batteryModel));
+      }),
+    ]);
+  }
+
+  void _processFunscript(
+    Funscript funscript,
+    double? slewMaxRateOfChange,
+    double? rdpEpsilon,
+    bool remapFullRange,
+    bool invert,
+    double totalDuration,
+  ) {
+    final modifiedActions = FunscriptAlgorithms.processForHandy(
+      funscript.originalActions,
+      slewMaxRateOfChange,
+      rdpEpsilon,
+      remapFullRange ? (0, 100) : null,
+      invert,
+      totalDuration,
+    );
+    funscript.processedActions.value = modifiedActions;
+  }
+
+  void simpleModeEffects(VideoPlayer player) {
+    effectAdd([
+      effect(() async {
+        final video = player.currentVideo.value;
+        final funscript = simpleModeFunscript.value;
+        final totalDuration = player.duration.value;
+        final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
+        final rdpEpsilon = _settings.rdpEpsilon.value;
+        final remapFullRange = _settings.remapFullRange.value;
+        final invert = _settings.invert.value;
+
+        if (video == null || totalDuration == null || totalDuration < 0.1) {
+          __currentFunscript.value = null;
+          return null;
+        }
+        try {
+          if (funscript?.likelyScriptToken ?? false) {
+            Logger.warning("Script token playback is not supported.");
+            return null;
+          }
+          if (funscript != null) {
+            untracked(() {
+              _processFunscript(
+                funscript,
+                slewMaxRateOfChange,
+                rdpEpsilon,
+                remapFullRange,
+                invert,
+                totalDuration,
+              );
+            });
+          }
+          __currentFunscript.value = funscript;
+        } catch (_) {}
+      }),
+    ]);
+  }
+
+  void regularEffects(VideoPlayer player) {
+    effectAdd([
+      effect(() async {
+        final video = player.currentVideo.value;
+        final totalDuration = player.duration.value;
+        final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
+        final rdpEpsilon = _settings.rdpEpsilon.value;
+        final remapFullRange = _settings.remapFullRange.value;
+        final invert = _settings.invert.value;
+        if (video == null || totalDuration == null || totalDuration < 0.1) {
+          __currentFunscript.value = null;
+          return null;
+        }
+        try {
+          if (video.funscript == null) {
+            await video.loadFunscript();
+          }
+          final funscript = video.funscript;
+          if (funscript?.likelyScriptToken ?? false) {
+            Logger.warning("Script token playback is not supported.");
+            return null;
+          }
+          if (funscript != null) {
+            untracked(() {
+              _processFunscript(
+                funscript,
+                slewMaxRateOfChange,
+                rdpEpsilon,
+                remapFullRange,
+                invert,
+                totalDuration,
+              );
+            });
+          }
+          __currentFunscript.value = funscript;
+        } catch (_) {}
+      }),
       // View counting logic
       effect(() {
         final _ = player.currentVideo.value;
@@ -85,66 +214,6 @@ class PlayerModel with EffectDispose {
         });
       }),
       // View counting logic end
-      effect(() async {
-        final video = player.currentVideo.value;
-        final totalDuration = player.duration.value;
-        final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
-        final rdpEpsilon = _settings.rdpEpsilon.value;
-        final remapFullRange = _settings.remapFullRange.value;
-        final invert = _settings.invert.value;
-        if (video == null || totalDuration == null || totalDuration < 0.1) {
-          __currentFunscript.value = null;
-          return null;
-        }
-        try {
-          if (video.funscript == null) {
-            await video.loadFunscript();
-          }
-          final funscript = video.funscript;
-          if (funscript?.likelyScriptToken ?? false) {
-            Logger.warning("Script token playback is not supported.");
-            return null;
-          }
-          if (funscript != null) {
-            untracked(() {
-              final modifiedActions = FunscriptAlgorithms.processForHandy(
-                funscript.originalActions,
-                slewMaxRateOfChange,
-                rdpEpsilon,
-                remapFullRange ? (0, 100) : null,
-                invert,
-                totalDuration,
-              );
-              funscript.processedActions.value = modifiedActions;
-            });
-          }
-          __currentFunscript.value = funscript;
-        } catch (_) {}
-      }),
-      effect(() {
-        final duration = player.duration.value;
-        //final video = untracked(() => player.currentVideo.value);
-        final funscript = currentlyOpen.value?.funscript;
-
-        if (duration == null || duration < 0.1 || funscript == null) {
-          return;
-        }
-
-        // Skip to first stroke if enabled
-        untracked(() {
-          if (_settings.skipToAction.value) {
-            final actions = funscript.originalActions;
-            if (actions.isNotEmpty) {
-              final startTime = FunscriptAlgorithms.findFirstStroke(actions);
-              player.seekTo(Duration(milliseconds: startTime));
-            }
-          }
-        });
-      }),
-      effect(() {
-        final backendType = _settings.playerBackendType.value;
-        untracked(() async => await _updateBackend(backendType, _batteryModel));
-      }),
     ]);
   }
 

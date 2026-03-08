@@ -23,10 +23,10 @@ class Settings {
   Settings({
     this.min = 0,
     this.max = 100,
-    this.offsetMs = 25,
+    this.offsetMs = 0,
     List<String> mediaPaths = const [],
     this.slewMaxRateOfChange = 400,
-    this.rdpEpsilon = 15,
+    this.rdpEpsilon = 7,
     this.remapFullRange = true,
     this.skipToAction = true,
     this.embeddedVideoPlayer = false,

@@ -205,11 +205,12 @@ class CustomAppBarState extends State<CustomAppBar> {
                 : 'Dislike Video',
           ),
         if (mediaManager != null) const SizedBox(width: 16),
-        IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => getIt.get<VideoPlayer>().closeMedia(),
-          tooltip: playlist ? 'Close Playlist' : 'Close Video',
-        ),
+        if (!syncopathySimpleMode)
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => getIt.get<VideoPlayer>().closeMedia(),
+            tooltip: playlist ? 'Close Playlist' : 'Close Video',
+          ),
       ],
     );
   }

@@ -23,7 +23,7 @@ class SettingsModel {
   final Signal<double?> rdpEpsilon = signal(null);
   final Signal<bool> remapFullRange = signal(false);
   final Signal<bool> skipToAction = signal(false);
-  final Signal<bool> embeddedVideoPlayer = signal(false);
+  final Signal<bool> embeddedVideoPlayer = signal(kIsWeb);
   final Signal<bool> autoSwitchToVideoPlayerTab = signal(false);
   final Signal<bool> invert = signal(false);
   final Signal<PlayerBackendType> playerBackendType = signal(
@@ -54,7 +54,7 @@ class SettingsModel {
     rdpEpsilon.value = _entity.rdpEpsilon;
     remapFullRange.value = _entity.remapFullRange;
     skipToAction.value = _entity.skipToAction;
-    embeddedVideoPlayer.value = _entity.embeddedVideoPlayer;
+    embeddedVideoPlayer.value = _entity.embeddedVideoPlayer || kIsWeb;
     autoSwitchToVideoPlayerTab.value = _entity.autoSwitchToVideoPlayerTab;
     invert.value = _entity.invert;
     playerBackendType.value = _entity.playerBackendType;

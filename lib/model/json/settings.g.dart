@@ -9,14 +9,14 @@ part of 'settings.dart';
 Settings _$SettingsFromJson(Map<String, dynamic> json) => Settings(
   min: (json['min'] as num?)?.toInt() ?? 0,
   max: (json['max'] as num?)?.toInt() ?? 100,
-  offsetMs: (json['offsetMs'] as num?)?.toInt() ?? 25,
+  offsetMs: (json['offsetMs'] as num?)?.toInt() ?? 0,
   mediaPaths:
       (json['mediaPaths'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList() ??
       const [],
   slewMaxRateOfChange: (json['slewMaxRateOfChange'] as num?)?.toDouble() ?? 400,
-  rdpEpsilon: (json['rdpEpsilon'] as num?)?.toDouble() ?? 15,
+  rdpEpsilon: (json['rdpEpsilon'] as num?)?.toDouble() ?? 7,
   remapFullRange: json['remapFullRange'] as bool? ?? true,
   skipToAction: json['skipToAction'] as bool? ?? true,
   embeddedVideoPlayer: json['embeddedVideoPlayer'] as bool? ?? false,
@@ -52,14 +52,14 @@ const _$SettingsJsonSchema = {
   'properties': {
     'min': {'type': 'integer', 'default': 0},
     'max': {'type': 'integer', 'default': 100},
-    'offsetMs': {'type': 'integer', 'default': 25},
+    'offsetMs': {'type': 'integer', 'default': 0},
     'mediaPaths': {
       'type': 'array',
       'items': {'type': 'string'},
       'default': [],
     },
     'slewMaxRateOfChange': {'type': 'number', 'default': 400.0},
-    'rdpEpsilon': {'type': 'number', 'default': 15.0},
+    'rdpEpsilon': {'type': 'number', 'default': 7.0},
     'remapFullRange': {'type': 'boolean', 'default': true},
     'skipToAction': {'type': 'boolean', 'default': true},
     'embeddedVideoPlayer': {'type': 'boolean', 'default': false},

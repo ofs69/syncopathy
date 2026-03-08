@@ -5,6 +5,9 @@ import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/simple/stub.dart'
+    if (dart.library.html) 'package:syncopathy/simple/web.dart'
+    if (dart.library.io) 'package:syncopathy/simple/native.dart';
 
 class SimpleModeDragAndDrop extends StatefulWidget {
   final Widget child;
@@ -27,12 +30,7 @@ class _SimpleModeDragAndDropState extends State<SimpleModeDragAndDrop> {
         setState(() => _isDragging = false);
         _handleFiles(details.files);
       },
-      child: Stack(
-        children: [
-          widget.child,
-          if (_isDragging) _buildOverlay(),
-        ],
-      ),
+      child: Stack(children: [widget.child, if (_isDragging) _buildOverlay()]),
     );
   }
 
@@ -80,13 +78,13 @@ class _SimpleModeDragAndDropState extends State<SimpleModeDragAndDrop> {
 
     try {
       for (var file in files) {
-        throw UnimplementedError();
-        // playerModel.openFile(
-        //   file.name,
-        //   file.path,
-        //   file.mimeType,
-        //   () => file.readAsString(),
-        // );
+        await SimpleMode.openFile(
+          playerModel,
+          file.name,
+          file.path,
+          file.mimeType,
+          () => file.readAsString(),
+        );
       }
     } catch (e) {
       Logger.error(e.toString());

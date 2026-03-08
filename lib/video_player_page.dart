@@ -81,7 +81,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              if (embeddedVideoPlayer && player.controller != null)
+              if (player.controller != null)
                 Hero(
                   tag: 'videoPlayer',
                   child: VideoWidget(
