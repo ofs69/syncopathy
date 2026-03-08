@@ -3,14 +3,14 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/events/event_bus.dart';
-import 'package:syncopathy/events/player_event.dart';
 
 import 'package:syncopathy/media_library/funscript_metadata_filter_bottom_sheet.dart';
 
 import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/media_library/media_search_service.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
+import 'package:syncopathy/simple/simple_main.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/sqlite/models/user_category.dart';
 import 'package:syncopathy/video_item.dart';
@@ -344,7 +344,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
       return;
     }
     if (!mounted) return;
-    Events.emit(OpenPlaylistEvent(playlistVideos));
+    getIt.get<MediaKitPlayer>().openMultipleVideos(playlistVideos);
     NotificationFeedManager.showSuccessNotification(
       context,
       'Playlist created with ${playlistVideos.length} videos!',

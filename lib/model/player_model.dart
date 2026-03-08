@@ -1,5 +1,4 @@
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/events/event_subscriber_mixin.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
@@ -28,7 +27,7 @@ class MediaFunscript {
   MediaFunscript({required this.media, required this.funscript});
 }
 
-class PlayerModel with EventSubscriber, EffectDispose {
+class PlayerModel with EffectDispose {
   final SettingsModel _settings;
   final BatteryModel _batteryModel;
   final TimesourceModel timeSource;
@@ -48,46 +47,6 @@ class PlayerModel with EventSubscriber, EffectDispose {
     this._batteryModel,
   ) {
     playerBackend = signal(null);
-    // _currentFunscript = computed(() {
-    //   final video = player.currentVideo.value;
-    //   final totalDuration = player.duration.value;
-    //   final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
-    //   final rdpEpsilon = _settings.rdpEpsilon.value;
-    //   final remapFullRange = _settings.remapFullRange.value;
-    //   final invert = _settings.invert.value;
-
-    //   if (totalDuration == null || totalDuration < 0.1) return video?.funscript;
-
-    //   try {
-    //     if (video != null) {
-    //       if (video.funscript == null) {
-    //         video.loadFunscript();
-    //       }
-
-    //       final funscript = video.funscript;
-    //       if (funscript?.likelyScriptToken ?? false) {
-    //         Logger.warning("Script token playback is not supported.");
-    //         return null;
-    //       }
-    //       if (funscript != null) {
-    //         untracked(() {
-    //           final modifiedActions = FunscriptAlgorithms.processForHandy(
-    //             funscript.originalActions,
-    //             slewMaxRateOfChange,
-    //             rdpEpsilon,
-    //             remapFullRange ? (0, 100) : null,
-    //             invert,
-    //             totalDuration,
-    //           );
-    //           funscript.processedActions.value = modifiedActions;
-    //         });
-    //       }
-
-    //       return funscript;
-    //     }
-    //   } catch (_) {}
-    //   return null;
-    // });
 
     currentlyOpen = computed(() {
       final video = untracked(() => player.currentVideo.value);
@@ -133,34 +92,33 @@ class PlayerModel with EventSubscriber, EffectDispose {
         final rdpEpsilon = _settings.rdpEpsilon.value;
         final remapFullRange = _settings.remapFullRange.value;
         final invert = _settings.invert.value;
-        if (totalDuration == null || totalDuration < 0.1) {
+        if (video == null || totalDuration == null || totalDuration < 0.1) {
+          __currentFunscript.value = null;
           return null;
         }
         try {
-          if (video != null) {
-            if (video.funscript == null) {
-              await video.loadFunscript();
-            }
-            final funscript = video.funscript;
-            if (funscript?.likelyScriptToken ?? false) {
-              Logger.warning("Script token playback is not supported.");
-              return null;
-            }
-            if (funscript != null) {
-              untracked(() {
-                final modifiedActions = FunscriptAlgorithms.processForHandy(
-                  funscript.originalActions,
-                  slewMaxRateOfChange,
-                  rdpEpsilon,
-                  remapFullRange ? (0, 100) : null,
-                  invert,
-                  totalDuration,
-                );
-                funscript.processedActions.value = modifiedActions;
-              });
-            }
-            __currentFunscript.value = funscript;
+          if (video.funscript == null) {
+            await video.loadFunscript();
           }
+          final funscript = video.funscript;
+          if (funscript?.likelyScriptToken ?? false) {
+            Logger.warning("Script token playback is not supported.");
+            return null;
+          }
+          if (funscript != null) {
+            untracked(() {
+              final modifiedActions = FunscriptAlgorithms.processForHandy(
+                funscript.originalActions,
+                slewMaxRateOfChange,
+                rdpEpsilon,
+                remapFullRange ? (0, 100) : null,
+                invert,
+                totalDuration,
+              );
+              funscript.processedActions.value = modifiedActions;
+            });
+          }
+          __currentFunscript.value = funscript;
         } catch (_) {}
       }),
       effect(() {
@@ -255,7 +213,6 @@ class PlayerModel with EventSubscriber, EffectDispose {
   }
 
   void dispose() {
-    eventDispose();
     effectDispose();
   }
 

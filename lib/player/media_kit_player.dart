@@ -1,20 +1,14 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
-import 'package:path_provider/path_provider.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/events/event_bus.dart';
-import 'package:syncopathy/events/event_subscriber_mixin.dart';
-import 'package:syncopathy/events/player_event.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/model/playlist_model.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
-import 'package:path/path.dart' as p;
 
 class SmoothVideoSignals with EffectDispose {
   final ReadonlySignal<double> rawPosition;
@@ -80,7 +74,7 @@ class SmoothVideoSignals with EffectDispose {
   }
 }
 
-class MediaKitPlayer with EventSubscriber, EffectDispose {
+class MediaKitPlayer with EffectDispose {
   late Player _player;
   late final VideoController? controller;
 
@@ -238,30 +232,6 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
       buffering,
     );
 
-    eventSubs([
-      Events.on<OpenVideoEvent>().listen((ev) async {
-        // If a playlist is currently open try to find the video and set the index
-        final playlist = currentPlaylist.value;
-        final video = ev.video;
-        final index = playlist.getIndexForVideo(video);
-        if (index >= 0 && index < playlist.entries.length) {
-          _player.jump(index);
-          return;
-        }
-
-        // Open video as a playlist with one video
-        Events.emit(OpenPlaylistEvent([ev.video]));
-      }),
-      Events.on<CloseMediaEvent>().listen((_) async {
-        await _closeFile();
-      }),
-      Events.on<OpenPlaylistEvent>().listen(_onOpenPlaylist),
-      Events.on<PlaylistPreviousEvent>().listen(_onPlaylistPrevious),
-      Events.on<PlaylistNextEvent>().listen(_onPlaylistNext),
-      Events.on<PlaylistSetShuffleEvent>().listen(_onPlaylistShuffle),
-      loadedPath.toStream().listen(_onPathChange),
-    ]);
-
     final durationSignal = _player.stream.duration
         .map((d) => d.inMilliseconds / 1000.0)
         .toSyncSignal(_player.state.duration.inMilliseconds / 1000.0);
@@ -282,18 +252,33 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     ]);
   }
 
-  void _onPathChange(String newPath) {
-    // debugPrint(newPath);
+  Future<void> closeMedia() async {
+    await _player.stop();
+    _player.setShuffle(false);
   }
 
-  Future<void> _onOpenPlaylist(OpenPlaylistEvent event) async {
-    if (event.videos.isEmpty) return;
-    _previouslyLoadedVideos.value = event.videos;
-    // final playlistFile = await _createPlaylistM3U(event.videos);
-    _loadList(event.videos);
+  Future<void> openSingleVideo(Video video) async {
+    // If a playlist is currently open try to find the video and set the index
+    final playlist = currentPlaylist.value;
+    final index = playlist.getIndexForVideo(video);
+    if (index >= 0 && index < playlist.entries.length) {
+      _player.jump(index);
+      return;
+    }
+
+    // Open video as a playlist with one video
+    await openMultipleVideos([video]);
   }
 
-  void _onPlaylistPrevious(PlaylistPreviousEvent event) {
+  Future<void> openMultipleVideos(List<Video> videos) async {
+    if (videos.isEmpty) return;
+    _previouslyLoadedVideos.value = videos;
+    final playlist = Playlist(videos.map((v) => Media(v.videoPath)).toList());
+    await _player.open(playlist, play: _player.state.playing);
+    _playlistShuffled.value = false;
+  }
+
+  void jumpPreviousPlaylistEntry() {
     final playlist = currentPlaylist.value;
     final newIndex = (playlist.currentIndex.value - 1).clamp(
       0,
@@ -305,7 +290,7 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     }
   }
 
-  void _onPlaylistNext(PlaylistNextEvent event) {
+  void jumpNextPlaylistEntry() {
     final playlist = currentPlaylist.value;
     final newIndex = (playlist.currentIndex.value + 1).clamp(
       0,
@@ -317,46 +302,7 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
     }
   }
 
-  // ignore: unused_element
-  Future<String?> _createPlaylistM3U(List<Video> videos) async {
-    final directory = await getApplicationSupportDirectory();
-    final file = File(p.join(directory.path, 'playlist.m3u'));
-    final sink = file.openWrite(mode: FileMode.write);
-
-    try {
-      // Write the header
-      sink.writeln('#EXTM3U');
-      for (var v in videos) {
-        sink.writeln(v.videoPath);
-      }
-    } catch (e) {
-      return null;
-    } finally {
-      await sink.close();
-    }
-
-    return file.path;
-  }
-
-  void _loadList(List<Video> videos) {
-    final playlist = Playlist(videos.map((v) => Media(v.videoPath)).toList());
-    _player.open(playlist, play: _player.state.playing);
-    _playlistShuffled.value = false;
-  }
-
-  // ignore: unused_element
-  Future<bool> _loadFile(String filepath) async {
-    _player.open(Media(filepath));
-    return true;
-  }
-
-  Future<void> _closeFile() async {
-    await _player.stop();
-    _player.setShuffle(false);
-  }
-
   void dispose() async {
-    eventDispose();
     effectDispose();
     await _player.dispose();
     _smoothVideoSignals.dispose();
@@ -385,10 +331,10 @@ class MediaKitPlayer with EventSubscriber, EffectDispose {
 
   void togglePause() => _player.playOrPause();
 
-  void _onPlaylistShuffle(PlaylistSetShuffleEvent event) {
-    if (playlistShuffled.value != event.shuffle) {
-      _player.setShuffle(event.shuffle);
-      _playlistShuffled.value = event.shuffle;
+  void setPlaylistShuffle(bool shuffle) {
+    if (playlistShuffled.value != shuffle) {
+      _player.setShuffle(shuffle);
+      _playlistShuffled.value = shuffle;
     }
   }
 }

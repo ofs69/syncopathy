@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:syncopathy/events/event_bus.dart';
-import 'package:syncopathy/events/player_event.dart';
 import 'package:syncopathy/media_library/media_library.dart';
+import 'package:syncopathy/player/media_kit_player.dart';
+import 'package:syncopathy/simple/simple_main.dart';
 
 class MediaPage extends StatefulWidget {
   const MediaPage({super.key});
@@ -26,7 +26,8 @@ class _MediaPageState extends State<MediaPage>
         children: [
           Expanded(
             child: MediaLibrary(
-              onVideoTapped: (v) => Events.emit(OpenVideoEvent(v)),
+              onVideoTapped: (v) =>
+                  getIt.get<MediaKitPlayer>().openSingleVideo(v),
             ),
           ),
         ],

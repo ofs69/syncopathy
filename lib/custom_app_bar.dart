@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/connection_button.dart';
-import 'package:syncopathy/events/event_bus.dart';
-import 'package:syncopathy/events/player_event.dart';
 import 'package:syncopathy/home_button.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
 import 'package:syncopathy/playlist_controls.dart';
+import 'package:syncopathy/simple/simple_main.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:window_manager/window_manager.dart';
@@ -184,7 +183,7 @@ class CustomAppBarState extends State<CustomAppBar> {
         if (mediaManager != null) const SizedBox(width: 16),
         IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Events.emit(CloseMediaEvent()),
+          onPressed: () => getIt.get<MediaKitPlayer>().closeMedia(),
           tooltip: playlist ? 'Close Playlist' : 'Close Video',
         ),
       ],

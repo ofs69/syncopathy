@@ -26,10 +26,6 @@ import 'package:flutter/foundation.dart';
 
 final getIt = GetIt.instance;
 
-void _registerServices() {
-  getIt.registerSingleton(KeyValueRepository());
-}
-
 bool isDesktop() {
   return defaultTargetPlatform == TargetPlatform.windows ||
       defaultTargetPlatform == TargetPlatform.macOS ||
@@ -43,20 +39,16 @@ Future<Widget> _initializeAppAndRun(
 }) async {
   await DatabaseHelper().initDb(directory: appSupportDir.path);
   Logger.info('SQLite initialized.');
-  _registerServices();
+  getIt.registerSingleton(KeyValueRepository());
 
   if (isDesktop()) {
     await windowManager.ensureInitialized();
-  }
-
-  WindowOptions windowOptions = const WindowOptions(
-    size: Size(1920, 1080),
-    center: true,
-    backgroundColor: Colors.transparent,
-    titleBarStyle: TitleBarStyle.hidden,
-  );
-
-  if (isDesktop()) {
+    WindowOptions windowOptions = const WindowOptions(
+      size: Size(1920, 1080),
+      center: true,
+      backgroundColor: Colors.transparent,
+      titleBarStyle: TitleBarStyle.hidden,
+    );
     await windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
       await windowManager.focus();
@@ -80,6 +72,7 @@ Future<Widget> _initializeAppAndRun(
   var mpvPlayer = MediaKitPlayer(
     videoOutput: settings.embeddedVideoPlayer.value,
   );
+  getIt.registerSingleton<MediaKitPlayer>(mpvPlayer);
 
   var playerModel = PlayerModel(
     settings,

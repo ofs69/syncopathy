@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/events/event_bus.dart';
-import 'package:syncopathy/events/event_subscriber_mixin.dart';
-import 'package:syncopathy/events/player_event.dart';
+import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/helper/extensions.dart';
+import 'package:syncopathy/main.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/media_kit_player.dart';
@@ -25,7 +24,7 @@ class VideoPlayerPage extends StatefulWidget {
 }
 
 class _VideoPlayerPageState extends State<VideoPlayerPage>
-    with EventSubscriber, AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, EffectDispose {
   final Signal<bool> _showFunscriptGraph = signal(true);
   final Signal<bool> _showSettings = signal(false);
 
@@ -36,16 +35,20 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   void initState() {
     super.initState();
 
-    eventSubs([
-      Events.on<CloseMediaEvent>().listen(
-        (event) => _showSettings.value = false,
-      ),
+    final player = getIt.get<MediaKitPlayer>();
+    effectAdd([
+      effect(() {
+        final path = player.loadedPath.value;
+        if (path.trim() == "") {
+          _showSettings.value = false;
+        }
+      }),
     ]);
   }
 
   @override
   void dispose() async {
-    await eventDispose();
+    effectDispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }

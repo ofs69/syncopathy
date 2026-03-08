@@ -123,7 +123,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         untracked(() {
           if (homeMode) {
             hspStop(); // stop
-            positionWithDuration(0.0, 500);
+            positionWithDuration(settingsModel.invert.value ? 1.0 : 0.0, 500);
           } else {
             _resetPlayback(currentActions.value);
           }
