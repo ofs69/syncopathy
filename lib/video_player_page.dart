@@ -59,7 +59,6 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
     final settings = context.watch<SettingsModel>();
     final player = context.watch<VideoPlayer>();
     final playerModel = context.watch<PlayerModel>();
-    final embeddedVideoPlayer = settings.embeddedVideoPlayer.watch(context);
     final noFunscriptLoaded = playerModel.currentlyOpen.watch(context) == null;
 
     enterFullscreen() => Navigator.push(
