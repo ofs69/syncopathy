@@ -1,6 +1,6 @@
 import 'package:media_kit/media_kit.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/player/media_kit_player.dart';
+import 'package:syncopathy/player/video_player.dart';
 
 class TimesourceModel {
   final ReadonlySignal<double> volume;
@@ -30,7 +30,7 @@ class TimesourceModel {
     required this.loadedPath,
   });
 
-  static TimesourceModel fromPlayer(MediaKitPlayer player) => TimesourceModel(
+  static TimesourceModel fromPlayer(VideoPlayer player) => TimesourceModel(
     volume: player.volume,
     duration: player.duration,
     playbackSpeed: player.playbackSpeed,

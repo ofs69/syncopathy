@@ -3,8 +3,8 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_library/media_library.dart';
-import 'package:syncopathy/sqlite/key_value_store.dart';
 import 'package:syncopathy/model/json/media_library_settings.dart';
+import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 
 class MediaLibrarySettingsModel {
   late final MediaLibrarySettings _entity;
@@ -30,7 +30,7 @@ class MediaLibrarySettingsModel {
   }
 
   Future<void> load() async {
-    final settings = await KeyValueStore.get(MediaLibrarySettings.key);
+    final settings = await KVStore.get(MediaLibrarySettings.key);
     _entity = settings != null
         ? MediaLibrarySettings.fromJson(settings)
         : MediaLibrarySettings();
@@ -65,7 +65,7 @@ class MediaLibrarySettingsModel {
   }
 
   Future<void> _saveInternal() async {
-    KeyValueStore.put(MediaLibrarySettings.key, _entity.toJson());
+    KVStore.put(MediaLibrarySettings.key, _entity.toJson());
     Logger.debug("Media library settings save");
   }
 }

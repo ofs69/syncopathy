@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/extensions.dart';
-import 'package:syncopathy/player/media_kit_player.dart';
+import 'package:syncopathy/player/video_player.dart';
 
-class CustomMpvVideoWidget extends StatefulWidget {
-  final MediaKitPlayer player;
+class VideoWidget extends StatefulWidget {
+  final VideoPlayer player;
   final VideoController controller;
   final bool isFullscreen;
 
-  const CustomMpvVideoWidget({
+  const VideoWidget({
     super.key,
     required this.player,
     required this.controller,
@@ -17,10 +17,10 @@ class CustomMpvVideoWidget extends StatefulWidget {
   });
 
   @override
-  State<CustomMpvVideoWidget> createState() => _CustomMpvVideoWidgetState();
+  State<VideoWidget> createState() => _VideoWidgetState();
 }
 
-class _CustomMpvVideoWidgetState extends State<CustomMpvVideoWidget> {
+class _VideoWidgetState extends State<VideoWidget> {
   @override
   Widget build(BuildContext context) {
     final player = widget.player;

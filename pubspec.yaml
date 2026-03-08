@@ -84,6 +84,7 @@ dependencies:
   image: ^4.8.0
   pool: ^1.5.2
   http_interceptor: ^2.0.0
+  shared_preferences: ^2.5.4
 
 dependency_overrides:
   media_kit:

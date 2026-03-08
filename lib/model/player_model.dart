@@ -9,15 +9,15 @@ import 'package:syncopathy/model/json/buttplug_backend_settings.dart';
 import 'package:syncopathy/model/json/handy_native_web_backend_settings.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/timesource_model.dart';
+import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 import 'package:syncopathy/player/buttplug_stroker_backend.dart';
 import 'package:syncopathy/player/handy_native_command_backend.dart';
 import 'package:syncopathy/player/handy_native_hsp_bt_backend.dart';
 import 'package:syncopathy/player/handy_native_hsp_web_backend.dart';
-import 'package:syncopathy/player/media_kit_player.dart';
 import 'package:syncopathy/player/player_backend.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
+import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
-import 'package:syncopathy/sqlite/key_value_store.dart';
 
 import 'package:syncopathy/sqlite/models/video_model.dart';
 
@@ -43,7 +43,7 @@ class PlayerModel with EffectDispose {
   PlayerModel(
     this._settings,
     this.timeSource,
-    MediaKitPlayer player,
+    VideoPlayer player,
     this._batteryModel,
   ) {
     playerBackend = signal(null);
@@ -156,7 +156,7 @@ class PlayerModel with EffectDispose {
     switch (backendType) {
       case PlayerBackendType.buttplugStrokerCommand:
         if (playerBackend.value is! ButtplugStrokerBackend) {
-          final settings = await KeyValueStore.get(ButtplugBackendSettings.key);
+          final settings = await KVStore.get(ButtplugBackendSettings.key);
 
           newBackend = ButtplugStrokerBackend(
             timesource: timeSource,
@@ -191,9 +191,7 @@ class PlayerModel with EffectDispose {
         break;
       case PlayerBackendType.handyStrokerStreamingWeb:
         if (playerBackend.value is! HandyNativeHspWebBackend) {
-          final settings = await KeyValueStore.get(
-            HandyNativeWebBackendSettings.key,
-          );
+          final settings = await KVStore.get(HandyNativeWebBackendSettings.key);
           newBackend = HandyNativeHspWebBackend(
             webSettings: settings != null
                 ? HandyNativeWebBackendSettings.fromJson(settings)

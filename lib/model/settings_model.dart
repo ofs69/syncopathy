@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
+import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/model/json/settings.dart';
-import 'package:syncopathy/sqlite/key_value_store.dart';
 
 class SettingsModel {
   late final Settings _entity;
@@ -44,7 +44,7 @@ class SettingsModel {
   }
 
   Future<void> load() async {
-    final settings = await KeyValueStore.get(Settings.key);
+    final settings = await KVStore.get(Settings.key);
     _entity = settings != null ? Settings.fromJson(settings) : Settings();
     min.value = _entity.min;
     max.value = _entity.max;
@@ -81,6 +81,6 @@ class SettingsModel {
   }
 
   Future<void> _saveInternal() async {
-    KeyValueStore.put(Settings.key, _entity.toJson());
+    KVStore.put(Settings.key, _entity.toJson());
   }
 }

@@ -3,10 +3,10 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/json/handy_native_web_backend_settings.dart';
+import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
 import 'package:syncopathy/player/handy_web.dart';
 import 'package:syncopathy/player/player_backend.dart';
-import 'package:syncopathy/sqlite/key_value_store.dart';
 
 abstract class HandyWebBackendBase extends PlayerBackend
     implements IHandyHspBase, ICommandBackendBase {
@@ -49,7 +49,7 @@ abstract class HandyWebBackendBase extends PlayerBackend
   HandyNativeWebBackendSettings webSettings;
   Future<void> _saveSettings() async {
     _saveDebounce.run(() async {
-      await KeyValueStore.put(
+      await KVStore.put(
         HandyNativeWebBackendSettings.key,
         webSettings.toJson(),
       );

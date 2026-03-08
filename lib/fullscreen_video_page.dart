@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:syncopathy/custom_mpv_video_widget.dart';
-import 'package:syncopathy/player/media_kit_player.dart';
+import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/video_controls.dart';
+import 'package:syncopathy/video_widget.dart';
 
 class FullscreenVideoPage extends StatefulWidget {
-  final MediaKitPlayer player;
+  final VideoPlayer player;
   final bool isEmbeddedPlayerEnabled;
 
   const FullscreenVideoPage({
@@ -104,7 +104,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                   Center(
                     child: Hero(
                       tag: 'videoPlayer',
-                      child: CustomMpvVideoWidget(
+                      child: VideoWidget(
                         player: widget.player,
                         controller: widget.player.controller!,
                         isFullscreen: true,

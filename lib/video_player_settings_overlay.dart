@@ -8,7 +8,7 @@ import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
-import 'package:syncopathy/player/media_kit_player.dart';
+import 'package:syncopathy/player/video_player.dart';
 
 class ScriptPlayerSettingsOverlay extends StatelessWidget {
   final Function toggleSettings;
@@ -276,7 +276,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
 
   Widget _buildTimingSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    final player = context.read<MediaKitPlayer>();
+    final player = context.read<VideoPlayer>();
     final playerModel = context.read<PlayerModel>();
 
     return Column(

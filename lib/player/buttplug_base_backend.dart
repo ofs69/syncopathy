@@ -9,8 +9,8 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/json/buttplug_backend_settings.dart';
+import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 import 'package:syncopathy/player/player_backend.dart';
-import 'package:syncopathy/sqlite/key_value_store.dart';
 
 class ButtplugBaseBackend extends PlayerBackend implements ICommandBackendBase {
   ButtplugBaseBackend({
@@ -131,7 +131,7 @@ class ButtplugBaseBackend extends PlayerBackend implements ICommandBackendBase {
 
   Future<void> _saveSettings() async {
     _saveDebounce.run(() async {
-      await KeyValueStore.put(ButtplugBackendSettings.key, settings.toJson());
+      await KVStore.put(ButtplugBackendSettings.key, settings.toJson());
     });
   }
 

@@ -6,13 +6,13 @@ import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/helper/extensions.dart';
-import 'package:syncopathy/main.dart';
+import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
-import 'package:syncopathy/player/media_kit_player.dart';
+import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/scrolling_graph.dart';
 import 'package:syncopathy/video_controls.dart';
-import 'package:syncopathy/custom_mpv_video_widget.dart';
+import 'package:syncopathy/video_widget.dart';
 import 'package:syncopathy/fullscreen_video_page.dart';
 import 'package:syncopathy/video_player_settings_overlay.dart';
 
@@ -35,7 +35,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   void initState() {
     super.initState();
 
-    final player = getIt.get<MediaKitPlayer>();
+    final player = getIt.get<VideoPlayer>();
     effectAdd([
       effect(() {
         final path = player.loadedPath.value;
@@ -57,7 +57,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   Widget build(BuildContext context) {
     super.build(context);
     final settings = context.watch<SettingsModel>();
-    final player = context.watch<MediaKitPlayer>();
+    final player = context.watch<VideoPlayer>();
     final playerModel = context.watch<PlayerModel>();
     final embeddedVideoPlayer = settings.embeddedVideoPlayer.watch(context);
     final noFunscriptLoaded = playerModel.currentlyOpen.watch(context) == null;
@@ -84,7 +84,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
               if (embeddedVideoPlayer && player.controller != null)
                 Hero(
                   tag: 'videoPlayer',
-                  child: CustomMpvVideoWidget(
+                  child: VideoWidget(
                     player: player,
                     controller: player.controller!,
                   ),
@@ -151,7 +151,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
 
   ClipRect _funscriptGraph(
     ReadonlySignal<MediaFunscript?> currentlyOpen,
-    MediaKitPlayer player,
+    VideoPlayer player,
     SettingsModel settings,
   ) {
     return ClipRect(

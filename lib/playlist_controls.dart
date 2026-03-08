@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/player/media_kit_player.dart';
+import 'package:syncopathy/player/video_player.dart';
 
 class PlaylistControls extends StatefulWidget {
   const PlaylistControls({super.key});
@@ -13,7 +13,7 @@ class PlaylistControls extends StatefulWidget {
 class _PlaylistControlsState extends State<PlaylistControls> {
   @override
   Widget build(BuildContext context) {
-    final player = context.read<MediaKitPlayer>();
+    final player = context.read<VideoPlayer>();
 
     return Watch.builder(
       builder: (context) {
