@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:signals/signals_core.dart';
 import 'package:syncopathy/help_page.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
+import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/media_library/media_page.dart';
 import 'package:syncopathy/model/player_model.dart';
@@ -189,13 +190,13 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isPortrait = PlatformUtils.isPortrait(context);
     final withMedia = context.read<MediaManager?>() != null;
 
     return LogNotificationObserver(
       child: Scaffold(
         appBar: CustomAppBar(widgetTitle: widget.title),
-        bottomNavigationBar: isMobile
+        bottomNavigationBar: isPortrait
             ? NavigationBar(
                 selectedIndex: _selectedIndex,
                 onDestinationSelected: _onTabChanged,
@@ -205,7 +206,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
         body: SimpleModeDragAndDrop(
           child: Row(
             children: [
-              if (!isMobile)
+              if (!isPortrait)
                 NavigationRail(
                   selectedIndex: _selectedIndex,
                   onDestinationSelected: _onTabChanged,

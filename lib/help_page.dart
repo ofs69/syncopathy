@@ -1,4 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:syncopathy/helper/platform_utils.dart';
+import 'package:syncopathy/ioc.dart';
 
 class HelpPage extends StatefulWidget {
   const HelpPage({super.key});
@@ -8,87 +13,39 @@ class HelpPage extends StatefulWidget {
 }
 
 class _HelpPageState extends State<HelpPage> {
+  String _getHelpFile(bool simple, bool isWeb) =>
+      "${isWeb ? "web" : "native"}_${simple ? "simple" : "media"}.md";
+
   @override
   Widget build(BuildContext context) {
+    final helpFile = _getHelpFile(syncopathySimpleMode, kIsWeb);
+    final helpMd = rootBundle.loadString('assets/wiki/$helpFile');
+    final isPortrait = PlatformUtils.isPortrait(context);
+
     return Scaffold(
-      body: ListView(
-        padding: const EdgeInsets.all(24.0),
-        children: [
-          Text(
-            'Help',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Getting Started',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'To begin, navigate to the "Settings" tab. Under "Media Library Paths", add the directories where your video and funscript files are stored. Syncopathy will automatically scan these directories for compatible media.',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Video Players',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInfoPoint(
-                          context,
-                          'Embedded Player: This MPV-based player is integrated directly into the application and is currently only available on Windows. You can enable or disable the embedded player in the settings.',
-                        ),
-                        _buildInfoPoint(
-                          context,
-                          'External Player: When the embedded player is disabled, Syncopathy will utilize an external MPV player. It is available across all supported platforms. To use it disable the embedded player in the settings.',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Connecting The Handy',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'To connect your Handy, ensure it has firmware version 4 or newer. Bluetooth must be enabled on your Handy, preferably in exclusive Bluetooth mode, or in Wi-Fi + Bluetooth mode.',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildInfoPoint(
+      body: FutureBuilder(
+        future: helpMd,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return CircularProgressIndicator();
+          if (snapshot.hasError) return Text("No help file");
+          return Center(
+            child: FractionallySizedBox(
+              widthFactor: isPortrait ? 1.0 : 0.5,
+              child: Markdown(
+                data: snapshot.data!,
+                padding: EdgeInsets.all(24.0),
+                selectable: true,
+                styleSheet: MarkdownStyleSheet.fromTheme(
+                  Theme.of(context).copyWith(
+                    textTheme: Theme.of(
                       context,
-                      'Once Bluetooth is enabled, The Handy\'s LED will pulse blue (Bluetooth exclusive mode) or alternate between magenta and blue (Bluetooth + Wi-Fi mode), indicating it\'s ready to connect.',
-                    ),
-                    _buildInfoPoint(
-                      context,
-                      'When the LED is pulsing blue, you can press the connect button in the top right of the app bar to initiate the connection.',
-                    ),
-                    _buildInfoPoint(
-                      context,
-                      'Bluetooth must be enabled and your device must support Bluetooth Low Energy (BLE) for the connection.',
-                    ),
-                  ],
-                ),
+                    ).textTheme.apply(fontSizeFactor: 1.0, fontSizeDelta: 4.0),
+                  ),
+                ).copyWith(h1Padding: EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 0.0)),
               ),
-            ],
-          ),
-        ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -117,26 +74,6 @@ class _HelpPageState extends State<HelpPage> {
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoPoint(BuildContext context, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.check_circle_outline,
-            size: 20,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(text, style: Theme.of(context).textTheme.bodyLarge),
           ),
         ],
       ),

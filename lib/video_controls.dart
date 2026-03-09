@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/heatmap.dart';
+import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/player/video_player.dart';
 
@@ -39,8 +40,7 @@ class _VideoControlsState extends State<VideoControls> {
     final playerModel = context.read<PlayerModel>();
     final iconSize = Theme.of(context).iconTheme.size ?? 24.0;
 
-    // Use a breakpoint to detect mobile
-    final bool isMobile = MediaQuery.of(context).size.width < 600;
+    final isPortrait = PlatformUtils.isPortrait(context);
 
     return Material(
       type: MaterialType.transparency,
@@ -82,7 +82,7 @@ class _VideoControlsState extends State<VideoControls> {
                 Watch.builder(
                   builder: (context) {
                     return Text(
-                      _formatResponsiveTimestamp(player, isMobile),
+                      _formatResponsiveTimestamp(player, isPortrait),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -117,7 +117,7 @@ class _VideoControlsState extends State<VideoControls> {
     super.dispose();
   }
 
-  String _formatResponsiveTimestamp(VideoPlayer player, bool isMobile) {
+  String _formatResponsiveTimestamp(VideoPlayer player, bool isPortrait) {
     final current = Duration(
       milliseconds: (player.rawPosition.value * 1000).toInt(),
     );
@@ -133,7 +133,7 @@ class _VideoControlsState extends State<VideoControls> {
 
       // Hide milliseconds on mobile, hide hours if video is short
       String base = hours > 0 ? "$hours:$mins:$secs" : "$mins:$secs";
-      if (!isMobile) {
+      if (!isPortrait) {
         final ms = d.inMilliseconds.remainder(1000).toString().padLeft(3, "0");
         return "$base.$ms";
       }
