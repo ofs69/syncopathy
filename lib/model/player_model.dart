@@ -283,9 +283,10 @@ class PlayerModel with EffectDispose {
     effectDispose();
   }
 
-  void disconnectBackend() {
-    playerBackend.value?.dispose();
-    playerBackend.value = null; // this should cause the backend to recreated
+  void disconnectBackend() async {
+    await playerBackend.value?.dispose();
+    playerBackend.value = null;
+    await _updateBackend(_settings.playerBackendType.value, _batteryModel);
   }
 
   void connectBackend() async {

@@ -413,11 +413,10 @@ class _SettingsPageState extends State<SettingsPage>
     final settings = context.read<SettingsModel>();
     final playerModel = context.read<PlayerModel>();
     final backend = playerModel.playerBackend.watch(context);
-
+    final backendType = settings.playerBackendType.watch(context);
     final isLoaded =
-        playerModel.playerBackend.value?.backendType != null &&
-        playerModel.playerBackend.value?.backendType ==
-            settings.playerBackendType.value;
+        backend?.backendType != null &&
+        backend?.backendType == backendType;
 
     return Column(
       children: [
@@ -429,7 +428,7 @@ class _SettingsPageState extends State<SettingsPage>
           title: !isLoaded
               ? Center(child: CircularProgressIndicator())
               : DropdownButton<String>(
-                  value: settings.playerBackendType.watch(context).toString(),
+                  value: backendType.toString(),
                   underline:
                       const SizedBox.shrink(), // Hides the default underline
                   padding: const EdgeInsets.symmetric(
