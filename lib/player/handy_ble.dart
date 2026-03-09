@@ -71,8 +71,10 @@ class ProtobufWorker {
   }
 
   Future<void> dispose() async {
-    _isolateDeserialize.kill();
-    _isolateSerialize.kill();
+    if (!kIsWeb) {
+      _isolateDeserialize.kill();
+      _isolateSerialize.kill();
+    }
   }
 
   void sendToSerialize(RpcMessage message) {

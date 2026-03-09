@@ -103,6 +103,8 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   final _currentlyBufferedBuffers = <int>{};
   final _currentlyBufferedActions = <FunscriptAction>[];
   bool _internalHandyPlaying = false;
+  final _internalHandyPlayStateDebouncer = Debouncer(milliseconds: 200);
+
   // a reference to check if the actions have changed
   Object? _bufferedActionsReference;
   int _syncCounter = 0;
@@ -172,7 +174,12 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     required bool loop,
     required bool pauseOnStarving,
   }) {
-    if (_internalHandyPlaying) return;
+    if (_internalHandyPlaying) {
+      if (kDebugMode) {
+        debugPrint("hspPlay INTERNAL STATE IS: $_internalHandyPlaying");
+      }
+      return;
+    }
     _internalHandyPlaying = true;
     super.hspPlay(
       startTime: startTime,
@@ -184,14 +191,24 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
 
   @override
   void hspStop() {
-    if (!_internalHandyPlaying) return;
+    if (!_internalHandyPlaying) {
+      if (kDebugMode) {
+        debugPrint("hspStop INTERNAL STATE IS: $_internalHandyPlaying");
+      }
+      return;
+    }
     _internalHandyPlaying = false;
     super.hspStop();
   }
 
   @override
   void hspPause() {
-    if (!_internalHandyPlaying) return;
+    if (!_internalHandyPlaying) {
+      if (kDebugMode) {
+        debugPrint("hspPause INTERNAL STATE IS: $_internalHandyPlaying");
+      }
+      return;
+    }
     _internalHandyPlaying = false;
     super.hspPause();
   }
@@ -200,6 +217,37 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   void _hspStateChange(HspStateAdapter? hspState) {
     if (hspState == null) return;
     final playerPlaying = !timesource.paused.value;
+
+    {
+      // fallback mechanism to set the internalHandyPlaying state from the hspState with a 200ms debouncer
+      final currentPlayStateAccordingToDevice = switch (hspState.playState) {
+        HspStateAdapterPlayState.hspStateNotInitialized => false,
+        HspStateAdapterPlayState.hspStatePlaying => true,
+        HspStateAdapterPlayState.hspStateStopped => false,
+        HspStateAdapterPlayState.hspStatePaused => false,
+        // I think it only turns starving when pauseWhenStarving is turned on
+        HspStateAdapterPlayState.hspStateStarving => false,
+      };
+      if (currentPlayStateAccordingToDevice != _internalHandyPlaying) {
+        if (kDebugMode) {
+          debugPrint(
+            "playingDevice: $currentPlayStateAccordingToDevice internalPlayState: $_internalHandyPlaying",
+          );
+        }
+        _internalHandyPlayStateDebouncer.run(() {
+          if (_internalHandyPlaying != currentPlayStateAccordingToDevice) {
+            if (kDebugMode) {
+              debugPrint(
+                "DEBOUNCER SET _internalHandyPlaying=$currentPlayStateAccordingToDevice",
+              );
+            }
+            // Ideally this case never happens
+            _internalHandyPlaying = currentPlayStateAccordingToDevice;
+            _hspStateChange(hspState);
+          }
+        });
+      }
+    }
 
     if (kDebugMode) {
       if (_lastState != hspState.playState) {
@@ -222,8 +270,8 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
       case HspStateAdapterPlayState.hspStatePaused:
       case HspStateAdapterPlayState.hspStateStopped:
         if (playerPlaying) {
-          if (currentTimeMs >= hspState.firstPointTime &&
-              currentTimeMs <= hspState.lastPointTime) {
+          if (currentTimeMs > hspState.firstPointTime &&
+              currentTimeMs < hspState.lastPointTime) {
             hspPlay(
               startTime: currentTimeMs + settingsModel.offsetMs.value,
               playbackRate: timesource.playbackSpeed.value,
@@ -259,13 +307,16 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     final isLoop = currentTime < 33;
     if (isLoop) return;
 
+    if (kDebugMode) debugPrint("Seek: $isSeeking Time: $currentTime");
+
     // This only handles seeking in the buffered interval
     // Outside of the buffered interval _timeChange triggers a stall
     if (currentTime >= state.firstPointTime &&
         currentTime <= state.lastPointTime) {
-      if (isSeeking) {
+      if (!isSeeking) {
         _syncCounter = 0;
         hspPause();
+        if (kDebugMode) debugPrint("Seek paused");
       } else {
         // playback should automatically resume in _hspStateChange
       }
@@ -301,9 +352,11 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         final expectedLastTime = _currentlyBufferedActions.last.at;
         if (currentTime < expectedFirstTime || currentTime > expectedLastTime) {
           if (state.points > 0) {
-            debugPrint(
-              "STALL currentTime: $currentTime expectedFirstTime: $expectedFirstTime expectedLastTime: $expectedLastTime",
-            );
+            if (kDebugMode) {
+              debugPrint(
+                "STALL currentTime: $currentTime expectedFirstTime: $expectedFirstTime expectedLastTime: $expectedLastTime",
+              );
+            }
             _resetPlayback(actions);
           }
         }
@@ -369,15 +422,15 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
 
   @override
   void hspSetup({int? streamId}) {
-    _resetInternalState();
+    _resetInternalState(false);
     _currentStreamId = _nextStreamId;
     super.hspSetup(streamId: _currentStreamId);
   }
 
-  void _resetInternalState() {
+  void _resetInternalState(bool flush) {
     _currentlyBufferedBuffers.clear();
     _currentlyBufferedActions.clear();
-    _internalHandyPlaying = false;
+    if(!flush) _internalHandyPlaying = false;
     _bufferedActionsReference = null;
     _syncTimer?.cancel();
     _syncTimer = null;
@@ -385,15 +438,20 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     debugPlaybackDelta.value = 0;
   }
 
+  @override
+  void hspFlush() {
+    _resetInternalState(true);
+    super.hspFlush();
+  }
+
   // buffers are expected to be sorted by id ascending
   void _bufferPoints(List<ActionBuffer> buffers, {required bool flush}) {
     if (flush) {
-      _resetInternalState();
+      _resetInternalState(true);
+      // hardware flush is happening with the hspAdd command
     }
-    if (buffers.isEmpty) {
-      if (flush) hspFlush();
-      return;
-    }
+    assert(buffers.isNotEmpty);
+
     // Merge buffers into one hspAdd
     final points = <FunscriptAction>[];
     var tailPointIndex = 0;
@@ -482,6 +540,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         final currentAt = hspState.currentTime;
         final lastAt = _currentlyBufferedActions.last.at;
         double runWay = (lastAt - currentAt) / 1000.0;
+        assert(runWay > 0.0);
         if (kDebugMode) {
           debugPrint(
             "Runway: ${runWay.toStringAsFixed(2)} seconds StateIndex: $currentPointIndex StateAt: $currentAt PlayerAt: ${timesource.currentRawMs}",
