@@ -430,7 +430,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   void _resetInternalState(bool flush) {
     _currentlyBufferedBuffers.clear();
     _currentlyBufferedActions.clear();
-    if(!flush) _internalHandyPlaying = false;
+    if (!flush) _internalHandyPlaying = false;
     _bufferedActionsReference = null;
     _syncTimer?.cancel();
     _syncTimer = null;

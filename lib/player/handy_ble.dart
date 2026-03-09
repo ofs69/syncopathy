@@ -254,6 +254,7 @@ class HandyBle with EffectDispose {
 
   void _sendBuffer(Uint8List bufferMsg) async {
     try {
+      assert(bufferMsg.length <= 512);
       await _device.tx.write(bufferMsg, withResponse: false);
     } catch (_) {
       await _device.device.disconnect();

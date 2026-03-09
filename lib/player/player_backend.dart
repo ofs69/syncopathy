@@ -11,7 +11,7 @@ import 'package:syncopathy/model/timesource_model.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 
 class ActionBuffer {
-  static const int maxBufferSize = 20;
+  static const int maxBufferSize = 15;
   final int id;
   final List<FunscriptAction> allActions;
   final int startIndex;
