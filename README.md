@@ -1,7 +1,7 @@
 # syncopathy
 
 An offline bluetooth script player for the handy made with flutter.  
-There's also a [web branch](https://github.com/ofs69/syncopathy/tree/simple-web-version) deployed over [here](https://ofs69.github.io/syncopathy-web/)
+There's also a web version deployed over [here](https://ofs69.github.io/syncopathy-web/)
 
 ## Dev stuff
 ```
@@ -15,7 +15,7 @@ protoc --dart_out=lib/generated -Iprotos protos\notifications.proto
 dart run build_runner build --delete-conflicting-outputs
 ```
 I forked this library because I needed some changes
-[https://github.com/ofs69/libmpv_dart](https://github.com/ofs69/media-kit)
+[media-kit](https://github.com/ofs69/media-kit)
 
 The project uses sqflite for the database.  
 
