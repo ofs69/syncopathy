@@ -415,8 +415,7 @@ class _SettingsPageState extends State<SettingsPage>
     final backend = playerModel.playerBackend.watch(context);
     final backendType = settings.playerBackendType.watch(context);
     final isLoaded =
-        backend?.backendType != null &&
-        backend?.backendType == backendType;
+        backend?.backendType != null && backend?.backendType == backendType;
 
     return Column(
       children: [

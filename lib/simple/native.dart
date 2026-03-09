@@ -10,6 +10,7 @@ import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
+import 'package:window_manager/window_manager.dart';
 
 class SimpleMode {
   static const allowedExtensions = [
@@ -30,7 +31,13 @@ class SimpleMode {
   ];
 
   static Widget webFullscreenButton() {
-    throw Exception("not available in native");
+    return IconButton(
+      icon: const Icon(Icons.fullscreen),
+      tooltip: "Fullscreen",
+      onPressed: () async {
+        windowManager.setFullScreen(!(await windowManager.isFullScreen()));
+      },
+    );
   }
 
   static Future<void> pickAndLoadFiles(PlayerModel playerModel) async {

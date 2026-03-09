@@ -72,8 +72,8 @@ class CustomAppBarState extends State<CustomAppBar> {
       ),
       actions: [
         HomeButton(),
-        if (kIsWeb) SizedBox(width: 4),
-        if (kIsWeb) SimpleMode.webFullscreenButton(),
+        SizedBox(width: 4),
+        SimpleMode.webFullscreenButton(),
         if (syncopathySimpleMode) SizedBox(width: 4),
         if (syncopathySimpleMode)
           TextButton.icon(

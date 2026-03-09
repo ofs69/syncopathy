@@ -19,8 +19,8 @@ class PlatformInit {
     if (isDesktop()) {
       await windowManager.ensureInitialized();
       WindowOptions windowOptions = const WindowOptions(
-        size: Size(1920, 1080),
         center: true,
+        size: Size(1600, 900),
         backgroundColor: Colors.transparent,
         titleBarStyle: TitleBarStyle.hidden,
       );
