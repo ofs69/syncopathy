@@ -15,13 +15,13 @@ import 'package:syncopathy/model/timesource_model.dart';
 import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 
 import 'package:syncopathy/player/media_kit_player_stub.dart'
-    if (dart.library.html) 'package:syncopathy/player/media_kit_player_web.dart'
+    if (dart.library.js_interop) 'package:syncopathy/player/media_kit_player_web.dart'
     if (dart.library.io) 'package:syncopathy/player/media_kit_player_native.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/syncopathy.dart';
 
 import 'package:syncopathy/platform/init/stub.dart'
-    if (dart.library.html) 'package:syncopathy/platform/init/web.dart'
+    if (dart.library.js_interop) 'package:syncopathy/platform/init/web.dart'
     if (dart.library.io) 'package:syncopathy/platform/init/native.dart';
 
 Future<Widget> _initializeAppAndRun({

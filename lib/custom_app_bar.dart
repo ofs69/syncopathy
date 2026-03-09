@@ -12,7 +12,7 @@ import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/playlist_controls.dart';
 import 'package:syncopathy/simple/stub.dart'
-    if (dart.library.html) 'package:syncopathy/simple/web.dart'
+    if (dart.library.js_interop) 'package:syncopathy/simple/web.dart'
     if (dart.library.io) 'package:syncopathy/simple/native.dart';
 
 import 'package:syncopathy/sqlite/models/video_model.dart';

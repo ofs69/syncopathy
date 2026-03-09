@@ -6,7 +6,7 @@ import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/simple/stub.dart'
-    if (dart.library.html) 'package:syncopathy/simple/web.dart'
+    if (dart.library.js_interop) 'package:syncopathy/simple/web.dart'
     if (dart.library.io) 'package:syncopathy/simple/native.dart';
 
 class SimpleModeDragAndDrop extends StatefulWidget {
