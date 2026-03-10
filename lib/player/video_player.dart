@@ -52,7 +52,9 @@ abstract class VideoPlayer with EffectDispose {
 
   void initSignals(Player player) {
     seeking = player.stream.seeking.toSyncSignal(player.state.seeking);
-    volume = player.stream.volume.toSyncSignal(player.state.volume);
+    volume = player.stream.volume
+        .map((v) => v.clamp(0.0, 100.0))
+        .toSyncSignal(player.state.volume);
     playbackSpeed = player.stream.rate.toSyncSignal(player.state.rate);
     videoWidth = player.stream.width.toSyncSignal(player.state.width);
     videoHeight = player.stream.height.toSyncSignal(player.state.height);

@@ -68,9 +68,7 @@ class _VideoControlsState extends State<VideoControls> {
                   ),
                 ),
 
-                _buildVolumeSlider(player),
-
-                const SizedBox(width: 4.0),
+                _buildVolumeSlider(player, isPortrait),
 
                 // Time Display - Simplified for Mobile
                 Watch.builder(
@@ -209,7 +207,7 @@ class _VideoControlsState extends State<VideoControls> {
     );
   }
 
-  Widget _buildVolumeSlider(VideoPlayer player) {
+  Widget _buildVolumeSlider(VideoPlayer player, bool isPortrait) {
     return Watch.builder(
       builder: (context) {
         return Row(
@@ -217,9 +215,8 @@ class _VideoControlsState extends State<VideoControls> {
           children: [
             _buildMuteButton(player),
             SizedBox(
-              width: 75,
+              width: isPortrait ? 75 : 150,
               child: Slider(
-                padding: EdgeInsets.fromLTRB(4.0, 0.0, 16.0, 0.0),
                 value: player.volume.value,
                 max: 100,
                 onChanged: player.setVolume,
