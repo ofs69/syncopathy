@@ -81,9 +81,10 @@ class _HeatmapState extends State<Heatmap> {
               _handleInteraction(details.localPosition, constraints);
             },
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Expanded(
-                  flex: 4,
+                  flex: 11,
                   child: Container(
                     decoration: BoxDecoration(
                       color: Theme.of(

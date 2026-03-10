@@ -124,7 +124,6 @@ class HandyWeb with EffectDispose {
         final min = (_strokeRangeMin.value / 100.0).clamp(0.0, 1.0);
         final max = (_strokeRangeMax.value / 100.0).clamp(0.0, 1.0);
         _applyStrokeRangeDebouncer.run(() {
-          Logger.info("Stroke range set!");
           setSliderStroke(min, max);
         });
       }),

@@ -34,7 +34,6 @@ class _VideoControlsState extends State<VideoControls> {
   Widget build(BuildContext context) {
     final player = context.read<VideoPlayer>();
     final playerModel = context.read<PlayerModel>();
-    final iconSize = Theme.of(context).iconTheme.size ?? 24.0;
 
     final isPortrait = PlatformUtils.isPortrait(context);
 
@@ -47,7 +46,7 @@ class _VideoControlsState extends State<VideoControls> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // 1. Heatmap Row (Remains the same)
-            _buildHeatmapRow(player, playerModel, iconSize),
+            _buildHeatmapRow(player, playerModel),
 
             const SizedBox(height: 4.0),
 
@@ -131,16 +130,12 @@ class _VideoControlsState extends State<VideoControls> {
     return "${format(current)} / ${format(total)}";
   }
 
-  Widget _buildHeatmapRow(
-    VideoPlayer player,
-    PlayerModel playerModel,
-    double iconSize,
-  ) {
+  Widget _buildHeatmapRow(VideoPlayer player, PlayerModel playerModel) {
     return Row(
       children: [
         Expanded(
           child: SizedBox(
-            height: iconSize * 1.0,
+            height: 32.0,
             child: Watch.builder(
               builder: (context) {
                 final funscript = playerModel.currentlyOpen.value?.funscript;

@@ -169,7 +169,6 @@ class HandyBle with EffectDispose {
         final min = _strokeRangeMin.value;
         final max = _strokeRangeMax.value;
         _applyStrokeRangeDebouncer.run(() {
-          Logger.info("Stroke range set!");
           sliderStrokeSet(min, max);
         });
       }),
