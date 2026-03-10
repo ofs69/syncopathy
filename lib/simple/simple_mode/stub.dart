@@ -1,8 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:syncopathy/model/player_model.dart';
 
 class SimpleMode {
-  static Widget webFullscreenButton() {
+  static Future<void> toggleFullscreen() async {
+    throw UnimplementedError();
+  }
+
+  static Future<void> enterFullscreen() async {
+    throw UnimplementedError();
+  }
+
+  static Future<void> exitFullscreen() async {
     throw UnimplementedError();
   }
 

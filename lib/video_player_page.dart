@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +12,7 @@ import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/scrolling_graph.dart';
+import 'package:syncopathy/simple/simple_mode/simple_mode.dart';
 import 'package:syncopathy/video_controls.dart';
 import 'package:syncopathy/video_widget.dart';
 import 'package:syncopathy/fullscreen_video_page.dart';
@@ -61,15 +63,19 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
     final playerModel = context.watch<PlayerModel>();
     final noFunscriptLoaded = playerModel.currentlyOpen.watch(context) == null;
 
-    enterFullscreen() => Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FullscreenVideoPage(
-          player: player,
-          isEmbeddedPlayerEnabled: settings.embeddedVideoPlayer.value,
+    enterFullscreen() async {
+      if (!kIsWeb) await SimpleMode.enterFullscreen();
+      if (!context.mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FullscreenVideoPage(
+            player: player,
+            isEmbeddedPlayerEnabled: settings.embeddedVideoPlayer.value,
+          ),
         ),
-      ),
-    );
+      );
+    }
 
     toggleSettings() => _showSettings.value = !_showSettings.value;
 

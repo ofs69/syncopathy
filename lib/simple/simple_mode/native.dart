@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
@@ -30,14 +29,16 @@ class SimpleMode {
     "wma",
   ];
 
-  static Widget webFullscreenButton() {
-    return IconButton(
-      icon: const Icon(Icons.fullscreen),
-      tooltip: "Fullscreen",
-      onPressed: () async {
-        windowManager.setFullScreen(!(await windowManager.isFullScreen()));
-      },
-    );
+  static Future<void> toggleFullscreen() async {
+    await windowManager.setFullScreen(!(await windowManager.isFullScreen()));
+  }
+
+  static Future<void> enterFullscreen() async {
+    await windowManager.setFullScreen(true);
+  }
+
+  static Future<void> exitFullscreen() async {
+    await windowManager.setFullScreen(false);
   }
 
   static Future<void> pickAndLoadFiles(PlayerModel playerModel) async {

@@ -75,8 +75,8 @@ abstract class HandyWebBackendBase extends PlayerBackend
               border: OutlineInputBorder(),
             ),
             initialValue: webSettings.connectionKey,
-            onSaved: (value) =>
-                webSettings.connectionKey = value ?? webSettings.connectionKey,
+            onSaved: (value) => webSettings.connectionKey =
+                value?.trim() ?? webSettings.connectionKey,
           ),
         ],
       ),

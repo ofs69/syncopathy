@@ -11,9 +11,7 @@ import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/playlist_controls.dart';
-import 'package:syncopathy/simple/stub.dart'
-    if (dart.library.js_interop) 'package:syncopathy/simple/web.dart'
-    if (dart.library.io) 'package:syncopathy/simple/native.dart';
+import 'package:syncopathy/simple/simple_mode/simple_mode.dart';
 
 import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/helper/constants.dart';
@@ -72,8 +70,15 @@ class CustomAppBarState extends State<CustomAppBar> {
       ),
       actions: [
         HomeButton(),
-        SizedBox(width: 4),
-        SimpleMode.webFullscreenButton(),
+        if (kIsWeb) SizedBox(width: 4),
+        if (kIsWeb)
+          IconButton(
+            icon: const Icon(Icons.fullscreen),
+            tooltip: "Fullscreen",
+            onPressed: () async {
+              SimpleMode.toggleFullscreen();
+            },
+          ),
         if (syncopathySimpleMode) SizedBox(width: 4),
         if (syncopathySimpleMode)
           TextButton.icon(

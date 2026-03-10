@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:syncopathy/player/video_player.dart';
+import 'package:syncopathy/simple/simple_mode/simple_mode.dart';
 import 'package:syncopathy/video_controls.dart';
 import 'package:syncopathy/video_widget.dart';
 
@@ -110,7 +112,11 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                         child: Hero(
                           tag: 'videoControls',
                           child: VideoControls(
-                            onFullscreenToggle: () => Navigator.pop(context),
+                            onFullscreenToggle: () async {
+                              if (!kIsWeb) await SimpleMode.exitFullscreen();
+                              if (!context.mounted) return;
+                              Navigator.pop(context);
+                            },
                             onInteractionStart: () {
                               _hideControlsTimer?.cancel();
                             },

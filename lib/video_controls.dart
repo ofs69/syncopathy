@@ -127,12 +127,12 @@ class _VideoControlsState extends State<VideoControls> {
 
     String format(Duration d) {
       String twoDigits(int n) => n.toString().padLeft(2, "0");
-      final hours = d.inHours;
+      final hours = twoDigits(d.inHours);
       final mins = twoDigits(d.inMinutes.remainder(60));
       final secs = twoDigits(d.inSeconds.remainder(60));
 
       // Hide milliseconds on mobile, hide hours if video is short
-      String base = hours > 0 ? "$hours:$mins:$secs" : "$mins:$secs";
+      String base = "$hours:$mins:$secs";
       if (!isPortrait) {
         final ms = d.inMilliseconds.remainder(1000).toString().padLeft(3, "0");
         return "$base.$ms";

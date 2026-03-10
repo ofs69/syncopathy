@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
 
-import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
@@ -13,25 +12,43 @@ import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:web/web.dart' as web;
 
 class SimpleMode {
-  static Widget webFullscreenButton() {
-    return IconButton(
-      icon: const Icon(Icons.fullscreen),
-      tooltip: "Fullscreen",
-      onPressed: () {
-        final element = web.document.documentElement;
+  static Future<void> toggleFullscreen() async {
+    final element = web.document.documentElement;
 
-        if (element != null) {
-          // Check if we are already in fullscreen
-          if (web.document.fullscreenElement == null) {
-            // Request Fullscreen
-            element.requestFullscreen();
-          } else {
-            // Exit Fullscreen
-            web.document.exitFullscreen();
-          }
-        }
-      },
-    );
+    if (element != null) {
+      // Check if we are already in fullscreen
+      if (web.document.fullscreenElement == null) {
+        // Request Fullscreen
+        element.requestFullscreen();
+      } else {
+        // Exit Fullscreen
+        web.document.exitFullscreen();
+      }
+    }
+  }
+
+  static Future<void> enterFullscreen() async {
+    final element = web.document.documentElement;
+
+    if (element != null) {
+      // Check if we are already in fullscreen
+      if (web.document.fullscreenElement == null) {
+        // Request Fullscreen
+        element.requestFullscreen();
+      }
+    }
+  }
+
+  static Future<void> exitFullscreen() async {
+    final element = web.document.documentElement;
+
+    if (element != null) {
+      // Check if we are already in fullscreen
+      if (web.document.fullscreenElement != null) {
+        // Exit Fullscreen
+        web.document.exitFullscreen();
+      }
+    }
   }
 
   static Future<String> _readBlobUrlAsString(String blobUrl) async {
