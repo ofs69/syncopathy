@@ -597,22 +597,24 @@ class _MediaLibraryState extends State<MediaLibrary> {
         ),
         const SizedBox(width: 8),
         // Sorting Dropdown
-        DropdownButton<SortOption>(
-          value: sortOption,
-          icon: const Icon(Icons.sort),
-          underline: const SizedBox.shrink(), // Hides the default underline
-          isDense: true,
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-          borderRadius: BorderRadius.circular(16.0),
-          onChanged: (SortOption? newValue) {
+        DropdownMenu<SortOption>(
+          initialSelection: sortOption,
+          leadingIcon: const Icon(Icons.sort),
+          requestFocusOnTap: false,
+          enableSearch: false,
+          inputDecorationTheme: InputDecorationTheme(
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
+          ),
+          onSelected: (SortOption? newValue) {
             if (newValue != null) {
               mediaSettings.sortOption.value = newValue;
             }
           },
-          items: SortOption.values.map((SortOption option) {
-            return DropdownMenuItem<SortOption>(
+          dropdownMenuEntries: SortOption.values.map((SortOption option) {
+            return DropdownMenuEntry<SortOption>(
               value: option,
-              child: Text(option.label),
+              label: option.label,
             );
           }).toList(),
         ),
@@ -718,26 +720,30 @@ class _MediaLibraryState extends State<MediaLibrary> {
           onPressed: _showCategoryDialog,
         ),
         const SizedBox(width: 8),
-        // Videos Per Row Dropdown)
+        // Videos Per Row Dropdown
         Tooltip(
           message: 'Videos per row',
-          child: DropdownButton<int>(
-            value: videosPerRow,
-            isDense: true,
-            underline: const SizedBox.shrink(), // Hides the default underline
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-            borderRadius: BorderRadius.circular(16.0),
-            onChanged: (int? newValue) {
+          child: DropdownMenu<int>(
+            initialSelection: videosPerRow,
+            requestFocusOnTap: false,
+            enableSearch: false,
+            width: 80,
+            inputDecorationTheme: const InputDecorationTheme(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 8.0),
+              isDense: true,
+            ),
+            onSelected: (int? newValue) {
               if (newValue != null) {
                 mediaSettings.videosPerRow.value = newValue;
               }
             },
-            items:
+            dropdownMenuEntries:
                 List.generate(9, (i) => i + 2) // 2 to 10
-                    .map<DropdownMenuItem<int>>((int value) {
-                      return DropdownMenuItem<int>(
+                    .map<DropdownMenuEntry<int>>((int value) {
+                      return DropdownMenuEntry<int>(
                         value: value,
-                        child: Text(value.toString()),
+                        label: value.toString(),
                       );
                     })
                     .toList(),

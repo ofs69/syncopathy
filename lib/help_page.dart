@@ -49,34 +49,4 @@ class _HelpPageState extends State<HelpPage> {
       ),
     );
   }
-
-  // ignore: unused_element
-  Widget _buildShortcutItem(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String shortcut,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 28),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: Theme.of(context).textTheme.titleMedium),
-              Text(
-                shortcut,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }

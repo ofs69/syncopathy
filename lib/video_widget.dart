@@ -203,12 +203,6 @@ class _VideoWidgetState extends State<VideoWidget>
                                                   ),
                                                 );
                                               },
-                                        onInteractionStart: () {
-                                          _hideControlsTimer?.cancel();
-                                        },
-                                        onInteractionEnd: () {
-                                          _startHideControlsTimer();
-                                        },
                                       ),
                                     ),
                                   ),

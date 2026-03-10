@@ -17,8 +17,6 @@ class Heatmap extends StatefulWidget {
   );
 
   final void Function(Duration)? onClick;
-  final VoidCallback? onInteractionStart;
-  final VoidCallback? onInteractionEnd;
 
   Heatmap({
     super.key,
@@ -26,8 +24,6 @@ class Heatmap extends StatefulWidget {
     required this.totalDuration,
     this.onClick,
     required this.videoPosition,
-    this.onInteractionStart,
-    this.onInteractionEnd,
   });
 
   @override
@@ -62,7 +58,6 @@ class _HeatmapState extends State<Heatmap> {
       builder: (context, constraints) {
         return MouseRegion(
           onHover: (event) {
-            // Check .value since totalDurationMs is a Signal
             if (widget.totalDurationMs.value > 0 && constraints.maxWidth > 0) {
               _hoverPosition.value = event.localPosition.dx.clamp(
                 0,
@@ -76,22 +71,14 @@ class _HeatmapState extends State<Heatmap> {
           child: GestureDetector(
             onPanStart: (details) {
               _hoverPosition.value = null;
-              widget.onInteractionStart?.call();
-            },
-            onPanEnd: (details) {
-              widget.onInteractionEnd?.call();
             },
             onPanUpdate: (details) {
               _throttler.run(() async {
                 _handleInteraction(details.localPosition, constraints);
               });
             },
-            onTapDown: (details) {
-              widget.onInteractionStart?.call();
-            },
             onTapUp: (details) {
               _handleInteraction(details.localPosition, constraints);
-              widget.onInteractionEnd?.call();
             },
             child: Column(
               children: [
@@ -184,7 +171,7 @@ class _HeatmapState extends State<Heatmap> {
                               totalDuration > 0 ? totalDuration : 1.0,
                             ),
                             max: totalDuration > 0 ? totalDuration : 1.0,
-                            onChanged: (_) {}, // Ignored via IgnorePointer
+                            onChanged: (_) {},
                           ),
                         );
                       },

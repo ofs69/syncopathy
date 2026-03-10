@@ -167,7 +167,7 @@ class GraphPainter extends CustomPainter {
       return Offset(x, y);
     }
 
-    // --- 22 Calculate Visible Window ---
+    // --- 2. Calculate Visible Window ---
     final halfViewMs = viewDuration.inMilliseconds / 2;
     final viewStart =
         videoPosition - Duration(milliseconds: halfViewMs.round());
@@ -276,7 +276,6 @@ class GraphPainter extends CustomPainter {
     // Repaint whenever the video position or points change.
     return oldDelegate.videoPosition != videoPosition ||
         oldDelegate.actions != actions ||
-        oldDelegate.theme != theme ||
         oldDelegate.viewDuration != viewDuration ||
         oldDelegate.speeds != speeds;
   }

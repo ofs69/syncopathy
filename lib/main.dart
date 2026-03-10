@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/global_shortcuts.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 
@@ -65,7 +66,7 @@ Future<Widget> _initializeAppAndRun({
     ],
     // HACK: I added this ExcludeSemantics because it spams some accessibility error 🤷‍♂️
     // [ERROR:flutter/shell/platform/common/accessibility_bridge.cc(114)] Failed to update ui::AXTree, error: Nodes left pending by the update: 76
-    child: ExcludeSemantics(child: const Syncopathy()),
+    child: const ExcludeSemantics(child: GlobalShortcuts(child: Syncopathy())),
   );
 }
 

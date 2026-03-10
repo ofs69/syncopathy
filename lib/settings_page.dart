@@ -29,11 +29,7 @@ class SettingsPage extends StatefulWidget {
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
-
+class _SettingsPageState extends State<SettingsPage> {
   final isUpdateCheckingSignal = signal<bool>(false);
   final statusUpdateMessageSignal = signal<String?>(null);
 
@@ -54,8 +50,6 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     final allCards = _buildAllSettingsCards(context);
     return SingleChildScrollView(
       padding: EdgeInsets.all(24.0),
@@ -419,36 +413,33 @@ class _SettingsPageState extends State<SettingsPage>
 
     return Column(
       children: [
-        ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 8.0,
-            vertical: 0.0,
-          ),
-          title: !isLoaded
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
+          child: !isLoaded
               ? Center(child: CircularProgressIndicator())
-              : DropdownButton<String>(
-                  value: backendType.toString(),
-                  underline:
-                      const SizedBox.shrink(), // Hides the default underline
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8.0,
-                    vertical: 8.0,
+              : DropdownMenu<PlayerBackendType>(
+                  initialSelection: backendType,
+                  expandedInsets: EdgeInsets.zero,
+                  requestFocusOnTap: false,
+                  enableSearch: false,
+                  inputDecorationTheme: const InputDecorationTheme(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 8.0,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(16.0),
-                  isExpanded: true,
-                  items: PlayerBackendType.values
-                      .map(
-                        (e) => DropdownMenuItem<String>(
-                          value: e.toString(),
-                          child: Text(e.toDisplayString()),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (selected) {
-                    final selectedEnum = PlayerBackendType.values.firstWhere(
-                      (e) => e.toString() == selected,
+                  dropdownMenuEntries: PlayerBackendType.values.map((e) {
+                    return DropdownMenuEntry<PlayerBackendType>(
+                      value: e,
+                      label: e.toDisplayString(),
                     );
-                    settings.playerBackendType.value = selectedEnum;
+                  }).toList(),
+
+                  onSelected: (selectedEnum) {
+                    if (selectedEnum != null) {
+                      settings.playerBackendType.value = selectedEnum;
+                    }
                   },
                 ),
         ),

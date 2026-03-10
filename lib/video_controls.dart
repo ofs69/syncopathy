@@ -10,16 +10,12 @@ import 'package:syncopathy/player/video_player.dart';
 
 class VideoControls extends StatefulWidget {
   final VoidCallback? onFullscreenToggle;
-  final VoidCallback? onInteractionStart;
-  final VoidCallback? onInteractionEnd;
   final Signal<bool>? showFunscriptGraph;
   final Signal<bool>? showSettings;
 
   const VideoControls({
     super.key,
     required this.onFullscreenToggle,
-    this.onInteractionStart,
-    this.onInteractionEnd,
     this.showFunscriptGraph,
     this.showSettings,
   });
@@ -154,8 +150,6 @@ class _VideoControlsState extends State<VideoControls> {
                   totalDuration: player.duration,
                   videoPosition: player.rawPosition,
                   onClick: (d) => player.seekTo(d),
-                  onInteractionStart: widget.onInteractionStart,
-                  onInteractionEnd: widget.onInteractionEnd,
                 );
               },
             ),
