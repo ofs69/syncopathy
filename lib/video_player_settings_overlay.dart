@@ -1,10 +1,12 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/focus_numeric_input.dart';
+import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
@@ -12,23 +14,15 @@ import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
 import 'package:syncopathy/player/video_player.dart';
 
 class ScriptPlayerSettingsOverlay extends StatelessWidget {
-  final Function toggleSettings;
-
-  const ScriptPlayerSettingsOverlay({super.key, required this.toggleSettings});
+  const ScriptPlayerSettingsOverlay({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ClipRect(
-      // Prevents the blur from spreading outside the container
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-        child: Container(
-          padding: EdgeInsets.all(8.0),
-          decoration: BoxDecoration(color: Colors.black.withAlphaF(0.5)),
-          alignment: Alignment.topCenter,
-          child: ScriptPlayerSettings(),
-        ),
-      ),
+    return Container(
+      padding: EdgeInsets.all(8.0),
+      decoration: stdBoxShadow(),
+      alignment: Alignment.topCenter,
+      child: ScriptPlayerSettings(),
     );
   }
 }
@@ -224,19 +218,24 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
     final settings = context.read<SettingsModel>();
     return Column(
       children: [
-        RangeSlider(
-          values: settings.minMaxRange.watch(context),
-          min: 0,
-          max: 100,
-          divisions: 100,
-          labels: RangeLabels(
-            settings.min.value.round().toString(),
-            settings.max.value.round().toString(),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            valueIndicatorColor: Theme.of(context).colorScheme.primary,
           ),
-          onChanged: (values) {
-            settings.min.value = values.start.toInt();
-            settings.max.value = values.end.toInt();
-          },
+          child: RangeSlider(
+            values: settings.minMaxRange.watch(context),
+            min: 0,
+            max: 100,
+            divisions: 100,
+            labels: RangeLabels(
+              settings.min.value.round().toString(),
+              settings.max.value.round().toString(),
+            ),
+            onChanged: (values) {
+              settings.min.value = values.start.toInt();
+              settings.max.value = values.end.toInt();
+            },
+          ),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -362,29 +361,42 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
     required String title,
     required List<Widget> children,
   }) {
-    return Container(
-      width: width,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlphaF(0.15),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withAlphaF(0.15), width: 1),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min, // Height scales with content
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+    final borderRadius = BorderRadius.circular(20);
+    blurContainer(Widget child) => kIsWeb
+        ? child
+        : ClipRRect(
+            borderRadius: borderRadius,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: child,
             ),
-          ),
-          const SizedBox(height: 20),
-          ...children,
-        ],
+          );
+
+    return blurContainer(
+      Container(
+        width: width,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlphaF(0.15),
+          borderRadius: borderRadius,
+          border: Border.all(color: Colors.white.withAlphaF(0.15), width: 1),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min, // Height scales with content
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ...children,
+          ],
+        ),
       ),
     );
   }

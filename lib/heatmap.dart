@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/helper/constants.dart';
@@ -35,7 +36,7 @@ class Heatmap extends StatefulWidget {
 
 class _HeatmapState extends State<Heatmap> {
   final Signal<double?> _hoverPosition = signal(null);
-  final Throttler _throttler = Throttler(milliseconds: 100);
+  final Throttler _throttler = Throttler(milliseconds: 150);
 
   @override
   void dispose() {
@@ -61,7 +62,8 @@ class _HeatmapState extends State<Heatmap> {
       builder: (context, constraints) {
         return MouseRegion(
           onHover: (event) {
-            if (widget.totalDurationMs > 0 && constraints.maxWidth > 0) {
+            // Check .value since totalDurationMs is a Signal
+            if (widget.totalDurationMs.value > 0 && constraints.maxWidth > 0) {
               _hoverPosition.value = event.localPosition.dx.clamp(
                 0,
                 constraints.maxWidth,
@@ -91,76 +93,105 @@ class _HeatmapState extends State<Heatmap> {
               _handleInteraction(details.localPosition, constraints);
               widget.onInteractionEnd?.call();
             },
-            child: ClipRect(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  border: Border.all(color: Colors.grey),
-                ),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // Heatmap painter (only rebuilds when duration/funscript changes)
-                    CustomPaint(
-                      painter: HeatmapPainter(
-                        actions: widget.actions,
-                        totalDuration: Duration(
-                          milliseconds: widget.totalDurationMs.watch(context),
-                        ),
-                      ),
+            child: Column(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      border: Border.all(color: Colors.grey.withAlphaF(0.5)),
                     ),
-                    // Indicator painter (only rebuilds when position changes)
-                    Watch.builder(
-                      builder: (context) {
-                        final position = widget.videoPosition.value;
-                        final totalDurationMs = widget.totalDurationMs.value;
-                        return CustomPaint(
-                          painter: IndicatorPainter(
-                            videoPosition: Duration(
-                              milliseconds: (position * 1000).round(),
-                            ),
+                    child: Stack(
+                      // Allows the Slider thumb to overflow the stack bounds if needed
+                      clipBehavior: Clip.none,
+                      fit: StackFit.expand,
+                      children: [
+                        // 1. Heatmap painter (Background layer)
+                        CustomPaint(
+                          painter: HeatmapPainter(
+                            actions: widget.actions,
                             totalDuration: Duration(
-                              milliseconds: totalDurationMs,
+                              milliseconds: widget.totalDurationMs.watch(
+                                context,
+                              ),
                             ),
                           ),
-                        );
-                      },
+                        ),
+
+                        // 2. Indicator painter (Vertical white line)
+                        Watch.builder(
+                          builder: (context) {
+                            final position = widget.videoPosition.value;
+                            final totalDurationMs =
+                                widget.totalDurationMs.value;
+                            return CustomPaint(
+                              painter: IndicatorPainter(
+                                videoPosition: Duration(
+                                  milliseconds: (position * 1000).round(),
+                                ),
+                                totalDuration: Duration(
+                                  milliseconds: totalDurationMs,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+
+                        // 3. Hover indicator (Vertical line on mouse hover)
+                        Watch.builder(
+                          builder: (context) {
+                            final hoverX = _hoverPosition.value;
+                            if (hoverX == null) {
+                              return const SizedBox.shrink();
+                            }
+                            return CustomPaint(
+                              painter: HoverIndicatorPainter(hoverX: hoverX),
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                    // Hover indicator
-                    Watch.builder(
-                      builder: (context) {
-                        final hoverX = _hoverPosition.value;
-                        if (hoverX == null) {
-                          return Container();
-                        }
-                        return CustomPaint(
-                          painter: HoverIndicatorPainter(hoverX: hoverX),
-                        );
-                      },
-                    ),
-                    // Progress bar (solid bar on top)
-                    Watch.builder(
+                  ),
+                ),
+                // 4. Visual Slider Timeline (Aligned to bottom)
+                Expanded(
+                  flex: 1,
+                  child: IgnorePointer(
+                    child: Watch.builder(
                       builder: (context) {
                         final position = widget.videoPosition.value;
                         final totalDuration = widget.totalDuration.value ?? 0.0;
 
-                        final double progressWidth = totalDuration > 0
-                            ? constraints.maxWidth * (position / totalDuration)
-                            : 0.0;
-                        return Positioned(
-                          top: 0,
-                          left: 0,
-                          child: Container(
-                            width: progressWidth,
-                            height: 2.0, // Height of the progress bar
-                            color: Colors.red, // Color of the progress bar
+                        return SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            padding: EdgeInsets.all(0),
+                            trackShape: const RectangularSliderTrackShape(),
+                            trackHeight: 4.0,
+                            activeTrackColor: Colors.red,
+                            inactiveTrackColor: Colors.white24,
+                            thumbColor: Colors.red,
+                            overlayColor: Colors.transparent,
+                            thumbShape: const RoundSliderThumbShape(
+                              enabledThumbRadius: 8.0,
+                            ),
+                          ),
+                          child: Slider(
+                            value: position.clamp(
+                              0.0,
+                              totalDuration > 0 ? totalDuration : 1.0,
+                            ),
+                            max: totalDuration > 0 ? totalDuration : 1.0,
+                            onChanged: (_) {}, // Ignored via IgnorePointer
                           ),
                         );
                       },
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         );
@@ -201,13 +232,6 @@ class HeatmapPainter extends CustomPainter {
     final double segmentPxWidth = size.width / numSegments;
 
     final paint = Paint();
-    final List<Color> heatmapColors = [
-      Colors.transparent,
-      Colors.blue.shade300,
-      Colors.green,
-      Colors.yellow,
-      Colors.red.shade600,
-    ];
 
     // Pre-aggregate data into segments using a two-pointer approach
     final List<_SegmentData> segments = List.generate(

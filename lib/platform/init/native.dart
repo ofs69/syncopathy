@@ -21,6 +21,7 @@ class PlatformInit {
       WindowOptions windowOptions = const WindowOptions(
         center: true,
         size: Size(1600, 900),
+        minimumSize: Size(800, 600),
         backgroundColor: Colors.transparent,
         titleBarStyle: TitleBarStyle.hidden,
       );

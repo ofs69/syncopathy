@@ -259,6 +259,7 @@ class _PageContentState extends State<PageContent> {
   Widget build(BuildContext context) {
     final withMedia = context.read<MediaManager?>() != null;
     return PageView(
+      physics: const NeverScrollableScrollPhysics(),
       controller: widget.pageController,
       onPageChanged: widget.onPageChanged,
       children: <Widget>[

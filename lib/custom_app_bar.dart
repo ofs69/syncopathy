@@ -44,9 +44,9 @@ class CustomAppBarState extends State<CustomAppBar> {
 
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      flexibleSpace: DragToMoveArea(
-        child: Container(color: Colors.transparent),
-      ),
+      flexibleSpace: !kIsWeb
+          ? DragToMoveArea(child: Container(color: Colors.transparent))
+          : null,
       title: IgnorePointer(
         ignoring: true,
         child: AnimatedSwitcher(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/heatmap.dart';
+import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/player/video_player.dart';
@@ -28,7 +29,6 @@ class VideoControls extends StatefulWidget {
 }
 
 class _VideoControlsState extends State<VideoControls> {
-  bool _hovering = false;
   Timer? _hoverEnterTimer;
   Timer? _hoverExitTimer;
 
@@ -46,13 +46,7 @@ class _VideoControlsState extends State<VideoControls> {
       type: MaterialType.transparency,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            colors: [Colors.black87, Colors.transparent],
-          ),
-        ),
+        decoration: stdBoxShadow(),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -85,7 +79,7 @@ class _VideoControlsState extends State<VideoControls> {
                       _formatResponsiveTimestamp(player, isPortrait),
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 12,
+                        fontSize: 14,
                         fontFamily: 'monospace',
                       ),
                     );
@@ -151,26 +145,21 @@ class _VideoControlsState extends State<VideoControls> {
     return Row(
       children: [
         Expanded(
-          child: MouseRegion(
-            onEnter: (_) => setState(() => _hovering = true),
-            onExit: (_) => setState(() => _hovering = false),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              height: _hovering ? iconSize * 2.5 : iconSize * 1.0,
-              child: Watch.builder(
-                builder: (context) {
-                  final funscript = playerModel.currentlyOpen.value?.funscript;
-                  final actions = funscript?.processedActions.value ?? [];
-                  return Heatmap(
-                    actions: actions,
-                    totalDuration: player.duration,
-                    videoPosition: player.rawPosition,
-                    onClick: (d) => player.seekTo(d),
-                    onInteractionStart: widget.onInteractionStart,
-                    onInteractionEnd: widget.onInteractionEnd,
-                  );
-                },
-              ),
+          child: SizedBox(
+            height: iconSize * 1.0,
+            child: Watch.builder(
+              builder: (context) {
+                final funscript = playerModel.currentlyOpen.value?.funscript;
+                final actions = funscript?.processedActions.value ?? [];
+                return Heatmap(
+                  actions: actions,
+                  totalDuration: player.duration,
+                  videoPosition: player.rawPosition,
+                  onClick: (d) => player.seekTo(d),
+                  onInteractionStart: widget.onInteractionStart,
+                  onInteractionEnd: widget.onInteractionEnd,
+                );
+              },
             ),
           ),
         ),
@@ -202,7 +191,7 @@ class _VideoControlsState extends State<VideoControls> {
       icon: Icon(
         widget.showFunscriptGraph!.watch(context)
             ? Icons.timeline
-            : Icons.timeline_outlined,
+            : Icons.timeline_sharp,
       ),
       onPressed: () =>
           widget.showFunscriptGraph!.value = !widget.showFunscriptGraph!.value,
