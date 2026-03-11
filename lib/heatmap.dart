@@ -83,7 +83,7 @@ class _HeatmapState extends State<Heatmap> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Expanded(
-                  flex: 11,
+                  flex: 6,
                   child: Stack(
                     // Allows the Slider thumb to overflow the stack bounds if needed
                     clipBehavior: Clip.none,

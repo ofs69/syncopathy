@@ -20,7 +20,6 @@ import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/update_checker.dart';
 import 'package:syncopathy/video_thumbnail.dart';
-import 'package:syncopathy/notification_feed.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -40,11 +39,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (selectedDirectory != null) {
       settings.mediaPaths.add(selectedDirectory);
-      if (!mounted) return;
-      NotificationFeedManager.showSuccessNotification(
-        context,
-        'Added path: $selectedDirectory',
-      );
     }
   }
 
@@ -241,11 +235,6 @@ class _SettingsPageState extends State<SettingsPage> {
               PlatformUtils.openFileExplorer(directory.path);
             } catch (e) {
               Logger.error('Error opening app data directory: $e');
-              if (!context.mounted) return;
-              NotificationFeedManager.showErrorNotification(
-                context,
-                'Error opening directory: $e',
-              );
             }
           },
         ),
@@ -534,10 +523,7 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     ).then((count) {
       if (context.mounted && count != null) {
-        NotificationFeedManager.showSuccessNotification(
-          context,
-          'Thumbnail generation complete. Generated: $count',
-        );
+        Logger.info('Thumbnail generation complete. Generated: $count');
       }
     });
   }

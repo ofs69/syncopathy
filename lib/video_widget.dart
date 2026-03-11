@@ -96,11 +96,6 @@ class _VideoWidgetState extends State<VideoWidget>
               !settings.embeddedVideoPlayer.value;
 
           final videoController = widget.player.controller;
-
-          if ((videoWidth == 0 || videoWidth == null) ||
-              (videoHeight == 0 || videoHeight == null)) {
-            return SizedBox.expand();
-          }
           return LayoutBuilder(
             builder: (context, constraints) {
               return Listener(
@@ -232,7 +227,7 @@ class _VideoWidgetState extends State<VideoWidget>
     SettingsModel settings,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      padding: const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 0.0),
       decoration: stdBoxShadow(),
       child: InteractiveScrollingGraph(
         currentlyOpen: currentlyOpen,
@@ -244,8 +239,8 @@ class _VideoWidgetState extends State<VideoWidget>
 
   Widget _videoContainer(
     VideoController controller,
-    int videoWidth,
-    int videoHeight,
+    int? videoWidth,
+    int? videoHeight,
   ) {
     return Stack(
       children: [
@@ -262,10 +257,12 @@ class _VideoWidgetState extends State<VideoWidget>
                 ),
               ],
             ),
-            child: AspectRatio(
-              aspectRatio: videoWidth / videoHeight,
-              child: Video(controller: controller, controls: null),
-            ),
+            child: videoWidth != null && videoHeight != null
+                ? AspectRatio(
+                    aspectRatio: videoWidth / videoHeight,
+                    child: Video(controller: controller, controls: null),
+                  )
+                : Video(controller: controller, controls: null),
           ),
         ),
       ],

@@ -262,7 +262,7 @@ class FunscriptAlgorithms {
     }
     // Insert point at end of video
     // Important for looping correctly
-    final end = (totalDuration * 1000.0).round();
+    final end = (totalDuration * 1000.0).round() + 50; // +50ms extra
     if (actions.last.at != end) {
       actions.add(FunscriptAction(at: end, pos: actions.last.pos));
     }

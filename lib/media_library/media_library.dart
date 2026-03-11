@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/ioc.dart';
+import 'package:syncopathy/logging.dart';
 
 import 'package:syncopathy/media_library/funscript_metadata_filter_bottom_sheet.dart';
 
@@ -19,7 +20,6 @@ import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/media_library/wheel_of_fortune.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/media_library/category_selection_dialog.dart';
-import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/media_library/pca_calculator.dart';
 import 'package:syncopathy/media_library/pca_progress_dialog.dart';
 import 'package:syncopathy/media_library/search_bar.dart';
@@ -337,18 +337,11 @@ class _MediaLibraryState extends State<MediaLibrary> {
         .toList();
     if (playlistVideos.isEmpty) {
       if (!mounted) return;
-      NotificationFeedManager.showErrorNotification(
-        context,
-        'No non-disliked videos to create a playlist',
-      );
+      Logger.error('No non-disliked videos to create a playlist');
       return;
     }
     if (!mounted) return;
     getIt.get<VideoPlayer>().openMultipleVideos(playlistVideos);
-    NotificationFeedManager.showSuccessNotification(
-      context,
-      'Playlist with ${playlistVideos.length} videos',
-    );
   }
 
   void _showRandomVideoPicker() {
@@ -365,10 +358,7 @@ class _MediaLibraryState extends State<MediaLibrary> {
 
     if (availableVideos.isEmpty) {
       if (mounted) {
-        NotificationFeedManager.showErrorNotification(
-          context,
-          'No videos available to choose from',
-        );
+        Logger.error('No videos available to choose from');
       }
       return;
     }

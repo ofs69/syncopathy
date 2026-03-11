@@ -41,7 +41,7 @@ class _VideoControlsState extends State<VideoControls> {
     return Material(
       type: MaterialType.transparency,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+        padding: const EdgeInsets.fromLTRB(4.0, 0.0, 4.0, 4.0),
         decoration: stdBoxShadow(),
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -38,31 +38,40 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
     final settingsModel = context.read<SettingsModel>();
     final noFunscriptLoaded = playerModel.currentlyOpen.watch(context) == null;
 
-    return Column(
+    return Stack(
       children: [
-        Expanded(
-          flex: 6,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Hero(
-                tag: 'videoPlayer',
-                child: VideoWidget(
-                  player: player,
-                  isFullscreen: false,
-                  showControls: _showControls,
-                  showFunscriptGraph: settingsModel.funscriptGraphEnabled,
-                  showSettings: _showSettings,
-                ),
-              ),
-
-              if (noFunscriptLoaded)
-                Container(
-                  color: Colors.black54,
-                  child: Text("No funscript loaded"),
-                ),
-            ],
+        Hero(
+          tag: 'videoPlayer',
+          child: VideoWidget(
+            player: player,
+            isFullscreen: false,
+            showControls: _showControls,
+            showFunscriptGraph: settingsModel.funscriptGraphEnabled,
+            showSettings: _showSettings,
           ),
+        ),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 500),
+          child: noFunscriptLoaded
+              ? Center(
+                  key: const ValueKey('loading_overlay'),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 12),
+                        Text('Waiting for files'),
+                      ],
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(),
         ),
       ],
     );
