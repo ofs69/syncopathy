@@ -42,9 +42,7 @@ class _MediaSearchBarState<T> extends State<MediaSearchBar<T>> {
           labelText: 'Search Videos',
           hintText: 'What are you looking for?',
           prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
         ),
       ),
     );

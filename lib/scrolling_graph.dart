@@ -195,7 +195,7 @@ class GraphPainter extends CustomPainter {
       // Not enough points to draw lines or calculate speed
       return;
     }
-    
+
     // --- 4. Filter, Transform, and Draw Points ---
     // binary search for start and end indices
     final testStart = FunscriptAction(at: viewStart.inMilliseconds, pos: 0);
@@ -211,17 +211,19 @@ class GraphPainter extends CustomPainter {
         0,
       );
 
-      final a1 = actions[current];
-      final a2 = actions[current + 1];
+      if (current + 1 < actions.length) {
+        final a1 = actions[current];
+        final a2 = actions[current + 1];
 
-      final inStrokeMs = currentMs - a1.at;
-      final inStrokeRel = inStrokeMs / (a2.at - a1.at).toDouble();
+        final inStrokeMs = currentMs - a1.at;
+        final inStrokeRel = inStrokeMs / (a2.at - a1.at).toDouble();
 
-      final a1Pos = (a1.pos / 100.0);
-      final a2Pos = (a2.pos / 100.0);
-      final depth = a2Pos - a1Pos;
+        final a1Pos = (a1.pos / 100.0);
+        final a2Pos = (a2.pos / 100.0);
+        final depth = a2Pos - a1Pos;
 
-      currentY = 1.0 - (a1Pos + (depth * inStrokeRel));
+        currentY = 1.0 - (a1Pos + (depth * inStrokeRel));
+      }
     }
 
     List<Offset> points = [];

@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/helper/constants.dart';
@@ -338,14 +337,14 @@ class IndicatorPainter extends CustomPainter {
       ..strokeWidth = 4.0;
 
     canvas.drawLine(
-      Offset(indicatorX - 1, 0),
-      Offset(indicatorX - 1, size.height),
+      Offset(indicatorX, 0),
+      Offset(indicatorX, size.height),
       indicatorBorderPaint,
     );
 
     canvas.drawLine(
-      Offset(indicatorX - 1, 1),
-      Offset(indicatorX - 1, size.height),
+      Offset(indicatorX, 1),
+      Offset(indicatorX, size.height),
       indicatorPaint,
     );
   }
