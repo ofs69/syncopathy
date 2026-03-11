@@ -52,54 +52,57 @@ class _VideoControlsState extends State<VideoControls> {
             const SizedBox(height: 8.0),
 
             // 2. Main Controls Row
-            Row(
-              children: [
-                // Play/Pause
-                _wrapInContainer(
-                  Watch.builder(
-                    builder: (context) => IconButton(
-                      icon: Icon(
-                        player.paused.value ? Icons.play_arrow : Icons.pause,
+            ExcludeFocus(
+              excluding: true,
+              child: Row(
+                children: [
+                  // Play/Pause
+                  _wrapInContainer(
+                    Watch.builder(
+                      builder: (context) => IconButton(
+                        icon: Icon(
+                          player.paused.value ? Icons.play_arrow : Icons.pause,
+                        ),
+                        onPressed: player.togglePause,
                       ),
-                      onPressed: player.togglePause,
                     ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                _wrapInContainer(_buildVolumeSlider(player, isPortrait)),
-                const SizedBox(width: 4),
+                  const SizedBox(width: 4),
+                  _wrapInContainer(_buildVolumeSlider(player, isPortrait)),
+                  const SizedBox(width: 4),
 
-                // Time Display
-                _wrapInContainer(
-                  Watch.builder(
-                    builder: (context) {
-                      return Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Text(
-                          _formatResponsiveTimestamp(player, isPortrait),
-                          style: const TextStyle(fontFamily: 'monospace'),
+                  // Time Display
+                  _wrapInContainer(
+                    Watch.builder(
+                      builder: (context) {
+                        return Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Text(
+                            _formatResponsiveTimestamp(player, isPortrait),
+                            style: const TextStyle(fontFamily: 'monospace'),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  // Action Buttons
+                  _wrapInContainer(
+                    Row(
+                      children: [
+                        _buildGraphButton(),
+                        _buildSettingsButton(),
+                        IconButton(
+                          icon: const Icon(Icons.fullscreen),
+                          onPressed: widget.onFullscreenToggle,
                         ),
-                      );
-                    },
+                      ],
+                    ),
                   ),
-                ),
-
-                const Spacer(),
-
-                // Action Buttons
-                _wrapInContainer(
-                  Row(
-                    children: [
-                      _buildGraphButton(),
-                      _buildSettingsButton(),
-                      IconButton(
-                        icon: const Icon(Icons.fullscreen),
-                        onPressed: widget.onFullscreenToggle,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
