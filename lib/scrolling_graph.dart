@@ -38,7 +38,7 @@ class _InteractiveScrollingGraphState extends State<InteractiveScrollingGraph> {
             milliseconds:
                 (widget.viewDuration.value.inMilliseconds * scrollValue)
                     .round()
-                    .clamp(1000, 30000),
+                    .clamp(1000, 10000),
           );
         }
       },
@@ -161,9 +161,26 @@ class GraphPainter extends CustomPainter {
       ..style = PaintingStyle.fill
       ..strokeCap = StrokeCap.round;
 
+    final currentPointPaint = Paint()
+      ..color = theme.colorScheme.onSecondary
+      ..strokeWidth = 6.0
+      ..style = PaintingStyle.fill
+      ..strokeCap = StrokeCap.round;
+
+    final currentPointBackgroundPaint = Paint()
+      ..color = theme.colorScheme.secondary
+      ..strokeWidth = 10.0
+      ..style = PaintingStyle.fill
+      ..strokeCap = StrokeCap.round;
+
+    const double customMargin = 8.0;
+
     Offset boundSize(Size size, double strokeWidth, double relX, double relY) {
       double x = (strokeWidth / 2.0) + (relX * (size.width - strokeWidth));
-      double y = (strokeWidth / 2.0) + (relY * (size.height - strokeWidth));
+      double y =
+          (strokeWidth / 2.0) +
+          customMargin +
+          (relY * (size.height - strokeWidth - (customMargin * 2.0)));
       return Offset(x, y);
     }
 
@@ -178,13 +195,34 @@ class GraphPainter extends CustomPainter {
       // Not enough points to draw lines or calculate speed
       return;
     }
-
+    
     // --- 4. Filter, Transform, and Draw Points ---
     // binary search for start and end indices
     final testStart = FunscriptAction(at: viewStart.inMilliseconds, pos: 0);
     final int start = max(lowerBound(actions, testStart) - 1, 0);
     final testEnd = FunscriptAction(at: viewEnd.inMilliseconds, pos: 0);
     final int end = min(lowerBound(actions, testEnd) + 1, actions.length);
+
+    double currentY = 0.0;
+    {
+      final currentMs = videoPosition.inMilliseconds;
+      final int current = max(
+        lowerBound(actions, FunscriptAction(at: currentMs, pos: 0)) - 1,
+        0,
+      );
+
+      final a1 = actions[current];
+      final a2 = actions[current + 1];
+
+      final inStrokeMs = currentMs - a1.at;
+      final inStrokeRel = inStrokeMs / (a2.at - a1.at).toDouble();
+
+      final a1Pos = (a1.pos / 100.0);
+      final a2Pos = (a2.pos / 100.0);
+      final depth = a2Pos - a1Pos;
+
+      currentY = 1.0 - (a1Pos + (depth * inStrokeRel));
+    }
 
     List<Offset> points = [];
     for (int i = start; i < end - 1; i++) {
@@ -263,12 +301,42 @@ class GraphPainter extends CustomPainter {
     // --- 5. Draw Cursor ---
     final cursorX = size.width / 2.0;
     canvas.drawLine(
-      Offset(cursorX, cursorPaint.strokeWidth),
-      Offset(cursorX, size.height - cursorPaint.strokeWidth),
+      Offset(cursorX, cursorPaint.strokeWidth + (customMargin / 2.0)),
+      Offset(
+        cursorX,
+        size.height - cursorPaint.strokeWidth - (customMargin / 2.0),
+      ),
       cursorPaint,
     );
-
     canvas.drawPoints(PointMode.points, points, pointPaint);
+
+    // current position point
+    canvas.drawCircle(
+      Offset(
+        cursorX,
+        (currentPointBackgroundPaint.strokeWidth) +
+            (customMargin / 2.0) +
+            currentY *
+                (size.height -
+                    (currentPointBackgroundPaint.strokeWidth * 2.0) -
+                    (customMargin)),
+      ),
+      currentPointBackgroundPaint.strokeWidth,
+      currentPointBackgroundPaint,
+    );
+    canvas.drawCircle(
+      Offset(
+        cursorX,
+        (currentPointBackgroundPaint.strokeWidth) +
+            (customMargin / 2.0) +
+            currentY *
+                (size.height -
+                    (currentPointBackgroundPaint.strokeWidth * 2.0) -
+                    (customMargin)),
+      ),
+      currentPointPaint.strokeWidth,
+      currentPointPaint,
+    );
   }
 
   @override

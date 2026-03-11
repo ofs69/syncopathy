@@ -20,7 +20,9 @@ class _HelpPageState extends State<HelpPage> {
   Widget build(BuildContext context) {
     final helpFile = _getHelpFile(syncopathySimpleMode, kIsWeb);
     final helpMd = rootBundle.loadString('assets/wiki/$helpFile');
-    final isPortrait = PlatformUtils.isPortrait(context);
+    final isPortrait =
+        PlatformUtils.isPortrait(context) ||
+        MediaQuery.of(context).size.width < 1200;
 
     return Scaffold(
       body: FutureBuilder(

@@ -17,6 +17,7 @@ class Settings {
   bool autoSwitchToVideoPlayerTab;
   bool invert;
   PlayerBackendType playerBackendType;
+  bool funscriptGraphEnabled;
 
   static const String key = "MainAppSettings";
 
@@ -33,6 +34,7 @@ class Settings {
     this.autoSwitchToVideoPlayerTab = false,
     this.invert = false,
     this.playerBackendType = PlayerBackendType.handyStrokerStreamingBluetooth,
+    this.funscriptGraphEnabled = true,
   }) : mediaPaths = List.of(mediaPaths);
 
   factory Settings.fromJson(Map<String, dynamic> json) =>

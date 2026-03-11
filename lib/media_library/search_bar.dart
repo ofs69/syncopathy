@@ -36,16 +36,14 @@ class _MediaSearchBarState<T> extends State<MediaSearchBar<T>> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 8.0),
-      child: FocusScope(
-        child: TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            labelText: 'Search Videos',
-            hintText: 'What are you looking for?',
-            prefixIcon: const Icon(Icons.search),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          labelText: 'Search Videos',
+          hintText: 'What are you looking for?',
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
           ),
         ),
       ),

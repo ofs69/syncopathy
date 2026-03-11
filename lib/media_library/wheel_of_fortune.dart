@@ -22,7 +22,6 @@ class WheelOfFortuneDialog extends StatefulWidget {
 class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
   final StreamController<int> _selected = StreamController<int>();
   late int _selectedIndex;
-  bool _isSpinning = false;
   final _random = Random();
 
   @override
@@ -44,7 +43,6 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
 
   void _spinWheel() {
     setState(() {
-      _isSpinning = true;
       _selectedIndex = _random.nextInt(widget.videos.length);
     });
     // Add a short delay before adding to stream to allow the state to update
@@ -76,7 +74,6 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
     ];
 
     return AlertDialog(
-      title: const Center(child: Text('Spin the Wheel!')),
       content: SizedBox(
         height: 600,
         width: 600,
@@ -88,9 +85,7 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
           duration: const Duration(seconds: 2, milliseconds: 0),
           onAnimationEnd: () {
             Future.delayed(const Duration(milliseconds: 500), () {
-              if (!mounted) return;
-              setState(() => _isSpinning = false);
-              if (!context.mounted) return; // Additional check
+              if (!context.mounted) return;
               Navigator.of(context).pop();
               widget.onVideoSelected(widget.videos[_selectedIndex]);
             });
@@ -98,13 +93,6 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
         ),
       ),
       actionsAlignment: MainAxisAlignment.center,
-      actions: [
-        FilledButton.icon(
-          icon: const Icon(Icons.casino),
-          label: const Text('Spin'),
-          onPressed: _isSpinning ? null : _spinWheel,
-        ),
-      ],
     );
   }
 }

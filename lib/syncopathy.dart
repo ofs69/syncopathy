@@ -194,7 +194,10 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
 
     return LogNotificationObserver(
       child: Scaffold(
-        appBar: CustomAppBar(widgetTitle: widget.title),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: ExcludeFocus(child: CustomAppBar(widgetTitle: widget.title)),
+        ),
         bottomNavigationBar: isPortrait
             ? NavigationBar(
                 selectedIndex: _selectedIndex,
@@ -206,11 +209,14 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
           child: Row(
             children: [
               if (!isPortrait)
-                NavigationRail(
-                  selectedIndex: _selectedIndex,
-                  onDestinationSelected: _onTabChanged,
-                  labelType: NavigationRailLabelType.all,
-                  destinations: _destinations(withMedia),
+                ExcludeFocus(
+                  excluding: true,
+                  child: NavigationRail(
+                    selectedIndex: _selectedIndex,
+                    onDestinationSelected: _onTabChanged,
+                    labelType: NavigationRailLabelType.all,
+                    destinations: _destinations(withMedia),
+                  ),
                 ),
               const VerticalDivider(thickness: 1, width: 1),
               Expanded(
@@ -257,15 +263,21 @@ class _PageContentState extends State<PageContent> {
   @override
   Widget build(BuildContext context) {
     final withMedia = context.read<MediaManager?>() != null;
+
+    final List<Widget> pages = [
+      if (withMedia) const MediaPage(),
+      const VideoPlayerPage(),
+      const SettingsPage(),
+      const HelpPage(),
+    ];
+
     return PageView(
       physics: const NeverScrollableScrollPhysics(),
       controller: widget.pageController,
       onPageChanged: widget.onPageChanged,
-      children: <Widget>[
-        if (withMedia) MediaPage(),
-        VideoPlayerPage(),
-        SettingsPage(),
-        HelpPage(),
+      children: [
+        for (int i = 0; i < pages.length; i += 1)
+          ExcludeFocus(excluding: widget.selectedIndex != i, child: pages[i]),
       ],
     );
   }

@@ -135,10 +135,9 @@ class CustomAppBarState extends State<CustomAppBar> {
               ),
             ],
           ),
-        const Padding(
-          padding: EdgeInsets.only(right: 8.0),
-          child: ConnectionButton(),
-        ),
+        const SizedBox(width: 4.0),
+        ConnectionButton(),
+        const SizedBox(width: 4.0),
         // Window control buttons
         if (!kIsWeb)
           WindowCaptionButton.minimize(

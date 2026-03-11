@@ -1,6 +1,3 @@
-import 'dart:ui';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
@@ -19,10 +16,22 @@ class ScriptPlayerSettingsOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(8.0),
+      padding: EdgeInsets.zero,
       decoration: stdBoxShadow(),
       alignment: Alignment.topCenter,
-      child: ScriptPlayerSettings(),
+      // create a soft edge at the bottom
+      child: ShaderMask(
+        shaderCallback: (Rect bounds) {
+          return LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Colors.transparent],
+            stops: [0.98, 1.0],
+          ).createShader(bounds);
+        },
+        blendMode: BlendMode.dstIn,
+        child: SingleChildScrollView(child: ScriptPlayerSettings()),
+      ),
     );
   }
 }
@@ -362,41 +371,30 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
     required List<Widget> children,
   }) {
     final borderRadius = BorderRadius.circular(20);
-    blurContainer(Widget child) => kIsWeb
-        ? child
-        : ClipRRect(
-            borderRadius: borderRadius,
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: child,
-            ),
-          );
 
-    return blurContainer(
-      Container(
-        width: width,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white.withAlphaF(0.15),
-          borderRadius: borderRadius,
-          border: Border.all(color: Colors.white.withAlphaF(0.15), width: 1),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min, // Height scales with content
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade900.withAlphaF(0.6),
+        borderRadius: borderRadius,
+        border: Border.all(color: Colors.white.withAlphaF(0.2), width: 1),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min, // Height scales with content
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
             ),
-            const SizedBox(height: 20),
-            ...children,
-          ],
-        ),
+          ),
+          const SizedBox(height: 20),
+          ...children,
+        ],
       ),
     );
   }

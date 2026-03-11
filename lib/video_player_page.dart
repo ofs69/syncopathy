@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/video_widget.dart';
 
@@ -19,7 +20,6 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   @override
   bool get wantKeepAlive => true;
 
-  late final Signal<bool> _showFunscriptGraph = createSignal(true);
   late final Signal<bool> _showSettings = createSignal(false);
   late final Signal<bool> _showControls = createSignal(true);
 
@@ -33,8 +33,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final player = context.watch<VideoPlayer>();
-    final playerModel = context.watch<PlayerModel>();
+    final player = context.read<VideoPlayer>();
+    final playerModel = context.read<PlayerModel>();
+    final settingsModel = context.read<SettingsModel>();
     final noFunscriptLoaded = playerModel.currentlyOpen.watch(context) == null;
 
     return Column(
@@ -50,7 +51,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                   player: player,
                   isFullscreen: false,
                   showControls: _showControls,
-                  showFunscriptGraph: _showFunscriptGraph,
+                  showFunscriptGraph: settingsModel.funscriptGraphEnabled,
                   showSettings: _showSettings,
                 ),
               ),

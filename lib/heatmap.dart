@@ -85,63 +85,57 @@ class _HeatmapState extends State<Heatmap> {
               children: [
                 Expanded(
                   flex: 11,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
-                      border: Border.all(color: Colors.grey.withAlphaF(0.5)),
-                    ),
-                    child: Stack(
-                      // Allows the Slider thumb to overflow the stack bounds if needed
-                      clipBehavior: Clip.none,
-                      fit: StackFit.expand,
-                      children: [
-                        // 1. Heatmap painter (Background layer)
-                        CustomPaint(
-                          painter: HeatmapPainter(
-                            actions: widget.actions,
-                            totalDuration: Duration(
-                              milliseconds: widget.totalDurationMs.watch(
-                                context,
+                  child: Stack(
+                    // Allows the Slider thumb to overflow the stack bounds if needed
+                    clipBehavior: Clip.none,
+                    fit: StackFit.expand,
+                    children: [
+                      // 1. Heatmap painter (Background layer)
+                      RepaintBoundary(
+                        child: Watch.builder(
+                          builder: (context) {
+                            final duration = widget.totalDurationMs.value;
+                            return CustomPaint(
+                              painter: HeatmapPainter(
+                                actions: widget.actions,
+                                totalDuration: Duration(milliseconds: duration),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      // 2. Indicator painter (Vertical white line)
+                      Watch.builder(
+                        builder: (context) {
+                          final position = widget.videoPosition.value;
+                          final totalDurationMs = widget.totalDurationMs.value;
+                          return CustomPaint(
+                            painter: IndicatorPainter(
+                              videoPosition: Duration(
+                                milliseconds: (position * 1000).round(),
+                              ),
+                              totalDuration: Duration(
+                                milliseconds: totalDurationMs,
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
+                      ),
 
-                        // 2. Indicator painter (Vertical white line)
-                        Watch.builder(
-                          builder: (context) {
-                            final position = widget.videoPosition.value;
-                            final totalDurationMs =
-                                widget.totalDurationMs.value;
-                            return CustomPaint(
-                              painter: IndicatorPainter(
-                                videoPosition: Duration(
-                                  milliseconds: (position * 1000).round(),
-                                ),
-                                totalDuration: Duration(
-                                  milliseconds: totalDurationMs,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-
-                        // 3. Hover indicator (Vertical line on mouse hover)
-                        Watch.builder(
-                          builder: (context) {
-                            final hoverX = _hoverPosition.value;
-                            if (hoverX == null) {
-                              return const SizedBox.shrink();
-                            }
-                            return CustomPaint(
-                              painter: HoverIndicatorPainter(hoverX: hoverX),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                      // 3. Hover indicator (Vertical line on mouse hover)
+                      Watch.builder(
+                        builder: (context) {
+                          final hoverX = _hoverPosition.value;
+                          if (hoverX == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return CustomPaint(
+                            painter: HoverIndicatorPainter(hoverX: hoverX),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 // 4. Visual Slider Timeline (Aligned to bottom)
@@ -158,8 +152,10 @@ class _HeatmapState extends State<Heatmap> {
                             padding: EdgeInsets.all(0),
                             trackShape: const RectangularSliderTrackShape(),
                             trackHeight: 4.0,
-                            activeTrackColor: Colors.red,
-                            inactiveTrackColor: Colors.white24,
+                            activeTrackColor: Colors.redAccent,
+                            inactiveTrackColor: Theme.of(
+                              context,
+                            ).colorScheme.onInverseSurface,
                             thumbColor: Colors.red,
                             overlayColor: Colors.transparent,
                             thumbShape: const RoundSliderThumbShape(
@@ -191,12 +187,17 @@ class _HeatmapState extends State<Heatmap> {
 class _SegmentData {
   double totalSpeed = 0.0;
   int speedCount = 0;
-  double totalPos = 0.0;
-  int posCount = 0;
+
+  // New fields for averaging position boundaries
+  double totalMinPos = 0.0;
+  double totalMaxPos = 0.0;
+  int posSampleCount = 0;
 
   double get averageSpeed => speedCount > 0 ? totalSpeed / speedCount : 0.0;
-  double get averagePos =>
-      posCount > 0 ? totalPos / posCount : 50.0; // Default to middle
+  double get averageMin =>
+      posSampleCount > 0 ? totalMinPos / posSampleCount : 0.0;
+  double get averageMax =>
+      posSampleCount > 0 ? totalMaxPos / posSampleCount : 0.0;
 }
 
 /// A [CustomPainter] that draws the heatmap based on movement speed.
@@ -208,20 +209,14 @@ class HeatmapPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (actions.length < 2 ||
-        totalDuration.inMilliseconds <= 0 ||
-        size.width <= 0) {
-      return;
-    }
+    if (actions.length < 2 || size.width <= 2) return;
 
-    final int numSegments = size.width.toInt();
+    // Rule: One segment per 2 pixels
+    final int numSegments = (size.width / 2.0).floor();
+    final double segmentPxWidth = 2.0;
     final double totalMs = totalDuration.inMilliseconds.toDouble();
     final double segmentMs = totalMs / numSegments;
-    final double segmentPxWidth = size.width / numSegments;
 
-    final paint = Paint();
-
-    // Pre-aggregate data into segments using a two-pointer approach
     final List<_SegmentData> segments = List.generate(
       numSegments,
       (_) => _SegmentData(),
@@ -229,83 +224,87 @@ class HeatmapPainter extends CustomPainter {
     int currentActionIndex = 0;
 
     for (int i = 0; i < numSegments; i++) {
-      final double segmentStartTimeMs = i * segmentMs;
-      final double segmentEndTimeMs = (i + 1) * segmentMs;
+      final double segmentStartTime = i * segmentMs;
+      final double segmentEndTime = (i + 1) * segmentMs;
 
-      // Advance currentActionIndex to the first action that starts within or after segmentStartTimeMs
       while (currentActionIndex < actions.length - 1 &&
-          actions[currentActionIndex + 1].at < segmentStartTimeMs) {
+          actions[currentActionIndex + 1].at < segmentStartTime) {
         currentActionIndex++;
       }
 
-      // Iterate through actions that overlap with the current segment
-      int tempActionIndex = currentActionIndex;
-      while (tempActionIndex < actions.length - 1) {
-        final p1 = actions[tempActionIndex];
-        final p2 = actions[tempActionIndex + 1];
+      int tempIdx = currentActionIndex;
+      while (tempIdx < actions.length - 1) {
+        final p1 = actions[tempIdx];
+        final p2 = actions[tempIdx + 1];
 
-        // If the current action interval starts after the segment ends, break
-        if (p1.at >= segmentEndTimeMs) {
-          break;
-        }
+        if (p1.at >= segmentEndTime) break;
 
-        // If the action interval [p1.at, p2.at] overlaps with the current segment [segmentStartTimeMs, segmentEndTimeMs]
-        if (max(p1.at.toDouble(), segmentStartTimeMs) <
-            min(p2.at.toDouble(), segmentEndTimeMs)) {
+        // Check for overlap
+        if (max(p1.at.toDouble(), segmentStartTime) <
+            min(p2.at.toDouble(), segmentEndTime)) {
+          // Speed Calculation
           final timeDiff = (p2.at - p1.at).toDouble();
           if (timeDiff > 0) {
-            final posDiff = (p2.pos - p1.pos).abs().toDouble();
-            final speed = posDiff / timeDiff;
-            segments[i].totalSpeed += speed;
+            segments[i].totalSpeed += (p2.pos - p1.pos).abs() / timeDiff;
             segments[i].speedCount++;
           }
-          segments[i].totalPos += p1.pos; // Use p1.pos as representative
-          segments[i].posCount++;
+
+          // Position Averaging logic
+          // We treat every action pair overlapping this segment as a sample of the range
+          segments[i].totalMinPos += min(p1.pos, p2.pos);
+          segments[i].totalMaxPos += max(p1.pos, p2.pos);
+          segments[i].posSampleCount++;
         }
-        tempActionIndex++;
+        tempIdx++;
       }
     }
 
-    // Draw each segment
+    // DRAWING PHASE
     for (int i = 0; i < numSegments; i++) {
-      final _SegmentData segmentData = segments[i];
+      final data = segments[i];
+      if (data.posSampleCount == 0) continue;
 
-      final startX = i * segmentPxWidth;
-      final rectWidth = segmentPxWidth;
+      final double startX = i * segmentPxWidth;
 
-      final normalizedSpeed = min(
-        segmentData.averageSpeed / speedNormalizationValue,
-        1.0,
+      // Calculate color based on speed
+      final normalizedSpeed = (data.averageSpeed / speedNormalizationValue)
+          .clamp(0.0, 1.0);
+      final paint = Paint()..color = _getHeatmapColor(normalizedSpeed);
+
+      // Calculate vertical bounds using averageMin and averageMax
+      // Mapping: Funscript 100 is bottom (size.height), 0 is top (0)
+      final double yTop = (100 - data.averageMax) / 100.0 * size.height;
+      final double yBottom = (100 - data.averageMin) / 100.0 * size.height;
+
+      final double barHeight = (yBottom - yTop).abs().clamp(
+        size.height * 0.3,
+        size.height,
       );
-
-      final double colorPosition = normalizedSpeed * (heatmapColors.length - 1);
-      final int fromIndex = colorPosition.floor().clamp(
-        0,
-        heatmapColors.length - 2,
-      );
-      final int toIndex = colorPosition.ceil().clamp(
-        0,
-        heatmapColors.length - 1,
-      );
-      final double t = colorPosition - fromIndex;
-
-      paint.color = Color.lerp(
-        heatmapColors[fromIndex],
-        heatmapColors[toIndex],
-        t,
-      )!;
-
-      final barHeight = size.height * 0.8; // Example fixed height
-      final barTop =
-          (100 - segmentData.averagePos) / 100.0 * size.height -
-          (barHeight / 2);
-      final clampedBarTop = barTop.clamp(0.0, size.height - barHeight);
 
       canvas.drawRect(
-        Rect.fromLTWH(startX, clampedBarTop, rectWidth, barHeight),
+        Rect.fromLTWH(startX, yTop, segmentPxWidth, barHeight),
         paint,
       );
     }
+  }
+
+  Color _getHeatmapColor(double normalizedSpeed) {
+    // 1. Safety checks
+    if (heatmapColors.isEmpty) return Colors.transparent;
+    if (heatmapColors.length == 1) return heatmapColors.first;
+
+    // 2. Scale 0.0-1.0 to the range of the list indices
+    // (e.g., if we have 5 colors, indices are 0 to 4)
+    final double position = normalizedSpeed * (heatmapColors.length - 1);
+
+    // 3. Find the two colors to interpolate between
+    final int fromIndex = position.floor().clamp(0, heatmapColors.length - 2);
+    final int toIndex = fromIndex + 1;
+
+    // 4. Calculate the remainder (t) for lerping between those two specific colors
+    final double t = (position - fromIndex).clamp(0.0, 1.0);
+
+    return Color.lerp(heatmapColors[fromIndex], heatmapColors[toIndex], t)!;
   }
 
   @override
@@ -332,21 +331,21 @@ class IndicatorPainter extends CustomPainter {
 
     final indicatorPaint = Paint()
       ..color = Colors.white
-      ..strokeWidth = 1.5;
+      ..strokeWidth = 2;
 
     final indicatorBorderPaint = Paint()
       ..color = Colors.black
-      ..strokeWidth = 3.0;
+      ..strokeWidth = 4.0;
 
     canvas.drawLine(
-      Offset(indicatorX, 0),
-      Offset(indicatorX, size.height),
+      Offset(indicatorX - 1, 0),
+      Offset(indicatorX - 1, size.height),
       indicatorBorderPaint,
     );
 
     canvas.drawLine(
-      Offset(indicatorX, 0),
-      Offset(indicatorX, size.height),
+      Offset(indicatorX - 1, 1),
+      Offset(indicatorX - 1, size.height),
       indicatorPaint,
     );
   }

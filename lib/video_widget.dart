@@ -136,7 +136,7 @@ class _VideoWidgetState extends State<VideoWidget>
                               child: Column(
                                 children: [
                                   Expanded(
-                                    flex: 6,
+                                    flex: 10,
                                     child: AnimatedSlide(
                                       offset: widget.showSettings.watch(context)
                                           ? Offset.zero
@@ -148,12 +148,15 @@ class _VideoWidgetState extends State<VideoWidget>
                                         milliseconds: 300,
                                       ),
                                       curve: Curves.easeInOut,
-                                      child: ScriptPlayerSettingsOverlay(),
+                                      child: ExcludeFocus(
+                                        excluding: !showControls,
+                                        child: ScriptPlayerSettingsOverlay(),
+                                      ),
                                     ),
                                   ),
                                   widget.showFunscriptGraph.watch(context)
                                       ? Expanded(
-                                          flex: 1,
+                                          flex: 2,
                                           child: _funscriptGraph(
                                             playerModel.currentlyOpen,
                                             player,

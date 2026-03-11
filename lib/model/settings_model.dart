@@ -29,6 +29,7 @@ class SettingsModel {
   final Signal<PlayerBackendType> playerBackendType = signal(
     PlayerBackendType.handyStrokerStreamingBluetooth,
   );
+  final Signal<bool> funscriptGraphEnabled = signal(false);
 
   // Not persisted in the database
   Signal<bool> showDebugNotifications = signal(kDebugMode);
@@ -58,6 +59,7 @@ class SettingsModel {
     autoSwitchToVideoPlayerTab.value = _entity.autoSwitchToVideoPlayerTab;
     invert.value = _entity.invert;
     playerBackendType.value = _entity.playerBackendType;
+    funscriptGraphEnabled.value = _entity.funscriptGraphEnabled;
 
     _saveEffectDispose = effect(() async {
       _entity.min = min.value;
@@ -72,6 +74,7 @@ class SettingsModel {
       _entity.autoSwitchToVideoPlayerTab = autoSwitchToVideoPlayerTab.value;
       _entity.invert = invert.value;
       _entity.playerBackendType = playerBackendType.value;
+      _entity.funscriptGraphEnabled = funscriptGraphEnabled.value;
       await _save();
     });
   }

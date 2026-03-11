@@ -29,6 +29,7 @@ Settings _$SettingsFromJson(Map<String, dynamic> json) => Settings(
         json['playerBackendType'],
       ) ??
       PlayerBackendType.handyStrokerStreamingBluetooth,
+  funscriptGraphEnabled: json['funscriptGraphEnabled'] as bool? ?? true,
 );
 
 Map<String, dynamic> _$SettingsToJson(Settings instance) => <String, dynamic>{
@@ -44,6 +45,7 @@ Map<String, dynamic> _$SettingsToJson(Settings instance) => <String, dynamic>{
   'autoSwitchToVideoPlayerTab': instance.autoSwitchToVideoPlayerTab,
   'invert': instance.invert,
   'playerBackendType': _$PlayerBackendTypeEnumMap[instance.playerBackendType]!,
+  'funscriptGraphEnabled': instance.funscriptGraphEnabled,
 };
 
 const _$SettingsJsonSchema = {
@@ -66,6 +68,7 @@ const _$SettingsJsonSchema = {
     'autoSwitchToVideoPlayerTab': {'type': 'boolean', 'default': false},
     'invert': {'type': 'boolean', 'default': false},
     'playerBackendType': {'type': 'object'},
+    'funscriptGraphEnabled': {'type': 'boolean', 'default': true},
   },
 };
 
