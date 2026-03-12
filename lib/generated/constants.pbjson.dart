@@ -393,6 +393,7 @@ const ServerEnvironment$json = {
     {'1': 'SOCKET_SERVER_ENV_STAGING', '2': 1},
     {'1': 'SOCKET_SERVER_ENV_DEVELOPMENT', '2': 2},
     {'1': 'SOCKET_SERVER_ENV_CUSTOM', '2': 3},
+    {'1': 'SOCKET_SERVER_ENV_FACTORY', '2': 4},
   ],
 };
 
@@ -400,7 +401,25 @@ const ServerEnvironment$json = {
 final $typed_data.Uint8List serverEnvironmentDescriptor = $convert.base64Decode(
     'ChFTZXJ2ZXJFbnZpcm9ubWVudBIgChxTT0NLRVRfU0VSVkVSX0VOVl9QUk9EVUNUSU9OEAASHQ'
     'oZU09DS0VUX1NFUlZFUl9FTlZfU1RBR0lORxABEiEKHVNPQ0tFVF9TRVJWRVJfRU5WX0RFVkVM'
-    'T1BNRU5UEAISHAoYU09DS0VUX1NFUlZFUl9FTlZfQ1VTVE9NEAM=');
+    'T1BNRU5UEAISHAoYU09DS0VUX1NFUlZFUl9FTlZfQ1VTVE9NEAMSHQoZU09DS0VUX1NFUlZFUl'
+    '9FTlZfRkFDVE9SWRAE');
+
+@$core.Deprecated('Use customServerCertificateTypeDescriptor instead')
+const CustomServerCertificateType$json = {
+  '1': 'CustomServerCertificateType',
+  '2': [
+    {'1': 'CUSTOM_SERVER_CERTIFICATE_TYPE_UNSPECIFIED', '2': 0},
+    {'1': 'CUSTOM_SERVER_CERTIFICATE_TYPE_OPEN', '2': 1},
+    {'1': 'CUSTOM_SERVER_CERTIFICATE_TYPE_PUBLIC', '2': 5},
+  ],
+};
+
+/// Descriptor for `CustomServerCertificateType`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List customServerCertificateTypeDescriptor =
+    $convert.base64Decode(
+        'ChtDdXN0b21TZXJ2ZXJDZXJ0aWZpY2F0ZVR5cGUSLgoqQ1VTVE9NX1NFUlZFUl9DRVJUSUZJQ0'
+        'FURV9UWVBFX1VOU1BFQ0lGSUVEEAASJwojQ1VTVE9NX1NFUlZFUl9DRVJUSUZJQ0FURV9UWVBF'
+        'X09QRU4QARIpCiVDVVNUT01fU0VSVkVSX0NFUlRJRklDQVRFX1RZUEVfUFVCTElDEAU=');
 
 @$core.Deprecated('Use bleStateDescriptor instead')
 const BleState$json = {
@@ -749,6 +768,13 @@ const BatteryState$json = {
     {'1': 'pg', '3': 16, '4': 1, '5': 8, '10': 'pg'},
     {'1': 'charger_disabled', '3': 17, '4': 1, '5': 8, '10': 'chargerDisabled'},
     {'1': 'charging', '3': 18, '4': 1, '5': 8, '10': 'charging'},
+    {
+      '1': 'low_voltage_detected',
+      '3': 19,
+      '4': 1,
+      '5': 8,
+      '10': 'lowVoltageDetected'
+    },
   ],
 };
 
@@ -767,4 +793,5 @@ final $typed_data.Uint8List batteryStateDescriptor = $convert.base64Decode(
     'RGV0ZWN0ZWQSOwoabGFzdF9mdWxseV9jaGFyZ2VkX3ZvbHRhZ2UYDSABKAJSF2xhc3RGdWxseU'
     'NoYXJnZWRWb2x0YWdlEhIKBGNoZ3IYDiABKAhSBGNoZ3ISFwoHaWNfZG9uZRgPIAEoCFIGaWNE'
     'b25lEg4KAnBnGBAgASgIUgJwZxIpChBjaGFyZ2VyX2Rpc2FibGVkGBEgASgIUg9jaGFyZ2VyRG'
-    'lzYWJsZWQSGgoIY2hhcmdpbmcYEiABKAhSCGNoYXJnaW5n');
+    'lzYWJsZWQSGgoIY2hhcmdpbmcYEiABKAhSCGNoYXJnaW5nEjAKFGxvd192b2x0YWdlX2RldGVj'
+    'dGVkGBMgASgIUhJsb3dWb2x0YWdlRGV0ZWN0ZWQ=');

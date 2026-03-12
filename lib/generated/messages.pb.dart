@@ -1156,7 +1156,13 @@ class ResponseClockOffsetSet extends $pb.GeneratedMessage {
 
 /// 710
 class RequestBatteryGet extends $pb.GeneratedMessage {
-  factory RequestBatteryGet() => create();
+  factory RequestBatteryGet({
+    $core.bool? flush,
+  }) {
+    final result = create();
+    if (flush != null) result.flush = flush;
+    return result;
+  }
 
   RequestBatteryGet._();
 
@@ -1171,6 +1177,7 @@ class RequestBatteryGet extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RequestBatteryGet',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'flush')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1191,6 +1198,15 @@ class RequestBatteryGet extends $pb.GeneratedMessage {
   static RequestBatteryGet getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<RequestBatteryGet>(create);
   static RequestBatteryGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get flush => $_getBF(0);
+  @$pb.TagNumber(1)
+  set flush($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasFlush() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearFlush() => $_clearField(1);
 }
 
 class ResponseBatteryGet extends $pb.GeneratedMessage {
@@ -1428,6 +1444,8 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
     $core.int? rgbRingLeds,
     $core.int? batteryCapacity,
     $0.BatteryDriver? batteryDriver,
+    $core.int? bleMtu,
+    $core.int? wsBufferSize,
   }) {
     final result = create();
     if (vulvaOriented != null) result.vulvaOriented = vulvaOriented;
@@ -1444,6 +1462,8 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
     if (rgbRingLeds != null) result.rgbRingLeds = rgbRingLeds;
     if (batteryCapacity != null) result.batteryCapacity = batteryCapacity;
     if (batteryDriver != null) result.batteryDriver = batteryDriver;
+    if (bleMtu != null) result.bleMtu = bleMtu;
+    if (wsBufferSize != null) result.wsBufferSize = wsBufferSize;
     return result;
   }
 
@@ -1479,6 +1499,9 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
         fieldType: $pb.PbFieldType.OU3)
     ..aE<$0.BatteryDriver>(14, _omitFieldNames ? '' : 'batteryDriver',
         enumValues: $0.BatteryDriver.values)
+    ..aI(15, _omitFieldNames ? '' : 'bleMtu', fieldType: $pb.PbFieldType.OU3)
+    ..aI(16, _omitFieldNames ? '' : 'wsBufferSize',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1626,6 +1649,24 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
   $core.bool hasBatteryDriver() => $_has(13);
   @$pb.TagNumber(14)
   void clearBatteryDriver() => $_clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.int get bleMtu => $_getIZ(14);
+  @$pb.TagNumber(15)
+  set bleMtu($core.int value) => $_setUnsignedInt32(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasBleMtu() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearBleMtu() => $_clearField(15);
+
+  @$pb.TagNumber(16)
+  $core.int get wsBufferSize => $_getIZ(15);
+  @$pb.TagNumber(16)
+  set wsBufferSize($core.int value) => $_setUnsignedInt32(15, value);
+  @$pb.TagNumber(16)
+  $core.bool hasWsBufferSize() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearWsBufferSize() => $_clearField(16);
 }
 
 ///

@@ -899,6 +899,7 @@ class BatteryState extends $pb.GeneratedMessage {
     $core.bool? pg,
     $core.bool? chargerDisabled,
     $core.bool? charging,
+    $core.bool? lowVoltageDetected,
   }) {
     final result = create();
     if (level != null) result.level = level;
@@ -925,6 +926,8 @@ class BatteryState extends $pb.GeneratedMessage {
     if (pg != null) result.pg = pg;
     if (chargerDisabled != null) result.chargerDisabled = chargerDisabled;
     if (charging != null) result.charging = charging;
+    if (lowVoltageDetected != null)
+      result.lowVoltageDetected = lowVoltageDetected;
     return result;
   }
 
@@ -965,6 +968,7 @@ class BatteryState extends $pb.GeneratedMessage {
     ..aOB(16, _omitFieldNames ? '' : 'pg')
     ..aOB(17, _omitFieldNames ? '' : 'chargerDisabled')
     ..aOB(18, _omitFieldNames ? '' : 'charging')
+    ..aOB(19, _omitFieldNames ? '' : 'lowVoltageDetected')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1148,6 +1152,15 @@ class BatteryState extends $pb.GeneratedMessage {
   $core.bool hasCharging() => $_has(17);
   @$pb.TagNumber(18)
   void clearCharging() => $_clearField(18);
+
+  @$pb.TagNumber(19)
+  $core.bool get lowVoltageDetected => $_getBF(18);
+  @$pb.TagNumber(19)
+  set lowVoltageDetected($core.bool value) => $_setBool(18, value);
+  @$pb.TagNumber(19)
+  $core.bool hasLowVoltageDetected() => $_has(18);
+  @$pb.TagNumber(19)
+  void clearLowVoltageDetected() => $_clearField(19);
 }
 
 const $core.bool _omitFieldNames =

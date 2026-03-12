@@ -434,6 +434,7 @@ class NotificationButtonEvent extends $pb.GeneratedMessage {
 }
 
 /// 705
+///  This will also be sent before shut down due to low battery (2000ms timeout)
 class NotificationBatteryChanged extends $pb.GeneratedMessage {
   factory NotificationBatteryChanged({
     $0.BatteryState? state,

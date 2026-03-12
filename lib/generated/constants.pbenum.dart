@@ -695,6 +695,7 @@ class ConnectionMode extends $pb.ProtobufEnum {
 
 ///
 /// Must match hdy_socket_server_env_t
+/// Added in 4.2
 class ServerEnvironment extends $pb.ProtobufEnum {
   static const ServerEnvironment SOCKET_SERVER_ENV_PRODUCTION =
       ServerEnvironment._(
@@ -706,20 +707,52 @@ class ServerEnvironment extends $pb.ProtobufEnum {
           2, _omitEnumNames ? '' : 'SOCKET_SERVER_ENV_DEVELOPMENT');
   static const ServerEnvironment SOCKET_SERVER_ENV_CUSTOM =
       ServerEnvironment._(3, _omitEnumNames ? '' : 'SOCKET_SERVER_ENV_CUSTOM');
+  static const ServerEnvironment SOCKET_SERVER_ENV_FACTORY =
+      ServerEnvironment._(4, _omitEnumNames ? '' : 'SOCKET_SERVER_ENV_FACTORY');
 
   static const $core.List<ServerEnvironment> values = <ServerEnvironment>[
     SOCKET_SERVER_ENV_PRODUCTION,
     SOCKET_SERVER_ENV_STAGING,
     SOCKET_SERVER_ENV_DEVELOPMENT,
     SOCKET_SERVER_ENV_CUSTOM,
+    SOCKET_SERVER_ENV_FACTORY,
   ];
 
   static final $core.List<ServerEnvironment?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 3);
+      $pb.ProtobufEnum.$_initByValueList(values, 4);
   static ServerEnvironment? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const ServerEnvironment._(super.value, super.name);
+}
+
+/// Added in 4.2
+/// Must match hdyConfigCustomServerCertificateType_t
+class CustomServerCertificateType extends $pb.ProtobufEnum {
+  static const CustomServerCertificateType
+      CUSTOM_SERVER_CERTIFICATE_TYPE_UNSPECIFIED =
+      CustomServerCertificateType._(0,
+          _omitEnumNames ? '' : 'CUSTOM_SERVER_CERTIFICATE_TYPE_UNSPECIFIED');
+  static const CustomServerCertificateType CUSTOM_SERVER_CERTIFICATE_TYPE_OPEN =
+      CustomServerCertificateType._(
+          1, _omitEnumNames ? '' : 'CUSTOM_SERVER_CERTIFICATE_TYPE_OPEN');
+  static const CustomServerCertificateType
+      CUSTOM_SERVER_CERTIFICATE_TYPE_PUBLIC = CustomServerCertificateType._(
+          5, _omitEnumNames ? '' : 'CUSTOM_SERVER_CERTIFICATE_TYPE_PUBLIC');
+
+  static const $core.List<CustomServerCertificateType> values =
+      <CustomServerCertificateType>[
+    CUSTOM_SERVER_CERTIFICATE_TYPE_UNSPECIFIED,
+    CUSTOM_SERVER_CERTIFICATE_TYPE_OPEN,
+    CUSTOM_SERVER_CERTIFICATE_TYPE_PUBLIC,
+  ];
+
+  static final $core.Map<$core.int, CustomServerCertificateType> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static CustomServerCertificateType? valueOf($core.int value) =>
+      _byValue[value];
+
+  const CustomServerCertificateType._(super.value, super.name);
 }
 
 ///

@@ -1,4 +1,4 @@
-// Auto-generated on 2025-12-01 10:06:42
+// Auto-generated on 2026-03-11 15:55:10
 syntax = "proto3";
 package hdy_rpc;
 import "notifications.proto";
@@ -197,9 +197,9 @@ enum MessageType{
     MESSAGE_TYPE_NOTIFICATION = 4;
 }
 message Error {
-    int32 code = 1;         //Handy Error code or ESP Error code
-    string message = 2;     //A String providing a short description of the error. The message SHOULD be limited to a concise single sentence.
-    string data = 3;        //A Primitive or Structured value that contains additional information about the error.
+    int32 code = 1; //Handy Error code or ESP Error code
+    string message = 2; //A String providing a short description of the error. The message SHOULD be limited to a concise single sentence.
+    string data = 3; //A Primitive or Structured value that contains additional information about the error.
 }
 message RpcMessage{
     MessageType type = 1;

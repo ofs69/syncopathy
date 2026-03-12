@@ -1,4 +1,4 @@
-// Auto-generated on 2025-12-01 10:06:42
+// Auto-generated on 2026-03-11 15:55:10
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
@@ -34,6 +34,7 @@ message NotificationButtonEvent{
     ButtonEvent event = 2;
 }
 //705
+// This will also be sent before shut down due to low battery (2000ms timeout)
 message NotificationBatteryChanged{
     BatteryState state = 1;
 }
@@ -114,7 +115,7 @@ message NotificationWifiScanComplete{
 message NotificationIdleTimeout{
     IdleTimeoutState state = 1;
     uint32 idle_time = 2; //[ms] The time the device has been idle
-    uint32 warning_time = 3; //[ms] The time until the device will go to sleep (hardcoded to 60 seconds) 
+    uint32 warning_time = 3; //[ms] The time until the device will go to sleep (hardcoded to 60 seconds)
 }
 //Give all the connected clients a notification when a setting is changed - Useful for the server to know that a setting has changed in the onboarding app
 // Added in FW4.1.0

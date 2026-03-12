@@ -1,4 +1,4 @@
-// Auto-generated on 2025-12-01 10:06:42
+// Auto-generated on 2026-03-11 15:55:10
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
@@ -30,19 +30,19 @@ message RequestWifiSet{
 //port for _hdy_pc_prov_config_config_apply is not needed since we can set the WiFi by OnlineModeSet
 //623 Port for _hdy_pc_prov_scan_start+result - Start wifi scan. Rembember to stop the scan when done! Returns OK if scan has started ok. Returns a scan complete notification when the scan is done.
 message RequestWifiScanStart{
-    bool blocking =1;                   //[default:false] If true, the system will wait for the scan to finish before sending the Blank OK. NB! This is one of the few blocking RPC calls!
-    bool passive = 2;                   //[default:false] if false or not set -> active scan
-    uint32 channel = 3;                 //[default:all channels==0]uint8_t scan the specific channel. if not set -> all channels
-    bool show_hidden = 4;               //[default:false]if true -> show hidden networks
-    uint32 passive_scan_time = 5;       //[default:regular scantime values] ms. Only used if passive is true. If not set, the default value is used. passive scan time per channel, units: millisecond, values above 1500ms may cause station to disconnect from AP and are not recommended. 
-    uint32 active_scan_time_min = 6;    //[default:regular scantime values] ms. Only used if passive is false. If not set, the default value is used.
-    uint32 active_scan_time_max = 7;    //[default:regular scantime values] ms. Only used if passive is false. If not set, the default value is used. values above 1500ms may cause station to disconnect from AP and are not recommended. 
+    bool blocking =1; //[default:false] If true, the system will wait for the scan to finish before sending the Blank OK. NB! This is one of the few blocking RPC calls!
+    bool passive = 2; //[default:false] if false or not set -> active scan
+    uint32 channel = 3; //[default:all channels==0]uint8_t scan the specific channel. if not set -> all channels
+    bool show_hidden = 4; //[default:false]if true -> show hidden networks
+    uint32 passive_scan_time = 5; //[default:regular scantime values] ms. Only used if passive is true. If not set, the default value is used. passive scan time per channel, units: millisecond, values above 1500ms may cause station to disconnect from AP and are not recommended.
+    uint32 active_scan_time_min = 6; //[default:regular scantime values] ms. Only used if passive is false. If not set, the default value is used.
+    uint32 active_scan_time_max = 7; //[default:regular scantime values] ms. Only used if passive is false. If not set, the default value is used. values above 1500ms may cause station to disconnect from AP and are not recommended.
 }
 //624
 //Due to BLE limitations, the results are sent in chunks
 message RequestWifiScanResultsGet{
-    uint32 max_results = 1;     //Max 10 (NB! can be changed in the future)
-    uint32 offset_index = 2;    //Offset index for the results
+    uint32 max_results = 1; //Max 10 (NB! can be changed in the future)
+    uint32 offset_index = 2; //Offset index for the results
 }
 message ResponseWifiScanResultsGet{
     repeated ApInfo ap_info = 1; //Max 10 (can be changed). Will be empty if no results or failed
@@ -79,8 +79,8 @@ message RequestReboot{
 }
 //708
 message RequestButtonPress{
-    uint32 button = 1;
-    ButtonEvent event = 2;
+    uint32 button = 1; 
+    ButtonEvent event = 2; //Event type (press, release, long press etc)
 }
 //709
 message RequestClockOffsetSet{
@@ -94,6 +94,7 @@ message ResponseClockOffsetSet{
 }
 //710
 message RequestBatteryGet{
+    bool flush = 1; //If true, the device will flush all the average calculations and return the current values.
 }
 message ResponseBatteryGet{
     BatteryState state = 1;
@@ -111,20 +112,22 @@ message ResponseClockOffsetGet{
 message RequestCapabilitiesGet{
 }
 message ResponseCapabilitiesGet{
-    bool vulva_oriented = 1;        //If the device is vulva oriented. If not, then it pen** oriented or both (cannot use the p word, since copilot will block auto complete)
-    bool battery = 2;               //If the device has battery
-    uint32 slider = 3;              //[uint8]nr of sliders
-    uint32 lra = 4;                 //[uint8]nr of LRAs on the system
-    uint32 erm = 5;                 //[uint8]nr of ERMs on the system
-    bool external_memory = 6;       //If the device has external memory
-    bool rgb_led_indicator = 7;     //If the device has a RGB LED installed
-    bool led_matrix = 8;            //If the device has a LED matrix installed
-    uint32 led_matrix_leds_x = 9;   //[uint8]Nr of leds in X axis
-    uint32 led_matrix_leds_y = 10;  //[uint8]Nr of leds in Y axis
-    bool rgb_ring = 11;             //If the device has a RGB ring indicator
-    uint32 rgb_ring_leds = 12;      //[uint8]Nr of leds in the RGB ring
-    uint32 battery_capacity = 13;   //Battery capacity in mAh
+    bool vulva_oriented = 1; //If the device is vulva oriented. If not, then it pen** oriented or both (cannot use the p word, since copilot will block auto complete)
+    bool battery = 2; //If the device has battery
+    uint32 slider = 3; //[uint8]nr of sliders
+    uint32 lra = 4; //[uint8]nr of LRAs on the system
+    uint32 erm = 5; //[uint8]nr of ERMs on the system
+    bool external_memory = 6; //If the device has external memory
+    bool rgb_led_indicator = 7; //If the device has a RGB LED installed
+    bool led_matrix = 8; //If the device has a LED matrix installed
+    uint32 led_matrix_leds_x = 9; //[uint8]Nr of leds in X axis
+    uint32 led_matrix_leds_y = 10; //[uint8]Nr of leds in Y axis
+    bool rgb_ring = 11; //If the device has a RGB ring indicator
+    uint32 rgb_ring_leds = 12; //[uint8]Nr of leds in the RGB ring
+    uint32 battery_capacity = 13; //Battery capacity in mAh
     BatteryDriver battery_driver = 14; //Battery driver type - Added in FW4.1.0
+    uint32 ble_mtu = 15; //Maximum MTU size for BLE communication. Added in FW4.2 - Default this to 512. 512 seems to be a hard cap in BLE.
+    uint32 ws_buffer_size = 16; //Buffer size for Websocket communication in bytes. Added in FW4.2 - Default this to 2048. 6kb on PSRAM units after 4.2
 }
 //714
 /*
@@ -134,9 +137,9 @@ message ResponseCapabilitiesGet{
 message RequestSessionIdsGet{
 }
 message ResponseSessionIdsGet{
-    uint32 boot_session_id = 1;    //(Random uint32) Changes each time the device boots
-    uint32 socket_session_id = 2;  //Starts at 0 and inc on each DISCONNECT event. Each reconnect attempt will trigger a disconnect. NB! After a WiFi disconnect, the session id might get incremented by 2.
-    uint32 mode_session_id = 3;    //Starts at 0 and inc on each mode change. NB! was random in FW4.0.11 and FW4.0.12
+    uint32 boot_session_id = 1; //(Random uint32) Changes each time the device boots
+    uint32 socket_session_id = 2; //Starts at 0 and inc on each DISCONNECT event. Each reconnect attempt will trigger a disconnect. NB! After a WiFi disconnect, the session id might get incremented by 2.
+    uint32 mode_session_id = 3; //Starts at 0 and inc on each mode change. NB! was random in FW4.0.11 and FW4.0.12
 }
 //715 - Added in FW4.0.13
 // Stop the device no matter the mode.
@@ -167,7 +170,7 @@ message ResponseHampStop{
 }
 //723
 message RequestHampVelocitySet{
-    float velocity = 1; //Default is 0% 
+    float velocity = 1; //Default is 0%
 }
 message ResponseHampVelocitySet{ 
     HampState state = 1;
@@ -253,12 +256,12 @@ message ResponseSliderStrokeSet{
 message RequestSliderStateGet{
 }
 message ResponseSliderStateGet{
-    float position = 1;             //[percentage]
-    float position_absolute = 2;    //[mm]
-    float motor_temp = 3;           //[Degrees C]
-    float speed_absolute = 4;       //[mm/s]
-    bool dir = 5;                   //true = forward, false = backward
-    uint32 motor_position = 6;      //hall patter signal [0-2]. In Handy H01, change results in 1/12 rotation
+    float position = 1; //[percentage]
+    float position_absolute = 2; //[mm]
+    float motor_temp = 3; //[Degrees C]
+    float speed_absolute = 4; //[mm/s]
+    bool dir = 5; //true = forward, false = backward
+    uint32 motor_position = 6; //hall patter signal [0-2]. In Handy H01, change results in 1/12 rotation
     uint32 motor_temp_adc_value = 7; //0-4095. ADC value of the motor temperature sensor - Added in FW4.0.16
 }
 //843 - Moves the slider to the absolute position and reset encoder
@@ -272,7 +275,7 @@ message ResponseSliderCalibrate{
 ///////////////////////// HSP /////////////////////////
 //860
 message RequestHspSetup{
-    uint32 stream_id = 1;   //[Default 0] a stream id to identify the stream.
+    uint32 stream_id = 1; //[Default 0] a stream id to identify the stream.
     // bool loop = 2;       //DEPRECATED -> moved to play. [Default false] If true, the stream will loop.   
 }
 message ResponseHspSetup{
@@ -296,10 +299,10 @@ message ResponseHspFlush{
 }
 //863
 message RequestHspPlay{
-    int32 start_time = 1;       //[DEFAULT 0] can be negative
-    uint64 server_time = 2;     //[OPTIONAL] Estimated server time on sending. Optional. If not set, there is no network latency adjustment.
-    float playback_rate = 3;    //[DEFAULT 1] playback rate (1 = normal speed), < 1 = slower, > 1 = faster. Must be positive.
-    bool loop = 4;              //[DEFAULT false]
+    int32 start_time = 1; //[DEFAULT 0] can be negative
+    uint64 server_time = 2; //[OPTIONAL] Estimated server time on sending. Optional. If not set, there is no network latency adjustment.
+    float playback_rate = 3; //[DEFAULT 1] playback rate (1 = normal speed), < 1 = slower, > 1 = faster. Must be positive.
+    bool loop = 4; //[DEFAULT false]
     bool pause_on_starving = 5; //[Default false] If true, the stream will pause when the buffer is empty. When data is added the stream will resume without time adjustments
 }
 message ResponseHspPlay{
@@ -334,7 +337,7 @@ message ResponseHspStateGet{
 message RequestHspCurrentTimeSet{
     int32 current_time = 1;
     uint64 server_time = 2; //Estimated server time on sending. Optional. If not set, there is no network latency adjustment.
-    float filter = 3;       //[DEFAULT 0.5] [0-1] 1 will force current time. Lower values will drift into the actuall currentTime
+    float filter = 3; //[DEFAULT 0.5] [0-1] 1 will force current time. Lower values will drift into the actuall currentTime
 }
 message ResponseHspCurrentTimeSet{
     HspState state = 1;
@@ -355,33 +358,33 @@ message ResponseHspPauseOnStarvingSet{
 }
 //871 - Added in FW4.1.1
 message RequestHspPlaybackRateSet{
-    float playback_rate = 1;    //[DEFAULT 1] playback rate (1 = normal speed), < 1 = slower, > 1 = faster. Must be positive.
+    float playback_rate = 1; //[DEFAULT 1] playback rate (1 = normal speed), < 1 = slower, > 1 = faster. Must be positive.
 }
 message ResponseHspPlaybackRateSet{
     HspState state = 1;
 }
 //872 - Added in FW4.1.1
 message RequestHspLoopSet{
-    bool loop = 1;              //[DEFAULT false]
+    bool loop = 1; //[DEFAULT false]
 }
 message ResponseHspLoopSet{
     HspState state = 1;
 }
 ///////////////////////// HMI 880->899 /////////////////////////
 message RequestLedOverride{
-    bool override = 1;      //If true, the system will ignore the current mode and use the override color. Must be true for the override color to be used.
-    uint32 r = 2;           //[0-255] -> uint8 in FW 
-    uint32 g = 3;           //[0-255] -> uint8 in FW
-    uint32 b = 4;           //[0-255] -> uint8 in FW
-    uint32 intensity = 5;   //[0-100] -> uint8 in FW
+    bool override = 1; //If true, the system will ignore the current mode and use the override color. Must be true for the override color to be used.
+    uint32 r = 2; //[0-255] -> uint8 in FW
+    uint32 g = 3; //[0-255] -> uint8 in FW
+    uint32 b = 4; //[0-255] -> uint8 in FW
+    uint32 intensity = 5; //[0-100] -> uint8 in FW
 }
 ///////////////////////// HVP /////////////////////////
 //900
 //NB will also trigger a start
 message RequestHvpSet{
-    float amplitude = 1;    //0-1 (0-100%) For LRA, ERM and Sliders with vibration adapter (percent of valid output range)
-    uint32 frequency = 2;   //0-10000 (Hz) For LRA only
-    float position = 3;     // (mm) Where on the slider should the vibration be. For slider with vibration adapter only. 
+    float amplitude = 1; //0-1 (0-100%) For LRA, ERM and Sliders with vibration adapter (percent of valid output range)
+    uint32 frequency = 2; //0-10000 (Hz) For LRA only
+    float position = 3; // (mm) Where on the slider should the vibration be. For slider with vibration adapter only.
 }
 message ResponseHvpSet{
     HvpState state = 1;

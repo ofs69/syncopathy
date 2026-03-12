@@ -312,11 +312,14 @@ final $typed_data.Uint8List responseClockOffsetSetDescriptor =
 @$core.Deprecated('Use requestBatteryGetDescriptor instead')
 const RequestBatteryGet$json = {
   '1': 'RequestBatteryGet',
+  '2': [
+    {'1': 'flush', '3': 1, '4': 1, '5': 8, '10': 'flush'},
+  ],
 };
 
 /// Descriptor for `RequestBatteryGet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestBatteryGetDescriptor =
-    $convert.base64Decode('ChFSZXF1ZXN0QmF0dGVyeUdldA==');
+final $typed_data.Uint8List requestBatteryGetDescriptor = $convert
+    .base64Decode('ChFSZXF1ZXN0QmF0dGVyeUdldBIUCgVmbHVzaBgBIAEoCFIFZmx1c2g=');
 
 @$core.Deprecated('Use responseBatteryGetDescriptor instead')
 const ResponseBatteryGet$json = {
@@ -409,6 +412,8 @@ const ResponseCapabilitiesGet$json = {
       '6': '.hdy_rpc.BatteryDriver',
       '10': 'batteryDriver'
     },
+    {'1': 'ble_mtu', '3': 15, '4': 1, '5': 13, '10': 'bleMtu'},
+    {'1': 'ws_buffer_size', '3': 16, '4': 1, '5': 13, '10': 'wsBufferSize'},
   ],
 };
 
@@ -423,7 +428,8 @@ final $typed_data.Uint8List responseCapabilitiesGetDescriptor = $convert.base64D
     'ASgNUg5sZWRNYXRyaXhMZWRzWRIZCghyZ2JfcmluZxgLIAEoCFIHcmdiUmluZxIiCg1yZ2Jfcm'
     'luZ19sZWRzGAwgASgNUgtyZ2JSaW5nTGVkcxIpChBiYXR0ZXJ5X2NhcGFjaXR5GA0gASgNUg9i'
     'YXR0ZXJ5Q2FwYWNpdHkSPQoOYmF0dGVyeV9kcml2ZXIYDiABKA4yFi5oZHlfcnBjLkJhdHRlcn'
-    'lEcml2ZXJSDWJhdHRlcnlEcml2ZXI=');
+    'lEcml2ZXJSDWJhdHRlcnlEcml2ZXISFwoHYmxlX210dRgPIAEoDVIGYmxlTXR1EiQKDndzX2J1'
+    'ZmZlcl9zaXplGBAgASgNUgx3c0J1ZmZlclNpemU=');
 
 @$core.Deprecated('Use requestSessionIdsGetDescriptor instead')
 const RequestSessionIdsGet$json = {
