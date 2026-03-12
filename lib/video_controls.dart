@@ -47,7 +47,10 @@ class _VideoControlsState extends State<VideoControls> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // 1. Heatmap Row (Remains the same)
-            _buildHeatmapRow(player, playerModel),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: _buildHeatmapRow(player, playerModel),
+            ),
 
             const SizedBox(height: 8.0),
 
