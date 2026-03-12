@@ -209,15 +209,12 @@ class HandyBle with EffectDispose {
 
     // Sync time
     {
-      final request = RequestClockOffsetGet();
-      final bufferMsg = Request(requestClockOffsetGet: request).writeToBuffer();
-
       const syncTries = 10;
       var offsetAggregated = 0.0;
+      var rtdAggregated = 0.0;
       for (var index = 0; index < syncTries; index += 1) {
         final start = DateTime.now().millisecondsSinceEpoch;
-        //final _ = await getClockOffset(); // Not sure if this is better
-        final _ = await _device.tx.write(bufferMsg, withResponse: true);
+        final _ = await getClockOffset();
         final server = DateTime.now().millisecondsSinceEpoch;
         final end = server;
         final rtd = end - start;
@@ -225,13 +222,17 @@ class HandyBle with EffectDispose {
 
         Logger.debug('RTD: $rtd\tOffset: $offset');
         offsetAggregated += offset;
+        rtdAggregated += rtd;
         await Future.delayed(Duration(milliseconds: 100));
       }
       estimatedAverageOffset = (offsetAggregated / syncTries).round();
-      Logger.debug("Estimated average offset: $estimatedAverageOffset");
+      final averageRtd = (rtdAggregated / syncTries).round();
+      Logger.debug(
+        "Estimated average offset: $estimatedAverageOffset RTD: $averageRtd",
+      );
       final offset = await getClockOffset();
       final clockOffset = serverTime() - offset!.time;
-      await setClockOffset(clockOffset);
+      await setClockOffset(clockOffset, rtd: averageRtd);
     }
   }
 

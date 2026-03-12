@@ -384,10 +384,15 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
                 hspCurrentTimeSet(
                   currentTime:
                       timesource.currentSmoothMs + settingsModel.offsetMs.value,
-                  filter: _syncCounter < 2 ? 0.9 : 0.5,
+                  // one hard sync 0.9 followed by soft syncs 0.5
+                  filter: _syncCounter < 1 ? 0.9 : 0.5,
                 );
+                if (kDebugMode) {
+                  debugPrint(
+                    "SYNC COUNTER: $_syncCounter hard:${_syncCounter < 1}",
+                  );
+                }
                 _syncCounter += 1;
-                if (kDebugMode) debugPrint("SYNC COUNTER: $_syncCounter");
               }
             }
           } finally {
