@@ -5,24 +5,23 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/helper/constants.dart';
+import 'package:syncopathy/player/video_player.dart';
 
 class Heatmap extends StatefulWidget {
   final List<FunscriptAction> actions;
   final ReadonlySignal<double?> totalDuration;
-  final ReadonlySignal<double> videoPosition;
+  int get totalDurationMs => ((totalDuration.value ?? 0.0) * 1000.0).round();
 
-  late final ReadonlySignal<int> totalDurationMs = computed(
-    () => ((totalDuration.value ?? 0.0) * 1000.0).round(),
-  );
+  final ReadonlySignal<int> videoPositionFixedStep;
 
   final void Function(Duration)? onClick;
 
-  Heatmap({
+  const Heatmap({
     super.key,
     required this.actions,
+    required this.onClick,
+    required this.videoPositionFixedStep,
     required this.totalDuration,
-    this.onClick,
-    required this.videoPosition,
   });
 
   @override
@@ -45,8 +44,7 @@ class _HeatmapState extends State<Heatmap> {
         totalDuration > 0 &&
         constraints.maxWidth > 0) {
       final dx = localPosition.dx.clamp(0, constraints.maxWidth);
-      final clickedMs =
-          (dx / constraints.maxWidth) * widget.totalDurationMs.value;
+      final clickedMs = (dx / constraints.maxWidth) * widget.totalDurationMs;
       widget.onClick!(Duration(milliseconds: clickedMs.round()));
     }
   }
@@ -57,7 +55,7 @@ class _HeatmapState extends State<Heatmap> {
       builder: (context, constraints) {
         return MouseRegion(
           onHover: (event) {
-            if (widget.totalDurationMs.value > 0 && constraints.maxWidth > 0) {
+            if (widget.totalDurationMs > 0 && constraints.maxWidth > 0) {
               _hoverPosition.value = event.localPosition.dx.clamp(
                 0,
                 constraints.maxWidth,
@@ -93,7 +91,9 @@ class _HeatmapState extends State<Heatmap> {
                       RepaintBoundary(
                         child: Watch.builder(
                           builder: (context) {
-                            final duration = widget.totalDurationMs.value;
+                            final duration =
+                                ((widget.totalDuration.value ?? 0.0) * 1000.0)
+                                    .round();
                             return CustomPaint(
                               painter: HeatmapPainter(
                                 actions: widget.actions,
@@ -107,16 +107,10 @@ class _HeatmapState extends State<Heatmap> {
                       // 2. Indicator painter (Vertical white line)
                       Watch.builder(
                         builder: (context) {
-                          final position = widget.videoPosition.value;
-                          final totalDurationMs = widget.totalDurationMs.value;
+                          final position = widget.videoPositionFixedStep.value;
                           return CustomPaint(
                             painter: IndicatorPainter(
-                              videoPosition: Duration(
-                                milliseconds: (position * 1000).round(),
-                              ),
-                              totalDuration: Duration(
-                                milliseconds: totalDurationMs,
-                              ),
+                              videoPositionStep: position,
                             ),
                           );
                         },
@@ -143,8 +137,8 @@ class _HeatmapState extends State<Heatmap> {
                   child: IgnorePointer(
                     child: Watch.builder(
                       builder: (context) {
-                        final position = widget.videoPosition.value;
-                        final totalDuration = widget.totalDuration.value ?? 0.0;
+                        final positionStep =
+                            widget.videoPositionFixedStep.value;
 
                         return SliderTheme(
                           data: SliderTheme.of(context).copyWith(
@@ -162,11 +156,10 @@ class _HeatmapState extends State<Heatmap> {
                             ),
                           ),
                           child: Slider(
-                            value: position.clamp(
-                              0.0,
-                              totalDuration > 0 ? totalDuration : 1.0,
-                            ),
-                            max: totalDuration > 0 ? totalDuration : 1.0,
+                            value: positionStep
+                                .clamp(0, videoPlayerPositionFixedStepCount)
+                                .toDouble(),
+                            max: videoPlayerPositionFixedStepCount.toDouble(),
                             onChanged: (_) {},
                           ),
                         );
@@ -313,19 +306,15 @@ class HeatmapPainter extends CustomPainter {
   }
 }
 
-/// A [CustomPainter] that draws the video position indicator.
 class IndicatorPainter extends CustomPainter {
-  final Duration totalDuration;
-  final Duration videoPosition;
+  final int videoPositionStep;
 
-  IndicatorPainter({required this.totalDuration, required this.videoPosition});
+  IndicatorPainter({required this.videoPositionStep});
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (totalDuration.inMilliseconds <= 0) return;
-
     final double positionRatio =
-        videoPosition.inMilliseconds / totalDuration.inMilliseconds;
+        videoPositionStep / videoPlayerPositionFixedStepCount;
     final double indicatorX = (positionRatio * size.width).clamp(0, size.width);
 
     final indicatorPaint = Paint()
@@ -351,8 +340,7 @@ class IndicatorPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant IndicatorPainter oldDelegate) {
-    return oldDelegate.videoPosition != videoPosition ||
-        oldDelegate.totalDuration != totalDuration;
+    return oldDelegate.videoPositionStep != videoPositionStep;
   }
 }
 

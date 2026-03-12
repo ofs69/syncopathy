@@ -10,6 +10,9 @@ import 'package:syncopathy/model/playlist_model.dart';
 import 'package:syncopathy/player/smooth_video_signals.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
 
+// for UI purposes update the position in 1000 steps
+const int videoPlayerPositionFixedStepCount = 1000;
+
 abstract class VideoPlayer with EffectDispose {
   final bool embeddedPlayer;
 
@@ -27,6 +30,8 @@ abstract class VideoPlayer with EffectDispose {
   late final ReadonlySignal<String> loadedPath;
   late final ReadonlySignal<bool> buffering;
   late final ReadonlySignal<Video?> currentVideo;
+  late final ReadonlySignal<int> currentPositionSeconds; // for UI
+  late final ReadonlySignal<int> currentPositionFixedStep; // for UI
   ReadonlySignal<bool> get paused;
 
   ReadonlySignal<double?> get duration => _duration;
@@ -92,6 +97,16 @@ abstract class VideoPlayer with EffectDispose {
       playbackSpeed,
       buffering,
     );
+    currentPositionSeconds = computed(() {
+      return smoothPosition.value.toInt();
+    });
+    currentPositionFixedStep = computed(() {
+      final currentPosition = smoothPosition.value;
+      final totalDuration = duration.value;
+      if (totalDuration == null) return 0;
+      final stepSize = totalDuration / videoPlayerPositionFixedStepCount;
+      return currentPosition ~/ stepSize;
+    });
 
     currentVideo = computed(() {
       final playlist = currentPlaylist.value;

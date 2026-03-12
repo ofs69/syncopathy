@@ -9,7 +9,6 @@ import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/player_model.dart';
 
-/// A widget that wraps the [ScrollingGraph] with a slider to control the zoom level (view duration).
 class InteractiveScrollingGraph extends StatefulWidget {
   final ReadonlySignal<MediaFunscript?> currentlyOpen;
   final ReadonlySignal<double> videoPosition;

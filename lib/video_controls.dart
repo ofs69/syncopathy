@@ -118,9 +118,7 @@ class _VideoControlsState extends State<VideoControls> {
   }
 
   String _formatResponsiveTimestamp(VideoPlayer player, bool isPortrait) {
-    final current = Duration(
-      milliseconds: (player.rawPosition.value * 1000.0).toInt(),
-    );
+    final current = Duration(seconds: player.currentPositionSeconds.value);
     final total = Duration(
       milliseconds: ((player.duration.value ?? 0.0) * 1000.0).toInt(),
     );
@@ -151,7 +149,7 @@ class _VideoControlsState extends State<VideoControls> {
                 return Heatmap(
                   actions: actions,
                   totalDuration: player.duration,
-                  videoPosition: player.rawPosition,
+                  videoPositionFixedStep: player.currentPositionFixedStep,
                   onClick: (d) => player.seekTo(d),
                 );
               },
