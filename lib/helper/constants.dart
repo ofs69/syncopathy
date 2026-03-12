@@ -9,7 +9,7 @@ BoxDecoration stdBoxShadow() => BoxDecoration(
   color: Colors.transparent,
   boxShadow: [
     BoxShadow(
-      color: Colors.black.withAlphaF(0.60),
+      color: Colors.black.withAlphaF(0.50),
       blurRadius: 60,
       spreadRadius: 0,
     ),

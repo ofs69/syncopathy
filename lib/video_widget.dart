@@ -88,8 +88,6 @@ class _VideoWidgetState extends State<VideoWidget>
     return Material(
       child: Watch.builder(
         builder: (context) {
-          final videoWidth = player.videoWidth.value;
-          final videoHeight = player.videoHeight.value;
           final showControls =
               widget.showControls.value ||
               widget.showSettings.value ||
@@ -98,6 +96,24 @@ class _VideoWidgetState extends State<VideoWidget>
           final videoController = widget.player.controller;
           return LayoutBuilder(
             builder: (context, constraints) {
+              final videoWidth = player.videoWidth.value;
+              final videoHeight = player.videoHeight.value;
+
+              // Manually calcultate the video width to bound the funscript graph
+              double displayWidth = constraints.maxWidth;
+              if (videoWidth != null &&
+                  videoHeight != null &&
+                  videoWidth > 0 &&
+                  videoHeight > 0) {
+                double screenAspect =
+                    constraints.maxWidth / constraints.maxHeight;
+                double videoAspect = videoWidth / videoHeight;
+
+                if (videoAspect < screenAspect) {
+                  displayWidth = constraints.maxHeight * videoAspect;
+                }
+              }
+
               return Listener(
                 onPointerMove: (_) {
                   widget.showControls.value = true;
@@ -117,15 +133,13 @@ class _VideoWidgetState extends State<VideoWidget>
                       children: [
                         Stack(
                           children: [
-                            Center(
-                              child: videoController != null
-                                  ? _videoContainer(
-                                      videoController,
-                                      videoWidth,
-                                      videoHeight,
-                                    )
-                                  : Text('Embedded player disabled'),
-                            ),
+                            videoController != null
+                                ? _videoContainer(
+                                    videoController,
+                                    videoWidth,
+                                    videoHeight,
+                                  )
+                                : Text('Embedded player disabled'),
                             Align(
                               alignment: AlignmentGeometry.bottomCenter,
                               child: Column(
@@ -150,12 +164,23 @@ class _VideoWidgetState extends State<VideoWidget>
                                     ),
                                   ),
                                   widget.showFunscriptGraph.watch(context)
-                                      ? Expanded(
-                                          flex: 2,
-                                          child: _funscriptGraph(
-                                            playerModel.currentlyOpen,
-                                            player,
-                                            settings,
+                                      ? ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            minHeight: 50.0,
+                                            maxHeight: 150.0,
+                                            maxWidth: displayWidth,
+                                          ),
+                                          child: SizedBox(
+                                            height:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.height *
+                                                0.15,
+                                            child: _funscriptGraph(
+                                              playerModel.currentlyOpen,
+                                              player,
+                                              settings,
+                                            ),
                                           ),
                                         )
                                       : const SizedBox.shrink(),

@@ -14,7 +14,7 @@ class Heatmap extends StatefulWidget {
 
   final ReadonlySignal<int> videoPositionFixedStep;
 
-  final void Function(Duration)? onClick;
+  final void Function(Duration) onClick;
 
   const Heatmap({
     super.key,
@@ -40,12 +40,10 @@ class _HeatmapState extends State<Heatmap> {
 
   void _handleInteraction(Offset localPosition, BoxConstraints constraints) {
     final totalDuration = widget.totalDuration.value ?? 0;
-    if (widget.onClick != null &&
-        totalDuration > 0 &&
-        constraints.maxWidth > 0) {
+    if (totalDuration > 0 && constraints.maxWidth > 0) {
       final dx = localPosition.dx.clamp(0, constraints.maxWidth);
       final clickedMs = (dx / constraints.maxWidth) * widget.totalDurationMs;
-      widget.onClick!(Duration(milliseconds: clickedMs.round()));
+      widget.onClick(Duration(milliseconds: clickedMs.round()));
     }
   }
 

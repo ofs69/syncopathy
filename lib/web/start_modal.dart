@@ -17,51 +17,54 @@ class _StartupModalState extends State<StartupModal> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text("Welcome!"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text.rich(
-            TextSpan(
-              // This line is the magic fix:
-              style: Theme.of(context).textTheme.bodyMedium,
-              children: [
-                const TextSpan(
-                  text: "This is a client-side browser version of ",
-                ),
-                TextSpan(
-                  text: "syncopathy",
-                  style: const TextStyle(color: Colors.blue),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () => launchUrl(
-                      Uri.parse("https://github.com/ofs69/syncopathy"),
-                    ),
-                ),
-                const TextSpan(text: ".\n"),
-                TextSpan(
-                  text:
-                      "Beware that only chromium browsers have web bluetooth capabilities needed for this app.\n\n",
-                ),
-                TextSpan(text: "You can check support here "),
-                TextSpan(
-                  text: "web bluetooth",
-                  style: const TextStyle(color: Colors.blue),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () => launchUrl(
-                      Uri.parse("https://caniuse.com/web-bluetooth"),
-                    ),
-                ),
-                TextSpan(text: ".\n"),
-              ],
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text.rich(
+              TextSpan(
+                style: Theme.of(context).textTheme.bodyMedium,
+                children: [
+                  const TextSpan(
+                    text: "This is a client-side browser version of ",
+                  ),
+                  TextSpan(
+                    text: "syncopathy",
+                    style: const TextStyle(color: Colors.blue),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () => launchUrl(
+                        Uri.parse("https://github.com/ofs69/syncopathy"),
+                      ),
+                  ),
+                  const TextSpan(text: ".\n"),
+                  TextSpan(
+                    text:
+                        "Beware that only chromium browsers have web bluetooth capabilities needed for this app.\n\n",
+                  ),
+                  TextSpan(text: "You can check support here "),
+                  TextSpan(
+                    text: "web bluetooth",
+                    style: const TextStyle(color: Colors.blue),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () => launchUrl(
+                        Uri.parse("https://caniuse.com/web-bluetooth"),
+                      ),
+                  ),
+                  TextSpan(text: ".\n"),
+                ],
+              ),
             ),
-          ),
-          _buildBulletPoint("Keep the tab always in focus when playing video."),
-          _buildBulletPoint(
-            "No minimizing or tab switching when playing video.",
-          ),
-          _buildBulletPoint(
-            "You're limited to playing local videos and funscripts.\nScript token playback is not supported.",
-          ),
-        ],
+            _buildBulletPoint(
+              "Keep the tab always in focus when playing video.",
+            ),
+            _buildBulletPoint(
+              "No minimizing or tab switching when playing video.",
+            ),
+            _buildBulletPoint(
+              "You're limited to playing local videos and funscripts.\nScript token playback is not supported.",
+            ),
+          ],
+        ),
       ),
       actionsPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       actions: [
