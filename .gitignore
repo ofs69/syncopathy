@@ -49,3 +49,5 @@ app.*.map.json
 *.dll
 pubspec_local.yaml
 objectbox.bat
+config.json
+TODO
