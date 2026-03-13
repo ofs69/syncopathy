@@ -14,7 +14,7 @@ class SettingsModel {
 
   final Signal<int> min = signal(0);
   final Signal<int> max = signal(100);
-  late final minMaxRange = computed(
+  late final ReadonlySignal<RangeValues> minMaxRange = computed(
     () => RangeValues(min.value.toDouble(), max.value.toDouble()),
   );
   final Signal<int> offsetMs = signal(0);

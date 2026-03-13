@@ -139,7 +139,9 @@ class _VideoWidgetState extends State<VideoWidget>
                                     videoWidth,
                                     videoHeight,
                                   )
-                                : Text('Embedded player disabled'),
+                                : Center(
+                                    child: Text('Embedded player disabled'),
+                                  ),
                             Align(
                               alignment: AlignmentGeometry.bottomCenter,
                               child: Column(
