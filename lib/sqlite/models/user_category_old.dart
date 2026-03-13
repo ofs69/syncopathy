@@ -1,10 +1,10 @@
-class UserCategory {
+class UserCategoryOld {
   final int? id;
   final String name;
   final String? description;
   final int sortOrder;
 
-  UserCategory({
+  UserCategoryOld({
     this.id,
     required this.name,
     this.description,
@@ -20,8 +20,8 @@ class UserCategory {
     };
   }
 
-  factory UserCategory.fromMap(Map<String, dynamic> map) {
-    return UserCategory(
+  factory UserCategoryOld.fromMap(Map<String, dynamic> map) {
+    return UserCategoryOld(
       id: map['id'],
       name: map['name'],
       description: map['description'],

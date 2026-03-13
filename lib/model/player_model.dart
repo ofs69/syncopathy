@@ -11,6 +11,7 @@ import 'package:syncopathy/model/json/buttplug_backend_settings.dart';
 import 'package:syncopathy/model/json/handy_native_web_backend_settings.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/timesource_model.dart';
+import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 import 'package:syncopathy/player/buttplug_stroker_backend.dart';
 import 'package:syncopathy/player/handy_native_command_backend.dart';
@@ -19,12 +20,9 @@ import 'package:syncopathy/player/handy_native_hsp_web_backend.dart';
 import 'package:syncopathy/player/player_backend.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/player/video_player.dart';
-import 'package:syncopathy/sqlite/database_helper.dart';
-
-import 'package:syncopathy/sqlite/models/video_model.dart';
 
 class MediaFunscript {
-  final Video media;
+  final MediaFile media;
   final Funscript funscript;
   MediaFunscript({required this.media, required this.funscript});
 }
@@ -163,44 +161,45 @@ class PlayerModel with EffectDispose {
   void regularEffects(VideoPlayer player) {
     effectAdd([
       effect(() async {
-        final video = player.currentVideo.value;
-        final totalDuration = player.duration.value;
-        final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
-        final rdpEpsilon = _settings.rdpEpsilon.value;
-        final remapFullRange = _settings.remapFullRange.value;
-        final invert = _settings.invert.value;
-        final playbackSpeed = player.playbackSpeed.value;
-        final strokeRange = _settings.minMaxRange.value;
+        // TODO: find out how to load the funscript in the new data model
+        // final video = player.currentVideo.value;
+        // final totalDuration = player.duration.value;
+        // final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
+        // final rdpEpsilon = _settings.rdpEpsilon.value;
+        // final remapFullRange = _settings.remapFullRange.value;
+        // final invert = _settings.invert.value;
+        // final playbackSpeed = player.playbackSpeed.value;
+        // final strokeRange = _settings.minMaxRange.value;
 
-        if (video == null || totalDuration == null || totalDuration < 0.1) {
-          __currentFunscript.value = null;
-          return null;
-        }
-        try {
-          if (video.funscript == null) {
-            await video.loadFunscript();
-          }
-          final funscript = video.funscript;
-          if (funscript?.likelyScriptToken ?? false) {
-            Logger.warning("Script token playback is not supported.");
-            return null;
-          }
-          if (funscript != null) {
-            untracked(() {
-              _processFunscript(
-                funscript,
-                slewMaxRateOfChange,
-                rdpEpsilon,
-                remapFullRange,
-                invert,
-                totalDuration,
-                playbackSpeed,
-                strokeRange,
-              );
-            });
-          }
-          __currentFunscript.value = funscript;
-        } catch (_) {}
+        // if (video == null || totalDuration == null || totalDuration < 0.1) {
+        //   __currentFunscript.value = null;
+        //   return null;
+        // }
+        // try {
+        //   if (video.funscript == null) {
+        //     await video.loadFunscript();
+        //   }
+        //   final funscript = video.funscript;
+        //   if (funscript?.likelyScriptToken ?? false) {
+        //     Logger.warning("Script token playback is not supported.");
+        //     return null;
+        //   }
+        //   if (funscript != null) {
+        //     untracked(() {
+        //       _processFunscript(
+        //         funscript,
+        //         slewMaxRateOfChange,
+        //         rdpEpsilon,
+        //         remapFullRange,
+        //         invert,
+        //         totalDuration,
+        //         playbackSpeed,
+        //         strokeRange,
+        //       );
+        //     });
+        //   }
+        //   __currentFunscript.value = funscript;
+        // } catch (_) {}
       }),
       // View counting logic
       effect(() {
@@ -220,7 +219,7 @@ class PlayerModel with EffectDispose {
                   // Count the view
                   _videoViewCounted = true;
                   video.playCount += 1;
-                  DatabaseHelper().updateVideo(video);
+                  oBox.mediaService.save(video);
                 }
               }
             });

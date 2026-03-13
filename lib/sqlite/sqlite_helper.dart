@@ -5,14 +5,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
-import 'package:syncopathy/sqlite/models/user_category.dart';
-import 'package:syncopathy/sqlite/models/video_model.dart';
+import 'package:syncopathy/model/json/funscript_metadata.dart';
+import 'package:syncopathy/sqlite/models/key_value_pair_old.dart';
+import 'package:syncopathy/sqlite/models/user_category_old.dart';
+import 'package:syncopathy/sqlite/models/video_model_old.dart';
 
-class DatabaseHelper {
-  static final DatabaseHelper _instance = DatabaseHelper._internal();
-  factory DatabaseHelper() => _instance;
-  DatabaseHelper._internal();
+class SQLiteHelper {
+  static final SQLiteHelper _instance = SQLiteHelper._internal();
+  factory SQLiteHelper() => _instance;
+  SQLiteHelper._internal();
 
   static Database? _database;
   String? _databaseWasResetName;
@@ -177,14 +178,14 @@ class DatabaseHelper {
     });
   }
 
-  Future<List<UserCategory>> getAllUserCategories() async {
+  Future<List<UserCategoryOld>> getAllUserCategories() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       'user_categories',
       orderBy: 'sort_order ASC, id ASC',
     );
     return List.generate(maps.length, (i) {
-      return UserCategory.fromMap(maps[i]);
+      return UserCategoryOld.fromMap(maps[i]);
     });
   }
 
@@ -197,7 +198,7 @@ class DatabaseHelper {
     return (maxSortOrder as int?) ?? 0;
   }
 
-  Future<int> insertUserCategory(UserCategory category) async {
+  Future<int> insertUserCategory(UserCategoryOld category) async {
     final db = await database;
     return await db.insert(
       'user_categories',
@@ -212,7 +213,7 @@ class DatabaseHelper {
   }
 
   Future<void> updateUserCategorySortOrder(
-    List<UserCategory> categories,
+    List<UserCategoryOld> categories,
   ) async {
     final db = await database;
     await db.transaction((txn) async {
@@ -300,7 +301,7 @@ class DatabaseHelper {
     await batch.commit(noResult: true);
   }
 
-  Future<List<Video>> getAllVideos() async {
+  Future<List<VideoOld>> getAllVideos() async {
     final db = await database;
 
     // 1. Fetch all videos
@@ -308,7 +309,7 @@ class DatabaseHelper {
     if (videoMaps.isEmpty) {
       return [];
     }
-    final videos = videoMaps.map((map) => Video.fromMap(map)).toList();
+    final videos = videoMaps.map((map) => VideoOld.fromMap(map)).toList();
     final videoMap = {for (var v in videos) v.id!: v};
 
     // 2. Fetch all funscript metadata
@@ -333,7 +334,7 @@ class DatabaseHelper {
       final video = videoMap[linkMap['videoId']];
       if (video != null) {
         video.categories.add(
-          UserCategory.fromMap({
+          UserCategoryOld.fromMap({
             'id': linkMap['id'],
             'name': linkMap['name'],
             'description': linkMap['description'],
@@ -353,7 +354,7 @@ class DatabaseHelper {
     return videos;
   }
 
-  Future<Video?> getVideoByPath(String videoPath) async {
+  Future<VideoOld?> getVideoByPath(String videoPath) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       'videos',
@@ -361,12 +362,12 @@ class DatabaseHelper {
       whereArgs: [videoPath],
     );
     if (maps.isNotEmpty) {
-      return Video.fromMap(maps.first);
+      return VideoOld.fromMap(maps.first);
     }
     return null;
   }
 
-  Future<int> insertVideo(Video video) async {
+  Future<int> insertVideo(VideoOld video) async {
     final db = await database;
     return await db.insert(
       'videos',
@@ -375,7 +376,7 @@ class DatabaseHelper {
     );
   }
 
-  Future<void> batchInsertVideos(List<Video> videos) async {
+  Future<void> batchInsertVideos(List<VideoOld> videos) async {
     final db = await database;
     final batch = db.batch();
     for (final video in videos) {
@@ -388,7 +389,7 @@ class DatabaseHelper {
     await batch.commit(noResult: true);
   }
 
-  Future<int> updateVideo(Video video) async {
+  Future<int> updateVideo(VideoOld video) async {
     final db = await database;
     return await db.update(
       'videos',
@@ -399,7 +400,7 @@ class DatabaseHelper {
     );
   }
 
-  Future<void> batchUpdateVideos(List<Video> videos) async {
+  Future<void> batchUpdateVideos(List<VideoOld> videos) async {
     final db = await database;
     final batch = db.batch();
     for (final video in videos) {
@@ -477,7 +478,7 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<UserCategory>> getVideoCategories(int videoId) async {
+  Future<List<UserCategoryOld>> getVideoCategories(int videoId) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.rawQuery(
       '''
@@ -490,7 +491,13 @@ class DatabaseHelper {
       [videoId],
     );
     return List.generate(maps.length, (i) {
-      return UserCategory.fromMap(maps[i]);
+      return UserCategoryOld.fromMap(maps[i]);
     });
+  }
+
+  Future<List<KeyValuePairOld>> getAllKeyValues() async {
+    final db = await database;
+    final maps = await db.query('key_value_store');
+    return maps.map((m) => KeyValuePairOld.fromMap(m)).toList();
   }
 }

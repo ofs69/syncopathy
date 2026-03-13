@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   media_kit_libs_windows_video
   media_kit_video
+  objectbox_flutter_libs
   screen_retriever_windows
   universal_ble
   url_launcher_windows

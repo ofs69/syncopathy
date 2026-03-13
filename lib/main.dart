@@ -21,6 +21,7 @@ import 'package:syncopathy/syncopathy.dart';
 
 import 'package:syncopathy/platform/init/init.dart';
 
+
 Future<Widget> _initializeAppAndRun({
   required bool simple,
   required String? file,
@@ -38,8 +39,7 @@ Future<Widget> _initializeAppAndRun({
     mediaSettings = MediaLibrarySettingsModel();
     await mediaSettings.load();
 
-    mediaManager = MediaManager(settings.mediaPaths.value);
-    await mediaManager.load();
+    mediaManager = MediaManager();
   }
 
   var batteryModel = BatteryModel();
@@ -98,3 +98,4 @@ void main(List<String> args) async {
   final mainApp = await _initializeAppAndRun(simple: isSimple, file: openFile);
   runApp(mainApp);
 }
+

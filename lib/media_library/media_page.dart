@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/media_library.dart';
-import 'package:syncopathy/player/video_player.dart';
 
 class MediaPage extends StatefulWidget {
   const MediaPage({super.key});
@@ -20,16 +18,10 @@ class _MediaPageState extends State<MediaPage>
     super.build(context);
 
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: MediaLibrary(
-              onVideoTapped: (v) => getIt.get<VideoPlayer>().openSingleVideo(v),
-            ),
-          ),
-        ],
+        children: [Expanded(child: MediaLibrary())],
       ),
     );
   }

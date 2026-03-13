@@ -7,8 +7,8 @@ import 'package:media_kit_video/media_kit_video.dart' hide Video;
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/model/playlist_model.dart';
+import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/smooth_video_signals.dart';
-import 'package:syncopathy/sqlite/models/video_model.dart';
 
 // for UI purposes update the position in 1000 steps
 const int videoPlayerPositionFixedStepCount = 1000;
@@ -17,7 +17,7 @@ abstract class VideoPlayer with EffectDispose {
   final bool embeddedPlayer;
 
   // TODO: remove _previouslyLoadedVideos and find a better way to resolve the filename from the playlist back to a video
-  final Signal<List<Video>> _previouslyLoadedVideos = listSignal([]);
+  final Signal<List<MediaFile>> _previouslyLoadedVideos = listSignal([]);
   late final ReadonlySignal<PlaylistModel> currentPlaylist;
 
   late final ReadonlySignal<bool> seeking;
@@ -29,7 +29,7 @@ abstract class VideoPlayer with EffectDispose {
   late final ReadonlySignal<bool> loopFile;
   late final ReadonlySignal<String> loadedPath;
   late final ReadonlySignal<bool> buffering;
-  late final ReadonlySignal<Video?> currentVideo;
+  late final ReadonlySignal<MediaFile?> currentVideo;
   late final ReadonlySignal<int> currentPositionSeconds; // for UI
   late final ReadonlySignal<int> currentPositionFixedStep; // for UI
   ReadonlySignal<bool> get paused;
@@ -115,7 +115,7 @@ abstract class VideoPlayer with EffectDispose {
       if (filename != null) {
         filename = Uri.file(filename).toFilePath(windows: false);
         final video = _previouslyLoadedVideos.value.firstWhereOrNull((v) {
-          final videoPath = Uri.file(v.videoPath).toFilePath(windows: false);
+          final videoPath = Uri.file(v.mediaPath).toFilePath(windows: false);
           return videoPath == filename;
         });
         return video;
@@ -169,7 +169,7 @@ abstract class VideoPlayer with EffectDispose {
     player.setShuffle(false);
   }
 
-  Future<void> openSingleVideo(Video video) async {
+  Future<void> openSingleVideo(MediaFile video) async {
     // If a playlist is currently open try to find the video and set the index
     final playlist = currentPlaylist.value;
     final index = playlist.getIndexForVideo(video);
@@ -182,10 +182,10 @@ abstract class VideoPlayer with EffectDispose {
     await openMultipleVideos([video]);
   }
 
-  Future<void> openMultipleVideos(List<Video> videos) async {
+  Future<void> openMultipleVideos(List<MediaFile> videos) async {
     if (videos.isEmpty) return;
     _previouslyLoadedVideos.value = videos;
-    final playlist = Playlist(videos.map((v) => Media(v.videoPath)).toList());
+    final playlist = Playlist(videos.map((v) => Media(v.mediaPath)).toList());
     await player.open(playlist, play: player.state.playing);
     playlistShuffledInternal.value = false;
   }

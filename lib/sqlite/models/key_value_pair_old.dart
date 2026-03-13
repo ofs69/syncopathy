@@ -2,18 +2,18 @@ import 'dart:convert';
 
 import 'package:syncopathy/sqlite/repository/db_entity.dart';
 
-class KeyValuePair extends DbEntity<String> {
+class KeyValuePairOld extends DbEntity<String> {
   String value;
 
   Map<String, dynamic> get jsonMap => jsonDecode(value);
 
-  KeyValuePair(super.id, {required this.value});
+  KeyValuePairOld(super.id, {required this.value});
 
   @override
   Map<String, dynamic> toMap() => {'id': id, 'value': value};
 
-  factory KeyValuePair.fromMap(Map<String, dynamic> map) {
-    return KeyValuePair(map['id'], value: map['value']);
+  factory KeyValuePairOld.fromMap(Map<String, dynamic> map) {
+    return KeyValuePairOld(map['id'], value: map['value']);
   }
 
   @override

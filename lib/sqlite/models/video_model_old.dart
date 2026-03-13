@@ -2,10 +2,10 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:syncopathy/model/funscript.dart';
-import 'package:syncopathy/sqlite/models/funscript_metadata.dart';
-import 'package:syncopathy/sqlite/models/user_category.dart';
+import 'package:syncopathy/model/json/funscript_metadata.dart';
+import 'package:syncopathy/sqlite/models/user_category_old.dart';
 
-class Video {
+class VideoOld {
   final int? id;
   final String title;
   final String videoPath;
@@ -22,9 +22,9 @@ class Video {
 
   // Joined data
   FunscriptMetadata? funscriptMetadata;
-  List<UserCategory> categories;
+  List<UserCategoryOld> categories;
 
-  Video({
+  VideoOld({
     this.id,
     required this.title,
     required this.videoPath,
@@ -39,7 +39,7 @@ class Video {
     this.duration,
     this.funscriptMetadataId,
     this.funscriptMetadata,
-    List<UserCategory>? categories,
+    List<UserCategoryOld>? categories,
   }) : categories = categories ?? [];
 
   Map<String, dynamic> toMap() {
@@ -60,8 +60,8 @@ class Video {
     };
   }
 
-  factory Video.fromMap(Map<String, dynamic> map) {
-    return Video(
+  factory VideoOld.fromMap(Map<String, dynamic> map) {
+    return VideoOld(
       id: map['id'],
       title: map['title'],
       videoPath: map['videoPath'],

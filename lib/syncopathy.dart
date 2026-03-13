@@ -6,7 +6,7 @@ import 'package:signals/signals_core.dart';
 import 'package:syncopathy/help_page.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
-import 'package:syncopathy/media_library/media_manager.dart';
+import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/media_page.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
@@ -14,12 +14,10 @@ import 'package:syncopathy/notification_feed.dart';
 
 import 'package:syncopathy/settings_page.dart';
 import 'package:syncopathy/simple/simple_drag_and_drop.dart';
-import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/video_player_page.dart';
 
 import 'package:syncopathy/custom_app_bar.dart';
 import 'package:syncopathy/web/start_modal.dart';
-import 'package:syncopathy/widgets/database_reset_dialog.dart';
 
 class Syncopathy extends StatelessWidget {
   const Syncopathy({super.key});
@@ -72,18 +70,6 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
       }),
     ]);
 
-    // Check for database reset and show dialog if necessary
-    if (DatabaseHelper().databaseWasReset) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Ensure context is still valid before showing dialog
-        if (mounted) {
-          showDatabaseResetDialog(
-            context,
-            DatabaseHelper().databaseWasResetName!,
-          );
-        }
-      });
-    }
     _startupModal();
   }
 
@@ -190,7 +176,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
   @override
   Widget build(BuildContext context) {
     final isPortrait = PlatformUtils.isPortrait(context);
-    final withMedia = context.read<MediaManager?>() != null;
+    final withMedia = !syncopathySimpleMode;
 
     return LogNotificationObserver(
       child: Scaffold(
@@ -262,7 +248,7 @@ class PageContent extends StatefulWidget {
 class _PageContentState extends State<PageContent> {
   @override
   Widget build(BuildContext context) {
-    final withMedia = context.read<MediaManager?>() != null;
+    final withMedia = !syncopathySimpleMode;
 
     final List<Widget> pages = [
       if (withMedia) const MediaPage(),

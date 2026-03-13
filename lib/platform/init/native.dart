@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:syncopathy/ioc.dart';
-import 'package:syncopathy/sqlite/database_helper.dart';
+import 'package:syncopathy/persistence/objectbox.dart';
+import 'package:syncopathy/sqlite/sqlite_helper.dart';
 import 'package:window_manager/window_manager.dart';
 
 class PlatformInit {
@@ -14,7 +15,8 @@ class PlatformInit {
         databaseFactory = databaseFactoryFfi;
       }
       final appSupportDir = await getApplicationSupportDirectory();
-      await DatabaseHelper().initDb(directory: appSupportDir.path);
+      oBox = await ObjectBox.create(appSupportDir.path);
+      await SQLiteHelper().initDb(directory: appSupportDir.path);
     }
     if (isDesktop()) {
       await windowManager.ensureInitialized();

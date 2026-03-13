@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:syncopathy/media_library/media_manager.dart';
-import 'package:syncopathy/sqlite/database_helper.dart';
-import 'package:syncopathy/sqlite/models/user_category.dart';
+import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/notification_feed.dart';
+import 'package:syncopathy/persistence/entities/user_category.dart';
 
 class CategorySelectionDialog extends StatefulWidget {
   final UserCategory? initialSelectedCategory;
@@ -38,7 +36,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
     final List<UserCategory> meta = [];
     if (widget.showAllCategoriesOption) {
       meta.add(
-        UserCategory(id: -1, name: 'All Categories', sortOrder: -1),
+        UserCategory(name: 'All Categories', sortOrder: -1),
       ); // Sentinel for "All Categories"
     }
     if (widget.showUncategorizedOption) {
@@ -57,7 +55,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
     setState(() {
       _isLoading = true;
     });
-    final categories = await DatabaseHelper().getAllUserCategories();
+    final categories = oBox.userCategoryService.getAllUserCategories();
     setState(() {
       _userCategories = categories;
       _isLoading = false;
@@ -73,7 +71,6 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final mediaManager = context.read<MediaManager>();
     final filteredUserCategories = _userCategories
         .where(
           (item) => item.name.toLowerCase().contains(
@@ -81,7 +78,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
           ),
         )
         .where(
-          (item) => widget.preFilterCategoriesIds?.contains(item.id!) ?? true,
+          (item) => widget.preFilterCategoriesIds?.contains(item.id) ?? true,
         )
         .toList();
 
@@ -126,7 +123,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                         ),
                         onSubmitted: (value) async {
                           if (value.isNotEmpty) {
-                            await mediaManager.createCategory(value);
+                            await oBox.userCategoryService.createCategory(value);
                             _newCategoryController.clear();
                             _searchController.clear();
                             await _loadCategories();
@@ -139,7 +136,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                       icon: const Icon(Icons.add),
                       onPressed: () async {
                         if (_newCategoryController.text.isNotEmpty) {
-                          await mediaManager.createCategory(
+                          await oBox.userCategoryService.createCategory(
                             _newCategoryController.text,
                           );
                           _newCategoryController.clear();
@@ -188,7 +185,6 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
   }
 
   Widget _buildReorderableList(List<UserCategory> categories) {
-    final mediaManager = context.read<MediaManager>();
     return Column(
       children: [
         ..._metaCategories.map((item) {
@@ -266,7 +262,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                           );
 
                           if (confirm == true) {
-                            await mediaManager.deleteCategory(item);
+                            oBox.userCategoryService.deleteCategory(item.id);
                             if (!context.mounted) return;
                             NotificationFeedManager.showSuccessNotification(
                               context,
@@ -287,9 +283,10 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
               final UserCategory item = _userCategories.removeAt(oldIndex);
               _userCategories.insert(newIndex, item);
               setState(() {});
-              await DatabaseHelper().updateUserCategorySortOrder(
-                _userCategories,
-              );
+              // TODO: do a bulk save here
+              for (final cat in _userCategories) {
+                oBox.userCategoryService.save(cat);
+              }
             },
           ),
         ),

@@ -9,11 +9,11 @@ import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/playlist_controls.dart';
 import 'package:syncopathy/simple/simple_mode/simple_mode.dart';
 
-import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -56,11 +56,11 @@ class CustomAppBarState extends State<CustomAppBar> {
           },
           child: Align(
             key: ValueKey<String>(
-              currentlyOpen?.media.title ?? widget.widgetTitle,
+              currentlyOpen?.media.name ?? widget.widgetTitle,
             ),
             alignment: Alignment.centerLeft,
             child: Text(
-              currentlyOpen?.media.title ?? widget.widgetTitle,
+              currentlyOpen?.media.name ?? widget.widgetTitle,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
               softWrap: false,
@@ -99,7 +99,7 @@ class CustomAppBarState extends State<CustomAppBar> {
             return FadeTransition(opacity: animation, child: child);
           },
           child: actionRow(
-            currentlyOpen?.media,
+            currentlyOpen,
             mediaManager,
             currentPlaylist.entries.length > 1,
           ),
@@ -161,10 +161,11 @@ class CustomAppBarState extends State<CustomAppBar> {
   }
 
   Widget actionRow(
-    Video? currentVideo,
+    MediaFunscript? currentlyOpen,
     MediaManager? mediaManager,
     bool playlist,
   ) {
+    final currentVideo = currentlyOpen?.media;
     if (currentVideo == null) return const SizedBox.shrink();
     return Row(
       children: [
@@ -176,12 +177,11 @@ class CustomAppBarState extends State<CustomAppBar> {
             ),
             onPressed: () {
               setState(() {
-                currentVideo.isFavorite = !currentVideo.isFavorite;
-                if (currentVideo.isFavorite) {
-                  currentVideo.isDislike = false;
-                }
+                currentVideo.isFavorite
+                    ? currentVideo.rating = MediaRating.noRating
+                    : currentVideo.rating = MediaRating.like;
               });
-              mediaManager.saveFavorite(currentVideo);
+              oBox.mediaService.save(currentVideo);
             },
             tooltip: currentVideo.isFavorite
                 ? 'Remove from Favorites'
@@ -197,12 +197,11 @@ class CustomAppBarState extends State<CustomAppBar> {
             ),
             onPressed: () {
               setState(() {
-                currentVideo.isDislike = !currentVideo.isDislike;
-                if (currentVideo.isDislike) {
-                  currentVideo.isFavorite = false;
-                }
+                currentVideo.isDislike
+                    ? currentVideo.rating = MediaRating.noRating
+                    : currentVideo.rating = MediaRating.dislike;
               });
-              mediaManager.saveDislike(currentVideo);
+              oBox.mediaService.save(currentVideo);
             },
             tooltip: currentVideo.isDislike
                 ? 'Remove Dislike'

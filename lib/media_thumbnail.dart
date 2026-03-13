@@ -8,19 +8,18 @@ import "package:async_locks/async_locks.dart";
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/video_player.dart';
 
-import 'package:syncopathy/sqlite/models/video_model.dart';
-
-class VideoThumbnail extends StatefulWidget {
-  final Video video;
-  const VideoThumbnail({super.key, required this.video});
+class MediaThumbnail extends StatefulWidget {
+  final MediaFile mediaFile;
+  const MediaThumbnail({super.key, required this.mediaFile});
 
   @override
-  State<VideoThumbnail> createState() => VideoThumbnailState();
+  State<MediaThumbnail> createState() => MediaThumbnailState();
 }
 
-class VideoThumbnailState extends State<VideoThumbnail> {
+class MediaThumbnailState extends State<MediaThumbnail> {
   Uint8List? _thumbnailBytes;
   bool _isGenerating = false;
   static final _ffmpegSemaphore = Semaphore(2);
@@ -33,9 +32,9 @@ class VideoThumbnailState extends State<VideoThumbnail> {
   }
 
   @override
-  void didUpdateWidget(covariant VideoThumbnail oldWidget) {
+  void didUpdateWidget(covariant MediaThumbnail oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.video.videoPath != oldWidget.video.videoPath) {
+    if (widget.mediaFile.mediaPath != oldWidget.mediaFile.mediaPath) {
       // If the video path changes, we might need to re-fetch.
       _getThumbnail();
     }
@@ -48,7 +47,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
     final screenshot = p.join(appDataPath.path, "tmp.jpg");
 
     final thumbDir = Directory(p.join(appDataPath.path, 'thumbnails'));
-    final filename = widget.video.videoHash;
+    final filename = await widget.mediaFile.mediaHash;
     final thumbnailFile = File(p.join(thumbDir.path, filename));
 
     if (await thumbnailFile.exists()) {
@@ -64,7 +63,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
 
     // Clear the existing thumbnail path and remove from cache to force regeneration
     setState(() {
-      _thumbnailFutures.remove(widget.video.videoHash);
+      _thumbnailFutures.remove(filename);
     });
 
     if (!mounted) return;
@@ -125,9 +124,10 @@ class VideoThumbnailState extends State<VideoThumbnail> {
     });
 
     // Delete the existing thumbnail file to force regeneration
+    final mediaHash = await widget.mediaFile.mediaHash;
     final appDataPath = await getApplicationSupportDirectory();
     final thumbDir = Directory(p.join(appDataPath.path, 'thumbnails'));
-    final filename = widget.video.videoHash;
+    final filename = mediaHash;
     final thumbnailFile = File(p.join(thumbDir.path, filename));
 
     if (await thumbnailFile.exists()) {
@@ -143,7 +143,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
 
     // Clear the existing thumbnail path and remove from cache to force regeneration
     setState(() {
-      _thumbnailFutures.remove(widget.video.videoHash);
+      _thumbnailFutures.remove(mediaHash);
     });
 
     final random = Random();
@@ -158,11 +158,11 @@ class VideoThumbnailState extends State<VideoThumbnail> {
       _isGenerating = true;
     });
 
-    final videoHash = widget.video.videoHash;
+    final mediaHash = await widget.mediaFile.mediaHash;
     final future = _thumbnailFutures.putIfAbsent(
-      videoHash,
+      mediaHash,
       () => generateThumbnailAndGetPath(
-        widget.video,
+        widget.mediaFile,
         seekFraction,
         _ffmpegSemaphore,
       ),
@@ -185,7 +185,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
         }
       }
     } catch (e) {
-      Logger.error('Error in _getThumbnail for ${widget.video.title}: $e');
+      Logger.error('Error in _getThumbnail for ${widget.mediaFile.name}: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -197,7 +197,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
 
   // TODO: refactor me
   static Future<String?> generateThumbnailAndGetPath(
-    Video video,
+    MediaFile media,
     double seekFraction,
     Semaphore ffmpegSemaphore,
   ) async {
@@ -207,17 +207,17 @@ class VideoThumbnailState extends State<VideoThumbnail> {
       await thumbDir.create(recursive: true);
 
       // store the thumbnail file without an extension as jpg
-      final filename = video.videoHash;
+      final filename = await media.mediaHash;
       final thumbnailFile = File(p.join(thumbDir.path, filename));
 
       if (await thumbnailFile.exists()) {
         return thumbnailFile.path;
       }
 
-      final durationSeconds = video.duration;
+      final durationSeconds = media.duration;
       if (durationSeconds == null || durationSeconds <= 0) {
         Logger.warning(
-          'Video duration not available for ${video.videoPath}. Cannot generate thumbnail at 1% mark.',
+          'Video duration not available for ${media.mediaPath}. Cannot generate thumbnail at 1% mark.',
         );
         return null;
       }
@@ -232,7 +232,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
           '-ss', // Seek to the calculated time
           seekTimeSeconds.toString(),
           '-i',
-          video.videoPath,
+          media.mediaPath,
           '-vf',
           "thumbnail,scale=300:-1",
           '-vframes',
@@ -250,7 +250,7 @@ class VideoThumbnailState extends State<VideoThumbnail> {
 
         if (result.exitCode != 0) {
           Logger.warning(
-            'ffmpeg failed with -ss option for ${video.videoPath}: ${result.stderr}. Retrying without -ss.',
+            'ffmpeg failed with -ss option for ${media.mediaPath}: ${result.stderr}. Retrying without -ss.',
           );
           // Retry without -ss option
           ffmpegArgs.removeRange(2, 4); // Remove '-ss' and seekTimeSeconds
@@ -259,14 +259,14 @@ class VideoThumbnailState extends State<VideoThumbnail> {
         if (result.exitCode == 0 && await thumbnailFile.exists()) {
           return thumbnailFile.path;
         } else {
-          Logger.error('ffmpeg error for ${video.videoPath}: ${result.stderr}');
+          Logger.error('ffmpeg error for ${media.mediaPath}: ${result.stderr}');
           return null;
         }
       } finally {
         ffmpegSemaphore.release();
       }
     } catch (e) {
-      Logger.error('Error generating thumbnail for ${video.videoPath}: $e');
+      Logger.error('Error generating thumbnail for ${media.mediaPath}: $e');
       return null;
     }
   }

@@ -3,16 +3,16 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_fortune_wheel/flutter_fortune_wheel.dart';
-import 'package:syncopathy/sqlite/models/video_model.dart';
+import 'package:syncopathy/persistence/entities/media_file.dart';
 
 class WheelOfFortuneDialog extends StatefulWidget {
-  final List<Video> videos;
-  final Function(Video) onVideoSelected;
+  final List<MediaFile> mediaFiles;
+  final Function(MediaFile) onMediaSelected;
 
   const WheelOfFortuneDialog({
     super.key,
-    required this.videos,
-    required this.onVideoSelected,
+    required this.mediaFiles,
+    required this.onMediaSelected,
   });
 
   @override
@@ -27,7 +27,7 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
   @override
   void initState() {
     super.initState();
-    _selectedIndex = _random.nextInt(widget.videos.length);
+    _selectedIndex = _random.nextInt(widget.mediaFiles.length);
     Future.delayed(const Duration(milliseconds: 200), () {
       if (mounted) {
         _spinWheel();
@@ -43,7 +43,7 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
 
   void _spinWheel() {
     setState(() {
-      _selectedIndex = _random.nextInt(widget.videos.length);
+      _selectedIndex = _random.nextInt(widget.mediaFiles.length);
     });
     // Add a short delay before adding to stream to allow the state to update
     Future.delayed(const Duration(milliseconds: 25), () {
@@ -54,18 +54,18 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
   @override
   Widget build(BuildContext context) {
     final items = <FortuneItem>[
-      for (var i = 0; i < widget.videos.length; i++)
+      for (var i = 0; i < widget.mediaFiles.length; i++)
         FortuneItem(
           style: FortuneItemStyle(
             color: HSLColor.fromAHSL(
               1.0,
-              i * (360.0 / widget.videos.length),
+              i * (360.0 / widget.mediaFiles.length),
               0.5,
               0.5,
             ).toColor(),
           ),
           child: Text(
-            widget.videos[i].title,
+            widget.mediaFiles[i].name,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 16, color: Colors.black),
@@ -87,7 +87,7 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
             Future.delayed(const Duration(milliseconds: 500), () {
               if (!context.mounted) return;
               Navigator.of(context).pop();
-              widget.onVideoSelected(widget.videos[_selectedIndex]);
+              widget.onMediaSelected(widget.mediaFiles[_selectedIndex]);
             });
           },
         ),

@@ -17,9 +17,8 @@ import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
-import 'package:syncopathy/sqlite/database_helper.dart';
 import 'package:syncopathy/update_checker.dart';
-import 'package:syncopathy/video_thumbnail.dart';
+import 'package:syncopathy/media_thumbnail.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -220,7 +219,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildAppDataSettings(BuildContext context) {
-    final withMedia = context.read<MediaManager?>() != null;
+    final withMedia = !syncopathySimpleMode;
     return Column(
       children: [
         ListTile(
@@ -343,9 +342,7 @@ class _SettingsPageState extends State<SettingsPage> {
             return Watch(
               (context) => ListTile(
                 title: Text(
-                  !syncopathySimpleMode
-                      ? '${info.appName} v${info.version}+${info.buildNumber}\n${DatabaseHelper().dbVersion}\n${DatabaseHelper().userDbVersion}'
-                      : '${info.appName} v${info.version}+${info.buildNumber}',
+                  '${info.appName} v${info.version}+${info.buildNumber}',
                 ),
                 subtitle: statusUpdateMessageSignal.value != null
                     ? Text(statusUpdateMessageSignal.value!)
@@ -448,13 +445,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (mediaManager == null || mediaSettings == null) {
       return;
     }
-    await DatabaseHelper().resetAllVideosPlayCount();
-    // HACK: trigger a UI refresh
-    await mediaManager.load();
-    mediaSettings.isSortAscending.set(
-      mediaSettings.isSortAscending.value,
-      force: true,
-    );
+    oBox.mediaService.resetAllVideosPlayCount();
   }
 
   void _generateMissingThumbnails(BuildContext context) {
@@ -462,7 +453,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (mediaManager == null) {
       return;
     }
-    final videos = mediaManager.allVideos;
+    final videos = oBox.mediaService.getAll();
     int generatedCount = 0;
     bool generationStarted = false;
     int successCount = 0;
@@ -480,7 +471,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 final futures = <Future>[];
                 for (final video in videos) {
                   final future =
-                      VideoThumbnailState.generateThumbnailAndGetPath(
+                      MediaThumbnailState.generateThumbnailAndGetPath(
                         video,
                         0.05,
                         ffmpegSemaphore,

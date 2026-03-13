@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/sqlite/models/video_model.dart';
+import 'package:syncopathy/persistence/entities/media_file.dart';
 
 class PlaylistModel {
   final Signal<List<PlaylistItem>> _entries;
@@ -17,8 +17,8 @@ class PlaylistModel {
     );
   }
 
-  int getIndexForVideo(Video video) {
-    final videoPath = Uri.file(video.videoPath).toFilePath(windows: false);
+  int getIndexForVideo(MediaFile video) {
+    final videoPath = Uri.file(video.mediaPath).toFilePath(windows: false);
 
     return _entries.indexWhere(
       (v) => Uri.file(v.filename).toFilePath(windows: false) == videoPath,

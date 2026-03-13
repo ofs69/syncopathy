@@ -7,8 +7,8 @@ import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/video_player.dart';
-import 'package:syncopathy/sqlite/models/video_model.dart';
 import 'package:web/web.dart' as web;
 
 class SimpleMode {
@@ -152,14 +152,13 @@ class SimpleMode {
         Logger.error("Can't play $name");
       } else {
         getIt.get<VideoPlayer>().openSingleVideo(
-          Video(
-            title: name,
-            videoPath: path,
-            funscriptPath: "",
-            averageSpeed: 0.0,
-            averageMin: 0.0,
-            averageMax: 100.0,
-            dateFirstFound: DateTime.now(),
+          MediaFile(
+            name: name,
+            mediaPath: path,
+            duration: null,
+            playCount: 0,
+            rating: MediaRating.noRating,
+            type: MediaType.unknown,
           ),
         );
       }
