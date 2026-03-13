@@ -28,3 +28,8 @@ const List<Color> heatmapGraphColors = [
   Color(0xFF424242), // Colors.grey.shade800
   ...heatmapColorsBase,
 ];
+
+double remapWithClamp(double value, double x, double y) {
+  double result = x + (value * (y - x) / 100);
+  return result.clamp(x, y);
+}

@@ -260,6 +260,8 @@ class _VideoWidgetState extends State<VideoWidget>
         currentlyOpen: currentlyOpen,
         videoPosition: player.smoothPosition,
         viewDuration: settings.funscriptGraphViewDuration,
+        playbackRate: player.playbackSpeed,
+        strokeRange: settings.minMaxRange,
       ),
     );
   }

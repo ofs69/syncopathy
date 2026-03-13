@@ -7,6 +7,7 @@ import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/video_player.dart';
 
 class VideoControls extends StatefulWidget {
@@ -35,6 +36,7 @@ class _VideoControlsState extends State<VideoControls> {
   Widget build(BuildContext context) {
     final player = context.read<VideoPlayer>();
     final playerModel = context.read<PlayerModel>();
+    final settingsModel = context.read<SettingsModel>();
 
     final isPortrait = PlatformUtils.isPortrait(context);
 
@@ -49,7 +51,7 @@ class _VideoControlsState extends State<VideoControls> {
             // 1. Heatmap Row (Remains the same)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: _buildHeatmapRow(player, playerModel),
+              child: _buildHeatmapRow(player, playerModel, settingsModel),
             ),
 
             const SizedBox(height: 8.0),
@@ -139,7 +141,11 @@ class _VideoControlsState extends State<VideoControls> {
     return "${format(current, hasHours)} / ${format(total, hasHours)}";
   }
 
-  Widget _buildHeatmapRow(VideoPlayer player, PlayerModel playerModel) {
+  Widget _buildHeatmapRow(
+    VideoPlayer player,
+    PlayerModel playerModel,
+    SettingsModel settingsModel,
+  ) {
     return Row(
       children: [
         Expanded(
@@ -154,6 +160,8 @@ class _VideoControlsState extends State<VideoControls> {
                   totalDuration: player.duration,
                   videoPositionFixedStep: player.currentPositionFixedStep,
                   onClick: (d) => player.seekTo(d),
+                  playbackSpeed: player.playbackSpeed,
+                  strokeRange: settingsModel.minMaxRange,
                 );
               },
             ),

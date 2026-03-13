@@ -10,18 +10,20 @@ import 'package:syncopathy/player/video_player.dart';
 class Heatmap extends StatefulWidget {
   final List<FunscriptAction> actions;
   final ReadonlySignal<double?> totalDuration;
-  int get totalDurationMs => ((totalDuration.value ?? 0.0) * 1000.0).round();
-
+  final ReadonlySignal<double> playbackSpeed;
+  final ReadonlySignal<RangeValues> strokeRange;
   final ReadonlySignal<int> videoPositionFixedStep;
-
   final void Function(Duration) onClick;
+  int get totalDurationMs => ((totalDuration.value ?? 0.0) * 1000.0).round();
 
   const Heatmap({
     super.key,
     required this.actions,
     required this.onClick,
     required this.videoPositionFixedStep,
+    required this.playbackSpeed,
     required this.totalDuration,
+    required this.strokeRange,
   });
 
   @override
@@ -34,8 +36,8 @@ class _HeatmapState extends State<Heatmap> {
 
   @override
   void dispose() {
-    _throttler.dispose();
     super.dispose();
+    _throttler.dispose();
   }
 
   void _handleInteraction(Offset localPosition, BoxConstraints constraints) {
@@ -96,6 +98,8 @@ class _HeatmapState extends State<Heatmap> {
                               painter: HeatmapPainter(
                                 actions: widget.actions,
                                 totalDuration: Duration(milliseconds: duration),
+                                playbackSpeed: widget.playbackSpeed.value,
+                                strokeRange: widget.strokeRange.value,
                               ),
                             );
                           },
@@ -194,8 +198,15 @@ class _SegmentData {
 class HeatmapPainter extends CustomPainter {
   final List<FunscriptAction> actions;
   final Duration totalDuration;
+  final double playbackSpeed;
+  final RangeValues strokeRange;
 
-  HeatmapPainter({required this.actions, required this.totalDuration});
+  HeatmapPainter({
+    required this.actions,
+    required this.totalDuration,
+    required this.playbackSpeed,
+    required this.strokeRange,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -232,15 +243,29 @@ class HeatmapPainter extends CustomPainter {
         // Check for overlap
         if (max(p1.at.toDouble(), segmentStartTime) <
             min(p2.at.toDouble(), segmentEndTime)) {
+          final p1PosRemap = remapWithClamp(
+            p1.pos.toDouble(),
+            strokeRange.start,
+            strokeRange.end,
+          );
+
+          final p2PosRemap = remapWithClamp(
+            p2.pos.toDouble(),
+            strokeRange.start,
+            strokeRange.end,
+          );
+
           // Speed Calculation
-          final timeDiff = (p2.at - p1.at).toDouble();
+          final timeDiff = (p2.at - p1.at).toDouble() / playbackSpeed;
           if (timeDiff > 0) {
-            segments[i].totalSpeed += (p2.pos - p1.pos).abs() / timeDiff;
+            segments[i].totalSpeed +=
+                (p2PosRemap - p1PosRemap).abs() / timeDiff;
             segments[i].speedCount++;
           }
 
           // Position Averaging logic
           // We treat every action pair overlapping this segment as a sample of the range
+          // do not apply remaping here
           segments[i].totalMinPos += min(p1.pos, p2.pos);
           segments[i].totalMaxPos += max(p1.pos, p2.pos);
           segments[i].posSampleCount++;
@@ -300,7 +325,9 @@ class HeatmapPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant HeatmapPainter oldDelegate) {
     return oldDelegate.actions != actions ||
-        oldDelegate.totalDuration != totalDuration;
+        oldDelegate.totalDuration != totalDuration ||
+        oldDelegate.playbackSpeed != playbackSpeed ||
+        oldDelegate.strokeRange != strokeRange;
   }
 }
 

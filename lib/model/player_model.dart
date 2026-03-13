@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/helper/debouncer.dart';
@@ -101,6 +102,8 @@ class PlayerModel with EffectDispose {
     bool remapFullRange,
     bool invert,
     double totalDuration,
+    double playbackSpeed,
+    RangeValues strokeRange,
   ) {
     final modifiedActions = FunscriptAlgorithms.processForHandy(
       funscript.originalActions,
@@ -109,6 +112,8 @@ class PlayerModel with EffectDispose {
       remapFullRange ? (0, 100) : null,
       invert,
       totalDuration,
+      playbackSpeed,
+      strokeRange,
     );
     funscript.processedActions.value = modifiedActions;
   }
@@ -123,6 +128,8 @@ class PlayerModel with EffectDispose {
         final rdpEpsilon = _settings.rdpEpsilon.value;
         final remapFullRange = _settings.remapFullRange.value;
         final invert = _settings.invert.value;
+        final playbackSpeed = player.playbackSpeed.value;
+        final strokeRange = _settings.minMaxRange.value;
 
         if (video == null || totalDuration == null || totalDuration < 0.1) {
           __currentFunscript.value = null;
@@ -142,6 +149,8 @@ class PlayerModel with EffectDispose {
                 remapFullRange,
                 invert,
                 totalDuration,
+                playbackSpeed,
+                strokeRange,
               );
             });
           }
@@ -160,6 +169,9 @@ class PlayerModel with EffectDispose {
         final rdpEpsilon = _settings.rdpEpsilon.value;
         final remapFullRange = _settings.remapFullRange.value;
         final invert = _settings.invert.value;
+        final playbackSpeed = player.playbackSpeed.value;
+        final strokeRange = _settings.minMaxRange.value;
+
         if (video == null || totalDuration == null || totalDuration < 0.1) {
           __currentFunscript.value = null;
           return null;
@@ -182,6 +194,8 @@ class PlayerModel with EffectDispose {
                 remapFullRange,
                 invert,
                 totalDuration,
+                playbackSpeed,
+                strokeRange,
               );
             });
           }

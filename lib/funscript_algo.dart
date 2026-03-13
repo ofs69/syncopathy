@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/material.dart';
 import 'package:syncopathy/model/funscript.dart';
 
 class FunscriptAlgorithms {
@@ -6,6 +7,8 @@ class FunscriptAlgorithms {
   static List<FunscriptAction> slew(
     List<FunscriptAction> actions,
     double maxRateOfChangePerSecond,
+    double playbackSpeed,
+    RangeValues strokeRange,
   ) {
     if (actions.length < 2) {
       return actions;
@@ -17,10 +20,12 @@ class FunscriptAlgorithms {
       final prevAction = slewActions.last;
       final currentAction = actions[i];
 
-      final timeDiffMs = (currentAction.at - prevAction.at).toDouble();
+      final timeDiffMs =
+          (currentAction.at - prevAction.at).toDouble() / playbackSpeed;
 
       final maxChange =
-          maxRateOfChangePerSecond *
+          (maxRateOfChangePerSecond /
+              ((strokeRange.start - strokeRange.end).abs() / 100.0)) *
           (timeDiffMs / 1000.0); // Max change in 'pos' for this time difference
 
       final actualChange = (currentAction.pos - prevAction.pos).toDouble();
@@ -248,6 +253,8 @@ class FunscriptAlgorithms {
     (int minRange, int maxRange)? remapRange,
     bool invert,
     double totalDuration,
+    double playbackSpeed,
+    RangeValues strokeRange,
   ) {
     if (actions.isEmpty) {
       return actions;
@@ -274,7 +281,12 @@ class FunscriptAlgorithms {
     }
 
     if (slewMaxRateOfChangePerSecond != null) {
-      actions = FunscriptAlgorithms.slew(actions, slewMaxRateOfChangePerSecond);
+      actions = FunscriptAlgorithms.slew(
+        actions,
+        slewMaxRateOfChangePerSecond,
+        playbackSpeed,
+        strokeRange,
+      );
     }
     if (rdpEpsilon != null) {
       actions = FunscriptAlgorithms.rdp(actions, rdpEpsilon);

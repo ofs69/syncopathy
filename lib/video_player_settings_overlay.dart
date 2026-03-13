@@ -225,6 +225,8 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
 
   Widget _buildMinMaxSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
+    final currentRange = settings.minMaxRange.watch(context);
+
     return Column(
       children: [
         SliderTheme(
@@ -232,7 +234,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
             valueIndicatorColor: Theme.of(context).colorScheme.primary,
           ),
           child: RangeSlider(
-            values: settings.minMaxRange.watch(context),
+            values: currentRange,
             min: 0,
             max: 100,
             divisions: 100,

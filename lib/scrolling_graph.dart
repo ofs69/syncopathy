@@ -9,9 +9,13 @@ import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/player_model.dart';
 
+// TODO: why is this two widgets?
+
 class InteractiveScrollingGraph extends StatefulWidget {
   final ReadonlySignal<MediaFunscript?> currentlyOpen;
   final ReadonlySignal<double> videoPosition;
+  final ReadonlySignal<double> playbackRate;
+  final ReadonlySignal<RangeValues> strokeRange;
   final Signal<Duration> viewDuration;
 
   const InteractiveScrollingGraph({
@@ -19,6 +23,8 @@ class InteractiveScrollingGraph extends StatefulWidget {
     required this.currentlyOpen,
     required this.videoPosition,
     required this.viewDuration,
+    required this.playbackRate,
+    required this.strokeRange,
   });
 
   @override
@@ -45,6 +51,8 @@ class _InteractiveScrollingGraphState extends State<InteractiveScrollingGraph> {
         currentlyOpen: widget.currentlyOpen,
         videoPosition: widget.videoPosition,
         viewDuration: widget.viewDuration,
+        playbackRate: widget.playbackRate,
+        strokeRange: widget.strokeRange,
       ),
     );
   }
@@ -53,6 +61,8 @@ class _InteractiveScrollingGraphState extends State<InteractiveScrollingGraph> {
 class ScrollingGraph extends StatefulWidget {
   final ReadonlySignal<MediaFunscript?> currentlyOpen;
   final ReadonlySignal<double> videoPosition;
+  final ReadonlySignal<double> playbackRate;
+  final ReadonlySignal<RangeValues> strokeRange;
   final Signal<Duration> viewDuration;
 
   const ScrollingGraph({
@@ -60,6 +70,8 @@ class ScrollingGraph extends StatefulWidget {
     required this.currentlyOpen,
     required this.videoPosition,
     required this.viewDuration,
+    required this.playbackRate,
+    required this.strokeRange,
   });
 
   @override
@@ -75,6 +87,9 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
 
     speeds = computed(() {
       final funscript = widget.currentlyOpen.value?.funscript;
+      final playbackSpeed = widget.playbackRate.value;
+      final strokeRange = widget.strokeRange.value;
+
       if (funscript == null) return [];
       if (funscript.processedActions.value.length < 2) return [];
 
@@ -83,9 +98,21 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
       for (int i = 0; i < actions.length - 1; i++) {
         final p1 = actions[i];
         final p2 = actions[i + 1];
-        final timeDiff = p2.at - p1.at;
+
+        final timeDiff = (p2.at - p1.at) / playbackSpeed;
         if (timeDiff > 0) {
-          final posDiff = (p2.pos - p1.pos).abs();
+          final posDiff =
+              (remapWithClamp(
+                        p2.pos.toDouble(),
+                        strokeRange.start,
+                        strokeRange.end,
+                      ) -
+                      remapWithClamp(
+                        p1.pos.toDouble(),
+                        strokeRange.start,
+                        strokeRange.end,
+                      ))
+                  .abs();
           final speed = posDiff / timeDiff; // % per millisecond
           speeds.add(speed);
         } else {
