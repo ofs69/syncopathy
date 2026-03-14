@@ -91,7 +91,7 @@ class Funscript {
         uniqueActions.add(action);
       }
     }
-    processedActions = listSignal([]);
+    processedActions = signal([]);
     originalActions = List.unmodifiable(uniqueActions);
   }
 

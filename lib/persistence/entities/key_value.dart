@@ -5,7 +5,7 @@ class KeyValue {
   @Id()
   int id = 0;
 
-  @Unique()
+  @Unique(onConflict: ConflictStrategy.replace)
   @Index()
   String key;
 

@@ -17,7 +17,7 @@ abstract class VideoPlayer with EffectDispose {
   final bool embeddedPlayer;
 
   // TODO: remove _previouslyLoadedVideos and find a better way to resolve the filename from the playlist back to a video
-  final Signal<List<MediaFile>> _previouslyLoadedVideos = listSignal([]);
+  final ListSignal<MediaFile> _previouslyLoadedVideos = listSignal([]);
   late final ReadonlySignal<PlaylistModel> currentPlaylist;
 
   late final ReadonlySignal<bool> seeking;

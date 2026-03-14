@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:crypto/crypto.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/user_category.dart';
@@ -55,36 +53,47 @@ class MediaFile {
   int? get dbRating => rating?.id;
   set dbRating(int? value) => rating = MediaRating.fromId(value);
 
+  @Index(type: IndexType.value)
+  @Unique(onConflict: ConflictStrategy.fail)
+  String? fileHash;
+
+  // main name
   String name;
+  // name aliases for search purposes stored as a json list
+  @Transient()
+  List<String> aliases;
+  String get dbAliases => jsonEncode(aliases);
+  set dbAliases(String jsonList) {
+    aliases.clear();
+    try {
+      final decoded = jsonDecode(jsonList);
+      if (decoded case List items) {
+        aliases = items.cast<String>();
+      }
+    } catch (_) {}
+  }
+
   String mediaPath;
   double? duration;
   int playCount;
+  bool fileNotFound;
 
   final funscripts = ToMany<FunscriptFile>();
 
   @Backlink('entries')
-  final lists = ToMany<UserCategory>();
-
-  @Transient()
-  Future<String> get mediaHash async {
-    // final bytes = utf8.encode(mediaPath);
-    // final digest = sha256.convert(bytes);
-    // return digest.toString();
-    final stat = await File(mediaPath).stat();
-    final dataToHash = "${stat.modified.millisecondsSinceEpoch}-${stat.size}";
-    final bytes = utf8.encode(dataToHash);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
-  }
+  final categories = ToMany<UserCategory>();
 
   MediaFile({
     required this.name,
     required this.mediaPath,
+    required this.fileHash,
     required this.playCount,
     required this.duration,
+    required this.fileNotFound,
+    List<String>? aliases,
     this.type,
     this.rating,
-  });
+  }) : aliases = aliases ?? [];
 
   bool get isFavorite => rating == MediaRating.like;
   bool get isDislike => rating == MediaRating.dislike;

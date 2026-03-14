@@ -18,7 +18,6 @@ import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/update_checker.dart';
-import 'package:syncopathy/media_thumbnail.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -470,22 +469,23 @@ class _SettingsPageState extends State<SettingsPage> {
                 final ffmpegSemaphore = Semaphore(2);
                 final futures = <Future>[];
                 for (final video in videos) {
-                  final future =
-                      MediaThumbnailState.generateThumbnailAndGetPath(
-                        video,
-                        0.05,
-                        ffmpegSemaphore,
-                      ).then((path) {
-                        if (path != null) {
-                          successCount++;
-                        }
-                        if (dialogContext.mounted) {
-                          setState(() {
-                            generatedCount++;
-                          });
-                        }
-                      });
-                  futures.add(future);
+                  throw UnimplementedError();
+                  // final future =
+                  //     MediaThumbnailState.generateThumbnailAndGetPath(
+                  //       video,
+                  //       0.05,
+                  //       ffmpegSemaphore,
+                  //     ).then((path) {
+                  //       if (path != null) {
+                  //         successCount++;
+                  //       }
+                  //       if (dialogContext.mounted) {
+                  //         setState(() {
+                  //           generatedCount++;
+                  //         });
+                  //       }
+                  //     });
+                  // futures.add(future);
                 }
 
                 await Future.wait(futures);

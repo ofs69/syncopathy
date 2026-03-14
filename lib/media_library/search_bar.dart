@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 
 class MediaSearchBar<T> extends StatefulWidget {
   final void Function(String) onSearchChanged;
-  final T Function(String)? onExpressionParsed;
 
   const MediaSearchBar({
     super.key,
     required this.onSearchChanged,
-    this.onExpressionParsed,
   });
 
   @override
@@ -22,7 +20,6 @@ class _MediaSearchBarState<T> extends State<MediaSearchBar<T>> {
     super.initState();
     _searchController.addListener(() {
       widget.onSearchChanged(_searchController.text);
-      widget.onExpressionParsed?.call(_searchController.text);
     });
   }
 

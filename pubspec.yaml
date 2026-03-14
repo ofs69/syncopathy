@@ -91,6 +91,7 @@ dependencies:
   objectbox: ^5.2.0
   objectbox_flutter_libs: any
   get_it: ^9.2.1
+  rxdart: ^0.28.0
 
 dependency_overrides:
   media_kit:

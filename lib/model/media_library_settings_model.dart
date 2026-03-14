@@ -18,7 +18,7 @@ class MediaLibrarySettingsModel {
   final Signal<bool> showDuration = signal(true);
   final Signal<bool> showPlayCount = signal(true);
   final Signal<bool> separateFavorites = signal(true);
-  final Signal<Set<VideoFilter>> visibilityFilters = setSignal({});
+  final SetSignal<VideoFilter> visibilityFilters = setSignal({});
 
   late final Function _saveEffectDispose;
 

@@ -8,4 +8,34 @@ class FunscriptService {
   int save(FunscriptFile mediaList) {
     return _box.put(mediaList);
   }
+
+  List<String> getAllAuthors() {
+    return _box
+        .getAll()
+        .map((f) => f.metadata?.creator?.trim())
+        .where((c) => c != null && c.isNotEmpty)
+        .cast<String>()
+        .toSet()
+        .toList();
+  }
+
+  List<String> getAllTags() {
+    return _box
+        .getAll()
+        .expand<String>((f) => f.metadata?.tags ?? const [])
+        .map((t) => t.trim())
+        .where((t) => t.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
+  List<String> getAllPerformers() {
+    return _box
+        .getAll()
+        .expand<String>((f) => f.metadata?.performers ?? const [])
+        .map((t) => t.trim())
+        .where((t) => t.isNotEmpty)
+        .toSet()
+        .toList();
+  }
 }

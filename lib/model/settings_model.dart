@@ -18,7 +18,7 @@ class SettingsModel {
     () => RangeValues(min.value.toDouble(), max.value.toDouble()),
   );
   final Signal<int> offsetMs = signal(0);
-  final Signal<List<String>> mediaPaths = listSignal([]);
+  final ListSignal<String> mediaPaths = listSignal([]);
   final Signal<double?> slewMaxRateOfChange = signal(null);
   final Signal<double?> rdpEpsilon = signal(null);
   final Signal<bool> remapFullRange = signal(false);

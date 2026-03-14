@@ -8,6 +8,7 @@ import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/media_page.dart';
+import 'package:syncopathy/migration_modal.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/notification_feed.dart';
@@ -70,7 +71,25 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
       }),
     ]);
 
+    _migrationModal();
     _startupModal();
+  }
+
+  Future<void> _migrationModal() async {
+    if (syncopathySimpleMode) return;
+    final sharedPref = await SharedPreferences.getInstance();
+    final wasMigrated = sharedPref.getBool('wasObjectBoxMigrated') ?? false;
+    if (wasMigrated) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Show start modal
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const MigrationModal(),
+      );
+      sharedPref.setBool('wasObjectBoxMigrated', true);
+    });
   }
 
   Future<void> _startupModal() async {

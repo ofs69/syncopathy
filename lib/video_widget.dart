@@ -133,15 +133,12 @@ class _VideoWidgetState extends State<VideoWidget>
                       children: [
                         Stack(
                           children: [
-                            videoController != null
-                                ? _videoContainer(
-                                    videoController,
-                                    videoWidth,
-                                    videoHeight,
-                                  )
-                                : Center(
-                                    child: Text('Embedded player disabled'),
-                                  ),
+                            if (videoController != null)
+                              _videoContainer(
+                                videoController,
+                                videoWidth,
+                                videoHeight,
+                              ),
                             Align(
                               alignment: AlignmentGeometry.bottomCenter,
                               child: Column(

@@ -20,6 +20,9 @@ class FunscriptFile {
   double? averageMin;
   double? averageMax;
 
+  bool isScriptToken;
+  bool fileNotFound;
+
   @Backlink('funscripts')
   final media = ToMany<MediaFile>();
 
@@ -28,6 +31,8 @@ class FunscriptFile {
     required this.averageSpeed,
     required this.averageMin,
     required this.averageMax,
-    this.metadata
+    required this.isScriptToken,
+    required this.fileNotFound,
+    this.metadata,
   });
 }
