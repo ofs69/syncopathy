@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/helper/buffer_list.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/player_model.dart';
@@ -80,6 +81,8 @@ class ScrollingGraph extends StatefulWidget {
 
 class _ScrollingGraphState extends State<ScrollingGraph> {
   late final ReadonlySignal<List<double>> speeds;
+  // minor optimization to not have this buffer be allocated by the GraphPainter and GC'd
+  final BufferList<Offset> pointBuffer = BufferList(initialValue: Offset(0, 0));
 
   @override
   void initState() {
@@ -140,6 +143,7 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
               viewDuration: viewDuration,
               theme: Theme.of(context),
               speeds: speeds.watch(context),
+              pointBuffer: pointBuffer,
             ),
             size: Size.infinite,
           ),
@@ -156,6 +160,7 @@ class GraphPainter extends CustomPainter {
   final Duration viewDuration;
   final ThemeData theme;
   final List<double> speeds;
+  final BufferList<Offset> pointBuffer;
 
   GraphPainter({
     required this.actions,
@@ -163,53 +168,59 @@ class GraphPainter extends CustomPainter {
     required this.viewDuration,
     required this.theme,
     required this.speeds,
+    required this.pointBuffer,
   });
+
+  // --- 1. Define Paints ---
+  late final linePaint = Paint()
+    ..color = theme.colorScheme.primary
+    ..strokeWidth = 5.0
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.square
+    ..strokeJoin = StrokeJoin.bevel;
+
+  late final cursorPaint = Paint()
+    ..color = theme.colorScheme.secondary
+    ..strokeWidth = 4.0
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round;
+
+  late final pointPaint = Paint()
+    ..color = theme.colorScheme.tertiary
+    ..strokeWidth = 10.0
+    ..style = PaintingStyle.fill
+    ..strokeCap = StrokeCap.round;
+
+  late final currentPointPaint = Paint()
+    ..color = theme.colorScheme.onSecondary
+    ..strokeWidth = 6.0
+    ..style = PaintingStyle.fill
+    ..strokeCap = StrokeCap.round;
+
+  late final currentPointBackgroundPaint = Paint()
+    ..color = theme.colorScheme.secondary
+    ..strokeWidth = 10.0
+    ..style = PaintingStyle.fill
+    ..strokeCap = StrokeCap.round;
+
+  static const double customMargin = 8.0;
+
+  static Offset boundSize(
+    Size size,
+    double strokeWidth,
+    double relX,
+    double relY,
+  ) {
+    double x = (strokeWidth / 2.0) + (relX * (size.width - strokeWidth));
+    double y =
+        (strokeWidth / 2.0) +
+        customMargin +
+        (relY * (size.height - strokeWidth - (customMargin * 2.0)));
+    return Offset(x, y);
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
-    // --- 1. Define Paints ---
-    final linePaint = Paint()
-      ..color = theme.colorScheme.primary
-      ..strokeWidth = 5.0
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.square
-      ..strokeJoin = StrokeJoin.bevel;
-
-    final cursorPaint = Paint()
-      ..color = theme.colorScheme.secondary
-      ..strokeWidth = 4.0
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final pointPaint = Paint()
-      ..color = theme.colorScheme.tertiary
-      ..strokeWidth = 10.0
-      ..style = PaintingStyle.fill
-      ..strokeCap = StrokeCap.round;
-
-    final currentPointPaint = Paint()
-      ..color = theme.colorScheme.onSecondary
-      ..strokeWidth = 6.0
-      ..style = PaintingStyle.fill
-      ..strokeCap = StrokeCap.round;
-
-    final currentPointBackgroundPaint = Paint()
-      ..color = theme.colorScheme.secondary
-      ..strokeWidth = 10.0
-      ..style = PaintingStyle.fill
-      ..strokeCap = StrokeCap.round;
-
-    const double customMargin = 8.0;
-
-    Offset boundSize(Size size, double strokeWidth, double relX, double relY) {
-      double x = (strokeWidth / 2.0) + (relX * (size.width - strokeWidth));
-      double y =
-          (strokeWidth / 2.0) +
-          customMargin +
-          (relY * (size.height - strokeWidth - (customMargin * 2.0)));
-      return Offset(x, y);
-    }
-
     // --- 2. Calculate Visible Window ---
     final halfViewMs = viewDuration.inMilliseconds / 2;
     final viewStart =
@@ -252,7 +263,7 @@ class GraphPainter extends CustomPainter {
       }
     }
 
-    List<Offset> points = [];
+    pointBuffer.clear();
     for (int i = start; i < end - 1; i++) {
       final a1 = actions[i];
       final a2 = actions[i + 1];
@@ -322,8 +333,8 @@ class GraphPainter extends CustomPainter {
 
       canvas.drawLine(p1, p2, linePaint);
 
-      if (!rx1Cliped) points.add(p1);
-      if (!rx2Cliped) points.add(p2);
+      if (!rx1Cliped) pointBuffer.add(p1);
+      if (!rx2Cliped) pointBuffer.add(p2);
     }
 
     // --- 5. Draw Cursor ---
@@ -336,7 +347,7 @@ class GraphPainter extends CustomPainter {
       ),
       cursorPaint,
     );
-    canvas.drawPoints(PointMode.points, points, pointPaint);
+    canvas.drawPoints(PointMode.points, pointBuffer, pointPaint);
 
     // current position point
     canvas.drawCircle(

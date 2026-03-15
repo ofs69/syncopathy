@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
+import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/player/player_backend.dart';
@@ -104,6 +105,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   final _currentlyBufferedActions = <FunscriptAction>[];
   bool _internalHandyPlaying = false;
   final _internalHandyPlayStateDebouncer = Debouncer(milliseconds: 200);
+  final _eagerBufferThrottle = Throttler(milliseconds: 1000);
 
   // a reference to check if the actions have changed
   Object? _bufferedActionsReference;
@@ -359,6 +361,15 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
             }
             _resetPlayback(actions);
           }
+        } else {
+          _eagerBufferThrottle.run(() {
+            if (kDebugMode) debugPrint("EAGER BUFFER");
+            final bufferId = _currentlyBufferedBuffers.last + 1;
+            final actionBuffer = ActionBuffer.fromActions(bufferId, actions);
+            if (actionBuffer != null) {
+              _bufferPoints([actionBuffer], flush: false);
+            }
+          });
         }
       } else {
         hspSetup();

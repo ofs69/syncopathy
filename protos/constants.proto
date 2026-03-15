@@ -1,4 +1,4 @@
-// Auto-generated on 2026-03-11 15:55:10
+// Auto-generated on 2026-03-13 13:37:25
 syntax = "proto3";
 package hdy_rpc;
 //NB! The codes are not in order, but in groups
@@ -69,9 +69,23 @@ message HampState{
     float max = 5; //[0-1] Max position in % - Added in FW4.0.15
 }
 enum HrppPatternType{
-    HRPP_NOT_SET = 0;
-    HRPP_SCRIPT = 1;
-    HRPP_WAVE = 2;
+    HRPP_PATTERN_TYPE_UNSPECIFIED = 0;
+    HRPP_PATTERN_TYPE_SCRIPT = 1;
+    HRPP_PATTERN_TYPE_WAVE = 2;
+}
+//Must match hdyHrppPlayState_t //PRIVATE
+enum HrppPlayState{
+    HRPP_PLAY_STATE_UNSPECIFIED = 0;
+    HRPP_PLAY_STATE_STOPPED = 1;
+    HRPP_PLAY_STATE_PLAYING = 2;
+    HRPP_PLAY_STATE_PAUSED = 3;
+}
+//Adden in FW 4.2
+enum HrppPatternAccess{
+    HRPP_PATTERN_ACCESS_UNSPECIFIED = 0;
+    HRPP_PATTERN_ACCESS_PUBLIC = 1; //Script can be read by anyone
+    HRPP_PATTERN_ACCESS_PRIVATE = 2; //Script cannot be read or require special permissions to read.
+    HRPP_PATTERN_ACCESS_PREMIUM = 3; //The script is a paid premium script and (in most cases) cannot be read.
 }
 message HrppPattern{
     uint32 id = 1;
@@ -82,14 +96,17 @@ message HrppPattern{
     HrppPatternType type = 6;
     uint32 pause_random_min = 7; //NB! uint16 on system
     uint32 pause_random_max = 8; //NB! uint16 on system
+    HrppPatternAccess access = 9; //Added in FW 4.2
 }
 message HrppState{
     uint32 current_pattern_nr = 1; //NB! uint8 on system
     HrppPattern current_pattern = 2;
     uint32 nr_of_patterns = 3; //NB! uint8 on system
-    bool enabled = 4;
+    // bool enabled = 4; //DEPRECATED in FW4.2 - Use play_state instead
     float amplitude = 5;
-    float playback_speed = 6;
+    // float playback_speed = 6; //DEPRECATED in 4.2 use playback_rate
+    float playback_rate = 7; //Added in FW4.2 - Replaces playback_speed - More intuitive name and allows for more precise control over the speed (ex: 0.75x speed)
+    HrppPlayState play_state = 8; //Added in FW4.2 - Replaces enabled - More intuitive and allows for paused state
 }
 enum HdspPlayState{
     HDSP_STATE_STOPPED = 0;

@@ -1593,40 +1593,6 @@ final $typed_data.Uint8List responseHrppAmplitudeSetDescriptor =
         'ChhSZXNwb25zZUhycHBBbXBsaXR1ZGVTZXQSKAoFc3RhdGUYASABKAsyEi5oZHlfcnBjLkhycH'
         'BTdGF0ZVIFc3RhdGU=');
 
-@$core.Deprecated('Use requestHrppPlaybackSpeedSetDescriptor instead')
-const RequestHrppPlaybackSpeedSet$json = {
-  '1': 'RequestHrppPlaybackSpeedSet',
-  '2': [
-    {'1': 'speed', '3': 1, '4': 1, '5': 2, '10': 'speed'},
-  ],
-};
-
-/// Descriptor for `RequestHrppPlaybackSpeedSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestHrppPlaybackSpeedSetDescriptor =
-    $convert.base64Decode(
-        'ChtSZXF1ZXN0SHJwcFBsYXliYWNrU3BlZWRTZXQSFAoFc3BlZWQYASABKAJSBXNwZWVk');
-
-@$core.Deprecated('Use responseHrppPlaybackSpeedSetDescriptor instead')
-const ResponseHrppPlaybackSpeedSet$json = {
-  '1': 'ResponseHrppPlaybackSpeedSet',
-  '2': [
-    {
-      '1': 'state',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.hdy_rpc.HrppState',
-      '10': 'state'
-    },
-  ],
-};
-
-/// Descriptor for `ResponseHrppPlaybackSpeedSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List responseHrppPlaybackSpeedSetDescriptor =
-    $convert.base64Decode(
-        'ChxSZXNwb25zZUhycHBQbGF5YmFja1NwZWVkU2V0EigKBXN0YXRlGAEgASgLMhIuaGR5X3JwYy'
-        '5IcnBwU3RhdGVSBXN0YXRl');
-
 @$core.Deprecated('Use requestHrppPatternSetDescriptor instead')
 const RequestHrppPatternSet$json = {
   '1': 'RequestHrppPatternSet',
@@ -1726,3 +1692,67 @@ final $typed_data.Uint8List responseHrppPatternsGetDescriptor = $convert.base64D
     'ChdSZXNwb25zZUhycHBQYXR0ZXJuc0dldBIoCgVzdGF0ZRgBIAEoCzISLmhkeV9ycGMuSHJwcF'
     'N0YXRlUgVzdGF0ZRIwCghwYXR0ZXJucxgCIAMoCzIULmhkeV9ycGMuSHJwcFBhdHRlcm5SCHBh'
     'dHRlcm5z');
+
+@$core.Deprecated('Use requestHrppPlaybackRateSetDescriptor instead')
+const RequestHrppPlaybackRateSet$json = {
+  '1': 'RequestHrppPlaybackRateSet',
+  '2': [
+    {'1': 'playback_rate', '3': 1, '4': 1, '5': 2, '10': 'playbackRate'},
+  ],
+};
+
+/// Descriptor for `RequestHrppPlaybackRateSet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestHrppPlaybackRateSetDescriptor =
+    $convert.base64Decode(
+        'ChpSZXF1ZXN0SHJwcFBsYXliYWNrUmF0ZVNldBIjCg1wbGF5YmFja19yYXRlGAEgASgCUgxwbG'
+        'F5YmFja1JhdGU=');
+
+@$core.Deprecated('Use responseHrppPlaybackRateSetDescriptor instead')
+const ResponseHrppPlaybackRateSet$json = {
+  '1': 'ResponseHrppPlaybackRateSet',
+  '2': [
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HrppState',
+      '10': 'state'
+    },
+  ],
+};
+
+/// Descriptor for `ResponseHrppPlaybackRateSet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseHrppPlaybackRateSetDescriptor =
+    $convert.base64Decode(
+        'ChtSZXNwb25zZUhycHBQbGF5YmFja1JhdGVTZXQSKAoFc3RhdGUYASABKAsyEi5oZHlfcnBjLk'
+        'hycHBTdGF0ZVIFc3RhdGU=');
+
+@$core.Deprecated('Use requestHrppPauseDescriptor instead')
+const RequestHrppPause$json = {
+  '1': 'RequestHrppPause',
+};
+
+/// Descriptor for `RequestHrppPause`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestHrppPauseDescriptor =
+    $convert.base64Decode('ChBSZXF1ZXN0SHJwcFBhdXNl');
+
+@$core.Deprecated('Use responseHrppPauseDescriptor instead')
+const ResponseHrppPause$json = {
+  '1': 'ResponseHrppPause',
+  '2': [
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.HrppState',
+      '10': 'state'
+    },
+  ],
+};
+
+/// Descriptor for `ResponseHrppPause`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseHrppPauseDescriptor = $convert.base64Decode(
+    'ChFSZXNwb25zZUhycHBQYXVzZRIoCgVzdGF0ZRgBIAEoCzISLmhkeV9ycGMuSHJwcFN0YXRlUg'
+    'VzdGF0ZQ==');

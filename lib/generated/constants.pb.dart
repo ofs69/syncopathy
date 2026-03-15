@@ -132,6 +132,7 @@ class HrppPattern extends $pb.GeneratedMessage {
     HrppPatternType? type,
     $core.int? pauseRandomMin,
     $core.int? pauseRandomMax,
+    HrppPatternAccess? access,
   }) {
     final result = create();
     if (id != null) result.id = id;
@@ -142,6 +143,7 @@ class HrppPattern extends $pb.GeneratedMessage {
     if (type != null) result.type = type;
     if (pauseRandomMin != null) result.pauseRandomMin = pauseRandomMin;
     if (pauseRandomMax != null) result.pauseRandomMax = pauseRandomMax;
+    if (access != null) result.access = access;
     return result;
   }
 
@@ -169,6 +171,8 @@ class HrppPattern extends $pb.GeneratedMessage {
         fieldType: $pb.PbFieldType.OU3)
     ..aI(8, _omitFieldNames ? '' : 'pauseRandomMax',
         fieldType: $pb.PbFieldType.OU3)
+    ..aE<HrppPatternAccess>(9, _omitFieldNames ? '' : 'access',
+        enumValues: HrppPatternAccess.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -261,6 +265,15 @@ class HrppPattern extends $pb.GeneratedMessage {
   $core.bool hasPauseRandomMax() => $_has(7);
   @$pb.TagNumber(8)
   void clearPauseRandomMax() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  HrppPatternAccess get access => $_getN(8);
+  @$pb.TagNumber(9)
+  set access(HrppPatternAccess value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasAccess() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearAccess() => $_clearField(9);
 }
 
 class HrppState extends $pb.GeneratedMessage {
@@ -268,17 +281,17 @@ class HrppState extends $pb.GeneratedMessage {
     $core.int? currentPatternNr,
     HrppPattern? currentPattern,
     $core.int? nrOfPatterns,
-    $core.bool? enabled,
     $core.double? amplitude,
-    $core.double? playbackSpeed,
+    $core.double? playbackRate,
+    HrppPlayState? playState,
   }) {
     final result = create();
     if (currentPatternNr != null) result.currentPatternNr = currentPatternNr;
     if (currentPattern != null) result.currentPattern = currentPattern;
     if (nrOfPatterns != null) result.nrOfPatterns = nrOfPatterns;
-    if (enabled != null) result.enabled = enabled;
     if (amplitude != null) result.amplitude = amplitude;
-    if (playbackSpeed != null) result.playbackSpeed = playbackSpeed;
+    if (playbackRate != null) result.playbackRate = playbackRate;
+    if (playState != null) result.playState = playState;
     return result;
   }
 
@@ -301,10 +314,11 @@ class HrppState extends $pb.GeneratedMessage {
         subBuilder: HrppPattern.create)
     ..aI(3, _omitFieldNames ? '' : 'nrOfPatterns',
         fieldType: $pb.PbFieldType.OU3)
-    ..aOB(4, _omitFieldNames ? '' : 'enabled')
     ..aD(5, _omitFieldNames ? '' : 'amplitude', fieldType: $pb.PbFieldType.OF)
-    ..aD(6, _omitFieldNames ? '' : 'playbackSpeed',
+    ..aD(7, _omitFieldNames ? '' : 'playbackRate',
         fieldType: $pb.PbFieldType.OF)
+    ..aE<HrppPlayState>(8, _omitFieldNames ? '' : 'playState',
+        enumValues: HrppPlayState.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -354,32 +368,34 @@ class HrppState extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearNrOfPatterns() => $_clearField(3);
 
-  @$pb.TagNumber(4)
-  $core.bool get enabled => $_getBF(3);
-  @$pb.TagNumber(4)
-  set enabled($core.bool value) => $_setBool(3, value);
-  @$pb.TagNumber(4)
-  $core.bool hasEnabled() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearEnabled() => $_clearField(4);
-
+  /// bool enabled = 4; //DEPRECATED in FW4.2 - Use play_state instead
   @$pb.TagNumber(5)
-  $core.double get amplitude => $_getN(4);
+  $core.double get amplitude => $_getN(3);
   @$pb.TagNumber(5)
-  set amplitude($core.double value) => $_setFloat(4, value);
+  set amplitude($core.double value) => $_setFloat(3, value);
   @$pb.TagNumber(5)
-  $core.bool hasAmplitude() => $_has(4);
+  $core.bool hasAmplitude() => $_has(3);
   @$pb.TagNumber(5)
   void clearAmplitude() => $_clearField(5);
 
-  @$pb.TagNumber(6)
-  $core.double get playbackSpeed => $_getN(5);
-  @$pb.TagNumber(6)
-  set playbackSpeed($core.double value) => $_setFloat(5, value);
-  @$pb.TagNumber(6)
-  $core.bool hasPlaybackSpeed() => $_has(5);
-  @$pb.TagNumber(6)
-  void clearPlaybackSpeed() => $_clearField(6);
+  /// float playback_speed = 6; //DEPRECATED in 4.2 use playback_rate
+  @$pb.TagNumber(7)
+  $core.double get playbackRate => $_getN(4);
+  @$pb.TagNumber(7)
+  set playbackRate($core.double value) => $_setFloat(4, value);
+  @$pb.TagNumber(7)
+  $core.bool hasPlaybackRate() => $_has(4);
+  @$pb.TagNumber(7)
+  void clearPlaybackRate() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  HrppPlayState get playState => $_getN(5);
+  @$pb.TagNumber(8)
+  set playState(HrppPlayState value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasPlayState() => $_has(5);
+  @$pb.TagNumber(8)
+  void clearPlayState() => $_clearField(8);
 }
 
 class HspState extends $pb.GeneratedMessage {
