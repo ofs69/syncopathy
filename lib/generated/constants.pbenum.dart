@@ -219,17 +219,18 @@ class HampPlayState extends $pb.ProtobufEnum {
 }
 
 class HrppPatternType extends $pb.ProtobufEnum {
-  static const HrppPatternType HRPP_NOT_SET =
-      HrppPatternType._(0, _omitEnumNames ? '' : 'HRPP_NOT_SET');
-  static const HrppPatternType HRPP_SCRIPT =
-      HrppPatternType._(1, _omitEnumNames ? '' : 'HRPP_SCRIPT');
-  static const HrppPatternType HRPP_WAVE =
-      HrppPatternType._(2, _omitEnumNames ? '' : 'HRPP_WAVE');
+  static const HrppPatternType HRPP_PATTERN_TYPE_UNSPECIFIED =
+      HrppPatternType._(
+          0, _omitEnumNames ? '' : 'HRPP_PATTERN_TYPE_UNSPECIFIED');
+  static const HrppPatternType HRPP_PATTERN_TYPE_SCRIPT =
+      HrppPatternType._(1, _omitEnumNames ? '' : 'HRPP_PATTERN_TYPE_SCRIPT');
+  static const HrppPatternType HRPP_PATTERN_TYPE_WAVE =
+      HrppPatternType._(2, _omitEnumNames ? '' : 'HRPP_PATTERN_TYPE_WAVE');
 
   static const $core.List<HrppPatternType> values = <HrppPatternType>[
-    HRPP_NOT_SET,
-    HRPP_SCRIPT,
-    HRPP_WAVE,
+    HRPP_PATTERN_TYPE_UNSPECIFIED,
+    HRPP_PATTERN_TYPE_SCRIPT,
+    HRPP_PATTERN_TYPE_WAVE,
   ];
 
   static final $core.List<HrppPatternType?> _byValue =
@@ -238,6 +239,62 @@ class HrppPatternType extends $pb.ProtobufEnum {
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const HrppPatternType._(super.value, super.name);
+}
+
+/// Must match hdyHrppPlayState_t //PRIVATE
+class HrppPlayState extends $pb.ProtobufEnum {
+  static const HrppPlayState HRPP_PLAY_STATE_UNSPECIFIED =
+      HrppPlayState._(0, _omitEnumNames ? '' : 'HRPP_PLAY_STATE_UNSPECIFIED');
+  static const HrppPlayState HRPP_PLAY_STATE_STOPPED =
+      HrppPlayState._(1, _omitEnumNames ? '' : 'HRPP_PLAY_STATE_STOPPED');
+  static const HrppPlayState HRPP_PLAY_STATE_PLAYING =
+      HrppPlayState._(2, _omitEnumNames ? '' : 'HRPP_PLAY_STATE_PLAYING');
+  static const HrppPlayState HRPP_PLAY_STATE_PAUSED =
+      HrppPlayState._(3, _omitEnumNames ? '' : 'HRPP_PLAY_STATE_PAUSED');
+
+  static const $core.List<HrppPlayState> values = <HrppPlayState>[
+    HRPP_PLAY_STATE_UNSPECIFIED,
+    HRPP_PLAY_STATE_STOPPED,
+    HRPP_PLAY_STATE_PLAYING,
+    HRPP_PLAY_STATE_PAUSED,
+  ];
+
+  static final $core.List<HrppPlayState?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 3);
+  static HrppPlayState? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const HrppPlayState._(super.value, super.name);
+}
+
+/// Adden in FW 4.2
+class HrppPatternAccess extends $pb.ProtobufEnum {
+  static const HrppPatternAccess HRPP_PATTERN_ACCESS_UNSPECIFIED =
+      HrppPatternAccess._(
+          0, _omitEnumNames ? '' : 'HRPP_PATTERN_ACCESS_UNSPECIFIED');
+  static const HrppPatternAccess HRPP_PATTERN_ACCESS_PUBLIC =
+      HrppPatternAccess._(
+          1, _omitEnumNames ? '' : 'HRPP_PATTERN_ACCESS_PUBLIC');
+  static const HrppPatternAccess HRPP_PATTERN_ACCESS_PRIVATE =
+      HrppPatternAccess._(
+          2, _omitEnumNames ? '' : 'HRPP_PATTERN_ACCESS_PRIVATE');
+  static const HrppPatternAccess HRPP_PATTERN_ACCESS_PREMIUM =
+      HrppPatternAccess._(
+          3, _omitEnumNames ? '' : 'HRPP_PATTERN_ACCESS_PREMIUM');
+
+  static const $core.List<HrppPatternAccess> values = <HrppPatternAccess>[
+    HRPP_PATTERN_ACCESS_UNSPECIFIED,
+    HRPP_PATTERN_ACCESS_PUBLIC,
+    HRPP_PATTERN_ACCESS_PRIVATE,
+    HRPP_PATTERN_ACCESS_PREMIUM,
+  ];
+
+  static final $core.List<HrppPatternAccess?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 3);
+  static HrppPatternAccess? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const HrppPatternAccess._(super.value, super.name);
 }
 
 class HdspPlayState extends $pb.ProtobufEnum {

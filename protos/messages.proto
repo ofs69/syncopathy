@@ -1,4 +1,4 @@
-// Auto-generated on 2026-03-11 15:55:10
+// Auto-generated on 2026-03-13 13:37:25
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
@@ -408,9 +408,11 @@ message ResponseHvpStateGet{
     HvpState state = 1;
 }
 ///////////////////////// HRPP /////////////////////////
+/*      NB! HRPP will be changed in future updates with potential braking changes      */
 //Added in FW4.0.14 - But some messages where altered in FW4.0.15. So, only compatible with FW4.0.15 and later
-//920
+//920-960
 message RequestHrppStart{
+    //TODO: Add the possibility to set the start point.
 }
 message ResponseHrppStart{
     HrppState state = 1;
@@ -428,13 +430,13 @@ message RequestHrppAmplitudeSet{
 message ResponseHrppAmplitudeSet{
     HrppState state = 1;
 }
-//923
-message RequestHrppPlaybackSpeedSet{
-    float speed = 1; //Must be bigger than 0
-}
-message ResponseHrppPlaybackSpeedSet{
-    HrppState state = 1;
-}
+//923 deprecated in FW4.2 - use RequestHrppPlaybackRateSet instead
+// message RequestHrppPlaybackSpeedSet{
+//     float speed = 1; //Must be bigger than 0
+// }
+// message ResponseHrppPlaybackSpeedSet{
+//     HrppState state = 1;
+// }
 //924
 message RequestHrppPatternSet{
     uint32 pattern_nr = 1; //0-MAX_PATTERN_NR
@@ -454,4 +456,17 @@ message RequestHrppPatternsGet{
 message ResponseHrppPatternsGet{
     HrppState state = 1;
     repeated HrppPattern patterns = 2;
+}
+//927 - Added in 4.2 replaces RequestHrppPlaybackSpeedSet
+message RequestHrppPlaybackRateSet{
+    float playback_rate = 1; //Must be bigger than 0
+}
+message ResponseHrppPlaybackRateSet{
+    HrppState state = 1;
+}
+//Added in FW4.2
+message RequestHrppPause{
+}
+message ResponseHrppPause{
+    HrppState state = 1;
 }

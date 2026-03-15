@@ -1,4 +1,4 @@
-// Auto-generated on 2026-03-11 15:55:10
+// Auto-generated on 2026-03-13 13:37:25
 syntax = "proto3";
 package hdy_rpc;
 import "notifications.proto";
@@ -119,10 +119,12 @@ message Request {
         RequestHrppStart request_hrpp_start = 920;
         RequestHrppStop request_hrpp_stop = 921;
         RequestHrppAmplitudeSet request_hrpp_amplitude_set = 922;
-        RequestHrppPlaybackSpeedSet request_hrpp_playback_speed_set = 923;
+        // RequestHrppPlaybackSpeedSet request_hrpp_playback_speed_set = 923; //DEPRECATED in FW4.2 use RequestHrppPlaybackRateSet instead
         RequestHrppPatternSet request_hrpp_pattern_set = 924;
         RequestHrppStateGet request_hrpp_state_get = 925;
         RequestHrppPatternsGet request_hrpp_patterns_get = 926;
+        RequestHrppPlaybackRateSet request_hrpp_playback_rate_set = 927; //Added in FW4.2 - Replaces RequestHrppPlaybackSpeedSet
+        RequestHrppPause request_hrpp_pause = 928; //Added in FW4.2
     }
     uint32 id = 2;
 }
@@ -178,14 +180,16 @@ message Response {
         ResponseHvpStop response_hvp_stop = 901;
         ResponseHvpStart response_hvp_start = 902;
         ResponseHvpStateGet response_hvp_state_get = 903;
-        //HRPP - 920
+        //HRPP - 920-960
         ResponseHrppStart response_hrpp_start = 920;
         ResponseHrppStop response_hrpp_stop = 921;
         ResponseHrppAmplitudeSet response_hrpp_amplitude_set = 922;
-        ResponseHrppPlaybackSpeedSet response_hrpp_playback_speed_set = 923;
+        // ResponseHrppPlaybackSpeedSet response_hrpp_playback_speed_set = 923; //DEPRECATED in FW4.2 use ResponseHrppPlaybackRateSet instead
         ResponseHrppPatternSet response_hrpp_pattern_set = 924;
         ResponseHrppStateGet response_hrpp_state_get = 925;
         ResponseHrppPatternsGet response_hrpp_patterns_get = 926;
+        ResponseHrppPlaybackRateSet response_hrpp_playback_rate_set = 927; //Added in FW4.2 - Replaces ResponseHrppPlaybackSpeedSet
+        ResponseHrppPause response_hrpp_pause = 928; //Added in FW4.2
     }
     Error error = 2;
 }

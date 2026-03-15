@@ -130,16 +130,50 @@ final $typed_data.Uint8List hampPlayStateDescriptor = $convert.base64Decode(
 const HrppPatternType$json = {
   '1': 'HrppPatternType',
   '2': [
-    {'1': 'HRPP_NOT_SET', '2': 0},
-    {'1': 'HRPP_SCRIPT', '2': 1},
-    {'1': 'HRPP_WAVE', '2': 2},
+    {'1': 'HRPP_PATTERN_TYPE_UNSPECIFIED', '2': 0},
+    {'1': 'HRPP_PATTERN_TYPE_SCRIPT', '2': 1},
+    {'1': 'HRPP_PATTERN_TYPE_WAVE', '2': 2},
   ],
 };
 
 /// Descriptor for `HrppPatternType`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List hrppPatternTypeDescriptor = $convert.base64Decode(
-    'Cg9IcnBwUGF0dGVyblR5cGUSEAoMSFJQUF9OT1RfU0VUEAASDwoLSFJQUF9TQ1JJUFQQARINCg'
-    'lIUlBQX1dBVkUQAg==');
+    'Cg9IcnBwUGF0dGVyblR5cGUSIQodSFJQUF9QQVRURVJOX1RZUEVfVU5TUEVDSUZJRUQQABIcCh'
+    'hIUlBQX1BBVFRFUk5fVFlQRV9TQ1JJUFQQARIaChZIUlBQX1BBVFRFUk5fVFlQRV9XQVZFEAI=');
+
+@$core.Deprecated('Use hrppPlayStateDescriptor instead')
+const HrppPlayState$json = {
+  '1': 'HrppPlayState',
+  '2': [
+    {'1': 'HRPP_PLAY_STATE_UNSPECIFIED', '2': 0},
+    {'1': 'HRPP_PLAY_STATE_STOPPED', '2': 1},
+    {'1': 'HRPP_PLAY_STATE_PLAYING', '2': 2},
+    {'1': 'HRPP_PLAY_STATE_PAUSED', '2': 3},
+  ],
+};
+
+/// Descriptor for `HrppPlayState`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List hrppPlayStateDescriptor = $convert.base64Decode(
+    'Cg1IcnBwUGxheVN0YXRlEh8KG0hSUFBfUExBWV9TVEFURV9VTlNQRUNJRklFRBAAEhsKF0hSUF'
+    'BfUExBWV9TVEFURV9TVE9QUEVEEAESGwoXSFJQUF9QTEFZX1NUQVRFX1BMQVlJTkcQAhIaChZI'
+    'UlBQX1BMQVlfU1RBVEVfUEFVU0VEEAM=');
+
+@$core.Deprecated('Use hrppPatternAccessDescriptor instead')
+const HrppPatternAccess$json = {
+  '1': 'HrppPatternAccess',
+  '2': [
+    {'1': 'HRPP_PATTERN_ACCESS_UNSPECIFIED', '2': 0},
+    {'1': 'HRPP_PATTERN_ACCESS_PUBLIC', '2': 1},
+    {'1': 'HRPP_PATTERN_ACCESS_PRIVATE', '2': 2},
+    {'1': 'HRPP_PATTERN_ACCESS_PREMIUM', '2': 3},
+  ],
+};
+
+/// Descriptor for `HrppPatternAccess`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List hrppPatternAccessDescriptor = $convert.base64Decode(
+    'ChFIcnBwUGF0dGVybkFjY2VzcxIjCh9IUlBQX1BBVFRFUk5fQUNDRVNTX1VOU1BFQ0lGSUVEEA'
+    'ASHgoaSFJQUF9QQVRURVJOX0FDQ0VTU19QVUJMSUMQARIfChtIUlBQX1BBVFRFUk5fQUNDRVNT'
+    'X1BSSVZBVEUQAhIfChtIUlBQX1BBVFRFUk5fQUNDRVNTX1BSRU1JVU0QAw==');
 
 @$core.Deprecated('Use hdspPlayStateDescriptor instead')
 const HdspPlayState$json = {
@@ -533,6 +567,14 @@ const HrppPattern$json = {
     },
     {'1': 'pause_random_min', '3': 7, '4': 1, '5': 13, '10': 'pauseRandomMin'},
     {'1': 'pause_random_max', '3': 8, '4': 1, '5': 13, '10': 'pauseRandomMax'},
+    {
+      '1': 'access',
+      '3': 9,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.HrppPatternAccess',
+      '10': 'access'
+    },
   ],
 };
 
@@ -542,7 +584,8 @@ final $typed_data.Uint8List hrppPatternDescriptor = $convert.base64Decode(
     'JzaW9uGAMgASgNUgd2ZXJzaW9uEiUKDmN1c3RvbV9wYXR0ZXJuGAQgASgIUg1jdXN0b21QYXR0'
     'ZXJuEhIKBHNsb3QYBSABKA1SBHNsb3QSLAoEdHlwZRgGIAEoDjIYLmhkeV9ycGMuSHJwcFBhdH'
     'Rlcm5UeXBlUgR0eXBlEigKEHBhdXNlX3JhbmRvbV9taW4YByABKA1SDnBhdXNlUmFuZG9tTWlu'
-    'EigKEHBhdXNlX3JhbmRvbV9tYXgYCCABKA1SDnBhdXNlUmFuZG9tTWF4');
+    'EigKEHBhdXNlX3JhbmRvbV9tYXgYCCABKA1SDnBhdXNlUmFuZG9tTWF4EjIKBmFjY2VzcxgJIA'
+    'EoDjIaLmhkeV9ycGMuSHJwcFBhdHRlcm5BY2Nlc3NSBmFjY2Vzcw==');
 
 @$core.Deprecated('Use hrppStateDescriptor instead')
 const HrppState$json = {
@@ -564,9 +607,16 @@ const HrppState$json = {
       '10': 'currentPattern'
     },
     {'1': 'nr_of_patterns', '3': 3, '4': 1, '5': 13, '10': 'nrOfPatterns'},
-    {'1': 'enabled', '3': 4, '4': 1, '5': 8, '10': 'enabled'},
     {'1': 'amplitude', '3': 5, '4': 1, '5': 2, '10': 'amplitude'},
-    {'1': 'playback_speed', '3': 6, '4': 1, '5': 2, '10': 'playbackSpeed'},
+    {'1': 'playback_rate', '3': 7, '4': 1, '5': 2, '10': 'playbackRate'},
+    {
+      '1': 'play_state',
+      '3': 8,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.HrppPlayState',
+      '10': 'playState'
+    },
   ],
 };
 
@@ -574,9 +624,10 @@ const HrppState$json = {
 final $typed_data.Uint8List hrppStateDescriptor = $convert.base64Decode(
     'CglIcnBwU3RhdGUSLAoSY3VycmVudF9wYXR0ZXJuX25yGAEgASgNUhBjdXJyZW50UGF0dGVybk'
     '5yEj0KD2N1cnJlbnRfcGF0dGVybhgCIAEoCzIULmhkeV9ycGMuSHJwcFBhdHRlcm5SDmN1cnJl'
-    'bnRQYXR0ZXJuEiQKDm5yX29mX3BhdHRlcm5zGAMgASgNUgxuck9mUGF0dGVybnMSGAoHZW5hYm'
-    'xlZBgEIAEoCFIHZW5hYmxlZBIcCglhbXBsaXR1ZGUYBSABKAJSCWFtcGxpdHVkZRIlCg5wbGF5'
-    'YmFja19zcGVlZBgGIAEoAlINcGxheWJhY2tTcGVlZA==');
+    'bnRQYXR0ZXJuEiQKDm5yX29mX3BhdHRlcm5zGAMgASgNUgxuck9mUGF0dGVybnMSHAoJYW1wbG'
+    'l0dWRlGAUgASgCUglhbXBsaXR1ZGUSIwoNcGxheWJhY2tfcmF0ZRgHIAEoAlIMcGxheWJhY2tS'
+    'YXRlEjUKCnBsYXlfc3RhdGUYCCABKA4yFi5oZHlfcnBjLkhycHBQbGF5U3RhdGVSCXBsYXlTdG'
+    'F0ZQ==');
 
 @$core.Deprecated('Use hspStateDescriptor instead')
 const HspState$json = {

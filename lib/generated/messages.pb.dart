@@ -5653,9 +5653,8 @@ class ResponseHvpStateGet extends $pb.GeneratedMessage {
   $0.HvpState ensureState() => $_ensure(0);
 }
 
-/// /////////////////////// HRPP /////////////////////////
 /// Added in FW4.0.14 - But some messages where altered in FW4.0.15. So, only compatible with FW4.0.15 and later
-/// 920
+/// 920-960
 class RequestHrppStart extends $pb.GeneratedMessage {
   factory RequestHrppStart() => create();
 
@@ -5961,124 +5960,13 @@ class ResponseHrppAmplitudeSet extends $pb.GeneratedMessage {
   $0.HrppState ensureState() => $_ensure(0);
 }
 
-/// 923
-class RequestHrppPlaybackSpeedSet extends $pb.GeneratedMessage {
-  factory RequestHrppPlaybackSpeedSet({
-    $core.double? speed,
-  }) {
-    final result = create();
-    if (speed != null) result.speed = speed;
-    return result;
-  }
-
-  RequestHrppPlaybackSpeedSet._();
-
-  factory RequestHrppPlaybackSpeedSet.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory RequestHrppPlaybackSpeedSet.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
-
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'RequestHrppPlaybackSpeedSet',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
-      createEmptyInstance: create)
-    ..aD(1, _omitFieldNames ? '' : 'speed', fieldType: $pb.PbFieldType.OF)
-    ..hasRequiredFields = false;
-
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHrppPlaybackSpeedSet clone() => deepCopy();
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestHrppPlaybackSpeedSet copyWith(
-          void Function(RequestHrppPlaybackSpeedSet) updates) =>
-      super.copyWith(
-              (message) => updates(message as RequestHrppPlaybackSpeedSet))
-          as RequestHrppPlaybackSpeedSet;
-
-  @$core.override
-  $pb.BuilderInfo get info_ => _i;
-
-  @$core.pragma('dart2js:noInline')
-  static RequestHrppPlaybackSpeedSet create() =>
-      RequestHrppPlaybackSpeedSet._();
-  @$core.override
-  RequestHrppPlaybackSpeedSet createEmptyInstance() => create();
-  @$core.pragma('dart2js:noInline')
-  static RequestHrppPlaybackSpeedSet getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<RequestHrppPlaybackSpeedSet>(create);
-  static RequestHrppPlaybackSpeedSet? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.double get speed => $_getN(0);
-  @$pb.TagNumber(1)
-  set speed($core.double value) => $_setFloat(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasSpeed() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearSpeed() => $_clearField(1);
-}
-
-class ResponseHrppPlaybackSpeedSet extends $pb.GeneratedMessage {
-  factory ResponseHrppPlaybackSpeedSet({
-    $0.HrppState? state,
-  }) {
-    final result = create();
-    if (state != null) result.state = state;
-    return result;
-  }
-
-  ResponseHrppPlaybackSpeedSet._();
-
-  factory ResponseHrppPlaybackSpeedSet.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory ResponseHrppPlaybackSpeedSet.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
-
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'ResponseHrppPlaybackSpeedSet',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
-      createEmptyInstance: create)
-    ..aOM<$0.HrppState>(1, _omitFieldNames ? '' : 'state',
-        subBuilder: $0.HrppState.create)
-    ..hasRequiredFields = false;
-
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHrppPlaybackSpeedSet clone() => deepCopy();
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ResponseHrppPlaybackSpeedSet copyWith(
-          void Function(ResponseHrppPlaybackSpeedSet) updates) =>
-      super.copyWith(
-              (message) => updates(message as ResponseHrppPlaybackSpeedSet))
-          as ResponseHrppPlaybackSpeedSet;
-
-  @$core.override
-  $pb.BuilderInfo get info_ => _i;
-
-  @$core.pragma('dart2js:noInline')
-  static ResponseHrppPlaybackSpeedSet create() =>
-      ResponseHrppPlaybackSpeedSet._();
-  @$core.override
-  ResponseHrppPlaybackSpeedSet createEmptyInstance() => create();
-  @$core.pragma('dart2js:noInline')
-  static ResponseHrppPlaybackSpeedSet getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<ResponseHrppPlaybackSpeedSet>(create);
-  static ResponseHrppPlaybackSpeedSet? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $0.HrppState get state => $_getN(0);
-  @$pb.TagNumber(1)
-  set state($0.HrppState value) => $_setField(1, value);
-  @$pb.TagNumber(1)
-  $core.bool hasState() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearState() => $_clearField(1);
-  @$pb.TagNumber(1)
-  $0.HrppState ensureState() => $_ensure(0);
-}
-
+/// 923 deprecated in FW4.2 - use RequestHrppPlaybackRateSet instead
+///  message RequestHrppPlaybackSpeedSet{
+///      float speed = 1; //Must be bigger than 0
+///  }
+///  message ResponseHrppPlaybackSpeedSet{
+///      HrppState state = 1;
+///  }
 /// 924
 class RequestHrppPatternSet extends $pb.GeneratedMessage {
   factory RequestHrppPatternSet({
@@ -6392,6 +6280,220 @@ class ResponseHrppPatternsGet extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(2)
   $pb.PbList<$0.HrppPattern> get patterns => $_getList(1);
+}
+
+/// 927 - Added in 4.2 replaces RequestHrppPlaybackSpeedSet
+class RequestHrppPlaybackRateSet extends $pb.GeneratedMessage {
+  factory RequestHrppPlaybackRateSet({
+    $core.double? playbackRate,
+  }) {
+    final result = create();
+    if (playbackRate != null) result.playbackRate = playbackRate;
+    return result;
+  }
+
+  RequestHrppPlaybackRateSet._();
+
+  factory RequestHrppPlaybackRateSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestHrppPlaybackRateSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestHrppPlaybackRateSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aD(1, _omitFieldNames ? '' : 'playbackRate',
+        fieldType: $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHrppPlaybackRateSet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHrppPlaybackRateSet copyWith(
+          void Function(RequestHrppPlaybackRateSet) updates) =>
+      super.copyWith(
+              (message) => updates(message as RequestHrppPlaybackRateSet))
+          as RequestHrppPlaybackRateSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestHrppPlaybackRateSet create() => RequestHrppPlaybackRateSet._();
+  @$core.override
+  RequestHrppPlaybackRateSet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestHrppPlaybackRateSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestHrppPlaybackRateSet>(create);
+  static RequestHrppPlaybackRateSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.double get playbackRate => $_getN(0);
+  @$pb.TagNumber(1)
+  set playbackRate($core.double value) => $_setFloat(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPlaybackRate() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPlaybackRate() => $_clearField(1);
+}
+
+class ResponseHrppPlaybackRateSet extends $pb.GeneratedMessage {
+  factory ResponseHrppPlaybackRateSet({
+    $0.HrppState? state,
+  }) {
+    final result = create();
+    if (state != null) result.state = state;
+    return result;
+  }
+
+  ResponseHrppPlaybackRateSet._();
+
+  factory ResponseHrppPlaybackRateSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseHrppPlaybackRateSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseHrppPlaybackRateSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<$0.HrppState>(1, _omitFieldNames ? '' : 'state',
+        subBuilder: $0.HrppState.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHrppPlaybackRateSet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHrppPlaybackRateSet copyWith(
+          void Function(ResponseHrppPlaybackRateSet) updates) =>
+      super.copyWith(
+              (message) => updates(message as ResponseHrppPlaybackRateSet))
+          as ResponseHrppPlaybackRateSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseHrppPlaybackRateSet create() =>
+      ResponseHrppPlaybackRateSet._();
+  @$core.override
+  ResponseHrppPlaybackRateSet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseHrppPlaybackRateSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseHrppPlaybackRateSet>(create);
+  static ResponseHrppPlaybackRateSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.HrppState get state => $_getN(0);
+  @$pb.TagNumber(1)
+  set state($0.HrppState value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasState() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearState() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $0.HrppState ensureState() => $_ensure(0);
+}
+
+/// Added in FW4.2
+class RequestHrppPause extends $pb.GeneratedMessage {
+  factory RequestHrppPause() => create();
+
+  RequestHrppPause._();
+
+  factory RequestHrppPause.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestHrppPause.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestHrppPause',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHrppPause clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHrppPause copyWith(void Function(RequestHrppPause) updates) =>
+      super.copyWith((message) => updates(message as RequestHrppPause))
+          as RequestHrppPause;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestHrppPause create() => RequestHrppPause._();
+  @$core.override
+  RequestHrppPause createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestHrppPause getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestHrppPause>(create);
+  static RequestHrppPause? _defaultInstance;
+}
+
+class ResponseHrppPause extends $pb.GeneratedMessage {
+  factory ResponseHrppPause({
+    $0.HrppState? state,
+  }) {
+    final result = create();
+    if (state != null) result.state = state;
+    return result;
+  }
+
+  ResponseHrppPause._();
+
+  factory ResponseHrppPause.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseHrppPause.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseHrppPause',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<$0.HrppState>(1, _omitFieldNames ? '' : 'state',
+        subBuilder: $0.HrppState.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHrppPause clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHrppPause copyWith(void Function(ResponseHrppPause) updates) =>
+      super.copyWith((message) => updates(message as ResponseHrppPause))
+          as ResponseHrppPause;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseHrppPause create() => ResponseHrppPause._();
+  @$core.override
+  ResponseHrppPause createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseHrppPause getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseHrppPause>(create);
+  static ResponseHrppPause? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.HrppState get state => $_getN(0);
+  @$pb.TagNumber(1)
+  set state($0.HrppState value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasState() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearState() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $0.HrppState ensureState() => $_ensure(0);
 }
 
 const $core.bool _omitFieldNames =

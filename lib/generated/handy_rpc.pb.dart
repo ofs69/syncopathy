@@ -803,10 +803,11 @@ enum Request_Params {
   requestHrppStart,
   requestHrppStop,
   requestHrppAmplitudeSet,
-  requestHrppPlaybackSpeedSet,
   requestHrppPatternSet,
   requestHrppStateGet,
   requestHrppPatternsGet,
+  requestHrppPlaybackRateSet,
+  requestHrppPause,
   notSet
 }
 
@@ -868,10 +869,11 @@ class Request extends $pb.GeneratedMessage {
     $1.RequestHrppStart? requestHrppStart,
     $1.RequestHrppStop? requestHrppStop,
     $1.RequestHrppAmplitudeSet? requestHrppAmplitudeSet,
-    $1.RequestHrppPlaybackSpeedSet? requestHrppPlaybackSpeedSet,
     $1.RequestHrppPatternSet? requestHrppPatternSet,
     $1.RequestHrppStateGet? requestHrppStateGet,
     $1.RequestHrppPatternsGet? requestHrppPatternsGet,
+    $1.RequestHrppPlaybackRateSet? requestHrppPlaybackRateSet,
+    $1.RequestHrppPause? requestHrppPause,
   }) {
     final result = create();
     if (id != null) result.id = id;
@@ -962,14 +964,15 @@ class Request extends $pb.GeneratedMessage {
     if (requestHrppStop != null) result.requestHrppStop = requestHrppStop;
     if (requestHrppAmplitudeSet != null)
       result.requestHrppAmplitudeSet = requestHrppAmplitudeSet;
-    if (requestHrppPlaybackSpeedSet != null)
-      result.requestHrppPlaybackSpeedSet = requestHrppPlaybackSpeedSet;
     if (requestHrppPatternSet != null)
       result.requestHrppPatternSet = requestHrppPatternSet;
     if (requestHrppStateGet != null)
       result.requestHrppStateGet = requestHrppStateGet;
     if (requestHrppPatternsGet != null)
       result.requestHrppPatternsGet = requestHrppPatternsGet;
+    if (requestHrppPlaybackRateSet != null)
+      result.requestHrppPlaybackRateSet = requestHrppPlaybackRateSet;
+    if (requestHrppPause != null) result.requestHrppPause = requestHrppPause;
     return result;
   }
 
@@ -1038,10 +1041,11 @@ class Request extends $pb.GeneratedMessage {
     920: Request_Params.requestHrppStart,
     921: Request_Params.requestHrppStop,
     922: Request_Params.requestHrppAmplitudeSet,
-    923: Request_Params.requestHrppPlaybackSpeedSet,
     924: Request_Params.requestHrppPatternSet,
     925: Request_Params.requestHrppStateGet,
     926: Request_Params.requestHrppPatternsGet,
+    927: Request_Params.requestHrppPlaybackRateSet,
+    928: Request_Params.requestHrppPause,
     0: Request_Params.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -1104,10 +1108,11 @@ class Request extends $pb.GeneratedMessage {
       920,
       921,
       922,
-      923,
       924,
       925,
-      926
+      926,
+      927,
+      928
     ])
     ..aI(2, _omitFieldNames ? '' : 'id', fieldType: $pb.PbFieldType.OU3)
     ..aOM<$1.RequestConnectionKeyGet>(
@@ -1252,9 +1257,6 @@ class Request extends $pb.GeneratedMessage {
     ..aOM<$1.RequestHrppAmplitudeSet>(
         922, _omitFieldNames ? '' : 'requestHrppAmplitudeSet',
         subBuilder: $1.RequestHrppAmplitudeSet.create)
-    ..aOM<$1.RequestHrppPlaybackSpeedSet>(
-        923, _omitFieldNames ? '' : 'requestHrppPlaybackSpeedSet',
-        subBuilder: $1.RequestHrppPlaybackSpeedSet.create)
     ..aOM<$1.RequestHrppPatternSet>(
         924, _omitFieldNames ? '' : 'requestHrppPatternSet',
         subBuilder: $1.RequestHrppPatternSet.create)
@@ -1264,6 +1266,11 @@ class Request extends $pb.GeneratedMessage {
     ..aOM<$1.RequestHrppPatternsGet>(
         926, _omitFieldNames ? '' : 'requestHrppPatternsGet',
         subBuilder: $1.RequestHrppPatternsGet.create)
+    ..aOM<$1.RequestHrppPlaybackRateSet>(
+        927, _omitFieldNames ? '' : 'requestHrppPlaybackRateSet',
+        subBuilder: $1.RequestHrppPlaybackRateSet.create)
+    ..aOM<$1.RequestHrppPause>(928, _omitFieldNames ? '' : 'requestHrppPause',
+        subBuilder: $1.RequestHrppPause.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1339,10 +1346,11 @@ class Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(920)
   @$pb.TagNumber(921)
   @$pb.TagNumber(922)
-  @$pb.TagNumber(923)
   @$pb.TagNumber(924)
   @$pb.TagNumber(925)
   @$pb.TagNumber(926)
+  @$pb.TagNumber(927)
+  @$pb.TagNumber(928)
   Request_Params whichParams() => _Request_ParamsByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(606)
   @$pb.TagNumber(620)
@@ -1399,10 +1407,11 @@ class Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(920)
   @$pb.TagNumber(921)
   @$pb.TagNumber(922)
-  @$pb.TagNumber(923)
   @$pb.TagNumber(924)
   @$pb.TagNumber(925)
   @$pb.TagNumber(926)
+  @$pb.TagNumber(927)
+  @$pb.TagNumber(928)
   void clearParams() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(2)
@@ -2053,54 +2062,66 @@ class Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(922)
   $1.RequestHrppAmplitudeSet ensureRequestHrppAmplitudeSet() => $_ensure(55);
 
-  @$pb.TagNumber(923)
-  $1.RequestHrppPlaybackSpeedSet get requestHrppPlaybackSpeedSet => $_getN(56);
-  @$pb.TagNumber(923)
-  set requestHrppPlaybackSpeedSet($1.RequestHrppPlaybackSpeedSet value) =>
-      $_setField(923, value);
-  @$pb.TagNumber(923)
-  $core.bool hasRequestHrppPlaybackSpeedSet() => $_has(56);
-  @$pb.TagNumber(923)
-  void clearRequestHrppPlaybackSpeedSet() => $_clearField(923);
-  @$pb.TagNumber(923)
-  $1.RequestHrppPlaybackSpeedSet ensureRequestHrppPlaybackSpeedSet() =>
-      $_ensure(56);
-
+  /// RequestHrppPlaybackSpeedSet request_hrpp_playback_speed_set = 923; //DEPRECATED in FW4.2 use RequestHrppPlaybackRateSet instead
   @$pb.TagNumber(924)
-  $1.RequestHrppPatternSet get requestHrppPatternSet => $_getN(57);
+  $1.RequestHrppPatternSet get requestHrppPatternSet => $_getN(56);
   @$pb.TagNumber(924)
   set requestHrppPatternSet($1.RequestHrppPatternSet value) =>
       $_setField(924, value);
   @$pb.TagNumber(924)
-  $core.bool hasRequestHrppPatternSet() => $_has(57);
+  $core.bool hasRequestHrppPatternSet() => $_has(56);
   @$pb.TagNumber(924)
   void clearRequestHrppPatternSet() => $_clearField(924);
   @$pb.TagNumber(924)
-  $1.RequestHrppPatternSet ensureRequestHrppPatternSet() => $_ensure(57);
+  $1.RequestHrppPatternSet ensureRequestHrppPatternSet() => $_ensure(56);
 
   @$pb.TagNumber(925)
-  $1.RequestHrppStateGet get requestHrppStateGet => $_getN(58);
+  $1.RequestHrppStateGet get requestHrppStateGet => $_getN(57);
   @$pb.TagNumber(925)
   set requestHrppStateGet($1.RequestHrppStateGet value) =>
       $_setField(925, value);
   @$pb.TagNumber(925)
-  $core.bool hasRequestHrppStateGet() => $_has(58);
+  $core.bool hasRequestHrppStateGet() => $_has(57);
   @$pb.TagNumber(925)
   void clearRequestHrppStateGet() => $_clearField(925);
   @$pb.TagNumber(925)
-  $1.RequestHrppStateGet ensureRequestHrppStateGet() => $_ensure(58);
+  $1.RequestHrppStateGet ensureRequestHrppStateGet() => $_ensure(57);
 
   @$pb.TagNumber(926)
-  $1.RequestHrppPatternsGet get requestHrppPatternsGet => $_getN(59);
+  $1.RequestHrppPatternsGet get requestHrppPatternsGet => $_getN(58);
   @$pb.TagNumber(926)
   set requestHrppPatternsGet($1.RequestHrppPatternsGet value) =>
       $_setField(926, value);
   @$pb.TagNumber(926)
-  $core.bool hasRequestHrppPatternsGet() => $_has(59);
+  $core.bool hasRequestHrppPatternsGet() => $_has(58);
   @$pb.TagNumber(926)
   void clearRequestHrppPatternsGet() => $_clearField(926);
   @$pb.TagNumber(926)
-  $1.RequestHrppPatternsGet ensureRequestHrppPatternsGet() => $_ensure(59);
+  $1.RequestHrppPatternsGet ensureRequestHrppPatternsGet() => $_ensure(58);
+
+  @$pb.TagNumber(927)
+  $1.RequestHrppPlaybackRateSet get requestHrppPlaybackRateSet => $_getN(59);
+  @$pb.TagNumber(927)
+  set requestHrppPlaybackRateSet($1.RequestHrppPlaybackRateSet value) =>
+      $_setField(927, value);
+  @$pb.TagNumber(927)
+  $core.bool hasRequestHrppPlaybackRateSet() => $_has(59);
+  @$pb.TagNumber(927)
+  void clearRequestHrppPlaybackRateSet() => $_clearField(927);
+  @$pb.TagNumber(927)
+  $1.RequestHrppPlaybackRateSet ensureRequestHrppPlaybackRateSet() =>
+      $_ensure(59);
+
+  @$pb.TagNumber(928)
+  $1.RequestHrppPause get requestHrppPause => $_getN(60);
+  @$pb.TagNumber(928)
+  set requestHrppPause($1.RequestHrppPause value) => $_setField(928, value);
+  @$pb.TagNumber(928)
+  $core.bool hasRequestHrppPause() => $_has(60);
+  @$pb.TagNumber(928)
+  void clearRequestHrppPause() => $_clearField(928);
+  @$pb.TagNumber(928)
+  $1.RequestHrppPause ensureRequestHrppPause() => $_ensure(60);
 }
 
 /// Responses are sent back individually as they are handled
@@ -2193,10 +2214,11 @@ enum Response_Result {
   responseHrppStart,
   responseHrppStop,
   responseHrppAmplitudeSet,
-  responseHrppPlaybackSpeedSet,
   responseHrppPatternSet,
   responseHrppStateGet,
   responseHrppPatternsGet,
+  responseHrppPlaybackRateSet,
+  responseHrppPause,
   notSet
 }
 
@@ -2245,10 +2267,11 @@ class Response extends $pb.GeneratedMessage {
     $1.ResponseHrppStart? responseHrppStart,
     $1.ResponseHrppStop? responseHrppStop,
     $1.ResponseHrppAmplitudeSet? responseHrppAmplitudeSet,
-    $1.ResponseHrppPlaybackSpeedSet? responseHrppPlaybackSpeedSet,
     $1.ResponseHrppPatternSet? responseHrppPatternSet,
     $1.ResponseHrppStateGet? responseHrppStateGet,
     $1.ResponseHrppPatternsGet? responseHrppPatternsGet,
+    $1.ResponseHrppPlaybackRateSet? responseHrppPlaybackRateSet,
+    $1.ResponseHrppPause? responseHrppPause,
   }) {
     final result = create();
     if (id != null) result.id = id;
@@ -2317,14 +2340,15 @@ class Response extends $pb.GeneratedMessage {
     if (responseHrppStop != null) result.responseHrppStop = responseHrppStop;
     if (responseHrppAmplitudeSet != null)
       result.responseHrppAmplitudeSet = responseHrppAmplitudeSet;
-    if (responseHrppPlaybackSpeedSet != null)
-      result.responseHrppPlaybackSpeedSet = responseHrppPlaybackSpeedSet;
     if (responseHrppPatternSet != null)
       result.responseHrppPatternSet = responseHrppPatternSet;
     if (responseHrppStateGet != null)
       result.responseHrppStateGet = responseHrppStateGet;
     if (responseHrppPatternsGet != null)
       result.responseHrppPatternsGet = responseHrppPatternsGet;
+    if (responseHrppPlaybackRateSet != null)
+      result.responseHrppPlaybackRateSet = responseHrppPlaybackRateSet;
+    if (responseHrppPause != null) result.responseHrppPause = responseHrppPause;
     return result;
   }
 
@@ -2378,10 +2402,11 @@ class Response extends $pb.GeneratedMessage {
     920: Response_Result.responseHrppStart,
     921: Response_Result.responseHrppStop,
     922: Response_Result.responseHrppAmplitudeSet,
-    923: Response_Result.responseHrppPlaybackSpeedSet,
     924: Response_Result.responseHrppPatternSet,
     925: Response_Result.responseHrppStateGet,
     926: Response_Result.responseHrppPatternsGet,
+    927: Response_Result.responseHrppPlaybackRateSet,
+    928: Response_Result.responseHrppPause,
     0: Response_Result.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -2429,10 +2454,11 @@ class Response extends $pb.GeneratedMessage {
       920,
       921,
       922,
-      923,
       924,
       925,
-      926
+      926,
+      927,
+      928
     ])
     ..aI(1, _omitFieldNames ? '' : 'id', fieldType: $pb.PbFieldType.OU3)
     ..aOM<Error>(2, _omitFieldNames ? '' : 'error', subBuilder: Error.create)
@@ -2540,9 +2566,6 @@ class Response extends $pb.GeneratedMessage {
     ..aOM<$1.ResponseHrppAmplitudeSet>(
         922, _omitFieldNames ? '' : 'responseHrppAmplitudeSet',
         subBuilder: $1.ResponseHrppAmplitudeSet.create)
-    ..aOM<$1.ResponseHrppPlaybackSpeedSet>(
-        923, _omitFieldNames ? '' : 'responseHrppPlaybackSpeedSet',
-        subBuilder: $1.ResponseHrppPlaybackSpeedSet.create)
     ..aOM<$1.ResponseHrppPatternSet>(
         924, _omitFieldNames ? '' : 'responseHrppPatternSet',
         subBuilder: $1.ResponseHrppPatternSet.create)
@@ -2552,6 +2575,11 @@ class Response extends $pb.GeneratedMessage {
     ..aOM<$1.ResponseHrppPatternsGet>(
         926, _omitFieldNames ? '' : 'responseHrppPatternsGet',
         subBuilder: $1.ResponseHrppPatternsGet.create)
+    ..aOM<$1.ResponseHrppPlaybackRateSet>(
+        927, _omitFieldNames ? '' : 'responseHrppPlaybackRateSet',
+        subBuilder: $1.ResponseHrppPlaybackRateSet.create)
+    ..aOM<$1.ResponseHrppPause>(928, _omitFieldNames ? '' : 'responseHrppPause',
+        subBuilder: $1.ResponseHrppPause.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2612,10 +2640,11 @@ class Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(920)
   @$pb.TagNumber(921)
   @$pb.TagNumber(922)
-  @$pb.TagNumber(923)
   @$pb.TagNumber(924)
   @$pb.TagNumber(925)
   @$pb.TagNumber(926)
+  @$pb.TagNumber(927)
+  @$pb.TagNumber(928)
   Response_Result whichResult() => _Response_ResultByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(606)
   @$pb.TagNumber(620)
@@ -2657,10 +2686,11 @@ class Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(920)
   @$pb.TagNumber(921)
   @$pb.TagNumber(922)
-  @$pb.TagNumber(923)
   @$pb.TagNumber(924)
   @$pb.TagNumber(925)
   @$pb.TagNumber(926)
+  @$pb.TagNumber(927)
+  @$pb.TagNumber(928)
   void clearResult() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -3124,7 +3154,7 @@ class Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(903)
   $1.ResponseHvpStateGet ensureResponseHvpStateGet() => $_ensure(38);
 
-  /// HRPP - 920
+  /// HRPP - 920-960
   @$pb.TagNumber(920)
   $1.ResponseHrppStart get responseHrppStart => $_getN(39);
   @$pb.TagNumber(920)
@@ -3159,55 +3189,66 @@ class Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(922)
   $1.ResponseHrppAmplitudeSet ensureResponseHrppAmplitudeSet() => $_ensure(41);
 
-  @$pb.TagNumber(923)
-  $1.ResponseHrppPlaybackSpeedSet get responseHrppPlaybackSpeedSet =>
-      $_getN(42);
-  @$pb.TagNumber(923)
-  set responseHrppPlaybackSpeedSet($1.ResponseHrppPlaybackSpeedSet value) =>
-      $_setField(923, value);
-  @$pb.TagNumber(923)
-  $core.bool hasResponseHrppPlaybackSpeedSet() => $_has(42);
-  @$pb.TagNumber(923)
-  void clearResponseHrppPlaybackSpeedSet() => $_clearField(923);
-  @$pb.TagNumber(923)
-  $1.ResponseHrppPlaybackSpeedSet ensureResponseHrppPlaybackSpeedSet() =>
-      $_ensure(42);
-
+  /// ResponseHrppPlaybackSpeedSet response_hrpp_playback_speed_set = 923; //DEPRECATED in FW4.2 use ResponseHrppPlaybackRateSet instead
   @$pb.TagNumber(924)
-  $1.ResponseHrppPatternSet get responseHrppPatternSet => $_getN(43);
+  $1.ResponseHrppPatternSet get responseHrppPatternSet => $_getN(42);
   @$pb.TagNumber(924)
   set responseHrppPatternSet($1.ResponseHrppPatternSet value) =>
       $_setField(924, value);
   @$pb.TagNumber(924)
-  $core.bool hasResponseHrppPatternSet() => $_has(43);
+  $core.bool hasResponseHrppPatternSet() => $_has(42);
   @$pb.TagNumber(924)
   void clearResponseHrppPatternSet() => $_clearField(924);
   @$pb.TagNumber(924)
-  $1.ResponseHrppPatternSet ensureResponseHrppPatternSet() => $_ensure(43);
+  $1.ResponseHrppPatternSet ensureResponseHrppPatternSet() => $_ensure(42);
 
   @$pb.TagNumber(925)
-  $1.ResponseHrppStateGet get responseHrppStateGet => $_getN(44);
+  $1.ResponseHrppStateGet get responseHrppStateGet => $_getN(43);
   @$pb.TagNumber(925)
   set responseHrppStateGet($1.ResponseHrppStateGet value) =>
       $_setField(925, value);
   @$pb.TagNumber(925)
-  $core.bool hasResponseHrppStateGet() => $_has(44);
+  $core.bool hasResponseHrppStateGet() => $_has(43);
   @$pb.TagNumber(925)
   void clearResponseHrppStateGet() => $_clearField(925);
   @$pb.TagNumber(925)
-  $1.ResponseHrppStateGet ensureResponseHrppStateGet() => $_ensure(44);
+  $1.ResponseHrppStateGet ensureResponseHrppStateGet() => $_ensure(43);
 
   @$pb.TagNumber(926)
-  $1.ResponseHrppPatternsGet get responseHrppPatternsGet => $_getN(45);
+  $1.ResponseHrppPatternsGet get responseHrppPatternsGet => $_getN(44);
   @$pb.TagNumber(926)
   set responseHrppPatternsGet($1.ResponseHrppPatternsGet value) =>
       $_setField(926, value);
   @$pb.TagNumber(926)
-  $core.bool hasResponseHrppPatternsGet() => $_has(45);
+  $core.bool hasResponseHrppPatternsGet() => $_has(44);
   @$pb.TagNumber(926)
   void clearResponseHrppPatternsGet() => $_clearField(926);
   @$pb.TagNumber(926)
-  $1.ResponseHrppPatternsGet ensureResponseHrppPatternsGet() => $_ensure(45);
+  $1.ResponseHrppPatternsGet ensureResponseHrppPatternsGet() => $_ensure(44);
+
+  @$pb.TagNumber(927)
+  $1.ResponseHrppPlaybackRateSet get responseHrppPlaybackRateSet => $_getN(45);
+  @$pb.TagNumber(927)
+  set responseHrppPlaybackRateSet($1.ResponseHrppPlaybackRateSet value) =>
+      $_setField(927, value);
+  @$pb.TagNumber(927)
+  $core.bool hasResponseHrppPlaybackRateSet() => $_has(45);
+  @$pb.TagNumber(927)
+  void clearResponseHrppPlaybackRateSet() => $_clearField(927);
+  @$pb.TagNumber(927)
+  $1.ResponseHrppPlaybackRateSet ensureResponseHrppPlaybackRateSet() =>
+      $_ensure(45);
+
+  @$pb.TagNumber(928)
+  $1.ResponseHrppPause get responseHrppPause => $_getN(46);
+  @$pb.TagNumber(928)
+  set responseHrppPause($1.ResponseHrppPause value) => $_setField(928, value);
+  @$pb.TagNumber(928)
+  $core.bool hasResponseHrppPause() => $_has(46);
+  @$pb.TagNumber(928)
+  void clearResponseHrppPause() => $_clearField(928);
+  @$pb.TagNumber(928)
+  $1.ResponseHrppPause ensureResponseHrppPause() => $_ensure(46);
 }
 
 class Error extends $pb.GeneratedMessage {
