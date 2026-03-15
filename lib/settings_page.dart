@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:async_locks/async_locks.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -466,7 +465,6 @@ class _SettingsPageState extends State<SettingsPage> {
             if (!generationStarted) {
               generationStarted = true;
               Future(() async {
-                final ffmpegSemaphore = Semaphore(2);
                 final futures = <Future>[];
                 for (final video in videos) {
                   throw UnimplementedError();

@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:syncopathy/model/json/funscript_metadata.dart';
 import 'package:syncopathy/sqlite/models/key_value_pair_old.dart';
 import 'package:syncopathy/sqlite/models/user_category_old.dart';
 import 'package:syncopathy/sqlite/models/video_model_old.dart';
@@ -231,58 +230,6 @@ class SQLiteHelper {
     });
   }
 
-  Future<int> insertFunscriptMetadata(FunscriptMetadata metadata) async {
-    final db = await database;
-    return await db.insert(
-      'funscript_metadata',
-      metadata.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  Future<void> batchInsertFunscriptMetadata(
-    List<FunscriptMetadata> metadatas,
-  ) async {
-    final db = await database;
-    final batch = db.batch();
-    for (final metadata in metadatas) {
-      batch.insert(
-        'funscript_metadata',
-        metadata.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
-    await batch.commit(noResult: true);
-  }
-
-  Future<int> updateFunscriptMetadata(FunscriptMetadata metadata) async {
-    final db = await database;
-    return await db.update(
-      'funscript_metadata',
-      metadata.toMap(),
-      where: 'id = ?',
-      whereArgs: [metadata.id],
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  Future<void> batchUpdateFunscriptMetadata(
-    List<FunscriptMetadata> metadatas,
-  ) async {
-    final db = await database;
-    final batch = db.batch();
-    for (final metadata in metadatas) {
-      batch.update(
-        'funscript_metadata',
-        metadata.toMap(),
-        where: 'id = ?',
-        whereArgs: [metadata.id],
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
-    await batch.commit(noResult: true);
-  }
-
   Future<void> resetAllVideosPlayCount() async {
     final db = await database;
 
@@ -313,13 +260,13 @@ class SQLiteHelper {
     final videoMap = {for (var v in videos) v.id!: v};
 
     // 2. Fetch all funscript metadata
-    final List<Map<String, dynamic>> metadataMaps = await db.query(
-      'funscript_metadata',
-    );
-    final metadataMap = {
-      for (var map in metadataMaps)
-        map['id'] as int: FunscriptMetadata.fromMap(map),
-    };
+    // final List<Map<String, dynamic>> metadataMaps = await db.query(
+    //   'funscript_metadata',
+    // );
+    // final metadataMap = {
+    //   for (var map in metadataMaps)
+    //     map['id'] as int: FunscriptMetadata.fromJson(map),
+    // };
 
     // 3. Fetch all user categories and links
     final List<Map<String, dynamic>> categoryLinkMaps = await db.rawQuery('''
@@ -345,11 +292,11 @@ class SQLiteHelper {
     }
 
     // 5. Link metadata to videos
-    for (final video in videos) {
-      if (video.funscriptMetadataId != null) {
-        video.funscriptMetadata = metadataMap[video.funscriptMetadataId];
-      }
-    }
+    // for (final video in videos) {
+    //   if (video.funscriptMetadataId != null) {
+    //     video.funscriptMetadata = metadataMap[video.funscriptMetadataId];
+    //   }
+    // }
 
     return videos;
   }

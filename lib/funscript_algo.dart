@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/json/funscript_json.dart';
 
 class FunscriptAlgorithms {
   // Applies slew to the actions limiting the amount of change per second based on maxRateOfChangePerSecond

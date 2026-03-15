@@ -2,12 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:pool/pool.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/json/funscript_json.dart';
+import 'package:syncopathy/model/json/funscript_metadata.dart';
 import 'package:syncopathy/objectbox.g.dart';
 import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/key_value.dart';
@@ -36,8 +39,6 @@ class MigrationService {
     String oldHash,
     String newHash,
   ) async {
-    print("rename $oldHash thumbnail to new $newHash");
-
     final path = p.join(supportDir.path, "thumbnails_old", oldHash);
     final newPath = p.join(supportDir.path, "thumbnails", newHash);
     try {
@@ -130,7 +131,7 @@ class MigrationService {
     SendPort sendPort,
   ) async {
     await oBox.store.runInTransactionAsync(TxMode.write, (store, parameter) {
-      SendPort sendPort = parameter as SendPort;
+      SendPort sendPort = parameter;
       final kvBox = store.box<KeyValue>();
       for (final kv in keyValues) {
         kvBox.put(KeyValue(key: kv.id!, value: kv.value));
@@ -171,24 +172,27 @@ class MigrationService {
         bool isScriptToken = false;
         bool fileNotFound = true;
 
+        FunscriptMetadata? metadata;
         try {
           final funscriptJsonText = File(
             video.funscriptPath,
           ).readAsStringSync();
-          final funscript = Funscript.fromJson(
+          final funscript = FunscriptJson.fromJson(
             jsonDecode(funscriptJsonText),
-            video.funscriptPath,
           );
-          isScriptToken = funscript.likelyScriptToken;
+          isScriptToken = Funscript.isScriptToken(funscript.actions);
+          metadata = funscript.metadata;
           fileNotFound = false;
-        } catch (_) {}
+        } catch (e) {
+          if (kDebugMode) debugPrint(e.toString());
+        }
 
         final funscript = FunscriptFile(
           path: video.funscriptPath,
           averageMax: video.averageMax,
           averageMin: video.averageMin,
           averageSpeed: video.averageSpeed,
-          metadata: video.funscriptMetadata,
+          metadata: metadata,
           fileNotFound: fileNotFound,
           isScriptToken: isScriptToken,
         );

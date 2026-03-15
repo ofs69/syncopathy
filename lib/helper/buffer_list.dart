@@ -5,10 +5,8 @@ class BufferList<E> extends ListBase<E> {
   List<E> _buffer;
   int _length = 0;
 
-  BufferList({
-    required E initialValue, 
-    int initialCapacity = 10
-  }) : _buffer = List<E>.filled(initialCapacity, initialValue, growable: false);
+  BufferList({required E initialValue, int initialCapacity = 10})
+    : _buffer = List<E>.filled(initialCapacity, initialValue, growable: false);
 
   @override
   int get length => _length;
@@ -36,15 +34,15 @@ class BufferList<E> extends ListBase<E> {
 
   @override
   void clear() {
-    _length = 0; 
+    _length = 0;
   }
 
   void _grow(int minCapacity) {
     int newCapacity = _buffer.length * 2;
     if (newCapacity < minCapacity) newCapacity = minCapacity;
-    
+
     final newBuffer = List<E>.filled(newCapacity, _buffer[0], growable: false);
-    
+
     for (int i = 0; i < _length; i++) {
       newBuffer[i] = _buffer[i];
     }

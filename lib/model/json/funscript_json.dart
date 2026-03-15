@@ -1,0 +1,192 @@
+import 'package:json_annotation/json_annotation.dart';
+import 'package:syncopathy/model/json/funscript_metadata.dart';
+
+part 'funscript_json.g.dart';
+
+@JsonSerializable(fieldRename: FieldRename.none)
+class FunscriptAction implements Comparable<FunscriptAction> {
+  /// The time in milliseconds at which the action should occur.
+  final int at;
+
+  /// The position (0-100) for the action.
+  final int pos;
+
+  FunscriptAction({required this.at, required this.pos});
+
+  factory FunscriptAction.fromJson(Map<String, dynamic> json) =>
+      _$FunscriptActionFromJson(json);
+  Map<String, dynamic> toJson() => _$FunscriptActionToJson(this);
+
+  @override
+  int compareTo(FunscriptAction other) {
+    return at.compareTo(other.at);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is FunscriptAction && other.at == at && other.pos == pos;
+  }
+
+  @override
+  int get hashCode => at.hashCode;
+
+  @override
+  String toString() => "{at: $at, pos: $pos}";
+}
+
+class VersionConverter implements JsonConverter<String, dynamic> {
+  const VersionConverter();
+
+  @override
+  String fromJson(dynamic json) {
+    // Check if the incoming JSON value is actually a String
+    if (json is String) {
+      return json;
+    }
+    // Fallback value if it's a double, int, null, etc.
+    return "1.0";
+  }
+
+  @override
+  dynamic toJson(String object) => object;
+}
+
+@JsonSerializable(fieldRename: FieldRename.none)
+class FunscriptJson {
+  /// The version of the Funscript. Defaults to "1.0".
+  @VersionConverter()
+  final String version;
+
+  /// Whether the y-axis is inverted. Defaults to false.
+  final bool inverted;
+
+  /// The range of motion (0-100). Defaults to 90.
+  final int range;
+
+  /// The list of actions.
+  final List<FunscriptAction> actions;
+  //late final Signal<List<FunscriptAction>> processedActions;
+  //late final List<FunscriptAction> originalActions;
+
+  /// Optional metadata.
+  final FunscriptMetadata? metadata;
+
+  /// The file path.
+  // final String filePath;
+  // String get fileName => p.basename(filePath);
+
+  /// If it's a script token.
+  // late final bool likelyScriptToken;
+
+  FunscriptJson({
+    this.version = "1.0",
+    this.inverted = false,
+    this.range = 100,
+    required this.actions,
+    this.metadata,
+  });
+
+  factory FunscriptJson.fromJson(Map<String, dynamic> json) =>
+      _$FunscriptJsonFromJson(json);
+  Map<String, dynamic> toJson() => _$FunscriptJsonToJson(this);
+  // {
+  // likelyScriptToken = _isScriptToken(rawActions);
+  // remove duplicate timestamps
+  // final uniqueActions = <FunscriptAction>[];
+  // final seenTimestamps = <int>{};
+  // for (final action in rawActions) {
+  //   if (seenTimestamps.add(action.at)) {
+  //     uniqueActions.add(action);
+  //   }
+  // }
+  // processedActions = listSignal([]);
+  // originalActions = List.unmodifiable(uniqueActions);
+  //}
+
+  // This determines if something is likely a script token
+  // If this is true it is highly unlikely that it isn't
+  // False positives are also unlikely
+  // bool _isScriptToken(List<FunscriptAction> actions) {
+  //   // 'magic' number for script token
+  //   const magic = 136740671;
+  //   // Script tokens can not be empty or have more than 100 actions.
+  //   if (actions.isEmpty || actions.length > 100) {
+  //     return false;
+  //   }
+  //   // Check if the script contains the token signal marker.
+  //   for (final a in actions) {
+  //     if (a.pos == 0 && a.at == magic % actions.length) {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
+
+  // static int getActionBefore(int timeMs, List<FunscriptAction> actions) {
+  //   final index = lowerBound(actions, FunscriptAction(at: timeMs, pos: 0));
+  //   return index == actions.length ? index - 1 : index;
+  // }
+
+  /// Creates a [Funscript] object from a JSON map.
+  // factory Funscript.fromJson(Map<String, dynamic> json, String filePath) {
+  //   final actionsRaw = json['actions'];
+  //   if (actionsRaw == null) {
+  //     throw const FormatException("Funscript missing 'actions' key.");
+  //   }
+  //   if (actionsRaw is! List) {
+  //     throw const FormatException("'actions' key must be a list.");
+  //   }
+
+  //   List<FunscriptAction> actions = actionsRaw
+  //       .map((i) => FunscriptAction.fromJson(i as Map<String, dynamic>))
+  //       .toList();
+  //   actions.sort();
+  //   actions.removeWhere((action) => action.at < 0);
+
+  //   final metadataMap = json['metadata'] as Map<String, dynamic>?;
+  //   FunscriptMetadata? metadata;
+  //   if (metadataMap != null) {
+  //     try {
+  //       metadata = FunscriptMetadata.fromJson(metadataMap);
+  //     } catch (e) {
+  //       Logger.debug("Failed to parse Funscript metadata for '$filePath': $e");
+  //     }
+  //   }
+
+  //   return Funscript(
+  //     version: json['version'] is String ? json['version'] : '1.0',
+  //     inverted: json['inverted'] is bool ? json['inverted'] : false,
+  //     range: json['range'] is num ? (json['range'] as num).toInt() : 100,
+  //     rawActions: actions,
+  //     metadata: metadata,
+  //     filePath: filePath,
+  //   );
+  // }
+
+  /// Parses a Funscript file from the given [path].
+  ///
+  /// Throws a [FileSystemException] if the file is not found.
+  /// Throws a [FormatException] if the JSON is invalid or doesn't match the Funscript format.
+  // static Future<Funscript?> fromFile(String path) async {
+  //   final file = File(path);
+  //   if (!await file.exists()) {
+  //     throw FileSystemException("File not found", path);
+  //   }
+
+  //   try {
+  //     final contents = await file.readAsString();
+  //     final json = jsonDecode(contents);
+  //     if (json is! Map<String, dynamic>) {
+  //       throw const FormatException("Root of Funscript must be a JSON object.");
+  //     }
+  //     return Funscript.fromJson(json, path);
+  //   } on FormatException catch (e) {
+  //     throw FormatException(
+  //       "Invalid Funscript format in file '$path': ${e.message}",
+  //       e.source,
+  //     );
+  //   } catch (e) {
+  //     throw FormatException("Failed to parse Funscript file '$path': $e");
+  //   }
+  // }
+}

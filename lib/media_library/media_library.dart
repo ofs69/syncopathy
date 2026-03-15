@@ -120,11 +120,8 @@ class _MediaLibraryState extends State<MediaLibrary>
             children: [
               Expanded(
                 child: MediaSearchBar(
-                  onSearchChanged: (query) {
-                    if (searchQuery.value == query) {
-                      return;
-                    }
-                    searchQuery.value = query;
+                  onFilterChanged: (query) {
+                    searchQuery.value = query.query;
                   },
                 ),
               ),
@@ -219,7 +216,7 @@ class _MediaLibraryState extends State<MediaLibrary>
                         },
                     child: _fade(
                       GridView.builder(
-                        //key: ValueKey(filteredMedia.length),
+                        key: ValueKey(filteredMedia.length),
                         padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: videosPerRow,
@@ -233,58 +230,78 @@ class _MediaLibraryState extends State<MediaLibrary>
                           final media = filteredMedia[index];
                           final isSelected = selectedVideos.contains(media);
 
-                          return MediaItem(
-                            key: Key(media.mediaPath),
-                            media: media,
-                            isSelected: isSelected,
-                            showAverageMinMax: showAverageMinMax,
-                            showAverageSpeed: showAverageSpeed,
-                            showDuration: showDuration,
-                            showPlayCount: showPlayCount,
-                            showTitle: showTitle,
+                          return GestureDetector(
+                            onLongPress: () {
+                              if (isSelected) {
+                                selectedVideos.remove(media);
+                              } else {
+                                selectedVideos.add(media);
+                              }
+                            },
+                            onTap: () {
+                              if (isSelecting.value) {
+                                if (isSelected) {
+                                  selectedVideos.remove(media);
+                                } else {
+                                  selectedVideos.add(media);
+                                }
+                              } else {
+                                // play media
+                              }
+                            },
+                            child: MediaItem(
+                              key: Key(media.mediaPath),
+                              media: media,
+                              isSelected: isSelected,
+                              showAverageMinMax: showAverageMinMax,
+                              showAverageSpeed: showAverageSpeed,
+                              showDuration: showDuration,
+                              showPlayCount: showPlayCount,
+                              showTitle: showTitle,
 
-                            // onVideoTapped: (video) {
-                            //   if (_isSelectionMode) {
-                            //     if (isSelected) {
-                            //       _selectedVideos.remove(video);
-                            //     } else {
-                            //       _selectedVideos.add(video);
-                            //     }
-                            //   } else {
-                            //     widget.onVideoTapped(video);
-                            //   }
-                            // },
-                            // onLongPress: () {
-                            //   if (isSelected) {
-                            //     _selectedVideos.remove(video);
-                            //   } else {
-                            //     _selectedVideos.add(video);
-                            //   }
-                            // },
-                            // onFavoriteChanged: (video) {
-                            //   mediaManager.saveFavorite(video);
-                            //   _updateVideosFromMediaSettings();
-                            // },
-                            // onDislikeChanged: (video) {
-                            //   mediaManager.saveDislike(video);
-                            //   _updateVideosFromMediaSettings();
-                            // },
-                            // onCategoryChanged:
-                            //     (video, category, removeCategory) {
-                            //       if (removeCategory) {
-                            //         mediaManager.removeVideoCategory(
-                            //           video,
-                            //           category,
-                            //         );
-                            //       } else {
-                            //         mediaManager.setVideoCategory(
-                            //           video,
-                            //           category,
-                            //         );
-                            //       }
-                            //       _updateVideosFromMediaSettings();
-                            //     },
-                            // onDelete: _deleteVideo,
+                              // onVideoTapped: (video) {
+                              //   if (_isSelectionMode) {
+                              //     if (isSelected) {
+                              //       _selectedVideos.remove(video);
+                              //     } else {
+                              //       _selectedVideos.add(video);
+                              //     }
+                              //   } else {
+                              //     widget.onVideoTapped(video);
+                              //   }
+                              // },
+                              // onLongPress: () {
+                              //   if (isSelected) {
+                              //     _selectedVideos.remove(video);
+                              //   } else {
+                              //     _selectedVideos.add(video);
+                              //   }
+                              // },
+                              // onFavoriteChanged: (video) {
+                              //   mediaManager.saveFavorite(video);
+                              //   _updateVideosFromMediaSettings();
+                              // },
+                              // onDislikeChanged: (video) {
+                              //   mediaManager.saveDislike(video);
+                              //   _updateVideosFromMediaSettings();
+                              // },
+                              // onCategoryChanged:
+                              //     (video, category, removeCategory) {
+                              //       if (removeCategory) {
+                              //         mediaManager.removeVideoCategory(
+                              //           video,
+                              //           category,
+                              //         );
+                              //       } else {
+                              //         mediaManager.setVideoCategory(
+                              //           video,
+                              //           category,
+                              //         );
+                              //       }
+                              //       _updateVideosFromMediaSettings();
+                              //     },
+                              // onDelete: _deleteVideo,
+                            ),
                           );
                         },
                       ),
@@ -508,7 +525,6 @@ class _MediaLibraryState extends State<MediaLibrary>
   }
 
   AppBar _buildSelectionAppBar() {
-    final currentSelectedVideos = selectedVideos.watch(context);
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
       shape: const RoundedRectangleBorder(
@@ -518,7 +534,7 @@ class _MediaLibraryState extends State<MediaLibrary>
       leading: IconButton(
         icon: const Icon(Icons.close),
         onPressed: () {
-          currentSelectedVideos.clear();
+          selectedVideos.clear();
         },
       ),
       actions: [

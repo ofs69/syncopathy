@@ -15,7 +15,7 @@ class KeyValueStore extends IKeyValueStore {
   }
 
   static Future<void> _put(String key, Map<String, dynamic> json) async {
-    oBox.keyValueService.putJsonMap(key,json);
+    oBox.keyValueService.putJsonMap(key, json);
   }
 
   static Future<Map<String, dynamic>?> _get(String key) async {

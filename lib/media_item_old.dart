@@ -152,7 +152,7 @@
 //         _thumbnailKey.currentState?.currentFrameAsThumbnail();
 //       } else if (result == 'open_video_dir') {
 //         _openFileDirectory(widget.media.mediaPath);
-//       } 
+//       }
 //       // else if (result == 'open_script_dir') {
 //       //   _openFileDirectory(widget.media.funscriptPath);
 //       // } else if (result == 'delete') {

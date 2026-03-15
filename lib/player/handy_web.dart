@@ -10,7 +10,7 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/logging.dart';
-import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/model/json/handyV3/handy_event.dart';
 import 'package:syncopathy/model/json/handyV3/handy_request.dart';
 import 'package:syncopathy/model/json/handyV3/handy_response.dart';

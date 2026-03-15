@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/throttler.dart';
-import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/player/video_player.dart';
 

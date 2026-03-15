@@ -12,9 +12,11 @@ class FunscriptFile {
 
   @Transient()
   FunscriptMetadata? metadata;
-  String? get metadataDb => jsonEncode(metadata?.toMap());
-  set metadataDb(String? json) =>
-      json != null ? FunscriptMetadata.fromJson(jsonDecode(json)) : null;
+  String? get metadataDb =>
+      metadata == null ? null : jsonEncode(metadata?.toJson());
+  set metadataDb(String? json) => json != null
+      ? metadata = FunscriptMetadata.fromJson(jsonDecode(json))
+      : metadata = null;
 
   double? averageSpeed;
   double? averageMin;

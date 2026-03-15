@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/generated/constants.pb.dart';
-import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/player/handy_ble.dart';
 import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
 import 'package:syncopathy/player/player_backend.dart';

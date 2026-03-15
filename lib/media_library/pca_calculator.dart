@@ -50,22 +50,22 @@
 //       'Finished loading funscripts. Total: $loadedCount. Now calculating PCA...',
 //     );
 
-    // if (videosWithFunscript.length >= 2) {
-    //   final features = videosWithFunscript.map((v) {
-    //     final funscript = v.funscript!;
-    //     final actions = funscript.originalActions;
-    //     final positions = actions.map((a) => a.pos.toDouble()).toList();
-    //     final speeds = <double>[];
-    //     for (var i = 0; i < actions.length - 1; i++) {
-    //       final a1 = actions[i];
-    //       final a2 = actions[i + 1];
-    //       final timeDiff = a2.at - a1.at;
-    //       if (timeDiff > 0) {
-    //         speeds.add(
-    //           (a2.pos.toDouble() - a1.pos.toDouble()).abs() / timeDiff,
-    //         );
-    //       }
-    //     }
+// if (videosWithFunscript.length >= 2) {
+//   final features = videosWithFunscript.map((v) {
+//     final funscript = v.funscript!;
+//     final actions = funscript.originalActions;
+//     final positions = actions.map((a) => a.pos.toDouble()).toList();
+//     final speeds = <double>[];
+//     for (var i = 0; i < actions.length - 1; i++) {
+//       final a1 = actions[i];
+//       final a2 = actions[i + 1];
+//       final timeDiff = a2.at - a1.at;
+//       if (timeDiff > 0) {
+//         speeds.add(
+//           (a2.pos.toDouble() - a1.pos.toDouble()).abs() / timeDiff,
+//         );
+//       }
+//     }
 
 //         final accelerations = <double>[];
 //         for (var i = 0; i < speeds.length - 1; i++) {

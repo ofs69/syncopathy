@@ -1,38 +1,42 @@
-import 'dart:convert';
+import 'package:json_annotation/json_annotation.dart';
 
-// TODO: use json_annotations for this
+part 'funscript_metadata.g.dart';
 
+@JsonSerializable(fieldRename: FieldRename.none)
 class Bookmark {
   String? name;
   int? timeMs;
 
   Bookmark({this.name, this.timeMs});
 
-  Map<String, dynamic> toJson() => {'name': name, 'timeMs': timeMs};
+  // Map<String, dynamic> toJson() => {'name': name, 'timeMs': timeMs};
+  // factory Bookmark.fromJson(Map<String, dynamic> json) =>
+  //     Bookmark(name: json['name'], timeMs: json['timeMs']);
 
+  Map<String, dynamic> toJson() => _$BookmarkToJson(this);
   factory Bookmark.fromJson(Map<String, dynamic> json) =>
-      Bookmark(name: json['name'], timeMs: json['timeMs']);
+      _$BookmarkFromJson(json);
 }
 
+@JsonSerializable(fieldRename: FieldRename.none)
 class Chapter {
   String? name;
   int? timeMs;
 
   Chapter({this.name, this.timeMs});
 
-  Map<String, dynamic> toJson() => {'name': name, 'timeMs': timeMs};
-
+  Map<String, dynamic> toJson() => _$ChapterToJson(this);
   factory Chapter.fromJson(Map<String, dynamic> json) =>
-      Chapter(name: json['name'], timeMs: json['timeMs']);
+      _$ChapterFromJson(json);
 }
 
+@JsonSerializable(fieldRename: FieldRename.none)
 class FunscriptMetadata {
-  int? id;
   final List<Bookmark> bookmarks;
   final List<Chapter> chapters;
   final String? creator;
   final String? description;
-  final int? duration; // in seconds
+  final int? duration;
   final String? license;
   final String? notes;
   final List<String> performers;
@@ -43,7 +47,6 @@ class FunscriptMetadata {
   final String? videoUrl;
 
   FunscriptMetadata({
-    this.id,
     this.bookmarks = const [],
     this.chapters = const [],
     this.creator,
@@ -58,75 +61,7 @@ class FunscriptMetadata {
     this.type,
     this.videoUrl,
   });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'creator': creator,
-      'description': description,
-      'duration': duration,
-      'license': license,
-      'notes': notes,
-      'scriptUrl': scriptUrl,
-      'title': title,
-      'type': type,
-      'videoUrl': videoUrl,
-      'bookmarks': jsonEncode(bookmarks.map((b) => b.toJson()).toList()),
-      'chapters': jsonEncode(chapters.map((c) => c.toJson()).toList()),
-      'performers': jsonEncode(performers),
-      'tags': jsonEncode(tags),
-    };
-  }
-
-  factory FunscriptMetadata.fromMap(Map<String, dynamic> map) {
-    return FunscriptMetadata(
-      id: map['id'],
-      creator: map['creator'],
-      description: map['description'],
-      duration: map['duration'],
-      license: map['license'],
-      notes: map['notes'],
-      scriptUrl: map['scriptUrl'],
-      title: map['title'],
-      type: map['type'],
-      videoUrl: map['videoUrl'],
-      bookmarks: (jsonDecode(map['bookmarks']) as List)
-          .map((i) => Bookmark.fromJson(i))
-          .toList(),
-      chapters: (jsonDecode(map['chapters']) as List)
-          .map((i) => Chapter.fromJson(i))
-          .toList(),
-      performers: List<String>.from(jsonDecode(map['performers'])),
-      tags: List<String>.from(jsonDecode(map['tags'])),
-    );
-  }
-
-  factory FunscriptMetadata.fromJson(Map<String, dynamic> json) {
-    return FunscriptMetadata(
-      bookmarks:
-          (json['bookmarks'] as List<dynamic>?)
-              ?.map((e) => Bookmark.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      chapters:
-          (json['chapters'] as List<dynamic>?)
-              ?.map((e) => Chapter.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      creator: json['creator'] as String?,
-      description: json['description'] as String?,
-      duration: json['duration'] as int?,
-      license: json['license'] as String?,
-      notes: json['notes'] as String?,
-      performers:
-          (json['performers'] as List<dynamic>?)?.cast<String>().toList() ??
-          const [],
-      scriptUrl: json['script_url'] as String?,
-      tags:
-          (json['tags'] as List<dynamic>?)?.cast<String>().toList() ?? const [],
-      title: json['title'] as String?,
-      type: json['type'] as String?,
-      videoUrl: json['video_url'] as String?,
-    );
-  }
+  Map<String, dynamic> toJson() => _$FunscriptMetadataToJson(this);
+  factory FunscriptMetadata.fromJson(Map<String, dynamic> json) =>
+      _$FunscriptMetadataFromJson(json);
 }

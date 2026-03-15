@@ -1,4 +1,3 @@
-import 'package:objectbox/objectbox.dart';
 import 'package:syncopathy/objectbox.g.dart';
 import 'package:syncopathy/persistence/entities/user_category.dart';
 

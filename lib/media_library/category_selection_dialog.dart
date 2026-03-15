@@ -36,11 +36,11 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
     final List<UserCategory> meta = [];
     if (widget.showAllCategoriesOption) {
       meta.add(
-        UserCategory(name: 'All Categories', sortOrder: -1),
+        UserCategory(name: 'All Categories', sortOrder: -1)..id = -1,
       ); // Sentinel for "All Categories"
     }
     if (widget.showUncategorizedOption) {
-      meta.add(widget.uncategorized);
+      meta.add(widget.uncategorized..id = -2);
     }
     return meta;
   }
@@ -123,7 +123,9 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                         ),
                         onSubmitted: (value) async {
                           if (value.isNotEmpty) {
-                            await oBox.userCategoryService.createCategory(value);
+                            await oBox.userCategoryService.createCategory(
+                              value,
+                            );
                             _newCategoryController.clear();
                             _searchController.clear();
                             await _loadCategories();

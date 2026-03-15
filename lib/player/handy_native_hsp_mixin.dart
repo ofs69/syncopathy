@@ -6,6 +6,7 @@ import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/player/player_backend.dart';
 
 enum HspStateAdapterPlayState {

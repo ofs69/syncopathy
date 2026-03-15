@@ -101,7 +101,7 @@ class ThumbnailGenerator {
         '-i',
         media.mediaPath,
         '-vf',
-        "thumbnail,scale=300:-1",
+        "thumbnail,scale=640:-1",
         '-vframes',
         '1',
         '-an',

@@ -35,7 +35,49 @@ class _MediaItemState extends State<MediaItem> {
         side: BorderSide(color: Theme.of(context).colorScheme.primary),
         borderRadius: BorderRadiusGeometry.circular(8.0),
       ),
-      child: Stack(children: [MediaThumbnail(media: widget.media)]),
+      child: Stack(
+        fit: StackFit.expand,
+
+        children: [
+          MediaThumbnail(media: widget.media),
+          if (widget.isSelected)
+            Container(
+              color: Theme.of(context).primaryColor.withAlpha(130),
+              child: Icon(Icons.check_circle, color: Colors.white),
+            ),
+
+          AnimatedOpacity(
+            opacity: widget.showTitle ? 1.0 : 0.0, //|| _isHovering ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 200),
+            child: Align(
+              alignment: AlignmentGeometry.bottomCenter,
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, Colors.black],
+                  ),
+                ),
+                padding: const EdgeInsets.all(8.0),
+                child: Tooltip(
+                  message: widget.media.name,
+                  child: Text(
+                    widget.media.name,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleSmall?.copyWith(color: Colors.white),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

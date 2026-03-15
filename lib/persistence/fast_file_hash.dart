@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:crypto/crypto.dart';
 
-
 // Future<String?> fastFileHash(String path) async {
 //   final file = File(path);
 
@@ -38,7 +37,6 @@ import 'package:crypto/crypto.dart';
 //     return null;
 //   }
 // }
-
 
 /// A file hash that takes a lot of shortcuts to be as fast as possible
 Future<String?> fastFileHash(String path) async {

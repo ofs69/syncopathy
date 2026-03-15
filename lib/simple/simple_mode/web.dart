@@ -140,12 +140,16 @@ class SimpleMode {
     if (ext == ".funscript") {
       final funscriptJson = await readAsString();
       final funscriptMap = jsonDecode(funscriptJson);
-      final funscript = Funscript.fromJson(funscriptMap, path);
-      if (!funscript.likelyScriptToken) {
-        playerModel.simpleModeFunscript.value = funscript;
-      } else {
-        playerModel.simpleModeFunscript.value = null;
-        Logger.error("Script token playback is not supported.");
+      try {
+        final funscript = Funscript.fromJson(funscriptMap, path);
+        if (!funscript.likelyScriptToken) {
+          playerModel.simpleModeFunscript.value = funscript;
+        } else {
+          playerModel.simpleModeFunscript.value = null;
+          Logger.error("Script token playback is not supported.");
+        }
+      } catch (e) {
+        Logger.error(e.toString());
       }
     } else {
       if (mimeType != null && !_canPlayVideo(mimeType)) {

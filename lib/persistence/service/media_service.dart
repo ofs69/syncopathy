@@ -11,7 +11,11 @@ class MediaService {
 
   late final searchQuery = _box
       .query(
-        MediaFile_.name.contains('', caseSensitive: false, alias: 'nameFilter') |
+        MediaFile_.name.contains(
+              '',
+              caseSensitive: false,
+              alias: 'nameFilter',
+            ) |
             MediaFile_.dbAliases.contains(
               '',
               caseSensitive: false,

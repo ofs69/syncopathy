@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:syncopathy/persistence/entities/funscript_file.dart';
 
@@ -16,6 +17,7 @@ class FunscriptService {
         .where((c) => c != null && c.isNotEmpty)
         .cast<String>()
         .toSet()
+        .sorted()
         .toList();
   }
 
@@ -26,6 +28,7 @@ class FunscriptService {
         .map((t) => t.trim())
         .where((t) => t.isNotEmpty)
         .toSet()
+        .sorted()
         .toList();
   }
 
@@ -36,6 +39,7 @@ class FunscriptService {
         .map((t) => t.trim())
         .where((t) => t.isNotEmpty)
         .toSet()
+        .sorted()
         .toList();
   }
 }

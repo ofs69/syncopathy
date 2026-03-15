@@ -1,8 +1,6 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:syncopathy/model/funscript.dart';
-import 'package:syncopathy/model/json/funscript_metadata.dart';
 import 'package:syncopathy/sqlite/models/user_category_old.dart';
 
 class VideoOld {
@@ -21,7 +19,6 @@ class VideoOld {
   int? funscriptMetadataId;
 
   // Joined data
-  FunscriptMetadata? funscriptMetadata;
   List<UserCategoryOld> categories;
 
   VideoOld({
@@ -38,7 +35,6 @@ class VideoOld {
     required this.dateFirstFound,
     this.duration,
     this.funscriptMetadataId,
-    this.funscriptMetadata,
     List<UserCategoryOld>? categories,
   }) : categories = categories ?? [];
 
@@ -84,19 +80,5 @@ class VideoOld {
     final bytes = utf8.encode(videoPath);
     final digest = sha256.convert(bytes);
     return digest.toString();
-  }
-
-  // HACK: remove this
-  Funscript? _funscript;
-  Funscript? get funscript => _funscript;
-
-  Future<void> loadFunscript() async {
-    if (funscriptPath.isNotEmpty && _funscript == null) {
-      try {
-        _funscript = await Funscript.fromFile(funscriptPath);
-      } catch (e) {
-        _funscript = null; // Ensure funscript is null on error
-      }
-    }
   }
 }
