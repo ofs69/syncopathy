@@ -364,6 +364,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         } else {
           _eagerBufferThrottle.run(() {
             if (kDebugMode) debugPrint("EAGER BUFFER");
+            if (_currentlyBufferedBuffers.isEmpty) return;
             final bufferId = _currentlyBufferedBuffers.last + 1;
             final actionBuffer = ActionBuffer.fromActions(bufferId, actions);
             if (actionBuffer != null) {
