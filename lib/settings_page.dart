@@ -12,9 +12,11 @@ import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:syncopathy/media_library/thumbnail_generator.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
+import 'package:syncopathy/persistence/media_file_extension.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/update_checker.dart';
 
@@ -466,24 +468,20 @@ class _SettingsPageState extends State<SettingsPage> {
               generationStarted = true;
               Future(() async {
                 final futures = <Future>[];
-                for (final video in videos) {
-                  throw UnimplementedError();
-                  // final future =
-                  //     MediaThumbnailState.generateThumbnailAndGetPath(
-                  //       video,
-                  //       0.05,
-                  //       ffmpegSemaphore,
-                  //     ).then((path) {
-                  //       if (path != null) {
-                  //         successCount++;
-                  //       }
-                  //       if (dialogContext.mounted) {
-                  //         setState(() {
-                  //           generatedCount++;
-                  //         });
-                  //       }
-                  //     });
-                  // futures.add(future);
+                for (final media in videos) {
+                  var duration = media.retrieveDuration();
+                  final future = duration.then((duration) async {
+                    final m = oBox.mediaService.getById(media.id);
+                    if (m == null) return;
+                    final thumbnailRequest = ThumbnailRequest.fromMediaFile(m);
+                    if (thumbnailRequest != null) {
+                      await ThumbnailGenerator.addRequest(thumbnailRequest);
+                    }
+                    setState(() {
+                      generatedCount += 1;
+                    });
+                  });
+                  futures.add(future);
                 }
 
                 await Future.wait(futures);

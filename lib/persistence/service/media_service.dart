@@ -53,4 +53,8 @@ class MediaService {
     searchQuery.param(MediaFile_.dbAliases, alias: 'aliasFilter').value = query;
     return searchQuery.find();
   }
+
+  MediaFile? getById(int id) {
+    return _box.get(id);
+  }
 }
