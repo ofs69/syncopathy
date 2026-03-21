@@ -122,6 +122,7 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
   Future<void> dispose() async {
     await super.dispose();
     await _handyBle.value?.dispose();
+    _handyBle.value = null;
   }
 
   @override

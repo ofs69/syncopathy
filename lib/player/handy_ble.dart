@@ -257,7 +257,7 @@ class HandyBle with EffectDispose {
       assert(bufferMsg.length <= 512);
       await _device.tx.write(bufferMsg, withResponse: false);
     } catch (_) {
-      await _device.device.disconnect();
+      await dispose();
     }
   }
 
@@ -350,11 +350,22 @@ class HandyBle with EffectDispose {
   Future<void> dispose() async {
     effectDispose();
     _batteryPolling?.cancel();
-    await _bufferReceivedSubscription.cancel();
-    await _deserializeSubscription.cancel();
-    await _serializeSubscription.cancel();
-    await _worker.dispose();
-    await _device.device.disconnect();
+    try {
+      await _device.rx.notifications.unsubscribe();
+      await _device.rx.unsubscribe();
+
+      await _bufferReceivedSubscription.cancel();
+      await _deserializeSubscription.cancel();
+      await _serializeSubscription.cancel();
+      await _worker.dispose();
+
+      await Future.delayed(const Duration(milliseconds: 300));
+      await _device.device.disconnect();
+
+      await Future.delayed(const Duration(seconds: 300));
+    } catch (e) {
+      debugPrint("Error during BLE dispose: $e");
+    }
   }
 
   Future<(int, int)?> sliderStrokeGet() async {
