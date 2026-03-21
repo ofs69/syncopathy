@@ -26,7 +26,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(1, 3219496639384347202),
     name: 'FunscriptFile',
-    lastPropertyId: const obx_int.IdUid(8, 1192653931630359167),
+    lastPropertyId: const obx_int.IdUid(9, 8699706811283320298),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -75,6 +75,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(8, 1192653931630359167),
         name: 'fileNotFound',
         type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 8699706811283320298),
+        name: 'funscriptHash',
+        type: 9,
         flags: 0,
       ),
     ],
@@ -405,7 +411,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final metadataDbOffset = object.metadataDb == null
             ? null
             : fbb.writeString(object.metadataDb!);
-        fbb.startTable(9);
+        final funscriptHashOffset = object.funscriptHash == null
+            ? null
+            : fbb.writeString(object.funscriptHash!);
+        fbb.startTable(10);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, pathOffset);
         fbb.addOffset(2, metadataDbOffset);
@@ -414,6 +423,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addFloat64(5, object.averageMax);
         fbb.addBool(6, object.isScriptToken);
         fbb.addBool(7, object.fileNotFound);
+        fbb.addOffset(8, funscriptHashOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -450,6 +460,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           18,
           false,
         );
+        final funscriptHashParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 20);
         final object =
             FunscriptFile(
                 path: pathParam,
@@ -458,6 +471,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
                 averageMax: averageMaxParam,
                 isScriptToken: isScriptTokenParam,
                 fileNotFound: fileNotFoundParam,
+                funscriptHash: funscriptHashParam,
               )
               ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
               ..metadataDb = const fb.StringReader(
@@ -699,7 +713,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         ).vTableGetNullable(buffer, rootOffset, 26);
         final creationTimeParam = creationTimeValue == null
             ? null
-            : DateTime.fromMillisecondsSinceEpoch(creationTimeValue);
+            : DateTime.fromMillisecondsSinceEpoch(
+                creationTimeValue,
+                isUtc: true,
+              );
         final object = MediaMetadata(
           duration: durationParam,
           width: widthParam,
@@ -814,6 +831,11 @@ class FunscriptFile_ {
   /// See [FunscriptFile.fileNotFound].
   static final fileNotFound = obx.QueryBooleanProperty<FunscriptFile>(
     _entities[0].properties[7],
+  );
+
+  /// See [FunscriptFile.funscriptHash].
+  static final funscriptHash = obx.QueryStringProperty<FunscriptFile>(
+    _entities[0].properties[8],
   );
 }
 

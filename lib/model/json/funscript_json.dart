@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:syncopathy/model/json/funscript_metadata.dart';
 
@@ -89,104 +92,16 @@ class FunscriptJson {
   factory FunscriptJson.fromJson(Map<String, dynamic> json) =>
       _$FunscriptJsonFromJson(json);
   Map<String, dynamic> toJson() => _$FunscriptJsonToJson(this);
-  // {
-  // likelyScriptToken = _isScriptToken(rawActions);
-  // remove duplicate timestamps
-  // final uniqueActions = <FunscriptAction>[];
-  // final seenTimestamps = <int>{};
-  // for (final action in rawActions) {
-  //   if (seenTimestamps.add(action.at)) {
-  //     uniqueActions.add(action);
-  //   }
-  // }
-  // processedActions = listSignal([]);
-  // originalActions = List.unmodifiable(uniqueActions);
-  //}
 
-  // This determines if something is likely a script token
-  // If this is true it is highly unlikely that it isn't
-  // False positives are also unlikely
-  // bool _isScriptToken(List<FunscriptAction> actions) {
-  //   // 'magic' number for script token
-  //   const magic = 136740671;
-  //   // Script tokens can not be empty or have more than 100 actions.
-  //   if (actions.isEmpty || actions.length > 100) {
-  //     return false;
-  //   }
-  //   // Check if the script contains the token signal marker.
-  //   for (final a in actions) {
-  //     if (a.pos == 0 && a.at == magic % actions.length) {
-  //       return true;
-  //     }
-  //   }
-  //   return false;
-  // }
-
-  // static int getActionBefore(int timeMs, List<FunscriptAction> actions) {
-  //   final index = lowerBound(actions, FunscriptAction(at: timeMs, pos: 0));
-  //   return index == actions.length ? index - 1 : index;
-  // }
-
-  /// Creates a [Funscript] object from a JSON map.
-  // factory Funscript.fromJson(Map<String, dynamic> json, String filePath) {
-  //   final actionsRaw = json['actions'];
-  //   if (actionsRaw == null) {
-  //     throw const FormatException("Funscript missing 'actions' key.");
-  //   }
-  //   if (actionsRaw is! List) {
-  //     throw const FormatException("'actions' key must be a list.");
-  //   }
-
-  //   List<FunscriptAction> actions = actionsRaw
-  //       .map((i) => FunscriptAction.fromJson(i as Map<String, dynamic>))
-  //       .toList();
-  //   actions.sort();
-  //   actions.removeWhere((action) => action.at < 0);
-
-  //   final metadataMap = json['metadata'] as Map<String, dynamic>?;
-  //   FunscriptMetadata? metadata;
-  //   if (metadataMap != null) {
-  //     try {
-  //       metadata = FunscriptMetadata.fromJson(metadataMap);
-  //     } catch (e) {
-  //       Logger.debug("Failed to parse Funscript metadata for '$filePath': $e");
-  //     }
-  //   }
-
-  //   return Funscript(
-  //     version: json['version'] is String ? json['version'] : '1.0',
-  //     inverted: json['inverted'] is bool ? json['inverted'] : false,
-  //     range: json['range'] is num ? (json['range'] as num).toInt() : 100,
-  //     rawActions: actions,
-  //     metadata: metadata,
-  //     filePath: filePath,
-  //   );
-  // }
-
-  /// Parses a Funscript file from the given [path].
-  ///
-  /// Throws a [FileSystemException] if the file is not found.
-  /// Throws a [FormatException] if the JSON is invalid or doesn't match the Funscript format.
-  // static Future<Funscript?> fromFile(String path) async {
-  //   final file = File(path);
-  //   if (!await file.exists()) {
-  //     throw FileSystemException("File not found", path);
-  //   }
-
-  //   try {
-  //     final contents = await file.readAsString();
-  //     final json = jsonDecode(contents);
-  //     if (json is! Map<String, dynamic>) {
-  //       throw const FormatException("Root of Funscript must be a JSON object.");
-  //     }
-  //     return Funscript.fromJson(json, path);
-  //   } on FormatException catch (e) {
-  //     throw FormatException(
-  //       "Invalid Funscript format in file '$path': ${e.message}",
-  //       e.source,
-  //     );
-  //   } catch (e) {
-  //     throw FormatException("Failed to parse Funscript file '$path': $e");
-  //   }
-  // }
+  // a hash based on the actions
+  // it changes when an action changes is added or removed
+  String computeFunscriptHash() {
+    final buffer = StringBuffer();
+    for (final action in actions) {
+      buffer.write('${action.at}${action.pos}');
+    }
+    final content = buffer.toString();
+    final bytes = utf8.encode(content);
+    return sha256.convert(bytes).toString();
+  }
 }

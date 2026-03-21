@@ -18,6 +18,8 @@ class FunscriptFile {
       ? metadata = FunscriptMetadata.fromJson(jsonDecode(json))
       : metadata = null;
 
+  String? funscriptHash;
+
   double? averageSpeed;
   double? averageMin;
   double? averageMax;
@@ -35,6 +37,7 @@ class FunscriptFile {
     required this.averageMax,
     required this.isScriptToken,
     required this.fileNotFound,
+    required this.funscriptHash,
     this.metadata,
   });
 }

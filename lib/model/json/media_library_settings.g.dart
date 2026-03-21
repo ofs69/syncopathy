@@ -13,7 +13,7 @@ MediaLibrarySettings _$MediaLibrarySettingsFromJson(
       $enumDecodeNullable(_$SortOptionEnumMap, json['sortOption']) ??
       SortOption.title,
   isSortAscending: json['isSortAscending'] as bool? ?? true,
-  videosPerRow: (json['videosPerRow'] as num?)?.toInt() ?? 6,
+  videosPerRow: (json['videosPerRow'] as num?)?.toInt() ?? 4,
   showVideoTitles: json['showVideoTitles'] as bool? ?? true,
   showAverageSpeed: json['showAverageSpeed'] as bool? ?? true,
   showAverageMinMax: json['showAverageMinMax'] as bool? ?? true,
@@ -50,7 +50,7 @@ const _$MediaLibrarySettingsJsonSchema = {
   'properties': {
     'sortOption': {'type': 'object'},
     'isSortAscending': {'type': 'boolean', 'default': true},
-    'videosPerRow': {'type': 'integer', 'default': 6},
+    'videosPerRow': {'type': 'integer', 'default': 4},
     'showVideoTitles': {'type': 'boolean', 'default': true},
     'showAverageSpeed': {'type': 'boolean', 'default': true},
     'showAverageMinMax': {'type': 'boolean', 'default': true},

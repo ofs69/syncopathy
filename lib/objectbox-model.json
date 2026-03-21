@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:3219496639384347202",
-      "lastPropertyId": "8:1192653931630359167",
+      "lastPropertyId": "9:8699706811283320298",
       "name": "FunscriptFile",
       "properties": [
         {
@@ -48,6 +48,11 @@
           "id": "8:1192653931630359167",
           "name": "fileNotFound",
           "type": 1
+        },
+        {
+          "id": "9:8699706811283320298",
+          "name": "funscriptHash",
+          "type": 9
         }
       ],
       "relations": []

@@ -16,6 +16,8 @@ class MediaMetadata {
   int? audioChannels;
   String? pixelFormat;
   String? aspectRatio;
+  
+  @Property(type: PropertyType.dateUtc)
   DateTime? creationTime;
 
   MediaMetadata({

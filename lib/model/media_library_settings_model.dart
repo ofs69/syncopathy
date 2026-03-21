@@ -11,7 +11,7 @@ class MediaLibrarySettingsModel {
 
   final Signal<SortOption> sortOption = signal(SortOption.title);
   final Signal<bool> isSortAscending = signal(true);
-  final Signal<int> videosPerRow = signal(6);
+  final Signal<int> videosPerRow = signal(4);
   final Signal<bool> showVideoTitles = signal(true);
   final Signal<bool> showAverageSpeed = signal(true);
   final Signal<bool> showAverageMinMax = signal(true);

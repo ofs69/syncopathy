@@ -173,6 +173,7 @@ class MigrationService {
         bool fileNotFound = true;
 
         FunscriptMetadata? metadata;
+        String? funscriptHash;
         try {
           final funscriptJsonText = File(
             video.funscriptPath,
@@ -182,12 +183,14 @@ class MigrationService {
           );
           isScriptToken = Funscript.isScriptToken(funscript.actions);
           metadata = funscript.metadata;
+          funscriptHash = funscript.computeFunscriptHash();
           fileNotFound = false;
         } catch (e) {
           if (kDebugMode) debugPrint(e.toString());
         }
 
         final funscript = FunscriptFile(
+          funscriptHash: funscriptHash,
           path: video.funscriptPath,
           averageMax: video.averageMax,
           averageMin: video.averageMin,
