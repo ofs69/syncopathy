@@ -17,7 +17,7 @@ abstract class VideoPlayer with EffectDispose {
   final bool embeddedPlayer;
 
   // TODO: remove _previouslyLoadedVideos and find a better way to resolve the filename from the playlist back to a video
-  final ListSignal<MediaFile> _previouslyLoadedVideos = listSignal([]);
+  final Signal<List<MediaFile>> _previouslyLoadedVideos = signal([]);
   late final ReadonlySignal<PlaylistModel> currentPlaylist;
 
   late final ReadonlySignal<bool> seeking;
@@ -29,7 +29,7 @@ abstract class VideoPlayer with EffectDispose {
   late final ReadonlySignal<bool> loopFile;
   late final ReadonlySignal<String> loadedPath;
   late final ReadonlySignal<bool> buffering;
-  late final ReadonlySignal<MediaFile?> currentVideo;
+  late final ReadonlySignal<MediaFile?> currentMedia;
   late final ReadonlySignal<int> currentPositionSeconds; // for UI
   late final ReadonlySignal<int> currentPositionFixedStep; // for UI
   ReadonlySignal<bool> get paused;
@@ -108,7 +108,7 @@ abstract class VideoPlayer with EffectDispose {
       return currentPosition ~/ stepSize;
     });
 
-    currentVideo = computed(() {
+    currentMedia = computed(() {
       final playlist = currentPlaylist.value;
       final entry = playlist.currentPlaylistItem.value;
       var filename = entry?.filename;
@@ -214,7 +214,7 @@ abstract class VideoPlayer with EffectDispose {
     }
   }
 
-  Future<Uint8List?> screenshot(String path) async {
+  Future<Uint8List?> screenshot() async {
     return await player.screenshot(
       format: 'image/jpeg',
       includeLibassSubtitles: false,

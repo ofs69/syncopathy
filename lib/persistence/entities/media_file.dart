@@ -79,6 +79,8 @@ class MediaFile {
   bool fileNotFound;
 
   final metadata = ToOne<MediaMetadata>();
+
+  final mainFunscript = ToOne<FunscriptFile>();
   final funscripts = ToMany<FunscriptFile>();
 
   @Backlink('entries')

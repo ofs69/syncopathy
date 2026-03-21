@@ -218,6 +218,7 @@ class MigrationService {
             fileHash: mediaHash,
             fileNotFound: mediaHash == null,
           );
+          media.mainFunscript.target = funscript;
           if (mediaHash != null) {
             mediaMap[mediaHash] = media;
           }

@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/helper/constants.dart';
+import 'package:syncopathy/helper/extensions.dart';
+import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/media_library/media_thumbnail.dart';
+import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
+import 'package:syncopathy/persistence/entities/media_metadata.dart';
 import 'package:syncopathy/persistence/media_file_extension.dart';
 
 class MediaItem extends StatefulWidget {
@@ -11,6 +18,11 @@ class MediaItem extends StatefulWidget {
   final bool showDuration;
   final bool showPlayCount;
   final bool showTitle;
+  final Function() onLongPress;
+  final Function() onTap;
+  final Function() toggleFavorite;
+  final Function() toggleDislike;
+  final Function() onDelete;
 
   const MediaItem({
     super.key,
@@ -21,13 +33,23 @@ class MediaItem extends StatefulWidget {
     required this.showDuration,
     required this.showPlayCount,
     required this.showTitle,
+    required this.onLongPress,
+    required this.onTap,
+    required this.toggleFavorite,
+    required this.toggleDislike,
+    required this.onDelete,
   });
 
   @override
   State<MediaItem> createState() => _MediaItemState();
 }
 
-class _MediaItemState extends State<MediaItem> {
+class _MediaItemState extends State<MediaItem> with SignalsMixin {
+  late final Signal<bool> _isHovering = createSignal(false);
+  late final Signal<bool> _isTapped = createSignal(false);
+  final MediaThumbnailController _thumbnailController =
+      MediaThumbnailController();
+
   String _formatDuration(double? duration) {
     if (duration == null) return '--:--';
     final minutes = (duration ~/ 60).toString().padLeft(2, '0');
@@ -39,6 +61,7 @@ class _MediaItemState extends State<MediaItem> {
     required IconData icon,
     required String? text,
     required String tooltipMessage,
+    required Color onSurface,
     Color color = Colors.black54, // Default to black54 for consistency
   }) {
     return Container(
@@ -51,16 +74,18 @@ class _MediaItemState extends State<MediaItem> {
         message: tooltipMessage,
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 12),
+            Icon(icon, color: onSurface, size: 12),
             if (text != null) const SizedBox(width: 4.0),
             if (text != null)
               Text(
                 text,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: onSurface,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
                 ),
               ),
           ],
@@ -72,77 +97,329 @@ class _MediaItemState extends State<MediaItem> {
   @override
   Widget build(BuildContext context) {
     final metadata = widget.media.retrieveMetadata();
+    final isTapped = _isTapped.watch(context);
+    final isHovering = _isHovering.watch(context);
+    return MouseRegion(
+      onEnter: (_) => _isHovering.value = true,
+      onExit: (_) => _isHovering.value = false,
+      child: LayoutBuilder(
+        builder: (context, constraints) =>
+            _buildCard(context, constraints, isHovering, isTapped, metadata),
+      ),
+    );
+  }
+
+  Card _buildCard(
+    BuildContext context,
+    BoxConstraints constraints,
+    bool isHovering,
+    bool isTapped,
+    Future<MediaMetadata?> metadata,
+  ) {
+    final playerModel = context.read<PlayerModel>();
+    final hasRating = widget.media.rating != MediaRating.noRating;
+    final isFavorite = widget.media.isFavorite;
+    final isDislike = widget.media.isDislike;
+    final currentlyOpen = playerModel.currentlyOpen.watch(context);
+    final isCurrentlyOpen = widget.media.id == currentlyOpen?.media.id;
+    final mainFunscript = widget.media.mainFunscript.target;
+
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+
+    var borderSide = switch ((
+      widget.media.rating,
+      widget.isSelected,
+      isCurrentlyOpen,
+    )) {
+      // currently selected
+      (_, true, _) => BorderSide(
+        color: Theme.of(context).colorScheme.primary,
+        width: 3.0,
+        strokeAlign: 1,
+      ),
+      // currently open
+      (_, _, true) => BorderSide(
+        color: Colors.green,
+        width: 5.0,
+        strokeAlign: 1,
+      ),
+      // no rating
+      (MediaRating.noRating, _, _) => BorderSide(
+        color: Theme.of(context).colorScheme.onSecondary,
+        width: 2.0,
+        strokeAlign: 1,
+      ),
+      (null, _, _) => BorderSide(
+        color: Theme.of(context).colorScheme.onSecondary,
+        width: 2.0,
+        strokeAlign: 1,
+      ),
+      // favorite
+      (MediaRating.like, _, _) => BorderSide(
+        color: favoriteColor,
+        width: 3.0,
+        strokeAlign: 1,
+      ),
+      // dislike
+      (MediaRating.dislike, _, _) => BorderSide(
+        color: dislikeColor,
+        width: 3.0,
+        strokeAlign: 1,
+      ),
+    };
 
     return Card(
-      clipBehavior: Clip.antiAlias,
+      clipBehavior: Clip.none,
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: Theme.of(context).colorScheme.primary),
-        borderRadius: BorderRadiusGeometry.circular(8.0),
+        side: borderSide,
+        borderRadius: BorderRadiusGeometry.circular(4.0),
       ),
       child: Stack(
         fit: StackFit.expand,
 
         children: [
-          MediaThumbnail(media: widget.media),
-          Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Align(
-              alignment: AlignmentGeometry.topRight,
+          GestureDetector(
+            onTapDown: (_) => _isTapped.value = true,
+            onTapUp: (_) => _isTapped.value = false,
+            onLongPress: () {
+              _isTapped.value = false;
+              widget.onLongPress();
+            },
+            onTap: widget.onTap,
+            onSecondaryTapUp: _showContextMenu,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadiusGeometry.circular(4.0),
+                  clipBehavior: Clip.hardEdge,
+                  child: AnimatedScale(
+                    scale: isTapped ? 1.0 : (isHovering ? 1.10 : 1.00),
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    child: MediaThumbnail(
+                      media: widget.media,
+                      controller: _thumbnailController,
+                    ),
+                  ),
+                ),
+                if (widget.isSelected)
+                  Container(
+                    color: Theme.of(context).primaryColor.withAlphaF(0.5),
+                    child: Icon(
+                      Icons.check_circle,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Align(
+                    alignment: AlignmentGeometry.topRight,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            if (widget.showDuration)
+                              FutureBuilder(
+                                future: metadata,
+                                builder: (context, metadata) {
+                                  return _buildStatisticItem(
+                                    icon: Icons.timer,
+                                    onSurface: onSurface,
+                                    text: _formatDuration(
+                                      metadata.data?.duration,
+                                    ),
+                                    tooltipMessage: "Duration",
+                                  );
+                                },
+                              ),
+                            if (widget.showPlayCount)
+                              const SizedBox(height: 0.0, width: 2.0),
+
+                            // Play count indicator
+                            if (widget.showPlayCount)
+                              _buildStatisticItem(
+                                onSurface: onSurface,
+                                icon: widget.media.playCount > 0
+                                    ? Icons.play_arrow
+                                    : Icons.visibility_off,
+                                text: widget.media.playCount > 0
+                                    ? widget.media.playCount > 999
+                                          ? '999+'
+                                          : '${widget.media.playCount}'
+                                    : null,
+                                tooltipMessage: widget.media.playCount > 0
+                                    ? 'Watched ${widget.media.playCount} times'
+                                    : 'Not watched yet',
+                                color: Colors.black54,
+                              ),
+                          ],
+                        ),
+                        if (widget.showAverageSpeed)
+                          const SizedBox(height: 2.0),
+                        if (widget.showAverageSpeed && mainFunscript != null)
+                          _buildStatisticItem(
+                            onSurface: onSurface,
+                            icon: Icons.speed,
+                            text: '${mainFunscript.averageSpeed.round()}',
+                            tooltipMessage: "Average Speed",
+                          ),
+                        if (widget.showAverageMinMax)
+                          const SizedBox(height: 2.0, width: 0.0),
+                        if (widget.showAverageMinMax && mainFunscript != null)
+                          _buildStatisticItem(
+                            onSurface: onSurface,
+                            icon: Icons.stacked_line_chart,
+                            text:
+                                '${mainFunscript.averageMin.round()}-${mainFunscript.averageMax.round()}',
+                            tooltipMessage: "Average Min / Max",
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                AnimatedOpacity(
+                  opacity: widget.showTitle || isHovering ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Align(
+                    alignment: AlignmentGeometry.bottomCenter,
+                    child: Container(
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.transparent, Colors.black],
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(8.0),
+                      child: Tooltip(
+                        message: widget.media.name,
+                        child: Text(
+                          widget.media.name,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleSmall?.copyWith(color: onSurface),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 4,
+            left: 4,
+            child: AnimatedOpacity(
+              opacity: isHovering || hasRating ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 100),
               child: Column(
                 children: [
-                  if (widget.showDuration)
-                    FutureBuilder(
-                      future: metadata,
-                      builder: (context, metadata) {
-                        return _buildStatisticItem(
-                          icon: Icons.timer,
-                          text: _formatDuration(metadata.data?.duration),
-                          tooltipMessage: "Duration",
-                        );
-                      },
+                  if (isFavorite || !hasRating)
+                    _buildActionButton(
+                      constraints: constraints,
+                      icon: isFavorite ? Icons.star : Icons.star_border,
+                      color: isFavorite ? favoriteColor : onSurface,
+                      onTap: widget.toggleFavorite,
+                    ),
+                  if (!hasRating) const SizedBox(height: 4),
+                  if (isDislike || !hasRating)
+                    _buildActionButton(
+                      constraints: constraints,
+                      icon: isDislike
+                          ? Icons.thumb_down
+                          : Icons.thumb_down_outlined,
+                      color: isDislike ? dislikeColor : onSurface,
+                      onTap: widget.toggleDislike,
                     ),
                 ],
               ),
             ),
           ),
-          if (widget.isSelected)
-            Container(
-              color: Theme.of(context).primaryColor.withAlpha(130),
-              child: Icon(Icons.check_circle, color: Colors.white),
-            ),
-
-          AnimatedOpacity(
-            opacity: widget.showTitle ? 1.0 : 0.0, //|| _isHovering ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 200),
-            child: Align(
-              alignment: AlignmentGeometry.bottomCenter,
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black],
-                  ),
-                ),
-                padding: const EdgeInsets.all(8.0),
-                child: Tooltip(
-                  message: widget.media.name,
-                  child: Text(
-                    widget.media.name,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleSmall?.copyWith(color: Colors.white),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    required BoxConstraints constraints,
+  }) {
+    // Calculate sizes based on the width of the card
+    final double iconSize = constraints.maxWidth * 0.07;
+    final double paddingSize = constraints.maxWidth * 0.03;
+
+    return IconButton(
+      onPressed: onTap,
+      icon: Icon(icon),
+      iconSize: iconSize.clamp(12.0, 24.0),
+      color: color,
+      constraints: const BoxConstraints(),
+      padding: EdgeInsets.all(paddingSize.clamp(2.0, 8.0)),
+      style: IconButton.styleFrom(
+        backgroundColor: Colors.black45,
+        shape: const CircleBorder(),
+        side: const BorderSide(color: Colors.white10, width: 1.0),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+    );
+  }
+
+  List<PopupMenuEntry<dynamic>> _buildMenuItems(BuildContext context) {
+    final playerModel = context.read<PlayerModel>();
+    final isCurrentlyOpen =
+        playerModel.currentlyOpen.value?.media.id == widget.media.id;
+
+    return [
+      PopupMenuItem(
+        onTap: () => _thumbnailController.regenerateThumbnail(),
+        child: const Text('Regenerate Thumbnail'),
+      ),
+      if (isCurrentlyOpen)
+        PopupMenuItem(
+          onTap: () => _thumbnailController.currentFrameAsThumbnail(),
+          child: const Text('Current frame as thumbnail'),
+        ),
+      PopupMenuItem(
+        onTap: () async {
+          await PlatformUtils.openFileExplorer(widget.media.mediaPath);
+        },
+        child: const Text('Open video file directory'),
+      ),
+      const PopupMenuDivider(height: 1, thickness: 1),
+      PopupMenuItem(
+        onTap: widget.onDelete,
+        child: const Text(
+          'Delete Script & Video',
+          style: TextStyle(color: Colors.red),
+        ),
+      ),
+    ];
+  }
+
+  void _showContextMenu(TapUpDetails details) async {
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+
+    final RelativeRect position = RelativeRect.fromRect(
+      Rect.fromLTWH(details.globalPosition.dx, details.globalPosition.dy, 0, 0),
+      Offset.zero & overlay.size,
+    );
+
+    await showMenu(
+      context: context,
+      position: position,
+      menuPadding: EdgeInsets.zero,
+      items: _buildMenuItems(context),
+      elevation: 8.0,
     );
   }
 }

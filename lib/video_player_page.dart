@@ -71,7 +71,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                     ),
                   ),
                 )
-              : const SizedBox.shrink(),
+              : const SizedBox.shrink(key: ValueKey("no_loading_overlay")),
         ),
       ],
     );

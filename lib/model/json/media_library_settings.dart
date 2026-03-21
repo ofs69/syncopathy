@@ -22,7 +22,7 @@ class MediaLibrarySettings {
     this.sortOption = SortOption.title,
     this.isSortAscending = true,
     this.videosPerRow = 4,
-    this.showVideoTitles = true,
+    this.showVideoTitles = false,
     this.showAverageSpeed = true,
     this.showAverageMinMax = true,
     this.showDuration = true,

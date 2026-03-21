@@ -20,9 +20,9 @@ class FunscriptFile {
 
   String? funscriptHash;
 
-  double? averageSpeed;
-  double? averageMin;
-  double? averageMax;
+  double averageSpeed;
+  double averageMin;
+  double averageMax;
 
   bool isScriptToken;
   bool fileNotFound;

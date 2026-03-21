@@ -24,63 +24,63 @@ export 'package:objectbox/objectbox.dart'; // so that callers only have to impor
 
 final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(1, 3219496639384347202),
+    id: const obx_int.IdUid(1, 6721894957622329438),
     name: 'FunscriptFile',
-    lastPropertyId: const obx_int.IdUid(9, 8699706811283320298),
+    lastPropertyId: const obx_int.IdUid(9, 7117044257309832574),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 544451931526549569),
+        id: const obx_int.IdUid(1, 5344860597020906881),
         name: 'id',
         type: 6,
         flags: 1,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 7415342242115468548),
+        id: const obx_int.IdUid(2, 6369810481837526684),
         name: 'path',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 5879006174032091340),
+        id: const obx_int.IdUid(3, 2122774965455246393),
         name: 'metadataDb',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 2508859724774226441),
+        id: const obx_int.IdUid(4, 4404486450253767010),
+        name: 'funscriptHash',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 8562337990343238772),
         name: 'averageSpeed',
         type: 8,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(5, 5201895075907739983),
+        id: const obx_int.IdUid(6, 2035956539130872600),
         name: 'averageMin',
         type: 8,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(6, 8799547219695408442),
+        id: const obx_int.IdUid(7, 6378628159952366043),
         name: 'averageMax',
         type: 8,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(7, 6264087831747827271),
+        id: const obx_int.IdUid(8, 503151519764925209),
         name: 'isScriptToken',
         type: 1,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(8, 1192653931630359167),
+        id: const obx_int.IdUid(9, 7117044257309832574),
         name: 'fileNotFound',
         type: 1,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(9, 8699706811283320298),
-        name: 'funscriptHash',
-        type: 9,
         flags: 0,
       ),
     ],
@@ -94,26 +94,26 @@ final _entities = <obx_int.ModelEntity>[
     ],
   ),
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(2, 8740272797263362199),
+    id: const obx_int.IdUid(2, 7674550725051663938),
     name: 'KeyValue',
-    lastPropertyId: const obx_int.IdUid(3, 2005790746492908580),
+    lastPropertyId: const obx_int.IdUid(3, 9082959352345638832),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 2173718971814955582),
+        id: const obx_int.IdUid(1, 3219829787470920094),
         name: 'id',
         type: 6,
         flags: 1,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 6286688980291392565),
+        id: const obx_int.IdUid(2, 8279721603043076064),
         name: 'key',
         type: 9,
         flags: 34848,
-        indexId: const obx_int.IdUid(1, 4725448222532186421),
+        indexId: const obx_int.IdUid(1, 6206695141068141028),
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 2005790746492908580),
+        id: const obx_int.IdUid(3, 9082959352345638832),
         name: 'value',
         type: 9,
         flags: 0,
@@ -123,81 +123,90 @@ final _entities = <obx_int.ModelEntity>[
     backlinks: <obx_int.ModelBacklink>[],
   ),
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(3, 3710699957890056828),
+    id: const obx_int.IdUid(3, 9071081501648173308),
     name: 'MediaFile',
-    lastPropertyId: const obx_int.IdUid(10, 341697019153872004),
+    lastPropertyId: const obx_int.IdUid(11, 7639782100621504112),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 1152031283943436031),
+        id: const obx_int.IdUid(1, 2459842670283849194),
         name: 'id',
         type: 6,
         flags: 1,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 1956128148933788160),
+        id: const obx_int.IdUid(2, 7163213913672456924),
         name: 'dbType',
         type: 6,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 8399570820136435836),
+        id: const obx_int.IdUid(3, 9102323203500349783),
         name: 'dbRating',
         type: 6,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 8609463453565965569),
+        id: const obx_int.IdUid(4, 4772981549358255707),
         name: 'fileHash',
         type: 9,
         flags: 40,
-        indexId: const obx_int.IdUid(2, 7798586664701991159),
+        indexId: const obx_int.IdUid(2, 4897266285626196375),
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(5, 3502192990721836612),
+        id: const obx_int.IdUid(5, 3544771685604182159),
         name: 'name',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(6, 7034051495852700070),
+        id: const obx_int.IdUid(6, 662721477061299319),
         name: 'dbAliases',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(7, 2152491815590862272),
+        id: const obx_int.IdUid(7, 4663251282778927414),
         name: 'mediaPath',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(8, 5683659452998421214),
+        id: const obx_int.IdUid(8, 5350016031430485967),
         name: 'playCount',
         type: 6,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(9, 9194032750295490654),
+        id: const obx_int.IdUid(9, 532169928426936197),
         name: 'fileNotFound',
         type: 1,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(10, 341697019153872004),
+        id: const obx_int.IdUid(10, 4507288092959833377),
         name: 'metadataId',
         type: 11,
         flags: 520,
-        indexId: const obx_int.IdUid(3, 1923876799047175994),
+        indexId: const obx_int.IdUid(3, 4663592735602559600),
         relationField: 'metadata',
         relationTarget: 'MediaMetadata',
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 7639782100621504112),
+        name: 'mainFunscriptId',
+        type: 11,
+        flags: 520,
+        indexId: const obx_int.IdUid(4, 1808176005500392495),
+        relationField: 'mainFunscript',
+        relationTarget: 'FunscriptFile',
       ),
     ],
     relations: <obx_int.ModelRelation>[
       obx_int.ModelRelation(
-        id: const obx_int.IdUid(1, 3815930863499625899),
+        id: const obx_int.IdUid(1, 4369759362702757159),
         name: 'funscripts',
-        targetId: const obx_int.IdUid(1, 3219496639384347202),
+        targetId: const obx_int.IdUid(1, 6721894957622329438),
       ),
     ],
     backlinks: <obx_int.ModelBacklink>[
@@ -209,85 +218,85 @@ final _entities = <obx_int.ModelEntity>[
     ],
   ),
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(4, 2902712239816057091),
+    id: const obx_int.IdUid(4, 3798506222748057429),
     name: 'MediaMetadata',
-    lastPropertyId: const obx_int.IdUid(13, 401742151025198939),
+    lastPropertyId: const obx_int.IdUid(13, 6350099887193462324),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 8242213517760070504),
+        id: const obx_int.IdUid(1, 1251389638291966319),
         name: 'id',
         type: 6,
         flags: 1,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 3839278152268485291),
+        id: const obx_int.IdUid(2, 6217182915302439762),
         name: 'duration',
         type: 8,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 5911998777044483267),
+        id: const obx_int.IdUid(3, 7104058348882122449),
         name: 'width',
         type: 6,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 6579768563598944648),
+        id: const obx_int.IdUid(4, 6528590328858852699),
         name: 'height',
         type: 6,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(5, 4241841534161969409),
+        id: const obx_int.IdUid(5, 6490084546095589020),
         name: 'videoCodec',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(6, 6857031171232639),
+        id: const obx_int.IdUid(6, 5583060834586545550),
         name: 'audioCodec',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(7, 47939233400207390),
+        id: const obx_int.IdUid(7, 6976266162093139583),
         name: 'bitRate',
         type: 6,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(8, 1899908243335414827),
+        id: const obx_int.IdUid(8, 1426896271963727519),
         name: 'rotation',
         type: 6,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(9, 2125973077982087302),
+        id: const obx_int.IdUid(9, 1198793567372423600),
         name: 'frameRate',
         type: 8,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(10, 6999063185334142029),
+        id: const obx_int.IdUid(10, 7194026950691526660),
         name: 'audioChannels',
         type: 6,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(11, 7070836592493362949),
+        id: const obx_int.IdUid(11, 5549035287497801629),
         name: 'pixelFormat',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(12, 7599644179053761675),
+        id: const obx_int.IdUid(12, 6347364791147014947),
         name: 'aspectRatio',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(13, 401742151025198939),
+        id: const obx_int.IdUid(13, 6350099887193462324),
         name: 'creationTime',
         type: 10,
         flags: 0,
@@ -297,32 +306,32 @@ final _entities = <obx_int.ModelEntity>[
     backlinks: <obx_int.ModelBacklink>[],
   ),
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(5, 6121168903123122347),
+    id: const obx_int.IdUid(5, 1260086361330587750),
     name: 'UserCategory',
-    lastPropertyId: const obx_int.IdUid(4, 4608318132471534050),
+    lastPropertyId: const obx_int.IdUid(4, 8595775567884591280),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 8090194081880541351),
+        id: const obx_int.IdUid(1, 4054058505120431548),
         name: 'id',
         type: 6,
         flags: 1,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 7010415921103461448),
+        id: const obx_int.IdUid(2, 5437909343206654273),
         name: 'name',
         type: 9,
         flags: 2080,
-        indexId: const obx_int.IdUid(4, 5940848720862435631),
+        indexId: const obx_int.IdUid(5, 6057485892732913392),
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 2275091833600634290),
+        id: const obx_int.IdUid(3, 980155483226409642),
         name: 'description',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 4608318132471534050),
+        id: const obx_int.IdUid(4, 8595775567884591280),
         name: 'sortOrder',
         type: 6,
         flags: 0,
@@ -330,9 +339,9 @@ final _entities = <obx_int.ModelEntity>[
     ],
     relations: <obx_int.ModelRelation>[
       obx_int.ModelRelation(
-        id: const obx_int.IdUid(2, 5865807660553110758),
+        id: const obx_int.IdUid(2, 7266238481079671849),
         name: 'entries',
-        targetId: const obx_int.IdUid(3, 3710699957890056828),
+        targetId: const obx_int.IdUid(3, 9071081501648173308),
       ),
     ],
     backlinks: <obx_int.ModelBacklink>[],
@@ -382,9 +391,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(5, 6121168903123122347),
-    lastIndexId: const obx_int.IdUid(4, 5940848720862435631),
-    lastRelationId: const obx_int.IdUid(2, 5865807660553110758),
+    lastEntityId: const obx_int.IdUid(5, 1260086361330587750),
+    lastIndexId: const obx_int.IdUid(5, 6057485892732913392),
+    lastRelationId: const obx_int.IdUid(2, 7266238481079671849),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
     retiredIndexUids: const [],
@@ -418,12 +427,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, pathOffset);
         fbb.addOffset(2, metadataDbOffset);
-        fbb.addFloat64(3, object.averageSpeed);
-        fbb.addFloat64(4, object.averageMin);
-        fbb.addFloat64(5, object.averageMax);
-        fbb.addBool(6, object.isScriptToken);
-        fbb.addBool(7, object.fileNotFound);
-        fbb.addOffset(8, funscriptHashOffset);
+        fbb.addOffset(3, funscriptHashOffset);
+        fbb.addFloat64(4, object.averageSpeed);
+        fbb.addFloat64(5, object.averageMin);
+        fbb.addFloat64(6, object.averageMax);
+        fbb.addBool(7, object.isScriptToken);
+        fbb.addBool(8, object.fileNotFound);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -433,36 +442,39 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final pathParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 6, '');
-        final averageSpeedParam = const fb.Float64Reader().vTableGetNullable(
-          buffer,
-          rootOffset,
-          10,
-        );
-        final averageMinParam = const fb.Float64Reader().vTableGetNullable(
+        final averageSpeedParam = const fb.Float64Reader().vTableGet(
           buffer,
           rootOffset,
           12,
+          0,
         );
-        final averageMaxParam = const fb.Float64Reader().vTableGetNullable(
+        final averageMinParam = const fb.Float64Reader().vTableGet(
           buffer,
           rootOffset,
           14,
+          0,
         );
-        final isScriptTokenParam = const fb.BoolReader().vTableGet(
+        final averageMaxParam = const fb.Float64Reader().vTableGet(
           buffer,
           rootOffset,
           16,
-          false,
+          0,
         );
-        final fileNotFoundParam = const fb.BoolReader().vTableGet(
+        final isScriptTokenParam = const fb.BoolReader().vTableGet(
           buffer,
           rootOffset,
           18,
           false,
         );
+        final fileNotFoundParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          20,
+          false,
+        );
         final funscriptHashParam = const fb.StringReader(
           asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 20);
+        ).vTableGetNullable(buffer, rootOffset, 10);
         final object =
             FunscriptFile(
                 path: pathParam,
@@ -520,7 +532,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
     ),
     MediaFile: obx_int.EntityDefinition<MediaFile>(
       model: _entities[2],
-      toOneRelations: (MediaFile object) => [object.metadata],
+      toOneRelations: (MediaFile object) => [
+        object.metadata,
+        object.mainFunscript,
+      ],
       toManyRelations: (MediaFile object) => {
         obx_int.RelInfo<MediaFile>.toMany(1, object.id): object.funscripts,
         obx_int.RelInfo<UserCategory>.toManyBacklink(2, object.id):
@@ -537,7 +552,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final nameOffset = fbb.writeString(object.name);
         final dbAliasesOffset = fbb.writeString(object.dbAliases);
         final mediaPathOffset = fbb.writeString(object.mediaPath);
-        fbb.startTable(11);
+        fbb.startTable(12);
         fbb.addInt64(0, object.id);
         fbb.addInt64(1, object.dbType);
         fbb.addInt64(2, object.dbRating);
@@ -548,6 +563,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addInt64(7, object.playCount);
         fbb.addBool(8, object.fileNotFound);
         fbb.addInt64(9, object.metadata.targetId);
+        fbb.addInt64(10, object.mainFunscript.targetId);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -604,6 +620,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
           0,
         );
         object.metadata.attach(store);
+        object.mainFunscript.targetId = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          24,
+          0,
+        );
+        object.mainFunscript.attach(store);
         obx_int.InternalToManyAccess.setRelInfo<MediaFile>(
           object.funscripts,
           store,
@@ -808,33 +831,33 @@ class FunscriptFile_ {
     _entities[0].properties[2],
   );
 
+  /// See [FunscriptFile.funscriptHash].
+  static final funscriptHash = obx.QueryStringProperty<FunscriptFile>(
+    _entities[0].properties[3],
+  );
+
   /// See [FunscriptFile.averageSpeed].
   static final averageSpeed = obx.QueryDoubleProperty<FunscriptFile>(
-    _entities[0].properties[3],
+    _entities[0].properties[4],
   );
 
   /// See [FunscriptFile.averageMin].
   static final averageMin = obx.QueryDoubleProperty<FunscriptFile>(
-    _entities[0].properties[4],
+    _entities[0].properties[5],
   );
 
   /// See [FunscriptFile.averageMax].
   static final averageMax = obx.QueryDoubleProperty<FunscriptFile>(
-    _entities[0].properties[5],
+    _entities[0].properties[6],
   );
 
   /// See [FunscriptFile.isScriptToken].
   static final isScriptToken = obx.QueryBooleanProperty<FunscriptFile>(
-    _entities[0].properties[6],
+    _entities[0].properties[7],
   );
 
   /// See [FunscriptFile.fileNotFound].
   static final fileNotFound = obx.QueryBooleanProperty<FunscriptFile>(
-    _entities[0].properties[7],
-  );
-
-  /// See [FunscriptFile.funscriptHash].
-  static final funscriptHash = obx.QueryStringProperty<FunscriptFile>(
     _entities[0].properties[8],
   );
 }
@@ -907,6 +930,11 @@ class MediaFile_ {
   /// See [MediaFile.metadata].
   static final metadata = obx.QueryRelationToOne<MediaFile, MediaMetadata>(
     _entities[2].properties[9],
+  );
+
+  /// See [MediaFile.mainFunscript].
+  static final mainFunscript = obx.QueryRelationToOne<MediaFile, FunscriptFile>(
+    _entities[2].properties[10],
   );
 
   /// see [MediaFile.funscripts]

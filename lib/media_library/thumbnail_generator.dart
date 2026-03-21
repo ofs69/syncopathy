@@ -14,8 +14,14 @@ class ThumbnailRequest extends BaseRequest {
   @override
   int get id => file.id;
   final MediaFile file;
+  final double seekFraction;
+  final bool regenerate;
 
-  ThumbnailRequest({required this.file});
+  ThumbnailRequest({
+    required this.file,
+    this.seekFraction = 0.01,
+    this.regenerate = false,
+  });
 }
 
 class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
@@ -39,20 +45,17 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
       p.join(appDataPath.path, 'thumbnails', fileHash!),
     );
 
-    if (await thumbnailFile.exists()) {
+    if (!request.regenerate && await thumbnailFile.exists()) {
       return await thumbnailFile.readAsBytes();
     }
 
     return await _pool.withResource(() async {
-      final file = await _generateThumbnailAndGetPath(request, 0.01);
+      final file = await _generateThumbnailAndGetPath(request);
       return await file?.readAsBytes();
     });
   }
 
-  Future<File?> _generateThumbnailAndGetPath(
-    ThumbnailRequest request,
-    double? seekFraction,
-  ) async {
+  Future<File?> _generateThumbnailAndGetPath(ThumbnailRequest request) async {
     try {
       final fileHash = request.file.fileHash;
       if (fileHash == null) return null;
@@ -63,11 +66,13 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
       final thumbDir = Directory(p.join(appDataPath.path, 'thumbnails'));
       await thumbDir.create(recursive: true);
       final thumbnailFile = File(p.join(thumbDir.path, fileHash));
-      if (await thumbnailFile.exists()) return thumbnailFile;
+      if (!request.regenerate && await thumbnailFile.exists()) {
+        return thumbnailFile;
+      }
 
       double? seekTimeSeconds;
-      if (seekFraction != null && metadata.duration > 0) {
-        seekTimeSeconds = metadata.duration * seekFraction;
+      if (metadata.duration > 0) {
+        seekTimeSeconds = metadata.duration * request.seekFraction;
       }
 
       List<String> ffmpegArgs = [

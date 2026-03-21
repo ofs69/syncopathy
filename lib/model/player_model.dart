@@ -51,11 +51,11 @@ class PlayerModel with EffectDispose {
     playerBackend = signal(null);
 
     currentlyOpen = computed(() {
-      final video = untracked(() => player.currentVideo.value);
+      final media = untracked(() => player.currentMedia.value);
       final funscript = _currentFunscript.value;
 
-      if (video != null && funscript != null) {
-        return MediaFunscript(media: video, funscript: funscript);
+      if (media != null && funscript != null) {
+        return MediaFunscript(media: media, funscript: funscript);
       }
       return null;
     });
@@ -119,7 +119,7 @@ class PlayerModel with EffectDispose {
   void simpleModeEffects(VideoPlayer player) {
     effectAdd([
       effect(() async {
-        final video = player.currentVideo.value;
+        final media = player.currentMedia.value;
         final funscript = simpleModeFunscript.value;
         final totalDuration = player.duration.value;
         final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
@@ -129,7 +129,7 @@ class PlayerModel with EffectDispose {
         final playbackSpeed = player.playbackSpeed.value;
         final strokeRange = _settings.minMaxRange.value;
 
-        if (video == null || totalDuration == null || totalDuration < 0.1) {
+        if (media == null || totalDuration == null || totalDuration < 0.1) {
           __currentFunscript.value = null;
           return null;
         }
@@ -161,49 +161,58 @@ class PlayerModel with EffectDispose {
   void regularEffects(VideoPlayer player) {
     effectAdd([
       effect(() async {
-        // TODO: find out how to load the funscript in the new data model
-        // final video = player.currentVideo.value;
-        // final totalDuration = player.duration.value;
-        // final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
-        // final rdpEpsilon = _settings.rdpEpsilon.value;
-        // final remapFullRange = _settings.remapFullRange.value;
-        // final invert = _settings.invert.value;
-        // final playbackSpeed = player.playbackSpeed.value;
-        // final strokeRange = _settings.minMaxRange.value;
+        final media = player.currentMedia.value;
+        final totalDuration = player.duration.value;
+        final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
+        final rdpEpsilon = _settings.rdpEpsilon.value;
+        final remapFullRange = _settings.remapFullRange.value;
+        final invert = _settings.invert.value;
+        final playbackSpeed = player.playbackSpeed.value;
+        final strokeRange = _settings.minMaxRange.value;
 
-        // if (video == null || totalDuration == null || totalDuration < 0.1) {
-        //   __currentFunscript.value = null;
-        //   return null;
-        // }
-        // try {
-        //   if (video.funscript == null) {
-        //     await video.loadFunscript();
-        //   }
-        //   final funscript = video.funscript;
-        //   if (funscript?.likelyScriptToken ?? false) {
-        //     Logger.warning("Script token playback is not supported.");
-        //     return null;
-        //   }
-        //   if (funscript != null) {
-        //     untracked(() {
-        //       _processFunscript(
-        //         funscript,
-        //         slewMaxRateOfChange,
-        //         rdpEpsilon,
-        //         remapFullRange,
-        //         invert,
-        //         totalDuration,
-        //         playbackSpeed,
-        //         strokeRange,
-        //       );
-        //     });
-        //   }
-        //   __currentFunscript.value = funscript;
-        // } catch (_) {}
+        final funscriptFile = media?.funscripts.firstOrNull;
+
+        if (media == null ||
+            funscriptFile == null ||
+            totalDuration == null ||
+            totalDuration < 0.1) {
+          __currentFunscript.value = null;
+          return null;
+        }
+        try {
+          Funscript? funscript;
+          if (__currentFunscript.value == null ||
+              (__currentFunscript.value != null &&
+                  __currentFunscript.value?.filePath != funscriptFile.path)) {
+            funscript = await Funscript.fromFile(funscriptFile.path);
+          } else {
+            funscript = __currentFunscript.value;
+          }
+
+          if (funscript?.likelyScriptToken ?? false) {
+            Logger.warning("Script token playback is not supported.");
+            return null;
+          }
+          untracked(() {
+            if (funscript != null) {
+              _processFunscript(
+                funscript,
+                slewMaxRateOfChange,
+                rdpEpsilon,
+                remapFullRange,
+                invert,
+                totalDuration,
+                playbackSpeed,
+                strokeRange,
+              );
+            }
+          });
+          __currentFunscript.value = funscript;
+        } catch (_) {}
       }),
       // View counting logic
       effect(() {
-        final _ = player.currentVideo.value;
+        final _ = player.currentMedia.value;
         _videoViewCounted = false;
       }),
       effect(() {

@@ -1,4 +1,7 @@
 // A wrapper around the FunscriptJson class
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:signals/signals_flutter.dart';
@@ -57,5 +60,11 @@ class Funscript {
   static Funscript fromJson(Map<String, dynamic> funscriptMap, String path) {
     final json = FunscriptJson.fromJson(funscriptMap);
     return Funscript(json: json, filePath: path);
+  }
+
+  static Future<Funscript?> fromFile(String path) async {
+    final jsonString = await File(path).readAsString();
+    final json = jsonDecode(jsonString);
+    return fromJson(json, path);
   }
 }

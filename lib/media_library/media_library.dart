@@ -47,11 +47,8 @@ class MediaLibrary extends StatefulWidget {
 class _MediaLibraryState extends State<MediaLibrary>
     with SignalsMixin, EffectDispose {
   // filtered media
-  late final ReadonlySignal<List<MediaFile>> filteredMedia = computed(() {
-    final _ = oBox.mediaService.allMediaFiles.value;
-    final query = searchQuery.value;
-    return oBox.mediaService.findByQuery(query);
-  });
+  late final ReadonlySignal<List<MediaFile>> filteredMedia = computed(_filterSignal);
+
 
   // filters
   late final Signal<String> searchQuery = createSignal("");
@@ -76,11 +73,6 @@ class _MediaLibraryState extends State<MediaLibrary>
   void initState() {
     super.initState();
     isIndexing = getIt.get<MediaManager>().isIndexing;
-    effectAdd([
-      // effect(() {
-      //   final _ = oBox.mediaService.allMediaFiles.value;
-      // }),
-    ]);
   }
 
   @override
@@ -89,6 +81,12 @@ class _MediaLibraryState extends State<MediaLibrary>
     effectDispose();
   }
 
+  List<MediaFile> _filterSignal() {
+    final _ = oBox.mediaService.allMediaFiles.value;
+    final query = searchQuery.value;
+    return oBox.mediaService.findByQuery(query);
+  }
+  
   @override
   Widget build(BuildContext context) {
     final currentlyFiltering = isFiltering.watch(context);
@@ -220,8 +218,6 @@ class _MediaLibraryState extends State<MediaLibrary>
                         padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: videosPerRow,
-                          crossAxisSpacing: 4.0,
-                          mainAxisSpacing: 4.0,
                           childAspectRatio:
                               16 / 9, // Standard 16:9 video aspect ratio
                         ),
@@ -230,7 +226,15 @@ class _MediaLibraryState extends State<MediaLibrary>
                           final media = filteredMedia[index];
                           final isSelected = selectedVideos.contains(media);
 
-                          return GestureDetector(
+                          return MediaItem(
+                            key: Key(media.mediaPath),
+                            media: media,
+                            isSelected: isSelected,
+                            showAverageMinMax: showAverageMinMax,
+                            showAverageSpeed: showAverageSpeed,
+                            showDuration: showDuration,
+                            showPlayCount: showPlayCount,
+                            showTitle: showTitle,
                             onLongPress: () {
                               if (isSelected) {
                                 selectedVideos.remove(media);
@@ -247,61 +251,22 @@ class _MediaLibraryState extends State<MediaLibrary>
                                 }
                               } else {
                                 // play media
+                                getIt.get<VideoPlayer>().openSingleVideo(media);
                               }
                             },
-                            child: MediaItem(
-                              key: Key(media.mediaPath),
-                              media: media,
-                              isSelected: isSelected,
-                              showAverageMinMax: showAverageMinMax,
-                              showAverageSpeed: showAverageSpeed,
-                              showDuration: showDuration,
-                              showPlayCount: showPlayCount,
-                              showTitle: showTitle,
-
-                              // onVideoTapped: (video) {
-                              //   if (_isSelectionMode) {
-                              //     if (isSelected) {
-                              //       _selectedVideos.remove(video);
-                              //     } else {
-                              //       _selectedVideos.add(video);
-                              //     }
-                              //   } else {
-                              //     widget.onVideoTapped(video);
-                              //   }
-                              // },
-                              // onLongPress: () {
-                              //   if (isSelected) {
-                              //     _selectedVideos.remove(video);
-                              //   } else {
-                              //     _selectedVideos.add(video);
-                              //   }
-                              // },
-                              // onFavoriteChanged: (video) {
-                              //   mediaManager.saveFavorite(video);
-                              //   _updateVideosFromMediaSettings();
-                              // },
-                              // onDislikeChanged: (video) {
-                              //   mediaManager.saveDislike(video);
-                              //   _updateVideosFromMediaSettings();
-                              // },
-                              // onCategoryChanged:
-                              //     (video, category, removeCategory) {
-                              //       if (removeCategory) {
-                              //         mediaManager.removeVideoCategory(
-                              //           video,
-                              //           category,
-                              //         );
-                              //       } else {
-                              //         mediaManager.setVideoCategory(
-                              //           video,
-                              //           category,
-                              //         );
-                              //       }
-                              //       _updateVideosFromMediaSettings();
-                              //     },
-                              // onDelete: _deleteVideo,
-                            ),
+                            toggleDislike: () {
+                              media.rating = media.rating != MediaRating.dislike
+                                  ? MediaRating.dislike
+                                  : MediaRating.noRating;
+                              oBox.mediaService.save(media);
+                            },
+                            toggleFavorite: () {
+                              media.rating = media.rating != MediaRating.like
+                                  ? MediaRating.like
+                                  : MediaRating.noRating;
+                              oBox.mediaService.save(media);
+                            },
+                            onDelete: () {},
                           );
                         },
                       ),
@@ -358,6 +323,7 @@ class _MediaLibraryState extends State<MediaLibrary>
         ),
         const SizedBox(width: 8),
         MenuAnchor(
+          style: MenuStyle(padding: WidgetStatePropertyAll(EdgeInsets.zero)),
           builder: (context, controller, child) {
             return IconButton(
               onPressed: () {
@@ -374,6 +340,9 @@ class _MediaLibraryState extends State<MediaLibrary>
           menuChildren: [
             // videos per row
             SubmenuButton(
+              menuStyle: MenuStyle(
+                padding: WidgetStatePropertyAll(EdgeInsets.zero),
+              ),
               leadingIcon: const Icon(Icons.grid_view),
               menuChildren: List.generate(9, (i) => i + 2).map((int value) {
                 final isSelected = mediaSettings.videosPerRow.value == value;
@@ -390,7 +359,7 @@ class _MediaLibraryState extends State<MediaLibrary>
                 'Videos per row (${mediaSettings.videosPerRow.value})',
               ),
             ),
-            const Divider(),
+            const Divider(height: 1, thickness: 1),
             // filters
             ...VideoFilter.values.map((VideoFilter filter) {
               return _buildToggleItem(
@@ -408,8 +377,8 @@ class _MediaLibraryState extends State<MediaLibrary>
                 },
               );
             }),
-            const Divider(),
             // display changes
+            const Divider(height: 1, thickness: 1),
             _buildToggleItem(
               context: context,
               label: 'Separate Favorites/Dislikes',
@@ -417,7 +386,7 @@ class _MediaLibraryState extends State<MediaLibrary>
               onTap: () =>
                   mediaSettings.separateFavorites.value = !separateFavorites,
             ),
-            const Divider(),
+            const Divider(height: 1, thickness: 1),
             _buildToggleItem(
               context: context,
               label: 'Show Titles',
@@ -458,6 +427,7 @@ class _MediaLibraryState extends State<MediaLibrary>
           mainAxisSize: MainAxisSize.min,
           children: [
             PopupMenuButton<SortOption>(
+              menuPadding: EdgeInsets.zero,
               tooltip: "Sorting",
               borderRadius: BorderRadius.circular(16.0),
               onSelected: (option) => mediaSettings.sortOption.value = option,
