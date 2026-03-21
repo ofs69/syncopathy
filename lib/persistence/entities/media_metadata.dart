@@ -12,7 +12,7 @@ class MediaMetadata {
   String? audioCodec;
   int? bitRate;
   int? rotation;
-  String? frameRate;
+  double? frameRate;
   int? audioChannels;
   String? pixelFormat;
   String? aspectRatio;

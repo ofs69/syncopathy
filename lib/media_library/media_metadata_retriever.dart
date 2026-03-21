@@ -26,7 +26,7 @@ class MediaMetadataRetrieved {
   final String? audioCodec;
   final int? bitRate;
   final int? rotation;
-  final String? frameRate;
+  final double? frameRate;
   final int? audioChannels;
   final String? pixelFormat;
   final String? aspectRatio;
@@ -111,6 +111,15 @@ class MediaMetadataRetriever
         );
         rotation = displayMatrix?['rotation'] ?? 0;
       }
+      double? avgFrameRate;
+      if (video?['avg_frame_rate'] case String avgFrameRateString) {
+        var split = avgFrameRateString.split('/');
+        var d1 = double.tryParse(split[0]);
+        var d2 = double.tryParse(split[1]);
+        if (d1 != null && d2 != null) {
+          avgFrameRate = d1 / d2;
+        }
+      }
 
       return MediaMetadataRetrieved(
         duration: duration,
@@ -120,7 +129,7 @@ class MediaMetadataRetriever
         audioCodec: audio?['codec_name'],
         bitRate: int.tryParse(format['bit_rate']?.toString() ?? ''),
         rotation: rotation,
-        frameRate: video?['avg_frame_rate'],
+        frameRate: avgFrameRate,
         audioChannels: audio?['channels'],
         pixelFormat: video?['pix_fmt'],
         aspectRatio: video?['display_aspect_ratio'],
