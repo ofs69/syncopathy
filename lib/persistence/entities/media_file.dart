@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:objectbox/objectbox.dart';
 import 'package:syncopathy/persistence/entities/funscript_file.dart';
+import 'package:syncopathy/persistence/entities/media_metadata.dart';
 import 'package:syncopathy/persistence/entities/user_category.dart';
 
 enum MediaType {
@@ -74,10 +75,10 @@ class MediaFile {
   }
 
   String mediaPath;
-  double? duration;
   int playCount;
   bool fileNotFound;
 
+  final metadata = ToOne<MediaMetadata>();
   final funscripts = ToMany<FunscriptFile>();
 
   @Backlink('entries')
@@ -88,7 +89,6 @@ class MediaFile {
     required this.mediaPath,
     required this.fileHash,
     required this.playCount,
-    required this.duration,
     required this.fileNotFound,
     List<String>? aliases,
     this.type,

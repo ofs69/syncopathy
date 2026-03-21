@@ -71,7 +71,7 @@ class _MediaItemState extends State<MediaItem> {
 
   @override
   Widget build(BuildContext context) {
-    final duration = widget.media.retrieveDuration();
+    final metadata = widget.media.retrieveMetadata();
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -92,11 +92,11 @@ class _MediaItemState extends State<MediaItem> {
                 children: [
                   if (widget.showDuration)
                     FutureBuilder(
-                      future: duration,
-                      builder: (context, duration) {
+                      future: metadata,
+                      builder: (context, metadata) {
                         return _buildStatisticItem(
                           icon: Icons.timer,
-                          text: _formatDuration(duration.data),
+                          text: _formatDuration(metadata.data?.duration),
                           tooltipMessage: "Duration",
                         );
                       },

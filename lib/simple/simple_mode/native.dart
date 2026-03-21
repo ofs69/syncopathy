@@ -88,7 +88,6 @@ class SimpleMode {
       getIt.get<VideoPlayer>().openSingleVideo(
         MediaFile(
           name: name,
-          duration: null,
           mediaPath: path,
           playCount: 0,
           rating: MediaRating.noRating,

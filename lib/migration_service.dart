@@ -103,7 +103,7 @@ class MigrationService {
         progress.value = progressCounter / videos.length;
       }
 
-      statusSignal.value = "Writing to database...";
+      statusSignal.value = "Writing transaction...";
       progressCounter = 0;
       progress.value = 0.0;
     }
@@ -207,7 +207,6 @@ class MigrationService {
             (_, _) => MediaRating.noRating,
           };
           media = MediaFile(
-            duration: video.duration,
             mediaPath: video.videoPath,
             name: video.title,
             playCount: video.playCount,

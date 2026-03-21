@@ -1,109 +1,136 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:pool/pool.dart';
-import 'package:syncopathy/logging.dart';
+import 'package:syncopathy/helper/constants.dart';
+import 'package:syncopathy/helper/task_queue.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 
-class MetadataRequest {
+class MetadataRequest extends BaseRequest {
+  @override
   final int id;
   final String mediaPath;
-
-  MetadataRequest({required this.mediaPath, required this.id});
 
   static MetadataRequest fromMediaFile(MediaFile file) {
     return MetadataRequest(mediaPath: file.mediaPath, id: file.id);
   }
+
+  MetadataRequest({required this.id, required this.mediaPath});
 }
 
-class MediaMetadata {
-  final double mediaDuration;
+class MediaMetadataRetrieved {
+  final double duration;
+  final int? width;
+  final int? height;
+  final String? videoCodec;
+  final String? audioCodec;
+  final int? bitRate;
+  final int? rotation;
+  final String? frameRate;
+  final int? audioChannels;
+  final String? pixelFormat;
+  final String? aspectRatio;
+  final DateTime? creationTime;
 
-  MediaMetadata({required this.mediaDuration});
+  MediaMetadataRetrieved({
+    required this.duration,
+    this.width,
+    this.height,
+    this.videoCodec,
+    this.audioCodec,
+    this.bitRate,
+    this.rotation,
+    this.frameRate,
+    this.audioChannels,
+    this.pixelFormat,
+    this.aspectRatio,
+    this.creationTime,
+  });
 }
 
-class MediaMetadataRetriever {
-  // A stack of pending requests
-  static final List<(MetadataRequest, Completer<MediaMetadata?>)> _stack = [];
-  static final Pool _pool = Pool(2);
+class MediaMetadataRetriever
+    extends TaskQueue<MetadataRequest, MediaMetadataRetrieved> {
+  static final MediaMetadataRetriever _instance =
+      MediaMetadataRetriever._internal();
+  late final Pool _pool = Pool(maxConcurrent);
 
-  static Future<MediaMetadata?> addRequest(MetadataRequest request) {
-    final found = _stack.firstWhereOrNull((req) => req.$1.id == request.id);
-    if (found != null) {
-      _stack.remove(found);
-      _stack.add((request, found.$2));
-      _processNext();
-      return found.$2.future;
-    }
+  MediaMetadataRetriever._internal()
+    : super(maxConcurrent: maxConcurrentProcess);
+  factory MediaMetadataRetriever() => _instance;
 
-    final completer = Completer<MediaMetadata?>();
-    _stack.add((request, completer));
-
-    // Kick off a processing attempt
-    _processNext();
-
-    return completer.future;
-  }
-
-  static void _processNext() {
-    // We don't use a while loop or _isProcessing flag here.
-    // We let the Pool handle the "slots" available.
-    if (_stack.isEmpty) return;
-
-    // Schedule a task in the pool
-    _pool.withResource(() async {
-      if (_stack.isEmpty) return;
-
-      // LIFO: Always take the newest item from the stack
-      final (request, completer) = _stack.removeLast();
-
-      try {
-        final metadata = await _retrieveMetadata(request);
-        if (!completer.isCompleted) completer.complete(metadata);
-      } catch (e) {
-        if (!completer.isCompleted) completer.completeError(e);
-      }
-
-      // If there's more work, try to trigger another worker
-      if (_stack.isNotEmpty) _processNext();
+  @override
+  Future<MediaMetadataRetrieved?> processRequest(MetadataRequest request) {
+    return _pool.withResource(() async {
+      return await _runFFprobe(request);
     });
   }
 
-  static Future<MediaMetadata?> _retrieveMetadata(
-    MetadataRequest request,
-  ) async {
+  Future<MediaMetadataRetrieved?> _runFFprobe(MetadataRequest request) async {
+    Process? process;
     try {
-      final ffprobeResult = await Process.run('ffprobe', [
+      process = await Process.start('ffprobe', [
         '-v',
         'error',
-        '-select_streams',
-        'v:0',
-        '-show_entries',
-        'stream=width,height:format=duration',
+        '-show_format',
+        '-show_streams',
         '-of',
         'json',
         request.mediaPath,
-      ]).timeout(Duration(seconds: 5));
+      ]);
 
-      if (ffprobeResult.exitCode != 0) {
-        Logger.error('Failed to retrieve metadata: : ${ffprobeResult.stderr}');
-        return null;
+      final results = await Future.wait([
+        process.stdout.transform(utf8.decoder).join(),
+        process.stderr.transform(utf8.decoder).join(),
+      ]).timeout(const Duration(seconds: 5));
+
+      if (await process.exitCode != 0) return null;
+
+      final data = jsonDecode(results[0]) as Map<String, dynamic>;
+      final format = data['format'] ?? {};
+      final streams = data['streams'] as List? ?? [];
+
+      // Find first video and audio streams
+      final video = streams.firstWhere(
+        (s) => s['codec_type'] == 'video',
+        orElse: () => null,
+      );
+      final audio = streams.firstWhere(
+        (s) => s['codec_type'] == 'audio',
+        orElse: () => null,
+      );
+
+      final duration = double.tryParse(format['duration']?.toString() ?? '');
+      if (duration == null) return null;
+
+      var rotation = int.tryParse(video?['tags']?['rotate']?.toString() ?? '0');
+      if (rotation == 0 && video?['side_data_list'] != null) {
+        final sideData = video?['side_data_list'] as List;
+        final displayMatrix = sideData.firstWhere(
+          (d) => d['side_data_type'] == 'Display Matrix',
+          orElse: () => null,
+        );
+        rotation = displayMatrix?['rotation'] ?? 0;
       }
 
-      final Map<String, dynamic> jsonOutput =
-          jsonDecode(ffprobeResult.stdout) as Map<String, dynamic>;
-
-      final format = jsonOutput['format'];
-      final duration = format != null
-          ? double.tryParse(format['duration'] as String)
-          : null;
-      if (duration == null) return null;
-      return MediaMetadata(mediaDuration: duration);
+      return MediaMetadataRetrieved(
+        duration: duration,
+        width: video?['width'],
+        height: video?['height'],
+        videoCodec: video?['codec_name'],
+        audioCodec: audio?['codec_name'],
+        bitRate: int.tryParse(format['bit_rate']?.toString() ?? ''),
+        rotation: rotation,
+        frameRate: video?['avg_frame_rate'],
+        audioChannels: audio?['channels'],
+        pixelFormat: video?['pix_fmt'],
+        aspectRatio: video?['display_aspect_ratio'],
+        creationTime: DateTime.tryParse(
+          format['tags']?['creation_time']?.toString() ?? '',
+        ),
+      );
     } catch (e) {
-      Logger.error(e.toString());
+      process?.kill();
+      return null;
     }
-    return null;
   }
 }

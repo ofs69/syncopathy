@@ -159,7 +159,6 @@ class SimpleMode {
           MediaFile(
             name: name,
             mediaPath: path,
-            duration: null,
             playCount: 0,
             rating: MediaRating.noRating,
             type: MediaType.unknown,

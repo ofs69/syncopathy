@@ -17,61 +17,62 @@ import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 import 'persistence/entities/funscript_file.dart';
 import 'persistence/entities/key_value.dart';
 import 'persistence/entities/media_file.dart';
+import 'persistence/entities/media_metadata.dart';
 import 'persistence/entities/user_category.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
 final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(1, 5891984722876030319),
+    id: const obx_int.IdUid(1, 9160124631563997957),
     name: 'FunscriptFile',
-    lastPropertyId: const obx_int.IdUid(8, 4048337629042530554),
+    lastPropertyId: const obx_int.IdUid(8, 4326097806203941734),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 8954737109370771387),
+        id: const obx_int.IdUid(1, 1975756107222330668),
         name: 'id',
         type: 6,
         flags: 1,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 1211187770180191905),
+        id: const obx_int.IdUid(2, 2415305385678858350),
         name: 'path',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 7048496647502753542),
+        id: const obx_int.IdUid(3, 6436004609815085608),
         name: 'metadataDb',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 8648459172921772290),
+        id: const obx_int.IdUid(4, 4623941428346037016),
         name: 'averageSpeed',
         type: 8,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(5, 3295781761952655236),
+        id: const obx_int.IdUid(5, 3048334343344887844),
         name: 'averageMin',
         type: 8,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(6, 4113268558853498021),
+        id: const obx_int.IdUid(6, 2165055353125041143),
         name: 'averageMax',
         type: 8,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(7, 1015275152200041887),
+        id: const obx_int.IdUid(7, 1299889962195841997),
         name: 'isScriptToken',
         type: 1,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(8, 4048337629042530554),
+        id: const obx_int.IdUid(8, 4326097806203941734),
         name: 'fileNotFound',
         type: 1,
         flags: 0,
@@ -87,26 +88,26 @@ final _entities = <obx_int.ModelEntity>[
     ],
   ),
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(2, 1076410235879189341),
+    id: const obx_int.IdUid(2, 416742801149177654),
     name: 'KeyValue',
-    lastPropertyId: const obx_int.IdUid(3, 8968621117163409388),
+    lastPropertyId: const obx_int.IdUid(3, 7578878957456607538),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 6532611117631265129),
+        id: const obx_int.IdUid(1, 2939058649186448624),
         name: 'id',
         type: 6,
         flags: 1,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 1144813274693610980),
+        id: const obx_int.IdUid(2, 1198770637096146287),
         name: 'key',
         type: 9,
         flags: 34848,
-        indexId: const obx_int.IdUid(1, 4462447700516145032),
+        indexId: const obx_int.IdUid(1, 8744455351313269007),
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 8968621117163409388),
+        id: const obx_int.IdUid(3, 7578878957456607538),
         name: 'value',
         type: 9,
         flags: 0,
@@ -116,78 +117,81 @@ final _entities = <obx_int.ModelEntity>[
     backlinks: <obx_int.ModelBacklink>[],
   ),
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(3, 7758376950618200700),
+    id: const obx_int.IdUid(3, 5318781071564619907),
     name: 'MediaFile',
-    lastPropertyId: const obx_int.IdUid(10, 3906398744692675214),
+    lastPropertyId: const obx_int.IdUid(10, 960520918776535293),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 84694140345117187),
+        id: const obx_int.IdUid(1, 1849340350220041029),
         name: 'id',
         type: 6,
         flags: 1,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 1735358329211258315),
+        id: const obx_int.IdUid(2, 7317934569149755970),
         name: 'dbType',
         type: 6,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 3593559272148161386),
+        id: const obx_int.IdUid(3, 2085171055693670766),
         name: 'dbRating',
         type: 6,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 2384602271166253937),
+        id: const obx_int.IdUid(4, 8384603223561611437),
         name: 'fileHash',
         type: 9,
         flags: 40,
-        indexId: const obx_int.IdUid(2, 6137180374548131742),
+        indexId: const obx_int.IdUid(2, 5977655371354251324),
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(5, 379246562710701704),
+        id: const obx_int.IdUid(5, 8794717564565334527),
         name: 'name',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(6, 3684138960544696827),
+        id: const obx_int.IdUid(6, 8421565918471592570),
         name: 'dbAliases',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(7, 1107136216517948832),
+        id: const obx_int.IdUid(7, 3903182757827589550),
         name: 'mediaPath',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(8, 887546027877085066),
-        name: 'duration',
-        type: 8,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(9, 4318178138651013968),
+        id: const obx_int.IdUid(8, 6774306137807186323),
         name: 'playCount',
         type: 6,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(10, 3906398744692675214),
+        id: const obx_int.IdUid(9, 7546768446796588023),
         name: 'fileNotFound',
         type: 1,
         flags: 0,
       ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 960520918776535293),
+        name: 'metadataId',
+        type: 11,
+        flags: 520,
+        indexId: const obx_int.IdUid(3, 1759239564526890137),
+        relationField: 'metadata',
+        relationTarget: 'MediaMetadata',
+      ),
     ],
     relations: <obx_int.ModelRelation>[
       obx_int.ModelRelation(
-        id: const obx_int.IdUid(1, 1455849158452080754),
+        id: const obx_int.IdUid(1, 8122086450920982827),
         name: 'funscripts',
-        targetId: const obx_int.IdUid(1, 5891984722876030319),
+        targetId: const obx_int.IdUid(1, 9160124631563997957),
       ),
     ],
     backlinks: <obx_int.ModelBacklink>[
@@ -199,32 +203,120 @@ final _entities = <obx_int.ModelEntity>[
     ],
   ),
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(4, 3104114183546325270),
-    name: 'UserCategory',
-    lastPropertyId: const obx_int.IdUid(4, 993682842399245982),
+    id: const obx_int.IdUid(4, 8231888759597517488),
+    name: 'MediaMetadata',
+    lastPropertyId: const obx_int.IdUid(13, 7920066156590621469),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 5231539828415742828),
+        id: const obx_int.IdUid(1, 5234049312449793942),
         name: 'id',
         type: 6,
         flags: 1,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 7785685713591718485),
+        id: const obx_int.IdUid(2, 8349770339253891334),
+        name: 'duration',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 8953541783367471227),
+        name: 'width',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 8818470790662348129),
+        name: 'height',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 5157472903646438756),
+        name: 'videoCodec',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 8317223771489891002),
+        name: 'audioCodec',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 6078117806835216547),
+        name: 'bitRate',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 8321981264970869243),
+        name: 'rotation',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 4473935266905224351),
+        name: 'frameRate',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 303411933695719567),
+        name: 'audioChannels',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 5105676631373851253),
+        name: 'pixelFormat',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 2490775271348635560),
+        name: 'aspectRatio',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 7920066156590621469),
+        name: 'creationTime',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(5, 2259282074932069416),
+    name: 'UserCategory',
+    lastPropertyId: const obx_int.IdUid(4, 3549323652779351518),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 2202517452837534006),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 7597520307232201110),
         name: 'name',
         type: 9,
         flags: 2080,
-        indexId: const obx_int.IdUid(3, 4701336590479619385),
+        indexId: const obx_int.IdUid(4, 1554251276879409966),
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 8391596891033776719),
+        id: const obx_int.IdUid(3, 8656753505736516545),
         name: 'description',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 993682842399245982),
+        id: const obx_int.IdUid(4, 3549323652779351518),
         name: 'sortOrder',
         type: 6,
         flags: 0,
@@ -232,9 +324,9 @@ final _entities = <obx_int.ModelEntity>[
     ],
     relations: <obx_int.ModelRelation>[
       obx_int.ModelRelation(
-        id: const obx_int.IdUid(2, 5778164683669448696),
+        id: const obx_int.IdUid(2, 383462074251732079),
         name: 'entries',
-        targetId: const obx_int.IdUid(3, 7758376950618200700),
+        targetId: const obx_int.IdUid(3, 5318781071564619907),
       ),
     ],
     backlinks: <obx_int.ModelBacklink>[],
@@ -284,9 +376,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(4, 3104114183546325270),
-    lastIndexId: const obx_int.IdUid(3, 4701336590479619385),
-    lastRelationId: const obx_int.IdUid(2, 5778164683669448696),
+    lastEntityId: const obx_int.IdUid(5, 2259282074932069416),
+    lastIndexId: const obx_int.IdUid(4, 1554251276879409966),
+    lastRelationId: const obx_int.IdUid(2, 383462074251732079),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
     retiredIndexUids: const [],
@@ -414,7 +506,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
     ),
     MediaFile: obx_int.EntityDefinition<MediaFile>(
       model: _entities[2],
-      toOneRelations: (MediaFile object) => [],
+      toOneRelations: (MediaFile object) => [object.metadata],
       toManyRelations: (MediaFile object) => {
         obx_int.RelInfo<MediaFile>.toMany(1, object.id): object.funscripts,
         obx_int.RelInfo<UserCategory>.toManyBacklink(2, object.id):
@@ -439,9 +531,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(4, nameOffset);
         fbb.addOffset(5, dbAliasesOffset);
         fbb.addOffset(6, mediaPathOffset);
-        fbb.addFloat64(7, object.duration);
-        fbb.addInt64(8, object.playCount);
-        fbb.addBool(9, object.fileNotFound);
+        fbb.addInt64(7, object.playCount);
+        fbb.addBool(8, object.fileNotFound);
+        fbb.addInt64(9, object.metadata.targetId);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -460,18 +552,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final playCountParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
-          20,
-          0,
-        );
-        final durationParam = const fb.Float64Reader().vTableGetNullable(
-          buffer,
-          rootOffset,
           18,
+          0,
         );
         final fileNotFoundParam = const fb.BoolReader().vTableGet(
           buffer,
           rootOffset,
-          22,
+          20,
           false,
         );
         final object =
@@ -480,7 +567,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
                 mediaPath: mediaPathParam,
                 fileHash: fileHashParam,
                 playCount: playCountParam,
-                duration: durationParam,
                 fileNotFound: fileNotFoundParam,
               )
               ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
@@ -497,6 +583,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
               ..dbAliases = const fb.StringReader(
                 asciiOptimization: true,
               ).vTableGet(buffer, rootOffset, 14, '');
+        object.metadata.targetId = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          22,
+          0,
+        );
+        object.metadata.attach(store);
         obx_int.InternalToManyAccess.setRelInfo<MediaFile>(
           object.funscripts,
           store,
@@ -510,8 +603,124 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
-    UserCategory: obx_int.EntityDefinition<UserCategory>(
+    MediaMetadata: obx_int.EntityDefinition<MediaMetadata>(
       model: _entities[3],
+      toOneRelations: (MediaMetadata object) => [],
+      toManyRelations: (MediaMetadata object) => {},
+      getId: (MediaMetadata object) => object.id,
+      setId: (MediaMetadata object, int id) {
+        object.id = id;
+      },
+      objectToFB: (MediaMetadata object, fb.Builder fbb) {
+        final videoCodecOffset = object.videoCodec == null
+            ? null
+            : fbb.writeString(object.videoCodec!);
+        final audioCodecOffset = object.audioCodec == null
+            ? null
+            : fbb.writeString(object.audioCodec!);
+        final frameRateOffset = object.frameRate == null
+            ? null
+            : fbb.writeString(object.frameRate!);
+        final pixelFormatOffset = object.pixelFormat == null
+            ? null
+            : fbb.writeString(object.pixelFormat!);
+        final aspectRatioOffset = object.aspectRatio == null
+            ? null
+            : fbb.writeString(object.aspectRatio!);
+        fbb.startTable(14);
+        fbb.addInt64(0, object.id);
+        fbb.addFloat64(1, object.duration);
+        fbb.addInt64(2, object.width);
+        fbb.addInt64(3, object.height);
+        fbb.addOffset(4, videoCodecOffset);
+        fbb.addOffset(5, audioCodecOffset);
+        fbb.addInt64(6, object.bitRate);
+        fbb.addInt64(7, object.rotation);
+        fbb.addOffset(8, frameRateOffset);
+        fbb.addInt64(9, object.audioChannels);
+        fbb.addOffset(10, pixelFormatOffset);
+        fbb.addOffset(11, aspectRatioOffset);
+        fbb.addInt64(12, object.creationTime?.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final creationTimeValue = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          28,
+        );
+        final durationParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          0,
+        );
+        final widthParam = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          8,
+        );
+        final heightParam = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          10,
+        );
+        final videoCodecParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 12);
+        final audioCodecParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 14);
+        final bitRateParam = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          16,
+        );
+        final rotationParam = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          18,
+        );
+        final frameRateParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 20);
+        final audioChannelsParam = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          22,
+        );
+        final pixelFormatParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 24);
+        final aspectRatioParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 26);
+        final creationTimeParam = creationTimeValue == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(creationTimeValue);
+        final object = MediaMetadata(
+          duration: durationParam,
+          width: widthParam,
+          height: heightParam,
+          videoCodec: videoCodecParam,
+          audioCodec: audioCodecParam,
+          bitRate: bitRateParam,
+          rotation: rotationParam,
+          frameRate: frameRateParam,
+          audioChannels: audioChannelsParam,
+          pixelFormat: pixelFormatParam,
+          aspectRatio: aspectRatioParam,
+          creationTime: creationTimeParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
+    UserCategory: obx_int.EntityDefinition<UserCategory>(
+      model: _entities[4],
       toOneRelations: (UserCategory object) => [],
       toManyRelations: (UserCategory object) => {
         obx_int.RelInfo<UserCategory>.toMany(2, object.id): object.entries,
@@ -664,18 +873,18 @@ class MediaFile_ {
     _entities[2].properties[6],
   );
 
-  /// See [MediaFile.duration].
-  static final duration = obx.QueryDoubleProperty<MediaFile>(
-    _entities[2].properties[7],
-  );
-
   /// See [MediaFile.playCount].
   static final playCount = obx.QueryIntegerProperty<MediaFile>(
-    _entities[2].properties[8],
+    _entities[2].properties[7],
   );
 
   /// See [MediaFile.fileNotFound].
   static final fileNotFound = obx.QueryBooleanProperty<MediaFile>(
+    _entities[2].properties[8],
+  );
+
+  /// See [MediaFile.metadata].
+  static final metadata = obx.QueryRelationToOne<MediaFile, MediaMetadata>(
     _entities[2].properties[9],
   );
 
@@ -685,30 +894,98 @@ class MediaFile_ {
   );
 }
 
+/// [MediaMetadata] entity fields to define ObjectBox queries.
+class MediaMetadata_ {
+  /// See [MediaMetadata.id].
+  static final id = obx.QueryIntegerProperty<MediaMetadata>(
+    _entities[3].properties[0],
+  );
+
+  /// See [MediaMetadata.duration].
+  static final duration = obx.QueryDoubleProperty<MediaMetadata>(
+    _entities[3].properties[1],
+  );
+
+  /// See [MediaMetadata.width].
+  static final width = obx.QueryIntegerProperty<MediaMetadata>(
+    _entities[3].properties[2],
+  );
+
+  /// See [MediaMetadata.height].
+  static final height = obx.QueryIntegerProperty<MediaMetadata>(
+    _entities[3].properties[3],
+  );
+
+  /// See [MediaMetadata.videoCodec].
+  static final videoCodec = obx.QueryStringProperty<MediaMetadata>(
+    _entities[3].properties[4],
+  );
+
+  /// See [MediaMetadata.audioCodec].
+  static final audioCodec = obx.QueryStringProperty<MediaMetadata>(
+    _entities[3].properties[5],
+  );
+
+  /// See [MediaMetadata.bitRate].
+  static final bitRate = obx.QueryIntegerProperty<MediaMetadata>(
+    _entities[3].properties[6],
+  );
+
+  /// See [MediaMetadata.rotation].
+  static final rotation = obx.QueryIntegerProperty<MediaMetadata>(
+    _entities[3].properties[7],
+  );
+
+  /// See [MediaMetadata.frameRate].
+  static final frameRate = obx.QueryStringProperty<MediaMetadata>(
+    _entities[3].properties[8],
+  );
+
+  /// See [MediaMetadata.audioChannels].
+  static final audioChannels = obx.QueryIntegerProperty<MediaMetadata>(
+    _entities[3].properties[9],
+  );
+
+  /// See [MediaMetadata.pixelFormat].
+  static final pixelFormat = obx.QueryStringProperty<MediaMetadata>(
+    _entities[3].properties[10],
+  );
+
+  /// See [MediaMetadata.aspectRatio].
+  static final aspectRatio = obx.QueryStringProperty<MediaMetadata>(
+    _entities[3].properties[11],
+  );
+
+  /// See [MediaMetadata.creationTime].
+  static final creationTime = obx.QueryDateProperty<MediaMetadata>(
+    _entities[3].properties[12],
+  );
+}
+
 /// [UserCategory] entity fields to define ObjectBox queries.
 class UserCategory_ {
   /// See [UserCategory.id].
   static final id = obx.QueryIntegerProperty<UserCategory>(
-    _entities[3].properties[0],
+    _entities[4].properties[0],
   );
 
   /// See [UserCategory.name].
   static final name = obx.QueryStringProperty<UserCategory>(
-    _entities[3].properties[1],
+    _entities[4].properties[1],
   );
 
   /// See [UserCategory.description].
   static final description = obx.QueryStringProperty<UserCategory>(
-    _entities[3].properties[2],
+    _entities[4].properties[2],
   );
 
   /// See [UserCategory.sortOrder].
   static final sortOrder = obx.QueryIntegerProperty<UserCategory>(
-    _entities[3].properties[3],
+    _entities[4].properties[3],
   );
 
   /// see [UserCategory.entries]
   static final entries = obx.QueryRelationToMany<UserCategory, MediaFile>(
-    _entities[3].relations[0],
+    _entities[4].relations[0],
   );
 }

@@ -16,7 +16,6 @@ import 'package:syncopathy/media_library/thumbnail_generator.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
-import 'package:syncopathy/persistence/media_file_extension.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/update_checker.dart';
 
@@ -469,18 +468,13 @@ class _SettingsPageState extends State<SettingsPage> {
               Future(() async {
                 final futures = <Future>[];
                 for (final media in videos) {
-                  var duration = media.retrieveDuration();
-                  final future = duration.then((duration) async {
-                    final m = oBox.mediaService.getById(media.id);
-                    if (m == null) return;
-                    final thumbnailRequest = ThumbnailRequest.fromMediaFile(m);
-                    if (thumbnailRequest != null) {
-                      await ThumbnailGenerator.addRequest(thumbnailRequest);
-                    }
-                    setState(() {
-                      generatedCount += 1;
-                    });
-                  });
+                  var future = ThumbnailGenerator()
+                      .addRequest(ThumbnailRequest(file: media))
+                      .then((_) {
+                        setState(() {
+                          generatedCount += 1;
+                        });
+                      });
                   futures.add(future);
                 }
 

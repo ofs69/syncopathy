@@ -2,12 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:signals/signals_core.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/help_page.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/media_page.dart';
+import 'package:syncopathy/media_library/thumbnail_generator.dart';
 import 'package:syncopathy/migration_modal.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
@@ -221,6 +222,20 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
                     onDestinationSelected: _onTabChanged,
                     labelType: NavigationRailLabelType.all,
                     destinations: _destinations(withMedia),
+                    trailing: withMedia
+                        ? Expanded(
+                            child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 24.0),
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 300),
+                                  child: _buildStatus(context),
+                                ),
+                              ),
+                            ),
+                          )
+                        : null,
                   ),
                 ),
               const VerticalDivider(thickness: 1, width: 1),
@@ -245,6 +260,32 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
         ),
       ),
     );
+  }
+
+  Widget _buildStatus(BuildContext context) {
+    final count = ThumbnailGenerator().queueLength.watch(context);
+
+    if (count > 0) {
+      return Column(
+        key: const ValueKey('busy'),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Tooltip(
+            message: "Generating Thumbnails...",
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              child: Text("$count"),
+            ),
+          ),
+        ],
+      );
+    }
+    return const SizedBox.shrink(key: ValueKey("not_busy"));
   }
 }
 
