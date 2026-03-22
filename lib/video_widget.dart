@@ -72,13 +72,6 @@ class _VideoWidgetState extends State<VideoWidget>
     });
   }
 
-  void _toggleControls() {
-    widget.showControls.value = !widget.showControls.value;
-    if (widget.showControls.value) {
-      _startHideControlsTimer();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final player = widget.player;
@@ -125,119 +118,111 @@ class _VideoWidgetState extends State<VideoWidget>
                     widget.showControls.value = true;
                     _startHideControlsTimer();
                   },
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.deferToChild,
-                    onTap: _toggleControls,
-                    child: Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        Stack(
-                          children: [
-                            videoController != null
-                                ? _videoContainer(
-                                    videoController,
-                                    videoWidth,
-                                    videoHeight,
-                                  )
-                                : Center(
-                                    child: Text('Embedded player disabled'),
-                                  ),
-                            Align(
-                              alignment: AlignmentGeometry.bottomCenter,
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    flex: 10,
-                                    child: AnimatedSlide(
-                                      offset: widget.showSettings.watch(context)
-                                          ? Offset.zero
-                                          : const Offset(
-                                              0,
-                                              -1,
-                                            ), // Slides in from the right
-                                      duration: const Duration(
-                                        milliseconds: 300,
-                                      ),
-                                      curve: Curves.easeInOut,
-                                      child: ExcludeFocus(
-                                        excluding: !showControls,
-                                        child: ScriptPlayerSettingsOverlay(),
-                                      ),
+                  child: Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      Stack(
+                        children: [
+                          videoController != null
+                              ? _videoContainer(
+                                  videoController,
+                                  videoWidth,
+                                  videoHeight,
+                                )
+                              : Center(child: Text('Embedded player disabled')),
+                          Align(
+                            alignment: AlignmentGeometry.bottomCenter,
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  flex: 10,
+                                  child: AnimatedSlide(
+                                    offset: widget.showSettings.watch(context)
+                                        ? Offset.zero
+                                        : const Offset(
+                                            0,
+                                            -1,
+                                          ), // Slides in from the right
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                    child: ExcludeFocus(
+                                      excluding: !showControls,
+                                      child: ScriptPlayerSettingsOverlay(),
                                     ),
                                   ),
-                                  widget.showFunscriptGraph.watch(context)
-                                      ? ConstrainedBox(
-                                          constraints: BoxConstraints(
-                                            minHeight: 50.0,
-                                            maxHeight: 150.0,
-                                            maxWidth: displayWidth,
+                                ),
+                                widget.showFunscriptGraph.watch(context)
+                                    ? ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          minHeight: 50.0,
+                                          maxHeight: 150.0,
+                                          maxWidth: displayWidth,
+                                        ),
+                                        child: SizedBox(
+                                          height:
+                                              MediaQuery.of(
+                                                context,
+                                              ).size.height *
+                                              0.15,
+                                          child: _funscriptGraph(
+                                            playerModel.currentlyOpen,
+                                            player,
+                                            settings,
                                           ),
-                                          child: SizedBox(
-                                            height:
-                                                MediaQuery.of(
-                                                  context,
-                                                ).size.height *
-                                                0.15,
-                                            child: _funscriptGraph(
-                                              playerModel.currentlyOpen,
-                                              player,
-                                              settings,
-                                            ),
-                                          ),
-                                        )
-                                      : const SizedBox.shrink(),
-                                  AnimatedOpacity(
-                                    opacity: showControls ? 1.0 : 0.0,
-                                    duration: const Duration(milliseconds: 200),
-                                    child: IgnorePointer(
-                                      ignoring: !showControls,
-                                      child: VideoControls(
-                                        showFunscriptGraph:
-                                            widget.showFunscriptGraph,
-                                        showSettings: widget.showSettings,
-                                        onFullscreenToggle: widget.isFullscreen
-                                            ? () async {
-                                                if (!kIsWeb) {
-                                                  await SimpleMode.exitFullscreen();
-                                                }
-                                                if (!context.mounted) return;
-                                                Navigator.pop(context);
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
+                                AnimatedOpacity(
+                                  opacity: showControls ? 1.0 : 0.0,
+                                  duration: const Duration(milliseconds: 200),
+                                  child: IgnorePointer(
+                                    ignoring: !showControls,
+                                    child: VideoControls(
+                                      showFunscriptGraph:
+                                          widget.showFunscriptGraph,
+                                      showSettings: widget.showSettings,
+                                      onFullscreenToggle: widget.isFullscreen
+                                          ? () async {
+                                              if (!kIsWeb) {
+                                                await SimpleMode.exitFullscreen();
                                               }
-                                            : () async {
-                                                if (!kIsWeb) {
-                                                  await SimpleMode.enterFullscreen();
-                                                }
-                                                if (!context.mounted) return;
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        FullscreenVideoPage(
-                                                          player: player,
-                                                          isEmbeddedPlayerEnabled:
-                                                              settings
-                                                                  .embeddedVideoPlayer
-                                                                  .value,
-                                                          showControls: widget
-                                                              .showControls,
-                                                          showFunscriptGraph: widget
-                                                              .showFunscriptGraph,
-                                                          showSettings: widget
-                                                              .showSettings,
-                                                        ),
-                                                  ),
-                                                );
-                                              },
-                                      ),
+                                              if (!context.mounted) return;
+                                              Navigator.pop(context);
+                                            }
+                                          : () async {
+                                              if (!kIsWeb) {
+                                                await SimpleMode.enterFullscreen();
+                                              }
+                                              if (!context.mounted) return;
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      FullscreenVideoPage(
+                                                        player: player,
+                                                        isEmbeddedPlayerEnabled:
+                                                            settings
+                                                                .embeddedVideoPlayer
+                                                                .value,
+                                                        showControls:
+                                                            widget.showControls,
+                                                        showFunscriptGraph: widget
+                                                            .showFunscriptGraph,
+                                                        showSettings:
+                                                            widget.showSettings,
+                                                      ),
+                                                ),
+                                              );
+                                            },
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               );

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
@@ -27,9 +26,6 @@ class VideoControls extends StatefulWidget {
 }
 
 class _VideoControlsState extends State<VideoControls> {
-  Timer? _hoverEnterTimer;
-  Timer? _hoverExitTimer;
-
   double _lastVolume = 100.0;
 
   @override
@@ -117,8 +113,6 @@ class _VideoControlsState extends State<VideoControls> {
 
   @override
   void dispose() {
-    _hoverExitTimer?.cancel();
-    _hoverEnterTimer?.cancel();
     super.dispose();
   }
 
