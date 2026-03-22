@@ -209,62 +209,72 @@ class _MediaLibraryState extends State<MediaLibrary>
                           );
                         },
                     child: _fade(
-                      GridView.builder(
-                        key: ValueKey(filteredMedia.length),
-                        padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: videosPerRow,
-                          childAspectRatio:
-                              16 / 9, // Standard 16:9 video aspect ratio
-                        ),
-                        itemCount: filteredMedia.length,
-                        itemBuilder: (context, index) {
-                          final media = filteredMedia[index];
-                          final isSelected = selectedVideos.contains(media);
+                      ExcludeFocus(
+                        child: GridView.builder(
+                          key: ValueKey(filteredMedia.length),
+                          padding: const EdgeInsets.fromLTRB(
+                            0.0,
+                            4.0,
+                            0.0,
+                            0.0,
+                          ),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: videosPerRow,
+                                childAspectRatio: 16 / 9,
+                              ),
+                          itemCount: filteredMedia.length,
+                          itemBuilder: (context, index) {
+                            final media = filteredMedia[index];
+                            final isSelected = selectedVideos.contains(media);
 
-                          return MediaItem(
-                            key: Key(media.mediaPath),
-                            media: media,
-                            isSelected: isSelected,
-                            showAverageMinMax: showAverageMinMax,
-                            showAverageSpeed: showAverageSpeed,
-                            showDuration: showDuration,
-                            showPlayCount: showPlayCount,
-                            showTitle: showTitle,
-                            onLongPress: () {
-                              if (isSelected) {
-                                selectedVideos.remove(media);
-                              } else {
-                                selectedVideos.add(media);
-                              }
-                            },
-                            onTap: () {
-                              if (isSelecting.value) {
+                            return MediaItem(
+                              key: Key(media.mediaPath),
+                              media: media,
+                              isSelected: isSelected,
+                              showAverageMinMax: showAverageMinMax,
+                              showAverageSpeed: showAverageSpeed,
+                              showDuration: showDuration,
+                              showPlayCount: showPlayCount,
+                              showTitle: showTitle,
+                              onLongPress: () {
                                 if (isSelected) {
                                   selectedVideos.remove(media);
                                 } else {
                                   selectedVideos.add(media);
                                 }
-                              } else {
-                                // play media
-                                getIt.get<VideoPlayer>().openSingleVideo(media);
-                              }
-                            },
-                            toggleDislike: () {
-                              media.rating = media.rating != MediaRating.dislike
-                                  ? MediaRating.dislike
-                                  : MediaRating.noRating;
-                              oBox.mediaService.save(media);
-                            },
-                            toggleFavorite: () {
-                              media.rating = media.rating != MediaRating.like
-                                  ? MediaRating.like
-                                  : MediaRating.noRating;
-                              oBox.mediaService.save(media);
-                            },
-                            onDelete: () {},
-                          );
-                        },
+                              },
+                              onTap: () {
+                                if (isSelecting.value) {
+                                  if (isSelected) {
+                                    selectedVideos.remove(media);
+                                  } else {
+                                    selectedVideos.add(media);
+                                  }
+                                } else {
+                                  // play media
+                                  getIt.get<VideoPlayer>().openSingleVideo(
+                                    media,
+                                  );
+                                }
+                              },
+                              toggleDislike: () {
+                                media.rating =
+                                    media.rating != MediaRating.dislike
+                                    ? MediaRating.dislike
+                                    : MediaRating.noRating;
+                                oBox.mediaService.save(media);
+                              },
+                              toggleFavorite: () {
+                                media.rating = media.rating != MediaRating.like
+                                    ? MediaRating.like
+                                    : MediaRating.noRating;
+                                oBox.mediaService.save(media);
+                              },
+                              onDelete: () {},
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
