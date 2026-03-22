@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:syncopathy/ioc.dart';
+import 'package:syncopathy/media_library/filter.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/persistence/entities/user_category.dart';
 
 class CategorySelectionDialog extends StatefulWidget {
   final UserCategory? initialSelectedCategory;
   final bool showAddCategory;
-  final UserCategory uncategorized;
   final bool showUncategorizedOption;
   final bool showAllCategoriesOption;
   final Set<int>? preFilterCategoriesIds;
@@ -16,7 +16,6 @@ class CategorySelectionDialog extends StatefulWidget {
     this.initialSelectedCategory,
     this.preFilterCategoriesIds,
     this.showAddCategory = true,
-    required this.uncategorized,
     this.showUncategorizedOption = false,
     this.showAllCategoriesOption = false,
   });
@@ -36,11 +35,15 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
     final List<UserCategory> meta = [];
     if (widget.showAllCategoriesOption) {
       meta.add(
-        UserCategory(name: 'All Categories', sortOrder: -1)..id = -1,
-      ); // Sentinel for "All Categories"
+        UserCategory(name: 'All Categories', sortOrder: -1)
+          ..id = MediaFilter.allCategoriesCategoryId,
+      );
     }
     if (widget.showUncategorizedOption) {
-      meta.add(widget.uncategorized..id = -2);
+      meta.add(
+        UserCategory(name: 'Uncategorized')
+          ..id = MediaFilter.uncategorizedCategoryId,
+      );
     }
     return meta;
   }
@@ -163,15 +166,15 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
         if (index < _metaCategories.length) {
           final item = _metaCategories[index];
           // Special handling for "All Categories" sentinel and "Uncategorized"
-          if (item.id == -1) {
+          if (item.id == MediaFilter.allCategoriesCategoryId) {
             return ListTile(
               title: const Text('All Categories'),
               onTap: () => Navigator.of(context).pop(null),
             );
-          } else {
+          } else if (item.id == MediaFilter.uncategorizedCategoryId) {
             return ListTile(
               title: Text(item.name),
-              onTap: () => Navigator.of(context).pop(widget.uncategorized),
+              onTap: () => Navigator.of(context).pop(item.id),
             );
           }
         } else {
@@ -179,7 +182,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
           return ListTile(
             key: ValueKey(item.id),
             title: Text(item.name),
-            onTap: () => Navigator.of(context).pop(item),
+            onTap: () => Navigator.of(context).pop(item.id),
           );
         }
       },
@@ -200,7 +203,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
             return ListTile(
               key: const ValueKey('uncategorized'),
               title: const Text('Uncategorized'),
-              onTap: () => Navigator.of(context).pop(widget.uncategorized),
+              onTap: () => Navigator.of(context).pop(item.id),
             );
           }
         }),
@@ -214,11 +217,8 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                 builder: (BuildContext context, Widget? child) {
                   return Material(
                     elevation: 1.0,
-                    color: Colors.transparent, // Keeps the background clean
-                    child: IgnorePointer(
-                      ignoring: true, // Stops the tooltip/hover crash
-                      child: child,
-                    ),
+                    color: Colors.transparent,
+                    child: IgnorePointer(ignoring: true, child: child),
                   );
                 },
                 child: child,
@@ -229,7 +229,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
               return ListTile(
                 key: ValueKey(item.id),
                 title: Text(item.name),
-                onTap: () => Navigator.of(context).pop(item),
+                onTap: () => Navigator.of(context).pop(item.id),
                 contentPadding: EdgeInsets.fromLTRB(16.0, 0.0, 40.0, 0.0),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,

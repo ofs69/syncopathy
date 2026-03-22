@@ -26,4 +26,8 @@ class UserCategoryService {
     _box.put(newCategory);
     return newCategory;
   }
+
+  UserCategory? getById(int categoryId) {
+    return _box.get(categoryId);
+  }
 }

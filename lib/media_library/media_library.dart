@@ -5,13 +5,13 @@ import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/ioc.dart' show getIt, oBox;
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_library/category_selection_dialog.dart';
-import 'package:syncopathy/media_library/funscript_metadata_filter_bottom_sheet.dart';
+import 'package:syncopathy/media_library/filter.dart';
+import 'package:syncopathy/media_library/filter_button.dart';
 import 'package:syncopathy/media_library/media_item.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/media_library/search_bar.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
-import 'package:syncopathy/persistence/entities/user_category.dart';
 import 'package:syncopathy/player/video_player.dart';
 
 enum SortOption {
@@ -53,12 +53,7 @@ class _MediaLibraryState extends State<MediaLibrary>
 
   // filters
   late final Signal<String> searchQuery = createSignal("");
-  late final Signal<UserCategory?> selectedCategory = createSignal(null);
-  late final SetSignal<String> selectedAuthors = createSetSignal({});
-  late final SetSignal<String> selectedTags = createSetSignal({});
-  late final SetSignal<String> selectedPerformers = createSetSignal({});
-
-  final _uncategorized = UserCategory(name: 'Uncategorized');
+  late final Signal<MediaFilter> mediaFilter = createSignal(MediaFilter());
 
   // selection
   late final SetSignal<MediaFile> selectedVideos = createSetSignal({});
@@ -119,11 +114,11 @@ class _MediaLibraryState extends State<MediaLibrary>
             children: [
               Expanded(
                 child: MediaSearchBar(
-                  onFilterChanged: (query) {
-                    searchQuery.value = query.query;
-                  },
+                  onFilterChanged: (query) => searchQuery.value = query,
                 ),
               ),
+              const SizedBox(width: 8),
+              FilterButton(filter: mediaFilter),
               const SizedBox(width: 8),
               IconButton(
                 tooltip: "Surprise Me!",
@@ -289,7 +284,6 @@ class _MediaLibraryState extends State<MediaLibrary>
     required bool showAverageMinMax,
   }) {
     final mediaSettings = context.read<MediaLibrarySettingsModel>();
-    final currentSelectedCategory = selectedCategory.watch(context);
     final visibilityFilters = mediaSettings.visibilityFilters.watch(context);
     final separateFavorites = mediaSettings.separateFavorites.watch(context);
     final sortOption = mediaSettings.sortOption.watch(context);
@@ -311,18 +305,6 @@ class _MediaLibraryState extends State<MediaLibrary>
         ],
       ),
       actions: [
-        ActionChip(
-          avatar: const Icon(Icons.filter_list),
-          label: const Text('Metadata'),
-          onPressed: _showFunscriptMetadataFilterDialog,
-        ),
-        const SizedBox(width: 8),
-        ActionChip(
-          avatar: const Icon(Icons.category_outlined),
-          label: Text(currentSelectedCategory?.name ?? 'Category'),
-          onPressed: _showCategoryDialog,
-        ),
-        const SizedBox(width: 8),
         MenuAnchor(
           style: MenuStyle(padding: WidgetStatePropertyAll(EdgeInsets.zero)),
           builder: (context, controller, child) {
@@ -541,46 +523,11 @@ class _MediaLibraryState extends State<MediaLibrary>
     );
   }
 
-  Future<void> _showFunscriptMetadataFilterDialog() async {
-    final authors = oBox.funscriptService.getAllAuthors();
-    final tags = oBox.funscriptService.getAllTags();
-    final performers = oBox.funscriptService.getAllPerformers();
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return FunscriptMetadataFilterBottomSheet(
-          allAuthors: authors,
-          allTags: tags,
-          allPerformers: performers,
-          selectedAuthors: selectedAuthors,
-          selectedTags: selectedTags,
-          selectedPerformers: selectedPerformers,
-        );
-      },
-    );
-  }
-
-  Future<void> _showCategoryDialog() async {
-    final selected = await showModalBottomSheet<UserCategory?>(
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return CategorySelectionDialog(
-          uncategorized: _uncategorized,
-          showAllCategoriesOption: true,
-          showUncategorizedOption: true,
-        );
-      },
-    );
-    if (selected != selectedCategory.value) {
-      selectedCategory.value = selected;
-    }
-  }
-
   Future<void> _showBulkAddCategoryDialog() async {
-    final category = await _showCategorySelectionDialog();
+    final categoryId = await _showCategorySelectionDialog();
+    final category = categoryId != null
+        ? oBox.userCategoryService.getById(categoryId)
+        : null;
     if (category != null) {
       for (final video in selectedVideos.value) {
         video.categories.add(category);
@@ -590,16 +537,15 @@ class _MediaLibraryState extends State<MediaLibrary>
     }
   }
 
-  Future<UserCategory?> _showCategorySelectionDialog({
+  Future<int?> _showCategorySelectionDialog({
     bool showAddCategory = true,
     Set<int>? preFilterCategories,
   }) async {
-    return await showModalBottomSheet<UserCategory?>(
+    return await showModalBottomSheet<int?>(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return CategorySelectionDialog(
-          uncategorized: _uncategorized,
           showAddCategory: showAddCategory,
           preFilterCategoriesIds: preFilterCategories,
           showAllCategoriesOption: false,

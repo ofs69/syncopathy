@@ -392,7 +392,7 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
         onTap: () async {
           await PlatformUtils.openFileExplorer(widget.media.mediaPath);
         },
-        child: const Text('Open video file directory'),
+        child: const Text('Open media file directory'),
       ),
       const PopupMenuDivider(height: 1, thickness: 1),
       PopupMenuItem(
