@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:syncopathy/model/funscript.dart';
 
@@ -47,49 +48,58 @@ class FunscriptAlgorithms {
     return slewActions;
   }
 
-  // Applies ramer douglas peucker algorithm to the actions using epsilon
   static List<FunscriptAction> rdp(
     List<FunscriptAction> actions,
     double epsilon,
   ) {
     final int n = actions.length;
     if (n < 3) return actions;
+    // final stopwatch = Stopwatch()..start();
+
+    // 1. Flatten coordinates
+    final Float64List coords = Float64List(n * 2);
+    for (int i = 0; i < n; i++) {
+      coords[i * 2] = actions[i].at.toDouble();
+      coords[i * 2 + 1] = actions[i].pos.toDouble();
+    }
 
     final double epsilonSq = epsilon * epsilon;
-    final List<bool> keep = List.filled(n, false);
-    keep[0] = true;
-    keep[n - 1] = true;
+    final Uint8List keep = Uint8List(n);
+    keep[0] = 1;
+    keep[n - 1] = 1;
 
-    // Use a simple Int32List for the stack to avoid List<List<int>> overhead
-    final List<int> stack = [0, n - 1];
+    // 2. Pre-allocate Uint32List stack
+    // n * 4 is the safe theoretical limit for the iterative stack
+    final Uint32List stack = Uint32List(n * 4);
+    int stackPtr = 0;
 
-    while (stack.isNotEmpty) {
-      final int end = stack.removeLast();
-      final int start = stack.removeLast();
+    stack[stackPtr++] = 0;
+    stack[stackPtr++] = n - 1;
+
+    while (stackPtr > 0) {
+      final int end = stack[--stackPtr];
+      final int start = stack[--stackPtr];
 
       double dmaxSq = 0.0;
       int index = start;
 
-      final double x1 = actions[start].at.toDouble();
-      final double y1 = actions[start].pos.toDouble();
-      final double x2 = actions[end].at.toDouble();
-      final double y2 = actions[end].pos.toDouble();
+      final double x1 = coords[start * 2];
+      final double y1 = coords[start * 2 + 1];
+      final double x2 = coords[end * 2];
+      final double y2 = coords[end * 2 + 1];
 
-      // Pre-calculate line components
       final double dx = x2 - x1;
       final double dy = y2 - y1;
       final double magSq = dx * dx + dy * dy;
 
       for (int i = start + 1; i < end; i++) {
-        final double x0 = actions[i].at.toDouble();
-        final double y0 = actions[i].pos.toDouble();
+        final double x0 = coords[i * 2];
+        final double y0 = coords[i * 2 + 1];
 
         double dSq;
         if (magSq == 0) {
-          // Points are identical, use Euclidean distance
           dSq = (x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1);
         } else {
-          // Simplified squared perpendicular distance formula
           final double num = (dy * x0 - dx * y0 + x2 * y1 - y2 * x1);
           dSq = (num * num) / magSq;
         }
@@ -101,18 +111,25 @@ class FunscriptAlgorithms {
       }
 
       if (dmaxSq > epsilonSq) {
-        keep[index] = true;
-        stack.add(start);
-        stack.add(index);
-        stack.add(index);
-        stack.add(end);
+        keep[index] = 1;
+        stack[stackPtr++] = start;
+        stack[stackPtr++] = index;
+        stack[stackPtr++] = index;
+        stack[stackPtr++] = end;
       }
     }
 
-    return [
-      for (int i = 0; i < n; i++)
-        if (keep[i]) actions[i],
-    ];
+    final List<FunscriptAction> result = [];
+    for (int i = 0; i < n; i++) {
+      if (keep[i] == 1) result.add(actions[i]);
+    }
+
+    // stopwatch.stop();
+    // debugPrint(
+    //   'RDP processed $n points in ${stopwatch.elapsedMicroseconds}μs (${stopwatch.elapsedMilliseconds}ms). ',
+    // );
+
+    return result;
   }
 
   static double averageSpeed(List<FunscriptAction> actions) {
