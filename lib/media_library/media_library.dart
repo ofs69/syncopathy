@@ -47,8 +47,9 @@ class MediaLibrary extends StatefulWidget {
 class _MediaLibraryState extends State<MediaLibrary>
     with SignalsMixin, EffectDispose {
   // filtered media
-  late final ReadonlySignal<List<MediaFile>> filteredMedia = computed(_filterSignal);
-
+  late final ReadonlySignal<List<MediaFile>> filteredMedia = computed(
+    _filterSignal,
+  );
 
   // filters
   late final Signal<String> searchQuery = createSignal("");
@@ -86,7 +87,7 @@ class _MediaLibraryState extends State<MediaLibrary>
     final query = searchQuery.value;
     return oBox.mediaService.findByQuery(query);
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final currentlyFiltering = isFiltering.watch(context);

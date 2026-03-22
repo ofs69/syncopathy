@@ -66,6 +66,7 @@ class _HeatmapState extends State<Heatmap> {
             _hoverPosition.value = null;
           },
           child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onPanStart: (details) {
               _hoverPosition.value = null;
             },
@@ -75,6 +76,9 @@ class _HeatmapState extends State<Heatmap> {
               });
             },
             onTapUp: (details) {
+              _handleInteraction(details.localPosition, constraints);
+            },
+            onTapDown: (details) {
               _handleInteraction(details.localPosition, constraints);
             },
             child: Column(
