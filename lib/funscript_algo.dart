@@ -272,6 +272,7 @@ class FunscriptAlgorithms {
     double totalDuration,
     double playbackSpeed,
     RangeValues strokeRange,
+    int? smoothIntervalMs,
   ) {
     if (actions.isEmpty) {
       return actions;
@@ -305,8 +306,19 @@ class FunscriptAlgorithms {
         strokeRange,
       );
     }
+
     if (rdpEpsilon != null) {
       actions = FunscriptAlgorithms.rdp(actions, rdpEpsilon);
+    }
+
+    if (smoothIntervalMs != null) {
+      actions = FunscriptAlgorithms.catmullRomSmooth(
+        actions,
+        smoothIntervalMs,
+        5,
+      );
+      // apply rdp again with epsilon 1.0
+      actions = FunscriptAlgorithms.rdp(actions, 1.0);
     }
 
     if (invert) {
@@ -372,5 +384,83 @@ class FunscriptAlgorithms {
       }
     }
     return 0;
+  }
+
+  static List<FunscriptAction> catmullRomSmooth(
+    List<FunscriptAction> actions,
+    int minIntervalMs,
+    int maxIntermediatePoints,
+  ) {
+    if (actions.length < 2) return List.from(actions);
+
+    List<FunscriptAction> smoothed = [];
+
+    for (int i = 0; i < actions.length - 1; i++) {
+      final p1 = actions[i];
+      final p2 = actions[i + 1];
+      final p0 = (i == 0) ? p1 : actions[i - 1];
+      final p3 = (i + 2 >= actions.length) ? p2 : actions[i + 2];
+
+      smoothed.add(p1);
+
+      int duration = p2.at - p1.at;
+
+      // 1. Determine how many points we CAN fit based on minIntervalMs
+      int absoluteMaxPossible = (duration / minIntervalMs).floor() - 1;
+      if (absoluteMaxPossible < 0) absoluteMaxPossible = 0;
+
+      // 2. Take the lesser of your preferred max points and the absolute hardware max
+      int pointsToInsert = maxIntermediatePoints < absoluteMaxPossible
+          ? maxIntermediatePoints
+          : absoluteMaxPossible;
+
+      if (pointsToInsert > 0) {
+        // Calculate the time step for even spacing
+        // We divide by (pointsToInsert + 1) to get the gaps between points
+        double stepSize = duration / (pointsToInsert + 1);
+
+        for (int j = 1; j <= pointsToInsert; j++) {
+          int currentTime = p1.at + (stepSize * j).round();
+          double t = (currentTime - p1.at) / duration;
+
+          double interpolatedPos = _catmullRom(
+            p0.pos.toDouble(),
+            p1.pos.toDouble(),
+            p2.pos.toDouble(),
+            p3.pos.toDouble(),
+            t,
+          );
+
+          smoothed.add(
+            FunscriptAction(
+              at: currentTime,
+              pos: interpolatedPos.clamp(0, 100).round(),
+            ),
+          );
+        }
+      }
+    }
+
+    smoothed.add(actions.last);
+    return smoothed;
+  }
+
+  /// Standard Catmull-Rom Spline formula:
+  /// 0.5 * ((2*P1) + (P2-P0)*t + (2*P0-5*P1+4*P2-P3)*t^2 + (-P0+3*P1-3*P2+P3)*t^3)
+  static double _catmullRom(
+    double p0,
+    double p1,
+    double p2,
+    double p3,
+    double t,
+  ) {
+    double t2 = t * t;
+    double t3 = t2 * t;
+
+    return 0.5 *
+        ((2 * p1) +
+            (-p0 + p2) * t +
+            (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
+            (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
   }
 }

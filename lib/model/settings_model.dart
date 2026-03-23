@@ -32,9 +32,12 @@ class SettingsModel {
   final Signal<bool> funscriptGraphEnabled = signal(false);
 
   // Not persisted in the database
-  Signal<bool> showDebugNotifications = signal(kDebugMode);
-  Signal<Duration> funscriptGraphViewDuration = signal(Duration(seconds: 5));
-  Signal<bool> homeDeviceEnabled = signal(false);
+  final Signal<int?> catmullRomSplineSmoothInterval = signal(null);
+  final Signal<bool> showDebugNotifications = signal(kDebugMode);
+  final Signal<Duration> funscriptGraphViewDuration = signal(
+    Duration(seconds: 5),
+  );
+  final Signal<bool> homeDeviceEnabled = signal(false);
 
   late final Function? _saveEffectDispose;
 
