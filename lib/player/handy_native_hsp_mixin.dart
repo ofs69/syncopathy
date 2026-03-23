@@ -100,9 +100,59 @@ abstract class IHandyHspBase {
   void hspLoop(bool loop);
 }
 
-mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
+// A helper class to track the on device buffer and determine which actions are
+// evicted if the maximum is reached
+class InternalActionBuffer {
   final _currentlyBufferedBuffers = <int>{};
   final _currentlyBufferedActions = <FunscriptAction>[];
+
+  bool get isEmpty => _currentlyBufferedActions.isEmpty;
+  bool get isNotEmpty => _currentlyBufferedActions.isNotEmpty;
+
+  int get firstAt => _currentlyBufferedActions.first.at;
+  int get lastAt => _currentlyBufferedActions.last.at;
+  int get lastBufferId => _currentlyBufferedBuffers.last;
+
+  int maxPoints = 0;
+
+  List<FunscriptAction>? limitCheck(ActionBuffer buffer) {
+    int bufferLength = buffer.endIndex - buffer.startIndex;
+    if (_currentlyBufferedActions.length + bufferLength > maxPoints) {
+      final delta =
+          (_currentlyBufferedActions.length + bufferLength) - maxPoints;
+      if (_currentlyBufferedActions.length >= delta) {
+        return _currentlyBufferedActions.sublist(0, delta);
+      }
+    }
+    return null;
+  }
+
+  void addToBuffer(ActionBuffer buffer) {
+    _currentlyBufferedBuffers.add(buffer.id);
+
+    final bufferActions = buffer.toActions();
+    if (_currentlyBufferedActions.length + bufferActions.length > maxPoints) {
+      final delta =
+          (_currentlyBufferedActions.length + bufferActions.length) - maxPoints;
+      if (_currentlyBufferedActions.length >= delta) {
+        _currentlyBufferedActions.removeRange(0, delta);
+      }
+    }
+    _currentlyBufferedActions.addAll(bufferActions);
+  }
+
+  void reset() {
+    _currentlyBufferedBuffers.clear();
+    _currentlyBufferedActions.clear();
+  }
+
+  bool containsBuffer(int id) {
+    return _currentlyBufferedBuffers.contains(id);
+  }
+}
+
+mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
+  final _internalActionBuffer = InternalActionBuffer();
   bool _internalHandyPlaying = false;
   final _internalHandyPlayStateDebouncer = Debouncer(milliseconds: 200);
   final _eagerBufferThrottle = Throttler(milliseconds: 1000);
@@ -147,6 +197,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         final state = hspStateAdapter.value;
         final _ = timesource.paused.value;
         final homeMode = settingsModel.homeDeviceEnabled.value;
+        _internalActionBuffer.maxPoints = state?.maxPoints ?? 0;
         if (!isConnected) return;
         if (!homeMode) {
           untracked(() => _hspStateChange(state));
@@ -349,9 +400,9 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     final currentTime = timesource.currentRawMs;
 
     if (isPlaying) {
-      if (_currentlyBufferedActions.isNotEmpty) {
-        final expectedFirstTime = _currentlyBufferedActions.first.at;
-        final expectedLastTime = _currentlyBufferedActions.last.at;
+      if (_internalActionBuffer.isNotEmpty) {
+        final expectedFirstTime = _internalActionBuffer.firstAt;
+        final expectedLastTime = _internalActionBuffer.lastAt;
         if (currentTime < expectedFirstTime || currentTime > expectedLastTime) {
           if (state.points > 0) {
             if (kDebugMode) {
@@ -363,13 +414,32 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
           }
         } else {
           _eagerBufferThrottle.run(() {
-            if (_currentlyBufferedBuffers.isEmpty) return;
-            // don't eager buffer when the on device buffer is full
-            if (state.points == state.maxPoints) return;
+            if (_internalActionBuffer.isEmpty) return;
             if (kDebugMode) debugPrint("EAGER BUFFER");
-            final bufferId = _currentlyBufferedBuffers.last + 1;
+            final bufferId = _internalActionBuffer.lastBufferId + 1;
             final actionBuffer = ActionBuffer.fromActions(bufferId, actions);
+
             if (actionBuffer != null) {
+              // check if by buffering actions are evicted from the device
+              var evictedActions = _internalActionBuffer.limitCheck(
+                actionBuffer,
+              );
+              // if actions are evicted check if that's bad
+              if (evictedActions != null && evictedActions.isNotEmpty) {
+                final firstAt = evictedActions.first.at;
+                final lastAt = evictedActions.last.at;
+                // the last 30 seconds behind the playhead are kept
+                if (currentTime >= firstAt && currentTime <= (lastAt + 30000)) {
+                  // do not buffer because actions are not yet played
+                  if (kDebugMode) {
+                    debugPrint(
+                      "NOT EAGER BUFFERING BECAUSE ACTIONS ARE NOT PLAYED",
+                    );
+                  }
+                  return;
+                }
+              }
+              // finally buffer the points no issues were found
               _bufferPoints([actionBuffer], flush: false);
             }
           });
@@ -403,7 +473,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
                 );
                 if (kDebugMode) {
                   debugPrint(
-                    "SYNC COUNTER: $_syncCounter hard:${_syncCounter < 1}",
+                    "SYNC COUNTER: $_syncCounter hard:${_syncCounter < 1} ${timesource.currentSmoothMs + settingsModel.offsetMs.value}ms",
                   );
                 }
                 _syncCounter += 1;
@@ -447,8 +517,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   }
 
   void _resetInternalState(bool flush) {
-    _currentlyBufferedBuffers.clear();
-    _currentlyBufferedActions.clear();
+    _internalActionBuffer.reset();
     if (!flush) _internalHandyPlaying = false;
     _bufferedActionsReference = null;
     _syncTimer?.cancel();
@@ -476,10 +545,10 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     var tailPointIndex = 0;
     var tailPointTreshold = 0;
     for (final buffer in buffers) {
-      if (_currentlyBufferedBuffers.contains(buffer.id)) {
+      if (_internalActionBuffer.containsBuffer(buffer.id)) {
         continue;
       }
-      _currentlyBufferedBuffers.add(buffer.id);
+      _internalActionBuffer.addToBuffer(buffer);
       final bufferActions = buffer.toActions();
       points.addAll(bufferActions);
       tailPointIndex = buffer.tailPointIndex;
@@ -495,7 +564,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         buffers.last.allActions,
       );
       if (lastBuffer != null) {
-        _currentlyBufferedBuffers.add(lastBuffer.id);
+        _internalActionBuffer.addToBuffer(lastBuffer);
         points.addAll(lastBuffer.toActions());
         tailPointIndex = lastBuffer.tailPointIndex;
         tailPointTreshold = lastBuffer.tailPointTreshold;
@@ -512,7 +581,6 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         tailPointStreamIndex: tailPointIndex,
         tailPointThreshold: tailPointTreshold,
       );
-      _currentlyBufferedActions.addAll(points);
 
       int startTime = points.first.at;
       int endTime = points.last.at;
@@ -550,14 +618,14 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     var bufferId =
         Funscript.getActionBefore(timesource.currentRawMs, actions) ~/
         ActionBuffer.maxBufferSize;
-    while (_currentlyBufferedBuffers.contains(bufferId)) {
+    while (_internalActionBuffer.containsBuffer(bufferId)) {
       bufferId += 1;
     }
     final actionBuffer = ActionBuffer.fromActions(bufferId, actions);
     if (actionBuffer != null) {
-      if (_currentlyBufferedActions.isNotEmpty) {
+      if (_internalActionBuffer.isNotEmpty) {
         final currentAt = hspState.currentTime;
-        final lastAt = _currentlyBufferedActions.last.at;
+        final lastAt = _internalActionBuffer.lastAt;
         double runWay = (lastAt - currentAt) / 1000.0;
         assert(runWay > 0.0);
         if (kDebugMode) {
