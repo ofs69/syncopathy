@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
@@ -116,7 +115,7 @@ class InternalActionBuffer {
   int maxPoints = 0;
 
   List<FunscriptAction>? limitCheck(ActionBuffer buffer) {
-    int bufferLength = buffer.endIndex - buffer.startIndex;
+    final bufferLength = buffer.endIndex - buffer.startIndex;
     if (_currentlyBufferedActions.length + bufferLength > maxPoints) {
       final delta =
           (_currentlyBufferedActions.length + bufferLength) - maxPoints;
@@ -156,6 +155,9 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   bool _internalHandyPlaying = false;
   final _internalHandyPlayStateDebouncer = Debouncer(milliseconds: 200);
   final _eagerBufferThrottle = Throttler(milliseconds: 1000);
+
+  // eager buffer limit 30 seconds
+  static const int _eagerBufferLimitMs = 30000;
 
   // a reference to check if the actions have changed
   Object? _bufferedActionsReference;
@@ -420,25 +422,20 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
             final actionBuffer = ActionBuffer.fromActions(bufferId, actions);
 
             if (actionBuffer != null) {
-              // check if by buffering actions are evicted from the device
-              var evictedActions = _internalActionBuffer.limitCheck(
-                actionBuffer,
-              );
-              // if actions are evicted check if that's bad
-              if (evictedActions != null && evictedActions.isNotEmpty) {
-                final firstAt = evictedActions.first.at;
-                final lastAt = evictedActions.last.at;
-                // the last 30 seconds behind the playhead are kept
-                if (currentTime >= firstAt && currentTime <= (lastAt + 30000)) {
-                  // do not buffer because actions are not yet played
-                  if (kDebugMode) {
-                    debugPrint(
-                      "NOT EAGER BUFFERING BECAUSE ACTIONS ARE NOT PLAYED",
-                    );
-                  }
-                  return;
-                }
+              final bufferLength = actionBuffer.bufferLength;
+              final softMaxPoints = (state.maxPoints ~/ 100) * 100;
+              if (state.points + bufferLength > softMaxPoints) {
+                // stop buffering soft limit is reached
+                return;
               }
+
+              final delta = _internalActionBuffer.lastAt - currentTime;
+              if (delta >= _eagerBufferLimitMs) {
+                // stop buffering 
+                // there's already _eagerBufferLimitMs milliseconds of actions buffered
+                return;
+              }
+
               // finally buffer the points no issues were found
               _bufferPoints([actionBuffer], flush: false);
             }
@@ -452,11 +449,12 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
 
     if (isPlaying) {
       _syncTimer ??= Timer(
-        Duration(seconds: _syncCounter < 3 ? _syncCounter : 10),
+        Duration(seconds: _syncCounter < 3 ? _syncCounter + 1 : 10),
         () {
           try {
             if (isPlaying) {
-              final currentTimeMs = timesource.currentSmoothMs;
+              final currentTimeMs =
+                  timesource.currentSmoothMs + settingsModel.offsetMs.value;
               final state = hspStateAdapter.value;
               if (state == null) return;
               final handyPlaying =
@@ -466,14 +464,13 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
               if (currentTimeMs >= state.firstPointTime &&
                   currentTimeMs <= state.lastPointTime) {
                 hspCurrentTimeSet(
-                  currentTime:
-                      timesource.currentSmoothMs + settingsModel.offsetMs.value,
+                  currentTime: currentTimeMs,
                   // one hard sync 0.9 followed by soft syncs 0.5
                   filter: _syncCounter < 1 ? 0.9 : 0.5,
                 );
                 if (kDebugMode) {
                   debugPrint(
-                    "SYNC COUNTER: $_syncCounter hard:${_syncCounter < 1} ${timesource.currentSmoothMs + settingsModel.offsetMs.value}ms",
+                    "SYNC COUNTER: $_syncCounter hard:${_syncCounter < 1} ${currentTimeMs}ms",
                   );
                 }
                 _syncCounter += 1;
@@ -611,9 +608,6 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     final hspState = hspStateAdapter.value;
     if (hspState == null) return;
 
-    // we are here
-    final currentPointIndex = hspState.currentPoint;
-
     // Get the next buffer and buffer it
     var bufferId =
         Funscript.getActionBefore(timesource.currentRawMs, actions) ~/
@@ -623,19 +617,15 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     }
     final actionBuffer = ActionBuffer.fromActions(bufferId, actions);
     if (actionBuffer != null) {
-      if (_internalActionBuffer.isNotEmpty) {
-        final currentAt = hspState.currentTime;
-        final lastAt = _internalActionBuffer.lastAt;
-        double runWay = (lastAt - currentAt) / 1000.0;
-        assert(runWay > 0.0);
-        if (kDebugMode) {
-          debugPrint(
-            "Runway: ${runWay.toStringAsFixed(2)} seconds StateIndex: $currentPointIndex StateAt: $currentAt PlayerAt: ${timesource.currentRawMs}",
-          );
-        }
+      final bufferLength = actionBuffer.bufferLength;
+      final softMaxPoints = (hspState.maxPoints ~/ 100) * 100;
+      if (hspState.points + bufferLength > softMaxPoints) {
+        // when the soft limit is reached we pause and flush the buffer
+        hspPause();
+        _bootstrapBuffer(actions);
+      } else {
+        _bufferPoints([actionBuffer], flush: false);
       }
-
-      _bufferPoints([actionBuffer], flush: false);
     }
   }
 
