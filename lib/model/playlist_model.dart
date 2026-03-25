@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as p;
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
 
@@ -18,11 +19,9 @@ class PlaylistModel {
   }
 
   int getIndexForVideo(Video video) {
-    final videoPath = Uri.file(video.videoPath).toFilePath(windows: false);
+    final videoPath = p.canonicalize(video.videoPath);
 
-    return _entries.indexWhere(
-      (v) => Uri.file(v.filename).toFilePath(windows: false) == videoPath,
-    );
+    return _entries.indexWhere((v) => p.canonicalize(v.filename) == videoPath);
   }
 
   static PlaylistModel fromJson(String jsonString) {
