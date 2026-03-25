@@ -53,6 +53,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
         children: [
           _buildRdpEpsilonSettings(context),
           _buildSlewRateSettings(context),
+          _buildCatmullRomSplineSmoothSettings(context),
           _buildInvertSettings(context),
           _buildRemapFullRangeSettings(context),
         ],
@@ -156,6 +157,37 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
             divisions: 50,
             onChanged: (value) {
               settings.rdpEpsilon.value = value;
+            },
+          ),
+      ],
+    );
+  }
+
+  Widget _buildCatmullRomSplineSmoothSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
+    return Column(
+      children: [
+        SwitchListTile(
+          title: const Text('Catmull-Rom Spline Smoothing'),
+          subtitle: const Text('Modify the funscript adding spline smoothing.'),
+          value: settings.catmullRomSplineSmoothInterval.watch(context) != null,
+          onChanged: (value) {
+            settings.catmullRomSplineSmoothInterval.value = value ? 50 : null;
+          },
+          secondary: const Icon(Icons.route_rounded),
+          isThreeLine: true,
+        ),
+        if (settings.catmullRomSplineSmoothInterval.watch(context) != null)
+          _buildSliderWithNumericInput(
+            context,
+            value: settings.catmullRomSplineSmoothInterval
+                .watch(context)!
+                .toDouble(),
+            min: 50,
+            max: 100,
+            divisions: 5,
+            onChanged: (value) {
+              settings.catmullRomSplineSmoothInterval.value = value.toInt();
             },
           ),
       ],

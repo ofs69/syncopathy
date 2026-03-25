@@ -102,6 +102,7 @@ class PlayerModel with EffectDispose {
     double totalDuration,
     double playbackSpeed,
     RangeValues strokeRange,
+    int? smoothIntervalMs,
   ) {
     final modifiedActions = FunscriptAlgorithms.processForHandy(
       funscript.originalActions,
@@ -112,6 +113,7 @@ class PlayerModel with EffectDispose {
       totalDuration,
       playbackSpeed,
       strokeRange,
+      smoothIntervalMs,
     );
     funscript.processedActions.value = modifiedActions;
   }
@@ -128,6 +130,7 @@ class PlayerModel with EffectDispose {
         final invert = _settings.invert.value;
         final playbackSpeed = player.playbackSpeed.value;
         final strokeRange = _settings.minMaxRange.value;
+        final smoothIntervalMs = _settings.catmullRomSplineSmoothInterval.value;
 
         if (media == null || totalDuration == null || totalDuration < 0.1) {
           __currentFunscript.value = null;
@@ -149,6 +152,7 @@ class PlayerModel with EffectDispose {
                 totalDuration,
                 playbackSpeed,
                 strokeRange,
+                smoothIntervalMs,
               );
             });
           }
@@ -169,6 +173,7 @@ class PlayerModel with EffectDispose {
         final invert = _settings.invert.value;
         final playbackSpeed = player.playbackSpeed.value;
         final strokeRange = _settings.minMaxRange.value;
+        final smoothIntervalMs = _settings.catmullRomSplineSmoothInterval.value;
 
         final funscriptFile = media?.funscripts.firstOrNull;
 
@@ -204,6 +209,7 @@ class PlayerModel with EffectDispose {
                 totalDuration,
                 playbackSpeed,
                 strokeRange,
+                smoothIntervalMs,
               );
             }
           });

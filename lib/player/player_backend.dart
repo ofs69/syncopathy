@@ -20,6 +20,7 @@ class ActionBuffer {
 
   int get tailPointIndex => (id * maxBufferSize) + (endIndex - startIndex);
   int get tailPointTreshold => (id * maxBufferSize);
+  int get bufferLength => endIndex - startIndex;
 
   ActionBuffer({
     required this.id,
