@@ -3,38 +3,11 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/focus_numeric_input.dart';
-import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
 import 'package:syncopathy/player/video_player.dart';
-
-class ScriptPlayerSettingsOverlay extends StatelessWidget {
-  const ScriptPlayerSettingsOverlay({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.zero,
-      decoration: stdBoxShadow(),
-      alignment: Alignment.topCenter,
-      // create a soft edge at the bottom
-      child: ShaderMask(
-        shaderCallback: (Rect bounds) {
-          return LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, Colors.transparent],
-            stops: [0.98, 1.0],
-          ).createShader(bounds);
-        },
-        blendMode: BlendMode.dstIn,
-        child: SingleChildScrollView(child: ScriptPlayerSettings()),
-      ),
-    );
-  }
-}
 
 class ScriptPlayerSettings extends StatefulWidget {
   const ScriptPlayerSettings({super.key});

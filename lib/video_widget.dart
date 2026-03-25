@@ -12,11 +12,12 @@ import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
+import 'package:syncopathy/player/script_player_settings.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/scrolling_graph.dart';
 import 'package:syncopathy/simple/simple_mode/simple_mode.dart';
 import 'package:syncopathy/video_controls.dart';
-import 'package:syncopathy/video_player_settings_overlay.dart';
+import 'package:syncopathy/settings_overlay.dart';
 
 class VideoWidget extends StatefulWidget {
   final VideoPlayer player;
@@ -85,6 +86,7 @@ class _VideoWidgetState extends State<VideoWidget>
               widget.showControls.value ||
               widget.showSettings.value ||
               !settings.embeddedVideoPlayer.value;
+          final showSettings = widget.showSettings.value;
 
           final videoController = widget.player.controller;
           return LayoutBuilder(
@@ -135,19 +137,9 @@ class _VideoWidgetState extends State<VideoWidget>
                               children: [
                                 Expanded(
                                   flex: 10,
-                                  child: AnimatedSlide(
-                                    offset: widget.showSettings.watch(context)
-                                        ? Offset.zero
-                                        : const Offset(
-                                            0,
-                                            -1,
-                                          ), // Slides in from the right
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeInOut,
-                                    child: ExcludeFocus(
-                                      excluding: !showControls,
-                                      child: ScriptPlayerSettingsOverlay(),
-                                    ),
+                                  child: SettingsOverlay(
+                                    showSettings: showSettings,
+                                    child: ScriptPlayerSettings(),
                                   ),
                                 ),
                                 widget.showFunscriptGraph.watch(context)

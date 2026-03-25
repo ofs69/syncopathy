@@ -2,7 +2,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'filter.freezed.dart';
 
-
 @freezed
 abstract class MediaFilter with _$MediaFilter {
   static const int allCategoriesCategoryId = -1;

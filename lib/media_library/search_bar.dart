@@ -24,8 +24,6 @@ class _MediaSearchBarState extends State<MediaSearchBar> {
     _debouncer.run(() => widget.onFilterChanged(_searchController.text));
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -49,4 +47,3 @@ class _MediaSearchBarState extends State<MediaSearchBar> {
     super.dispose();
   }
 }
-
