@@ -431,7 +431,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
 
               final delta = _internalActionBuffer.lastAt - currentTime;
               if (delta >= _eagerBufferLimitMs) {
-                // stop buffering 
+                // stop buffering
                 // there's already _eagerBufferLimitMs milliseconds of actions buffered
                 return;
               }

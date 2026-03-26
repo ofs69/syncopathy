@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/helper/debouncer.dart';
@@ -43,6 +43,8 @@ class PlayerModel with EffectDispose {
   final Signal<Funscript?> simpleModeFunscript = signal(null);
 
   bool _videoViewCounted = false;
+
+  final Debouncer _processingDebouncer = Debouncer(milliseconds: 300);
 
   PlayerModel(
     this._settings,
@@ -95,29 +97,14 @@ class PlayerModel with EffectDispose {
     ]);
   }
 
-  void _processFunscript(
-    Funscript funscript,
-    double? slewMaxRateOfChange,
-    double? rdpEpsilon,
-    bool remapFullRange,
-    bool invert,
-    double totalDuration,
-    double playbackSpeed,
-    RangeValues strokeRange,
-    int? smoothIntervalMs,
-  ) {
-    final modifiedActions = FunscriptAlgorithms.processForHandy(
-      funscript.originalActions,
-      slewMaxRateOfChange,
-      rdpEpsilon,
-      remapFullRange ? (0, 100) : null,
-      invert,
-      totalDuration,
-      playbackSpeed,
-      strokeRange,
-      smoothIntervalMs,
-    );
-    funscript.processedActions.value = modifiedActions;
+  void _processFunscript(Funscript funscript, FunscriptProcessParams params) {
+    _processingDebouncer.run(() async {
+      final modifiedActions = compute(
+        FunscriptAlgorithms.processForHandy,
+        params,
+      );
+      funscript.processedActions.value = await modifiedActions;
+    }, leading: true);
   }
 
   void simpleModeEffects(VideoPlayer player) {
@@ -147,14 +134,17 @@ class PlayerModel with EffectDispose {
             untracked(() {
               _processFunscript(
                 funscript,
-                slewMaxRateOfChange,
-                rdpEpsilon,
-                remapFullRange,
-                invert,
-                totalDuration,
-                playbackSpeed,
-                strokeRange,
-                smoothIntervalMs,
+                FunscriptProcessParams(
+                  actions: funscript.originalActions,
+                  invert: invert,
+                  totalDuration: totalDuration,
+                  playbackSpeed: playbackSpeed,
+                  strokeRange: strokeRange,
+                  slewMaxRateOfChangePerSecond: slewMaxRateOfChange,
+                  rdpEpsilon: rdpEpsilon,
+                  remapRange: remapFullRange ? (0, 100) : null,
+                  smoothIntervalMs: smoothIntervalMs,
+                ),
               );
             });
           }
@@ -194,14 +184,17 @@ class PlayerModel with EffectDispose {
             untracked(() {
               _processFunscript(
                 funscript,
-                slewMaxRateOfChange,
-                rdpEpsilon,
-                remapFullRange,
-                invert,
-                totalDuration,
-                playbackSpeed,
-                strokeRange,
-                smoothIntervalMs,
+                FunscriptProcessParams(
+                  actions: funscript.originalActions,
+                  invert: invert,
+                  totalDuration: totalDuration,
+                  playbackSpeed: playbackSpeed,
+                  strokeRange: strokeRange,
+                  slewMaxRateOfChangePerSecond: slewMaxRateOfChange,
+                  rdpEpsilon: rdpEpsilon,
+                  remapRange: remapFullRange ? (0, 100) : null,
+                  smoothIntervalMs: smoothIntervalMs,
+                ),
               );
             });
           }

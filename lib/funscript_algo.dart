@@ -3,6 +3,30 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:syncopathy/model/funscript.dart';
 
+class FunscriptProcessParams {
+  final List<FunscriptAction> actions;
+  final double? slewMaxRateOfChangePerSecond;
+  final double? rdpEpsilon;
+  final (int minRange, int maxRange)? remapRange;
+  final bool invert;
+  final double totalDuration;
+  final double playbackSpeed;
+  final RangeValues strokeRange;
+  final int? smoothIntervalMs;
+
+  FunscriptProcessParams({
+    required this.actions,
+    this.slewMaxRateOfChangePerSecond,
+    this.rdpEpsilon,
+    this.remapRange,
+    required this.invert,
+    required this.totalDuration,
+    required this.playbackSpeed,
+    required this.strokeRange,
+    this.smoothIntervalMs,
+  });
+}
+
 class FunscriptAlgorithms {
   // Applies slew to the actions limiting the amount of change per second based on maxRateOfChangePerSecond
   static List<FunscriptAction> slew(
@@ -263,17 +287,17 @@ class FunscriptAlgorithms {
         .toList();
   }
 
-  static List<FunscriptAction> processForHandy(
-    List<FunscriptAction> actions,
-    double? slewMaxRateOfChangePerSecond,
-    double? rdpEpsilon,
-    (int minRange, int maxRange)? remapRange,
-    bool invert,
-    double totalDuration,
-    double playbackSpeed,
-    RangeValues strokeRange,
-    int? smoothIntervalMs,
-  ) {
+  static List<FunscriptAction> processForHandy(FunscriptProcessParams params) {
+    var actions = params.actions;
+    final totalDuration = params.totalDuration;
+    final remapRange = params.remapRange;
+    final slewMaxRateOfChangePerSecond = params.slewMaxRateOfChangePerSecond;
+    final playbackSpeed = params.playbackSpeed;
+    final strokeRange = params.strokeRange;
+    final rdpEpsilon = params.rdpEpsilon;
+    final smoothIntervalMs = params.smoothIntervalMs;
+    final invert = params.invert;
+
     if (actions.isEmpty) {
       return actions;
     }
