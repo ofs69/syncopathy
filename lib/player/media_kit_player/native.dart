@@ -16,7 +16,7 @@ class MediaKitPlayerImpl extends VideoPlayer {
         aditionalLibMpvOptions: {
           'config': 'yes',
           'config-dir': '',
-          'input-default-bindings': 'yes',
+          'input-default-bindings': 'no',
           'hwdec': 'auto-safe',
           'border': 'yes',
           'geometry': "1280x720",
