@@ -120,6 +120,13 @@ class MediaManager {
 
     final processSemaphore = Semaphore(8);
     final List<Future<void>> processFutures = [];
+
+    // Pre-fetch all videos in DB for fast lookup
+    final videosInDb = await DatabaseHelper().getAllVideos();
+    final Map<String, Video> dbVideoMap = {
+      for (var v in videosInDb) v.videoPath: v,
+    };
+
     for (final videoFile in videoFiles) {
       processFutures.add(() async {
         await processSemaphore.acquire();
@@ -129,46 +136,30 @@ class MediaManager {
           final funscriptPaths = funscriptMap[videoBasename];
 
           if (funscriptPaths != null && funscriptPaths.isNotEmpty) {
-            if (funscriptPaths.length > 1) {
-              final funscripts = await Future.wait(
-                funscriptPaths.map(
-                  (path) => Funscript.fromFile(
-                    path,
-                  ).catchError((e) => null, test: (e) => true),
-                ),
-              );
-              final validFunscripts = funscripts.nonNulls.toList();
-
-              if (validFunscripts.length > 1) {
-                final firstActions = validFunscripts.first.originalActions;
-                bool allActionsSame = true;
-                for (int i = 1; i < validFunscripts.length; i++) {
-                  if (!listEquals(
-                    firstActions,
-                    validFunscripts[i].originalActions,
-                  )) {
-                    allActionsSame = false;
-                    break;
-                  }
-                }
-
-                if (!allActionsSame) {
-                  Logger.warning(
-                    'Multiple funscripts found for video with different actions: $videoPath Funscripts: ${funscriptPaths.join(', ')}',
-                  );
-                } else {
-                  // Logger.info(
-                  //   'Multiple funscripts found for video with identical actions: $videoPath Funscripts: ${funscriptPaths.join(', ')}',
-                  // );
-                }
-              }
-            }
             final funscriptPath = funscriptPaths.first;
-            if (p.dirname(videoPath) != p.dirname(funscriptPath)) {
-              // Logger.debug(
-              //   'Video and funscript not in same directory: Video: $videoPath Funscript: $funscriptPath',
-              // );
+            final scriptFile = File(funscriptPath);
+
+            // Get stats for both files
+            final videoStat = await videoFile.stat();
+            final scriptStat = await scriptFile.stat();
+
+            // Check if we already have this video and if it's up to date
+            final existingVideo = dbVideoMap[videoPath];
+            if (existingVideo != null &&
+                existingVideo.funscriptPath == funscriptPath &&
+                existingVideo.videoFileSize == videoStat.size &&
+                existingVideo.videoLastModified?.millisecondsSinceEpoch ==
+                    videoStat.modified.millisecondsSinceEpoch &&
+                existingVideo.funscriptFileSize == scriptStat.size &&
+                existingVideo.funscriptLastModified?.millisecondsSinceEpoch ==
+                    scriptStat.modified.millisecondsSinceEpoch) {
+              // Up to date, just add to memory list and skip heavy processing
+              _allVideos.add(existingVideo);
+              videoCountNotifier.value = _allVideos.length;
+              return;
             }
+
+            // If we are here, file is new or changed - process it
             final title = videoBasename;
             final funscript = await Funscript.fromFile(funscriptPath)
                 .catchError(
@@ -190,13 +181,15 @@ class MediaManager {
               final averageMax = FunscriptAlgorithms.averageMax(
                 funscript.originalActions,
               );
+              // Force fresh metadata if file changed
               final metadata = await _getVideoMetadata(
                 videoFile.path,
-                cache: true,
+                cache: false,
               );
               final duration = metadata['duration'];
 
               var video = Video(
+                id: existingVideo?.id, // Preserve ID if it existed
                 title: title,
                 videoPath: videoPath,
                 funscriptPath: funscriptPath,
@@ -205,7 +198,14 @@ class MediaManager {
                 averageMax: averageMax,
                 funscriptMetadata: funscript.metadata,
                 duration: duration,
-                dateFirstFound: DateTime.now(),
+                dateFirstFound: existingVideo?.dateFirstFound ?? DateTime.now(),
+                isFavorite: existingVideo?.isFavorite ?? false,
+                isDislike: existingVideo?.isDislike ?? false,
+                playCount: existingVideo?.playCount ?? 0,
+                videoFileSize: videoStat.size,
+                videoLastModified: videoStat.modified,
+                funscriptFileSize: scriptStat.size,
+                funscriptLastModified: scriptStat.modified,
               );
 
               _allVideos.add(video);
@@ -221,33 +221,20 @@ class MediaManager {
 
     // Update the database
     // remove files not found from the database
-    // add files which are currently not in the database
     var videosFoundOnDisk = _allVideos.toList();
 
-    var videosInDb = await DatabaseHelper().getAllVideos();
     for (var video in videosInDb) {
-      if (!videosFoundOnDisk.any(
-        (element) =>
-            element.videoPath == video.videoPath &&
-            element.funscriptPath == video.funscriptPath,
-      )) {
+      if (!videosFoundOnDisk.any((element) => element.id == video.id)) {
         await DatabaseHelper().deleteVideo(video.id!);
       }
     }
-
-    // Fetch videos again after deleting
-    videosInDb = await DatabaseHelper().getAllVideos();
 
     List<Video> insertVideoBatch = List.empty(growable: true);
     List<Video> updateVideoBatch = List.empty(growable: true);
     List<FunscriptMetadata> updateMetadataBatch = List.empty(growable: true);
 
     for (var video in videosFoundOnDisk) {
-      var dbVideo = videosInDb.firstWhereOrNull(
-        (element) => element.videoPath == video.videoPath,
-      );
-
-      if (dbVideo == null) {
+      if (video.id == null) {
         // add new
         if (video.funscriptMetadata != null) {
           video.funscriptMetadataId = await DatabaseHelper()
@@ -255,23 +242,25 @@ class MediaManager {
         }
         insertVideoBatch.add(video);
       } else {
-        // update existing
-        dbVideo.averageSpeed = video.averageSpeed;
-        dbVideo.averageMin = video.averageMin;
-        dbVideo.averageMax = video.averageMax;
-        dbVideo.duration = video.duration;
-
-        if (dbVideo.funscriptMetadataId == null &&
-            video.funscriptMetadata != null) {
-          dbVideo.funscriptMetadataId = await DatabaseHelper()
-              .insertFunscriptMetadata(video.funscriptMetadata!);
-        } else if (dbVideo.funscriptMetadataId != null &&
-            video.funscriptMetadata != null) {
-          video.funscriptMetadata!.id = dbVideo.funscriptMetadataId!;
-          updateMetadataBatch.add(video.funscriptMetadata!);
+        // update existing (only if changed, though _allVideos only contains processed ones or existing ones)
+        // We can optimize this by only adding to updateVideoBatch if it was actually re-processed
+        // For simplicity, we can batch update all that were found on disk or filter further.
+        // Let's check if it was re-processed by comparing modified date with the one in DB
+        final dbVideo = dbVideoMap[video.videoPath];
+        if (dbVideo != null &&
+            (dbVideo.videoLastModified != video.videoLastModified ||
+                dbVideo.funscriptLastModified != video.funscriptLastModified)) {
+          if (dbVideo.funscriptMetadataId == null &&
+              video.funscriptMetadata != null) {
+            video.funscriptMetadataId = await DatabaseHelper()
+                .insertFunscriptMetadata(video.funscriptMetadata!);
+          } else if (dbVideo.funscriptMetadataId != null &&
+              video.funscriptMetadata != null) {
+            video.funscriptMetadata!.id = dbVideo.funscriptMetadataId!;
+            updateMetadataBatch.add(video.funscriptMetadata!);
+          }
+          updateVideoBatch.add(video);
         }
-        dbVideo.funscriptMetadata = video.funscriptMetadata;
-        updateVideoBatch.add(dbVideo);
       }
     }
 

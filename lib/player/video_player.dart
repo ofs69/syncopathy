@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
-import 'package:path/path.dart' as p;
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/model/playlist_model.dart';
@@ -114,9 +113,9 @@ abstract class VideoPlayer with EffectDispose {
       final entry = playlist.currentPlaylistItem.value;
       var filename = entry?.filename;
       if (filename != null) {
-        filename = p.canonicalize(filename);
+        filename = Uri.file(filename).toFilePath(windows: false);
         final video = _previouslyLoadedVideos.value.firstWhereOrNull((v) {
-          final videoPath = p.canonicalize(v.videoPath);
+          final videoPath = Uri.file(v.videoPath).toFilePath(windows: false);
           return videoPath == filename;
         });
         return video;
@@ -231,6 +230,18 @@ abstract class VideoPlayer with EffectDispose {
   }
 
   void seekTo(Duration seek) => player.seek(seek);
+
+  void seekBackward({int seconds = 5}) {
+    final current = currentPositionSeconds.value;
+    final target = (current - seconds).clamp(0, duration.value?.toInt() ?? 0);
+    seekTo(Duration(seconds: target));
+  }
+
+  void seekForward({int seconds = 5}) {
+    final current = currentPositionSeconds.value;
+    final target = (current + seconds).clamp(0, duration.value?.toInt() ?? 0);
+    seekTo(Duration(seconds: target));
+  }
 
   void setSpeed(double speed) => player.setRate(speed.clamp(0.5, 2.0));
 

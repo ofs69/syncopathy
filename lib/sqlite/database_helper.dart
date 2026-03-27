@@ -33,6 +33,7 @@ class DatabaseHelper {
     "000007_rename_column_kv_and_cleanup.sql",
     "000008_migrate_media_library_to_json.sql",
     "000009_migrate_settings_to_json.sql",
+    "000010_add_sync_metadata_to_videos.sql",
   ];
 
   Future<Database> get database async {

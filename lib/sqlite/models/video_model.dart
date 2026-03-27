@@ -20,6 +20,11 @@ class Video {
   double? duration;
   int? funscriptMetadataId;
 
+  int? videoFileSize;
+  DateTime? videoLastModified;
+  int? funscriptFileSize;
+  DateTime? funscriptLastModified;
+
   // Joined data
   FunscriptMetadata? funscriptMetadata;
   List<UserCategory> categories;
@@ -38,6 +43,10 @@ class Video {
     required this.dateFirstFound,
     this.duration,
     this.funscriptMetadataId,
+    this.videoFileSize,
+    this.videoLastModified,
+    this.funscriptFileSize,
+    this.funscriptLastModified,
     this.funscriptMetadata,
     List<UserCategory>? categories,
   }) : categories = categories ?? [];
@@ -57,6 +66,10 @@ class Video {
       'dateFirstFound': dateFirstFound.millisecondsSinceEpoch,
       'duration': duration,
       'funscriptMetadataId': funscriptMetadataId,
+      'videoFileSize': videoFileSize,
+      'videoLastModified': videoLastModified?.millisecondsSinceEpoch,
+      'funscriptFileSize': funscriptFileSize,
+      'funscriptLastModified': funscriptLastModified?.millisecondsSinceEpoch,
     };
   }
 
@@ -77,6 +90,14 @@ class Video {
       ),
       duration: map['duration'],
       funscriptMetadataId: map['funscriptMetadataId'],
+      videoFileSize: map['videoFileSize'],
+      videoLastModified: map['videoLastModified'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['videoLastModified'])
+          : null,
+      funscriptFileSize: map['funscriptFileSize'],
+      funscriptLastModified: map['funscriptLastModified'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['funscriptLastModified'])
+          : null,
     );
   }
 
