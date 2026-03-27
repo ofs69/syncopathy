@@ -12,11 +12,9 @@ class FloatingToolbar extends StatelessWidget {
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         child: Row(mainAxisSize: MainAxisSize.min, children: [...children]),
       ),
     );
   }
 }
-
-

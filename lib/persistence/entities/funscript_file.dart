@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:objectbox/objectbox.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
@@ -40,4 +41,6 @@ class FunscriptFile {
     required this.funscriptHash,
     this.metadata,
   });
+
+  String get fileName => path.split(Platform.pathSeparator).last;
 }

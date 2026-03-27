@@ -13,13 +13,31 @@ class _MediaPageState extends State<MediaPage>
   @override
   bool get wantKeepAlive => true;
 
+  final GlobalKey<NavigatorState> _nestedNavKey = GlobalKey<NavigatorState>();
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0.0),
-      child: MediaLibrary(),
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+          if (_nestedNavKey.currentState?.canPop() ?? false) {
+            _nestedNavKey.currentState?.pop();
+          }
+        },
+        child: Navigator(
+          key: _nestedNavKey,
+          onGenerateRoute: (routeSettings) {
+            return MaterialPageRoute(
+              builder: (context) => const MediaLibrary(),
+            );
+          },
+        ),
+      ),
     );
   }
 }

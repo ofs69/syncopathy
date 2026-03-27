@@ -6,7 +6,8 @@ import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/ioc.dart' show getIt, oBox;
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_library/category_selection_dialog.dart';
-import 'package:syncopathy/media_library/filter.dart';
+import 'package:syncopathy/media_library/filter/media_filter.dart';
+import 'package:syncopathy/media_library/media_filter_overlay.dart';
 import 'package:syncopathy/media_library/media_item.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/media_library/search_bar.dart';
@@ -53,8 +54,8 @@ class _MediaLibraryState extends State<MediaLibrary>
   );
 
   // filters
+  final MediaFilter mediaFilter = MediaFilter();
   late final Signal<String> searchQuery = createSignal("");
-  late final Signal<MediaFilter> mediaFilter = createSignal(MediaFilter());
   late final Signal<bool> _showFilterSettings = createSignal(false);
 
   // selection
@@ -104,16 +105,8 @@ class _MediaLibraryState extends State<MediaLibrary>
     final sortOption = mediaSettings.sortOption.watch(context);
     final isSortAscending = mediaSettings.isSortAscending.watch(context);
     final isSelecting = _isSelecting.watch(context);
+    final showFilterSettings = _showFilterSettings.watch(context);
 
-    // appBar: isSelecting.watch(context)
-    //     ? _buildSelectionAppBar()
-    //     : _buildDefaultAppBar(
-    //         showDuration: showDuration,
-    //         showPlayCount: showPlayCount,
-    //         showTitle: showTitle,
-    //         showAverageSpeed: showAverageSpeed,
-    //         showAverageMinMax: showAverageMinMax,
-    //       ),
     return Column(
       children: [
         Container(
@@ -193,25 +186,31 @@ class _MediaLibraryState extends State<MediaLibrary>
                   children: [
                     IconButton(
                       icon: const Icon(Icons.tune),
+                      isSelected: showFilterSettings,
                       style: IconButton.styleFrom(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onInverseSurface,
+                        backgroundColor: showFilterSettings
+                            ? Theme.of(context).colorScheme.primaryContainer
+                            : Theme.of(context).colorScheme.onInverseSurface,
+                        foregroundColor: showFilterSettings
+                            ? Theme.of(context).colorScheme.onPrimaryContainer
+                            : Theme.of(context).colorScheme.primary,
                       ),
                       color: Theme.of(context).colorScheme.primary,
-                      onPressed: () => _showFilterSettings.value =
-                          !_showFilterSettings.value,
+                      onPressed: () =>
+                          _showFilterSettings.value = !showFilterSettings,
                     ),
-                    if (mediaFilter.watch(context).isCustomized)
+                    if (mediaFilter.isCustomized.watch(context))
                       Positioned(
                         right: 0,
                         top: 0,
-                        child: Container(
-                          width: 10,
-                          height: 10,
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
+                        child: IgnorePointer(
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ),
                       ),
@@ -499,111 +498,12 @@ class _MediaLibraryState extends State<MediaLibrary>
                 ),
               if (isSelecting) _buildFloatingToolbar(),
               SettingsOverlay(
-                showSettings: _showFilterSettings.watch(context),
-                child: const Placeholder(),
+                showSettings: showFilterSettings,
+                child: MediaFilterOverlay(filter: mediaFilter),
               ),
             ],
           ),
         ),
-      ],
-    );
-  }
-
-  AppBar _buildDefaultAppBar({
-    required bool showDuration,
-    required bool showPlayCount,
-    required bool showTitle,
-    required bool showAverageSpeed,
-    required bool showAverageMinMax,
-  }) {
-    final mediaSettings = context.read<MediaLibrarySettingsModel>();
-    final sortOption = mediaSettings.sortOption.watch(context);
-    final isSortAscending = mediaSettings.isSortAscending.watch(context);
-
-    return AppBar(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(16.0)),
-      ),
-      title: Row(
-        children: [
-          Flexible(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: const Text('Media Library'),
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        // Sorting Dropdown
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            PopupMenuButton<SortOption>(
-              menuPadding: EdgeInsets.zero,
-              tooltip: "Sorting",
-              borderRadius: BorderRadius.circular(16.0),
-              onSelected: (option) => mediaSettings.sortOption.value = option,
-              itemBuilder: (context) => SortOption.values.map((option) {
-                return PopupMenuItem<SortOption>(
-                  value: option,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.check,
-                        color: option == sortOption
-                            ? Theme.of(context).colorScheme.primary
-                            : Colors.transparent,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(option.label),
-                    ],
-                  ),
-                );
-              }).toList(),
-              child: SizedBox(
-                width: 170,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 8.0,
-                    horizontal: 8.0,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        sortOption.label,
-                        style: Theme.of(context).textTheme.labelLarge,
-                      ),
-                      const Icon(Icons.arrow_drop_down),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            IconButton(
-              icon: Icon(
-                isSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-              ),
-              onPressed: () {
-                mediaSettings.isSortAscending.value =
-                    !mediaSettings.isSortAscending.value;
-              },
-              tooltip: isSortAscending ? 'Sort Descending' : 'Sort Ascending',
-            ),
-          ],
-        ),
-        const SizedBox(width: 8),
-        // Refresh Button
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          onPressed: isIndexing.watch(context)
-              ? null
-              : getIt.get<MediaManager>().startIndexing,
-          tooltip: 'Refresh',
-        ),
-        const SizedBox(width: 8),
       ],
     );
   }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:syncopathy/ioc.dart';
-import 'package:syncopathy/media_library/filter.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/persistence/entities/user_category.dart';
 
@@ -31,18 +30,20 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
   List<UserCategory> _userCategories = [];
   bool _isLoading = true;
 
+  int allCategoriesCategoryId = -1;
+  int uncategorizedCategoryId = -2;
+
   List<UserCategory> get _metaCategories {
     final List<UserCategory> meta = [];
     if (widget.showAllCategoriesOption) {
       meta.add(
         UserCategory(name: 'All Categories', sortOrder: -1)
-          ..id = MediaFilter.allCategoriesCategoryId,
+          ..id = allCategoriesCategoryId,
       );
     }
     if (widget.showUncategorizedOption) {
       meta.add(
-        UserCategory(name: 'Uncategorized')
-          ..id = MediaFilter.uncategorizedCategoryId,
+        UserCategory(name: 'Uncategorized')..id = uncategorizedCategoryId,
       );
     }
     return meta;
@@ -166,12 +167,12 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
         if (index < _metaCategories.length) {
           final item = _metaCategories[index];
           // Special handling for "All Categories" sentinel and "Uncategorized"
-          if (item.id == MediaFilter.allCategoriesCategoryId) {
+          if (item.id == allCategoriesCategoryId) {
             return ListTile(
               title: const Text('All Categories'),
               onTap: () => Navigator.of(context).pop(null),
             );
-          } else if (item.id == MediaFilter.uncategorizedCategoryId) {
+          } else if (item.id == uncategorizedCategoryId) {
             return ListTile(
               title: Text(item.name),
               onTap: () => Navigator.of(context).pop(item.id),

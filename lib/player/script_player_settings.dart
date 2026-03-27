@@ -3,11 +3,11 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/focus_numeric_input.dart';
-import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
 import 'package:syncopathy/player/video_player.dart';
+import 'package:syncopathy/settings_overlay.dart';
 
 class ScriptPlayerSettings extends StatefulWidget {
   const ScriptPlayerSettings({super.key});
@@ -20,7 +20,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
   @override
   Widget build(BuildContext context) {
     final cards = [
-      _settingsCard(
+      SettingsOverlay.settingsCard(
         width: 450,
         title: 'Funscript',
         children: [
@@ -32,20 +32,20 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
         ],
       ),
 
-      _settingsCard(
+      SettingsOverlay.settingsCard(
         width: 450,
         title: 'Stroke Range',
         children: [_buildMinMaxSettings(context)],
       ),
 
-      _settingsCard(
+      SettingsOverlay.settingsCard(
         width: 450,
         title: 'Timing',
         children: [_buildTimingSettings(context)],
       ),
     ];
 
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(24.0),
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -369,40 +369,6 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
           },
         ),
       ],
-    );
-  }
-
-  Widget _settingsCard({
-    required double width,
-    required String title,
-    required List<Widget> children,
-  }) {
-    final borderRadius = BorderRadius.circular(20);
-
-    return Container(
-      width: width,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade900.withAlphaF(0.6),
-        borderRadius: borderRadius,
-        border: Border.all(color: Colors.white.withAlphaF(0.2), width: 1),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min, // Height scales with content
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-          const SizedBox(height: 20),
-          ...children,
-        ],
-      ),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
+import 'package:syncopathy/media_library/media_detail_page.dart';
 import 'package:syncopathy/media_library/media_thumbnail.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
@@ -321,6 +322,21 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
               duration: const Duration(milliseconds: 100),
               child: Column(
                 children: [
+                  _buildActionButton(
+                    constraints: constraints,
+                    icon: Icons.more_vert,
+                    color: onSurface,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              MediaDetailPage(media: widget.media),
+                        ),
+                      );
+                    },
+                  ),
+                  if (!hasRating) const SizedBox(height: 4),
                   if (isFavorite || !hasRating)
                     _buildActionButton(
                       constraints: constraints,
@@ -411,7 +427,7 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
 
     final RelativeRect position = RelativeRect.fromRect(
       Rect.fromLTWH(details.globalPosition.dx, details.globalPosition.dy, 0, 0),
-      Offset.zero & overlay.size,
+      overlay.localToGlobal(Offset.zero) & overlay.size,
     );
 
     await showMenu(

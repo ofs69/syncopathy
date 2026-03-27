@@ -408,7 +408,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   requestFocusOnTap: false,
                   enableSearch: false,
                   inputDecorationTheme: const InputDecorationTheme(
-                    border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 8.0,
                       vertical: 8.0,

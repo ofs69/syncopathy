@@ -196,12 +196,20 @@ class _FunscriptMetadataFilterBottomSheetState
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  TextButton.icon(
+                    label: const Text("Reset"),
+                    onPressed: () {
+                      widget.selectedAuthors.clear();
+                      widget.selectedPerformers.clear();
+                      widget.selectedTags.clear();
+                    },
+                  ),
                   Tooltip(
                     message:
                         'These filters apply to metadata embedded within funscripts.',
                     child: IconButton(
                       icon: const Icon(Icons.info_outline),
-                      onPressed: () {}, // No action needed for info icon
+                      onPressed: () {},
                     ),
                   ),
                 ],
