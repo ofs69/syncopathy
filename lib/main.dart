@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/global_shortcuts.dart';
 import 'package:syncopathy/ioc.dart';
+import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 
 import 'package:syncopathy/model/battery_model.dart';
@@ -75,6 +76,20 @@ void main(List<String> args) async {
   SignalsObserver.instance = null;
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
+
+  // Log unhandled Flutter errors
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    Logger.error('Flutter Error', details.exception, details.stack);
+  };
+
+  // Log unhandled asynchronous errors
+  PlatformDispatcher.instance.onError = (error, stack) {
+    Logger.error('Platform Dispatcher Error', error, stack);
+    return true;
+  };
+
+  await Logger.init();
 
   String? openFile;
   bool isSimple = false;

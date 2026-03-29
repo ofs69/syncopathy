@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:async_locks/async_locks.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/logging.dart';

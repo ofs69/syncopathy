@@ -6,6 +6,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
+import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/playlist_model.dart';
 import 'package:syncopathy/player/smooth_video_signals.dart';
 import 'package:syncopathy/sqlite/models/video_model.dart';
@@ -184,10 +185,16 @@ abstract class VideoPlayer with EffectDispose {
 
   Future<void> openMultipleVideos(List<Video> videos) async {
     if (videos.isEmpty) return;
-    _previouslyLoadedVideos.value = videos;
-    final playlist = Playlist(videos.map((v) => Media(v.videoPath)).toList());
-    await player.open(playlist, play: player.state.playing);
-    playlistShuffledInternal.value = false;
+    try {
+      _previouslyLoadedVideos.value = videos;
+      final playlist = Playlist(
+        videos.map((v) => Media(v.videoPath)).toList(),
+      );
+      await player.open(playlist, play: player.state.playing);
+      playlistShuffledInternal.value = false;
+    } catch (e, stack) {
+      Logger.error('Failed to open multiple videos', e, stack);
+    }
   }
 
   void jumpPreviousPlaylistEntry() {
