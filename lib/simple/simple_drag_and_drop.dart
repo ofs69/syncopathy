@@ -1,6 +1,7 @@
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
@@ -14,21 +15,24 @@ class SimpleModeDragAndDrop extends StatefulWidget {
   State<SimpleModeDragAndDrop> createState() => _SimpleModeDragAndDropState();
 }
 
-class _SimpleModeDragAndDropState extends State<SimpleModeDragAndDrop> {
-  bool _isDragging = false;
+class _SimpleModeDragAndDropState extends State<SimpleModeDragAndDrop>
+    with SignalsMixin {
+  late final Signal<bool> _isDragging = createSignal(false);
 
   @override
   Widget build(BuildContext context) {
     if (!syncopathySimpleMode) return widget.child;
 
+    final isDragging = _isDragging.watch(context);
+
     return DropTarget(
-      onDragEntered: (details) => setState(() => _isDragging = true),
-      onDragExited: (details) => setState(() => _isDragging = false),
+      onDragEntered: (details) => _isDragging.value = true,
+      onDragExited: (details) => _isDragging.value = false,
       onDragDone: (details) {
-        setState(() => _isDragging = false);
+        _isDragging.value = false;
         _handleFiles(details.files);
       },
-      child: Stack(children: [widget.child, if (_isDragging) _buildOverlay()]),
+      child: Stack(children: [widget.child, if (isDragging) _buildOverlay()]),
     );
   }
 

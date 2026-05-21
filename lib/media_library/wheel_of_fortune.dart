@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_fortune_wheel/flutter_fortune_wheel.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 
 class WheelOfFortuneDialog extends StatefulWidget {
@@ -19,15 +20,16 @@ class WheelOfFortuneDialog extends StatefulWidget {
   State<WheelOfFortuneDialog> createState() => _WheelOfFortuneDialogState();
 }
 
-class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
+class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog>
+    with SignalsMixin {
   final StreamController<int> _selected = StreamController<int>();
-  late int _selectedIndex;
+  late final Signal<int> _selectedIndex = createSignal(0);
   final _random = Random();
 
   @override
   void initState() {
     super.initState();
-    _selectedIndex = _random.nextInt(widget.mediaFiles.length);
+    _selectedIndex.value = _random.nextInt(widget.mediaFiles.length);
     Future.delayed(const Duration(milliseconds: 200), () {
       if (mounted) {
         _spinWheel();
@@ -42,17 +44,16 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
   }
 
   void _spinWheel() {
-    setState(() {
-      _selectedIndex = _random.nextInt(widget.mediaFiles.length);
-    });
+    _selectedIndex.value = _random.nextInt(widget.mediaFiles.length);
     // Add a short delay before adding to stream to allow the state to update
     Future.delayed(const Duration(milliseconds: 25), () {
-      _selected.add(_selectedIndex);
+      _selected.add(_selectedIndex.value);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    _selectedIndex.watch(context);
     final items = <FortuneItem>[
       for (var i = 0; i < widget.mediaFiles.length; i++)
         FortuneItem(
@@ -87,7 +88,7 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
             Future.delayed(const Duration(milliseconds: 500), () {
               if (!context.mounted) return;
               Navigator.of(context).pop();
-              widget.onMediaSelected(widget.mediaFiles[_selectedIndex]);
+              widget.onMediaSelected(widget.mediaFiles[_selectedIndex.value]);
             });
           },
         ),

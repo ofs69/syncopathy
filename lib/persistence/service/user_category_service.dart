@@ -9,8 +9,12 @@ class UserCategoryService {
     return _box.put(category);
   }
 
+  void saveAll(List<UserCategory> categories) {
+    _box.putMany(categories);
+  }
+
   List<UserCategory> getAllUserCategories() {
-    return _box.getAll();
+    return (_box.query()..order(UserCategory_.sortOrder)).build().find();
   }
 
   void deleteCategory(int id) => _box.remove(id);
@@ -22,7 +26,7 @@ class UserCategoryService {
         .findFirstAsync();
     if (exists != null) return exists;
 
-    final newCategory = UserCategory(name: name);
+    final newCategory = UserCategory(name: name, sortOrder: _box.count());
     _box.put(newCategory);
     return newCategory;
   }

@@ -54,6 +54,21 @@ class VersionConverter implements JsonConverter<String, dynamic> {
   dynamic toJson(String object) => object;
 }
 
+class InvertedConverter implements JsonConverter<bool, dynamic> {
+  const InvertedConverter();
+
+  @override
+  bool fromJson(dynamic json) {
+    if (json is bool) {
+      return json;
+    }
+    return json == "true" ? true : false;
+  }
+
+  @override
+  dynamic toJson(bool object) => object;
+}
+
 @JsonSerializable(fieldRename: FieldRename.none)
 class FunscriptJson {
   /// The version of the Funscript. Defaults to "1.0".
@@ -61,6 +76,7 @@ class FunscriptJson {
   final String version;
 
   /// Whether the y-axis is inverted. Defaults to false.
+  @InvertedConverter()
   final bool inverted;
 
   /// The range of motion (0-100). Defaults to 90.
@@ -68,18 +84,9 @@ class FunscriptJson {
 
   /// The list of actions.
   final List<FunscriptAction> actions;
-  //late final Signal<List<FunscriptAction>> processedActions;
-  //late final List<FunscriptAction> originalActions;
 
   /// Optional metadata.
   final FunscriptMetadata? metadata;
-
-  /// The file path.
-  // final String filePath;
-  // String get fileName => p.basename(filePath);
-
-  /// If it's a script token.
-  // late final bool likelyScriptToken;
 
   FunscriptJson({
     this.version = "1.0",

@@ -80,7 +80,9 @@ abstract class PlayerBackend with EffectDispose {
     () {
       final funscript = currentlyOpen.value?.funscript;
       final actions = funscript?.processedActions.value;
-      if (actions?.isEmpty ?? true) return null;
+      if (actions?.isEmpty ?? true) {
+        return null;
+      }
       return actions;
     },
   );

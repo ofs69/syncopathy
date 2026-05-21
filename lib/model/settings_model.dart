@@ -9,7 +9,7 @@ import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/model/json/settings.dart';
 
 class SettingsModel {
-  late final Settings _entity;
+  late Settings _entity;
   final _debouncer = Debouncer(milliseconds: 500);
 
   final Signal<int> min = signal(0);
@@ -39,7 +39,7 @@ class SettingsModel {
   );
   final Signal<bool> homeDeviceEnabled = signal(false);
 
-  late final Function? _saveEffectDispose;
+  VoidCallback? _saveEffectDispose;
 
   SettingsModel();
 
@@ -48,6 +48,7 @@ class SettingsModel {
   }
 
   Future<void> load() async {
+    _saveEffectDispose?.call();
     final settings = await KVStore.get(Settings.key);
     _entity = settings != null ? Settings.fromJson(settings) : Settings();
     min.value = _entity.min;

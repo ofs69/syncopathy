@@ -6,9 +6,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pool/pool.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/task_queue.dart';
+import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
-import 'package:syncopathy/persistence/media_file_extension.dart';
 
 class ThumbnailRequest extends BaseRequest {
   @override
@@ -32,12 +32,6 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
   factory ThumbnailGenerator() => _instance;
 
   @override
-  Future<Uint8List?> addRequest(ThumbnailRequest request) {
-    request.file.retrieveMetadata();
-    return super.addRequest(request);
-  }
-
-  @override
   Future<Uint8List?> processRequest(ThumbnailRequest request) async {
     final fileHash = request.file.fileHash;
     final appDataPath = await getApplicationSupportDirectory();
@@ -49,9 +43,27 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
       return await thumbnailFile.readAsBytes();
     }
 
+    if (!request.regenerate && request.file.thumbnailGenerationFailed) {
+      return null;
+    }
+
     return await _pool.withResource(() async {
       final file = await _generateThumbnailAndGetPath(request);
-      return await file?.readAsBytes();
+      final bytes = await file?.readAsBytes();
+
+      if (bytes != null) {
+        if (request.file.thumbnailGenerationFailed) {
+          request.file.thumbnailGenerationFailed = false;
+          oBox.mediaService.save(request.file);
+        }
+      } else {
+        if (!request.file.thumbnailGenerationFailed) {
+          request.file.thumbnailGenerationFailed = true;
+          oBox.mediaService.save(request.file);
+        }
+      }
+
+      return bytes;
     });
   }
 
@@ -59,7 +71,7 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
     try {
       final fileHash = request.file.fileHash;
       if (fileHash == null) return null;
-      var metadata = await request.file.retrieveMetadata();
+      var metadata = request.file.metadata.target;
       if (metadata == null) return null;
 
       final appDataPath = await getApplicationSupportDirectory();
@@ -106,10 +118,7 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
         // Retry logic: Remove -ss args (indices 2 and 3)
         ffmpegArgs.removeAt(2);
         ffmpegArgs.removeAt(2);
-        result = await Process.run(
-          'ffmpeg',
-          ffmpegArgs,
-        ).timeout(const Duration(seconds: 10));
+        result = await Process.run('ffmpeg', ffmpegArgs);
       }
 
       if (result.exitCode == 0 && await thumbnailFile.exists()) {

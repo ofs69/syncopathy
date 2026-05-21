@@ -190,6 +190,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         final isConnected = connected.value;
         final rawTime = timesource.rawPosition.value;
         final homeMode = settingsModel.homeDeviceEnabled.value;
+        final _ = currentActions.value;
         if (!isConnected) return;
         if (!homeMode) {
           untracked(() => _timeChange(rawTime));
@@ -391,12 +392,10 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     final actions = currentActions.value;
 
     // Check if actions have changed
-    if (_bufferedActionsReference != null &&
-        _bufferedActionsReference != actions) {
+    if (_bufferedActionsReference != actions) {
       _resetPlayback(actions);
-    } else if (actions == null) {
-      // actions is null ?? hspFlush or hspSetup?
     }
+
     if (actions == null) return;
 
     final isPlaying = !timesource.paused.value;
@@ -489,12 +488,13 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   }
 
   void _resetPlayback(List<FunscriptAction>? actions) {
-    Logger.debug("Handy stalled restarting...");
-    hspSetup();
     if (actions != null) {
+      Logger.debug("Handy stalled restarting...");
+      hspSetup();
       _bootstrapBuffer(actions);
     } else {
       hspStop();
+      hspFlush();
     }
   }
 

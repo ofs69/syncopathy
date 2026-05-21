@@ -9,21 +9,6 @@ class MediaService {
   ReadonlySignal<List<MediaFile>> get allMediaFiles => _allMediaFiles;
   late final Signal<List<MediaFile>> _allMediaFiles = signal([]);
 
-  late final searchQuery = _box
-      .query(
-        MediaFile_.name.contains(
-              '',
-              caseSensitive: false,
-              alias: 'nameFilter',
-            ) |
-            MediaFile_.dbAliases.contains(
-              '',
-              caseSensitive: false,
-              alias: 'aliasFilter',
-            ),
-      )
-      .build();
-
   MediaService(Store store) : _box = store.box<MediaFile>() {
     _box
         .query()
@@ -49,12 +34,43 @@ class MediaService {
   List<MediaFile> getAll() => _box.getAll();
 
   List<MediaFile> findByQuery(String query) {
-    searchQuery.param(MediaFile_.name, alias: 'nameFilter').value = query;
-    searchQuery.param(MediaFile_.dbAliases, alias: 'aliasFilter').value = query;
-    return searchQuery.find();
+    final terms = query
+        .split(' ')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    if (terms.isEmpty) {
+      return getAll();
+    }
+
+    Condition<MediaFile>? condition;
+    for (final term in terms) {
+      final termCondition =
+          MediaFile_.name.contains(term, caseSensitive: false) |
+          MediaFile_.dbAliases.contains(term, caseSensitive: false);
+      if (condition == null) {
+        condition = termCondition;
+      } else {
+        condition = condition & termCondition;
+      }
+    }
+
+    final q = _box.query(condition).build();
+    try {
+      return q.find();
+    } finally {
+      q.close();
+    }
   }
 
   MediaFile? getById(int id) {
     return _box.get(id);
+  }
+
+  Future<List<MediaFile>> getAllAsync() async => _box.getAllAsync();
+
+  bool remove(int id) {
+    return _box.remove(id);
   }
 }

@@ -93,6 +93,7 @@ class _VideoControlsState extends State<VideoControls> {
                   _wrapInContainer(
                     Row(
                       children: [
+                        _buildFunscriptDropdown(playerModel, player),
                         _buildGraphButton(),
                         _buildSettingsButton(),
                         IconButton(
@@ -204,6 +205,53 @@ class _VideoControlsState extends State<VideoControls> {
       ),
       onPressed: () =>
           widget.showFunscriptGraph.value = !widget.showFunscriptGraph.value,
+    );
+  }
+
+  Widget _buildFunscriptDropdown(PlayerModel playerModel, VideoPlayer player) {
+    return Watch.builder(
+      builder: (context) {
+        final media = player.currentMedia.value;
+        if (media == null || media.funscripts.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final funscripts = media.funscripts;
+        if (funscripts.length <= 1) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<int>(
+              value: playerModel.selectedFunscriptIndex.value,
+              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+              dropdownColor: Colors.black87,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+              onChanged: (int? newValue) {
+                if (newValue != null) {
+                  playerModel.selectedFunscriptIndex.value = newValue;
+                }
+              },
+              items: List.generate(funscripts.length, (index) {
+                final fs = funscripts[index];
+                return DropdownMenuItem<int>(
+                  value: index,
+                  child: Tooltip(
+                    message: fs.fileName,
+                    waitDuration: Durations.extralong1,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 150),
+                      child: Text(fs.fileName, overflow: TextOverflow.ellipsis),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        );
+      },
     );
   }
 

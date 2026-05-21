@@ -10,7 +10,11 @@ MediaLibrarySettings _$MediaLibrarySettingsFromJson(
   Map<String, dynamic> json,
 ) => MediaLibrarySettings(
   sortOption:
-      $enumDecodeNullable(_$SortOptionEnumMap, json['sortOption']) ??
+      $enumDecodeNullable(
+        _$SortOptionEnumMap,
+        json['sortOption'],
+        unknownValue: SortOption.title,
+      ) ??
       SortOption.title,
   isSortAscending: json['isSortAscending'] as bool? ?? true,
   videosPerRow: (json['videosPerRow'] as num?)?.toInt() ?? 4,
@@ -73,7 +77,6 @@ const _$SortOptionEnumMap = {
   SortOption.lastModified: 'lastModified',
   SortOption.playCount: 'playCount',
   SortOption.random: 'random',
-  SortOption.pca: 'pca',
 };
 
 const _$VideoFilterEnumMap = {

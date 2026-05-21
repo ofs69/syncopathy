@@ -1,10 +1,11 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:syncopathy/media_library/media_library.dart';
+import 'package:syncopathy/media_library/filter/media_filter_logic.dart';
 
 part 'media_library_settings.g.dart';
 
 @JsonSerializable(createJsonSchema: true)
 class MediaLibrarySettings {
+  @JsonKey(unknownEnumValue: SortOption.title)
   SortOption sortOption;
   bool isSortAscending;
   int videosPerRow;

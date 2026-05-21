@@ -2,6 +2,8 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_library/thumbnail_generator.dart';
@@ -40,9 +42,9 @@ class MediaThumbnail extends StatefulWidget {
   State<MediaThumbnail> createState() => _MediaThumbnailState();
 }
 
-class _MediaThumbnailState extends State<MediaThumbnail> {
-  bool _loading = true;
-  Uint8List? _thumbnail;
+class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
+  late final Signal<bool> _loading = createSignal(true);
+  late final Signal<Uint8List?> _thumbnail = createSignal(null);
 
   @override
   void initState() {
@@ -60,29 +62,23 @@ class _MediaThumbnailState extends State<MediaThumbnail> {
 
   Future<void> _setThumbnail(Future<Uint8List?> bytesFuture) async {
     try {
-      setState(() {
-        _loading = true;
-      });
+      _loading.value = true;
       final bytes = await bytesFuture;
 
       if (mounted) {
-        setState(() {
-          _thumbnail = bytes;
-        });
+        _thumbnail.value = bytes;
       }
     } catch (e) {
       Logger.warning("Thumbnail error: $e");
     } finally {
       if (mounted) {
-        setState(() {
-          _loading = false;
-        });
+        _loading.value = false;
       }
     }
   }
 
   Future<void> _generateThumbnail(double seekFraction, bool regenerate) async {
-    if (_thumbnail != null && !regenerate) return;
+    if (_thumbnail.value != null && !regenerate) return;
     await _setThumbnail(
       ThumbnailGenerator().addRequest(
         ThumbnailRequest(
@@ -96,12 +92,25 @@ class _MediaThumbnailState extends State<MediaThumbnail> {
 
   @override
   Widget build(BuildContext context) {
-    final widget = switch ((_loading, _thumbnail)) {
-      (false, null) => Center(child: Icon(Icons.image)),
-      (true, _) => Center(child: CircularProgressIndicator()),
+    final mediaIcon = widget.media.type == MediaType.audio
+        ? Icons.audiotrack
+        : Icons.movie;
+
+    final loading = _loading.watch(context);
+    final thumbnail = _thumbnail.watch(context);
+
+    final thumbnailWidget = switch ((loading, thumbnail)) {
+      (false, null) => Center(
+        child: Icon(
+          mediaIcon,
+          size: 48,
+          color: Theme.of(context).colorScheme.onSurface.withAlphaF(0.5),
+        ),
+      ),
+      (true, _) => const Center(child: CircularProgressIndicator()),
       (false, Uint8List bytes) => Image.memory(bytes, fit: BoxFit.cover),
     };
 
-    return Stack(fit: StackFit.expand, children: [widget]);
+    return Stack(fit: StackFit.expand, children: [thumbnailWidget]);
   }
 }

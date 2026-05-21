@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class StartupModal extends StatefulWidget {
@@ -10,11 +11,13 @@ class StartupModal extends StatefulWidget {
   State<StartupModal> createState() => _StartupModalState();
 }
 
-class _StartupModalState extends State<StartupModal> {
-  bool _neverShowAgain = false;
+class _StartupModalState extends State<StartupModal> with SignalsMixin {
+  late final Signal<bool> _neverShowAgain = createSignal(false);
 
   @override
   Widget build(BuildContext context) {
+    final neverShowAgain = _neverShowAgain.watch(context);
+
     return AlertDialog(
       title: const Text("Welcome!"),
       content: SingleChildScrollView(
@@ -72,11 +75,9 @@ class _StartupModalState extends State<StartupModal> {
           children: [
             // Checkbox and Label
             Checkbox(
-              value: _neverShowAgain,
+              value: neverShowAgain,
               onChanged: (bool? value) {
-                setState(() {
-                  _neverShowAgain = value ?? false;
-                });
+                _neverShowAgain.value = value ?? false;
               },
             ),
             const Text("Don't show again", style: TextStyle(fontSize: 14)),
@@ -85,7 +86,7 @@ class _StartupModalState extends State<StartupModal> {
             // Dismiss Button
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(_neverShowAgain);
+                Navigator.of(context).pop(neverShowAgain);
               },
               child: const Text("OK"),
             ),

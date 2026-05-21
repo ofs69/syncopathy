@@ -1,12 +1,13 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
-import 'package:syncopathy/media_library/media_library.dart';
+import 'package:syncopathy/media_library/filter/media_filter_logic.dart';
 import 'package:syncopathy/model/json/media_library_settings.dart';
 import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 
 class MediaLibrarySettingsModel {
-  late final MediaLibrarySettings _entity;
+  late MediaLibrarySettings _entity;
   final _debouncer = Debouncer(milliseconds: 500);
 
   final Signal<SortOption> sortOption = signal(SortOption.title);
@@ -20,15 +21,16 @@ class MediaLibrarySettingsModel {
   final Signal<bool> separateFavorites = signal(true);
   final SetSignal<VideoFilter> visibilityFilters = setSignal({});
 
-  late final Function _saveEffectDispose;
+  VoidCallback? _saveEffectDispose;
 
   MediaLibrarySettingsModel();
 
   Future<void> dispose() async {
-    _saveEffectDispose();
+    _saveEffectDispose?.call();
   }
 
   Future<void> load() async {
+    _saveEffectDispose?.call();
     final settings = await KVStore.get(MediaLibrarySettings.key);
     _entity = settings != null
         ? MediaLibrarySettings.fromJson(settings)

@@ -161,10 +161,13 @@ class FunscriptAlgorithms {
       return 0.0;
     }
 
+    // Sort actions by time to ensure segments are calculated correctly.
+    final sortedActions = List<FunscriptAction>.from(actions)..sort();
+
     final List<({double speed, double weight})> segments = [];
-    for (int i = 1; i < actions.length; i++) {
-      final p1 = actions[i - 1];
-      final p2 = actions[i];
+    for (int i = 1; i < sortedActions.length; i++) {
+      final p1 = sortedActions[i - 1];
+      final p2 = sortedActions[i];
 
       final timeDiff = (p2.at - p1.at).toDouble();
       if (timeDiff <= 0) continue;
@@ -193,8 +196,9 @@ class FunscriptAlgorithms {
 
     final sortedSpeeds = segments.map((s) => s.speed).toList()..sort();
 
-    final q1Index = (sortedSpeeds.length * 0.25).round();
-    final q3Index = (sortedSpeeds.length * 0.75).round();
+    // Use n-1 to calculate indices for better IQR on small lists.
+    final q1Index = ((sortedSpeeds.length - 1) * 0.25).round();
+    final q3Index = ((sortedSpeeds.length - 1) * 0.75).round();
     final q1 = sortedSpeeds[q1Index];
     final q3 = sortedSpeeds[q3Index];
     final iqr = q3 - q1;
@@ -207,15 +211,23 @@ class FunscriptAlgorithms {
         .where((s) => s.speed >= lowerBound && s.speed <= upperBound)
         .toList();
 
-    // If all segments were filtered, it's better to return the unfiltered average.
-    final segmentsToAverage = filteredSegments.isNotEmpty
-        ? filteredSegments
-        : segments;
+    // If all filtered segments are 0 speed but there were non-zero segments,
+    // the filtering was too aggressive (this happens when >75% of segments are 0).
+    if (filteredSegments.every((s) => s.speed == 0) &&
+        segments.any((s) => s.speed > 0)) {
+      double totalSpeed = 0;
+      double totalWeight = 0;
+      for (final s in segments) {
+        totalSpeed += s.speed * s.weight;
+        totalWeight += s.weight;
+      }
+      return totalWeight > 0 ? totalSpeed / totalWeight : 0.0;
+    }
 
     // Weighted average of filtered speeds
     double totalSpeed = 0;
     double totalWeight = 0;
-    for (final s in segmentsToAverage) {
+    for (final s in filteredSegments) {
       totalSpeed += s.speed * s.weight;
       totalWeight += s.weight;
     }
@@ -229,24 +241,25 @@ class FunscriptAlgorithms {
       return actions.map((a) => a.pos).reduce(min).toDouble();
     }
 
+    final sortedActions = List<FunscriptAction>.from(actions)..sort();
     final mins = <double>[];
     int lastDir = 0;
-    for (int i = 1; i < actions.length; i++) {
-      final dir = (actions[i].pos - actions[i - 1].pos).sign;
+    for (int i = 1; i < sortedActions.length; i++) {
+      final dir = (sortedActions[i].pos - sortedActions[i - 1].pos).sign;
       if (dir == 0) continue;
 
       if (dir == 1 && lastDir <= 0) {
-        mins.add(actions[i - 1].pos.toDouble());
+        mins.add(sortedActions[i - 1].pos.toDouble());
       }
       lastDir = dir;
     }
 
     if (lastDir == -1) {
-      mins.add(actions.last.pos.toDouble());
+      mins.add(sortedActions.last.pos.toDouble());
     }
 
     if (mins.isEmpty) {
-      return actions.map((a) => a.pos).reduce(min).toDouble();
+      return sortedActions.map((a) => a.pos).reduce(min).toDouble();
     }
 
     return mins.reduce((a, b) => a + b) / mins.length;
@@ -258,24 +271,25 @@ class FunscriptAlgorithms {
       return actions.map((a) => a.pos).reduce(max).toDouble();
     }
 
+    final sortedActions = List<FunscriptAction>.from(actions)..sort();
     final maxes = <double>[];
     int lastDir = 0;
-    for (int i = 1; i < actions.length; i++) {
-      final dir = (actions[i].pos - actions[i - 1].pos).sign;
+    for (int i = 1; i < sortedActions.length; i++) {
+      final dir = (sortedActions[i].pos - sortedActions[i - 1].pos).sign;
       if (dir == 0) continue;
 
       if (dir == -1 && lastDir >= 0) {
-        maxes.add(actions[i - 1].pos.toDouble());
+        maxes.add(sortedActions[i - 1].pos.toDouble());
       }
       lastDir = dir;
     }
 
     if (lastDir == 1) {
-      maxes.add(actions.last.pos.toDouble());
+      maxes.add(sortedActions.last.pos.toDouble());
     }
 
     if (maxes.isEmpty) {
-      return actions.map((a) => a.pos).reduce(max).toDouble();
+      return sortedActions.map((a) => a.pos).reduce(max).toDouble();
     }
 
     return maxes.reduce((a, b) => a + b) / maxes.length;

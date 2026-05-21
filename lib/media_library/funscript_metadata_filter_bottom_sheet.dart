@@ -26,11 +26,15 @@ class FunscriptMetadataFilterBottomSheet extends StatefulWidget {
 
 class _FunscriptMetadataFilterBottomSheetState
     extends State<FunscriptMetadataFilterBottomSheet>
-    with SingleTickerProviderStateMixin {
+    with SignalsMixin, SingleTickerProviderStateMixin {
   late TabController _tabController;
   late TextEditingController _authorSearchController;
   late TextEditingController _tagSearchController;
   late TextEditingController _performerSearchController;
+
+  late final _authorSearchText = createSignal("");
+  late final _tagSearchText = createSignal("");
+  late final _performerSearchText = createSignal("");
 
   @override
   void initState() {
@@ -39,6 +43,16 @@ class _FunscriptMetadataFilterBottomSheetState
     _authorSearchController = TextEditingController();
     _tagSearchController = TextEditingController();
     _performerSearchController = TextEditingController();
+
+    _authorSearchController.addListener(() {
+      _authorSearchText.value = _authorSearchController.text;
+    });
+    _tagSearchController.addListener(() {
+      _tagSearchText.value = _tagSearchController.text;
+    });
+    _performerSearchController.addListener(() {
+      _performerSearchText.value = _performerSearchController.text;
+    });
   }
 
   @override
@@ -71,7 +85,6 @@ class _FunscriptMetadataFilterBottomSheetState
           padding: const EdgeInsets.all(16.0),
           child: TextField(
             controller: searchController,
-            onChanged: (value) => setState(() {}),
             decoration: InputDecoration(
               labelText: 'Search $title',
               prefixIcon: const Icon(Icons.search),
@@ -115,6 +128,10 @@ class _FunscriptMetadataFilterBottomSheetState
 
   @override
   Widget build(BuildContext context) {
+    _authorSearchText.watch(context);
+    _tagSearchText.watch(context);
+    _performerSearchText.watch(context);
+
     return DraggableScrollableSheet(
       expand: false,
       builder: (BuildContext context, ScrollController scrollController) {

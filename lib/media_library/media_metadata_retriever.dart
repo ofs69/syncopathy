@@ -61,11 +61,11 @@ class MediaMetadataRetriever
   @override
   Future<MediaMetadataRetrieved?> processRequest(MetadataRequest request) {
     return _pool.withResource(() async {
-      return await _runFFprobe(request);
+      return await runFFprobe(request.mediaPath);
     });
   }
 
-  Future<MediaMetadataRetrieved?> _runFFprobe(MetadataRequest request) async {
+  static Future<MediaMetadataRetrieved?> runFFprobe(String mediaPath) async {
     Process? process;
     try {
       process = await Process.start('ffprobe', [
@@ -75,7 +75,7 @@ class MediaMetadataRetriever
         '-show_streams',
         '-of',
         'json',
-        request.mediaPath,
+        mediaPath,
       ]);
 
       final results = await Future.wait([

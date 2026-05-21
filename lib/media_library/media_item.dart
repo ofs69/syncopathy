@@ -9,7 +9,6 @@ import 'package:syncopathy/media_library/media_thumbnail.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/persistence/entities/media_metadata.dart';
-import 'package:syncopathy/persistence/media_file_extension.dart';
 
 class MediaItem extends StatefulWidget {
   final MediaFile media;
@@ -97,7 +96,7 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
 
   @override
   Widget build(BuildContext context) {
-    final metadata = widget.media.retrieveMetadata();
+    final metadata = widget.media.metadata.target;
     final isTapped = _isTapped.watch(context);
     final isHovering = _isHovering.watch(context);
     return MouseRegion(
@@ -115,7 +114,7 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
     BoxConstraints constraints,
     bool isHovering,
     bool isTapped,
-    Future<MediaMetadata?> metadata,
+    MediaMetadata? metadata,
   ) {
     final playerModel = context.read<PlayerModel>();
     final hasRating = widget.media.rating != MediaRating.noRating;
@@ -180,6 +179,7 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
 
         children: [
           GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTapDown: (_) => _isTapped.value = true,
             onTapUp: (_) => _isTapped.value = false,
             onLongPress: () {
@@ -212,6 +212,76 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
+                if (widget.media.fileNotFound || (mainFunscript?.fileNotFound ?? false))
+                  Container(
+                    color: Colors.black45,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.file_open_outlined,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withAlphaF(0.8),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              "FILE NOT FOUND",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                if (mainFunscript?.isScriptToken ?? false)
+                  Container(
+                    color: Colors.black45,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.generating_tokens,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withAlphaF(0.8),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              "SCRIPT TOKEN",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 Padding(
                   padding: const EdgeInsets.all(4.0),
                   child: Align(
@@ -223,18 +293,11 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             if (widget.showDuration)
-                              FutureBuilder(
-                                future: metadata,
-                                builder: (context, metadata) {
-                                  return _buildStatisticItem(
-                                    icon: Icons.timer,
-                                    onSurface: onSurface,
-                                    text: _formatDuration(
-                                      metadata.data?.duration,
-                                    ),
-                                    tooltipMessage: "Duration",
-                                  );
-                                },
+                              _buildStatisticItem(
+                                icon: Icons.timer,
+                                onSurface: onSurface,
+                                text: _formatDuration(metadata?.duration),
+                                tooltipMessage: "Duration",
                               ),
                             if (widget.showPlayCount)
                               const SizedBox(height: 0.0, width: 2.0),

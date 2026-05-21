@@ -20,7 +20,9 @@ FunscriptJson _$FunscriptJsonFromJson(Map<String, dynamic> json) =>
       version: json['version'] == null
           ? "1.0"
           : const VersionConverter().fromJson(json['version']),
-      inverted: json['inverted'] as bool? ?? false,
+      inverted: json['inverted'] == null
+          ? false
+          : const InvertedConverter().fromJson(json['inverted']),
       range: (json['range'] as num?)?.toInt() ?? 100,
       actions: (json['actions'] as List<dynamic>)
           .map((e) => FunscriptAction.fromJson(e as Map<String, dynamic>))
@@ -35,7 +37,7 @@ FunscriptJson _$FunscriptJsonFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$FunscriptJsonToJson(FunscriptJson instance) =>
     <String, dynamic>{
       'version': const VersionConverter().toJson(instance.version),
-      'inverted': instance.inverted,
+      'inverted': const InvertedConverter().toJson(instance.inverted),
       'range': instance.range,
       'actions': instance.actions,
       'metadata': instance.metadata,

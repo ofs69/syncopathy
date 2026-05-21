@@ -1,43 +1,26 @@
+import 'dart:io';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/floating_toolbar.dart';
+import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/ioc.dart' show getIt, oBox;
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_library/category_selection_dialog.dart';
 import 'package:syncopathy/media_library/filter/media_filter.dart';
+import 'package:syncopathy/media_library/filter/media_filter_logic.dart';
 import 'package:syncopathy/media_library/media_filter_overlay.dart';
 import 'package:syncopathy/media_library/media_item.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/media_library/search_bar.dart';
+import 'package:syncopathy/media_library/wheel_of_fortune.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/settings_overlay.dart';
-
-enum SortOption {
-  title('Title'),
-  speed('Speed'),
-  depth('Depth'),
-  duration('Duration'),
-  lastModified('Modified'),
-  playCount('Play Count'),
-  random('Random'),
-  pca('PCA (Experimental)');
-
-  const SortOption(this.label);
-  final String label;
-}
-
-enum VideoFilter {
-  hideFavorite('Hide Favorite'),
-  hideDisliked('Hide Disliked'),
-  hideUnrated('Hide Unrated');
-
-  const VideoFilter(this.label);
-  final String label;
-}
 
 class MediaLibrary extends StatefulWidget {
   const MediaLibrary({super.key});
@@ -65,13 +48,28 @@ class _MediaLibraryState extends State<MediaLibrary>
   });
 
   // media manager is busy indexing
-  late final ReadonlySignal<bool> isIndexing;
   late final Signal<bool> isFiltering = createSignal(false);
+
+  // Random seed for shuffle
+  late final Signal<int?> randomSeed = createSignal(null);
 
   @override
   void initState() {
     super.initState();
-    isIndexing = getIt.get<MediaManager>().isIndexing;
+
+    final mediaSettings = context.read<MediaLibrarySettingsModel>();
+    effect(() {
+      final sortOption = mediaSettings.sortOption.value;
+      if (sortOption == SortOption.random) {
+        if (randomSeed.peek() == null) {
+          randomSeed.value = Random().nextInt(1000000);
+        }
+      } else {
+        if (randomSeed.peek() != null) {
+          randomSeed.value = null;
+        }
+      }
+    });
   }
 
   @override
@@ -81,9 +79,42 @@ class _MediaLibraryState extends State<MediaLibrary>
   }
 
   List<MediaFile> _filterSignal() {
-    final _ = oBox.mediaService.allMediaFiles.value;
+    final mediaSettings = context.read<MediaLibrarySettingsModel>();
+
+    // Watch all relevant signals to trigger re-computation.
+    // We use .value or .watch() to track dependencies in a computed signal.
+    // .watch(context) should only be used in build() methods.
     final query = searchQuery.value;
-    return oBox.mediaService.findByQuery(query);
+    mediaFilter.stateChange.value;
+    final sortOption = mediaSettings.sortOption.value;
+    final isSortAscending = mediaSettings.isSortAscending.value;
+    final visibilityFilters = mediaSettings.visibilityFilters.value;
+    final separateFavorites = mediaSettings.separateFavorites.value;
+    final seed = randomSeed.value;
+
+    // Re-trigger on any DB change
+    final allMedia = oBox.mediaService.allMediaFiles.value;
+
+    // Re-trigger on playlist change
+    final playlist = getIt.get<VideoPlayer>().currentPlaylist.value;
+
+    final List<MediaFile> searchedMedia;
+    if (query.isEmpty) {
+      searchedMedia = allMedia;
+    } else {
+      searchedMedia = oBox.mediaService.findByQuery(query);
+    }
+
+    return MediaFilterLogic.filterAndSort(
+      media: searchedMedia,
+      customFilter: mediaFilter,
+      sortOption: sortOption,
+      isSortAscending: isSortAscending,
+      visibilityFilters: visibilityFilters,
+      separateFavorites: separateFavorites,
+      randomSeed: seed,
+      playlistState: playlist.entries.value,
+    );
   }
 
   @override
@@ -106,6 +137,9 @@ class _MediaLibraryState extends State<MediaLibrary>
     final isSortAscending = mediaSettings.isSortAscending.watch(context);
     final isSelecting = _isSelecting.watch(context);
     final showFilterSettings = _showFilterSettings.watch(context);
+    final mediaFiles = filteredMedia.watch(context);
+
+    final mediaManager = getIt.get<MediaManager>();
 
     return Column(
       children: [
@@ -128,8 +162,13 @@ class _MediaLibraryState extends State<MediaLibrary>
                   menuPadding: EdgeInsets.zero,
                   tooltip: "Sorting",
                   borderRadius: BorderRadius.circular(16.0),
-                  onSelected: (option) =>
-                      mediaSettings.sortOption.value = option,
+                  onSelected: (option) {
+                    if (option == SortOption.random &&
+                        mediaSettings.sortOption.peek() == SortOption.random) {
+                      randomSeed.value = Random().nextInt(1000000);
+                    }
+                    mediaSettings.sortOption.value = option;
+                  },
                   itemBuilder: (context) => SortOption.values.map((option) {
                     return PopupMenuItem<SortOption>(
                       value: option,
@@ -173,13 +212,17 @@ class _MediaLibraryState extends State<MediaLibrary>
                   icon: Icon(
                     isSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
                   ),
-                  onPressed: () {
-                    mediaSettings.isSortAscending.value =
-                        !mediaSettings.isSortAscending.value;
-                  },
-                  tooltip: isSortAscending
-                      ? 'Sort Descending'
-                      : 'Sort Ascending',
+                  onPressed: sortOption == SortOption.random
+                      ? null
+                      : () {
+                          mediaSettings.isSortAscending.value =
+                              !mediaSettings.isSortAscending.value;
+                        },
+                  tooltip: sortOption == SortOption.random
+                      ? 'Not available for Random sort'
+                      : (isSortAscending
+                            ? 'Sort Descending'
+                            : 'Sort Ascending'),
                 ),
                 const SizedBox(width: 8),
                 Stack(
@@ -363,10 +406,17 @@ class _MediaLibraryState extends State<MediaLibrary>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Text(
-                          '${filteredMedia.length} / $allMediaFilesCount videos',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
+                        if (mediaManager.isIndexing.watch(context))
+                          Text(
+                            mediaManager.indexingStatus.watch(context) ??
+                                "Indexing...",
+                            style: Theme.of(context).textTheme.bodySmall,
+                          )
+                        else
+                          Text(
+                            '${mediaFiles.length} / $allMediaFilesCount videos',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
                       ],
                     ),
                   ),
@@ -381,18 +431,33 @@ class _MediaLibraryState extends State<MediaLibrary>
                   ),
                 ),
                 const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: isIndexing.watch(context)
-                      ? null
-                      : getIt.get<MediaManager>().startIndexing,
-                  tooltip: 'Refresh',
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.onInverseSurface,
-                  ),
-                  color: Theme.of(context).colorScheme.primary,
+                // refresh index button
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.refresh),
+                      onPressed: mediaManager.isIndexing.watch(context)
+                          ? null
+                          : mediaManager.startIndexing,
+                      tooltip: 'Refresh',
+                      style: IconButton.styleFrom(
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onInverseSurface,
+                      ),
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    if (mediaManager.isIndexing.watch(context))
+                      SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: CircularProgressIndicator(
+                          value: mediaManager.indexingProgress.watch(context),
+                          strokeWidth: 3,
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(width: 4),
               ],
@@ -421,7 +486,7 @@ class _MediaLibraryState extends State<MediaLibrary>
               //       ],
               //     ),
               //   ),
-              if (!currentlyFiltering && filteredMedia.isEmpty)
+              if (!currentlyFiltering && mediaFiles.isEmpty)
                 Center(
                   child: Text(
                     'No videos found.',
@@ -438,15 +503,15 @@ class _MediaLibraryState extends State<MediaLibrary>
                   child: _fade(
                     ExcludeFocus(
                       child: GridView.builder(
-                        key: ValueKey(filteredMedia.length),
+                        key: ValueKey(mediaFiles.length),
                         padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: videosPerRow,
                           childAspectRatio: 16 / 9,
                         ),
-                        itemCount: filteredMedia.length,
+                        itemCount: mediaFiles.length,
                         itemBuilder: (context, index) {
-                          final media = filteredMedia[index];
+                          final media = mediaFiles[index];
                           final isSelected = selectedVideos.contains(media);
 
                           return MediaItem(
@@ -474,6 +539,12 @@ class _MediaLibraryState extends State<MediaLibrary>
                                 }
                               } else {
                                 // play media
+                                if (media.fileNotFound) {
+                                  Logger.error(
+                                    'File not found: ${media.mediaPath}',
+                                  );
+                                  return;
+                                }
                                 getIt.get<VideoPlayer>().openSingleVideo(media);
                               }
                             },
@@ -489,7 +560,7 @@ class _MediaLibraryState extends State<MediaLibrary>
                                   : MediaRating.noRating;
                               oBox.mediaService.save(media);
                             },
-                            onDelete: () {},
+                            onDelete: () => _deleteMedia(media),
                           );
                         },
                       ),
@@ -509,6 +580,7 @@ class _MediaLibraryState extends State<MediaLibrary>
   }
 
   Widget _buildFloatingToolbar() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Stack(
       children: [
         // Your main content here
@@ -522,33 +594,74 @@ class _MediaLibraryState extends State<MediaLibrary>
                 Tooltip(
                   message: "Exit Selection Mode",
                   child: TextButton.icon(
-                    icon: const Icon(Icons.close),
-                    label: Text('${selectedVideos.length}'),
+                    icon: Icon(Icons.close, color: colorScheme.error),
+                    label: Text(
+                      '${selectedVideos.length}',
+                      style: TextStyle(color: colorScheme.error),
+                    ),
                     onPressed: () => selectedVideos.clear(),
                   ),
                 ),
-                TextButton.icon(
-                  icon: const Icon(Icons.history),
-                  label: const Text('Reset Play Count'),
-                  onPressed: () => throw UnimplementedError(),
-                ),
+                const VerticalDivider(),
                 Tooltip(
-                  message: 'Selects all currently displayed videos.',
-                  child: TextButton.icon(
+                  message: 'Select All',
+                  child: IconButton(
                     icon: const Icon(Icons.select_all),
-                    label: const Text('Select All'),
                     onPressed: () => selectedVideos.addAll(filteredMedia.value),
                   ),
                 ),
-                TextButton.icon(
-                  icon: const Icon(Icons.category),
-                  label: const Text('Add to category'),
-                  onPressed: _showBulkAddCategoryDialog,
+                const VerticalDivider(),
+                Tooltip(
+                  message: 'Like',
+                  child: IconButton(
+                    icon: Icon(Icons.star, color: favoriteColor),
+                    onPressed: _bulkLike,
+                  ),
                 ),
-                TextButton.icon(
-                  icon: const Icon(Icons.remove_circle_outline),
-                  label: const Text('Remove from category'),
-                  onPressed: _showBulkRemoveCategoryDialog,
+                Tooltip(
+                  message: 'Dislike',
+                  child: IconButton(
+                    icon: Icon(Icons.thumb_down, color: dislikeColor),
+                    onPressed: _bulkDislike,
+                  ),
+                ),
+                Tooltip(
+                  message: 'Unrate',
+                  child: IconButton(
+                    icon: const Icon(Icons.star_outline),
+                    onPressed: _bulkUnrate,
+                  ),
+                ),
+                const VerticalDivider(),
+                Tooltip(
+                  message: 'Add to category',
+                  child: IconButton(
+                    icon: const Icon(Icons.category),
+                    onPressed: _showBulkAddCategoryDialog,
+                  ),
+                ),
+                Tooltip(
+                  message: 'Remove from category',
+                  child: IconButton(
+                    icon: const Icon(Icons.layers_clear),
+                    onPressed: _showBulkRemoveCategoryDialog,
+                  ),
+                ),
+                const VerticalDivider(),
+                Tooltip(
+                  message: 'Reset Play Count',
+                  child: IconButton(
+                    icon: const Icon(Icons.history),
+                    onPressed: _bulkResetPlayCount,
+                  ),
+                ),
+                const VerticalDivider(),
+                Tooltip(
+                  message: 'Delete',
+                  child: IconButton(
+                    icon: Icon(Icons.delete_forever, color: colorScheme.error),
+                    onPressed: _bulkDeleteMedia,
+                  ),
                 ),
               ],
             ),
@@ -556,6 +669,139 @@ class _MediaLibraryState extends State<MediaLibrary>
         ),
       ],
     );
+  }
+
+  void _bulkLike() {
+    for (final video in selectedVideos.value) {
+      video.rating = MediaRating.like;
+      oBox.mediaService.save(video);
+    }
+    selectedVideos.clear();
+  }
+
+  void _bulkDislike() {
+    for (final video in selectedVideos.value) {
+      video.rating = MediaRating.dislike;
+      oBox.mediaService.save(video);
+    }
+    selectedVideos.clear();
+  }
+
+  void _bulkUnrate() {
+    for (final video in selectedVideos.value) {
+      video.rating = MediaRating.noRating;
+      oBox.mediaService.save(video);
+    }
+    selectedVideos.clear();
+  }
+
+  Future<void> _bulkResetPlayCount() async {
+    final count = selectedVideos.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Reset Play Count for $count Items?'),
+        content: Text(
+          'Are you sure you want to reset the play count for $count selected items?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      for (final video in selectedVideos.value) {
+        video.playCount = 0;
+        oBox.mediaService.save(video);
+      }
+      selectedVideos.clear();
+    }
+  }
+
+  Future<void> _deleteMediaFiles(MediaFile media) async {
+    // Delete physical files
+    try {
+      final mediaFile = File(media.mediaPath);
+      if (await mediaFile.exists()) {
+        await mediaFile.delete();
+      }
+      for (final script in media.funscripts) {
+        final scriptFile = File(script.path);
+        if (await scriptFile.exists()) {
+          await scriptFile.delete();
+        }
+      }
+    } catch (e) {
+      Logger.error("Failed to delete physical files: $e");
+    }
+  }
+
+  Future<void> _deleteMedia(MediaFile media) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Media?'),
+        content: Text(
+          'Are you sure you want to delete ${media.name} and its associated scripts?\n\nThis will permanently remove the files from your disk.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _deleteMediaFiles(media);
+      // Delete from database
+      oBox.mediaService.remove(media.id);
+    }
+  }
+
+  Future<void> _bulkDeleteMedia() async {
+    final count = selectedVideos.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete $count Items?'),
+        content: Text(
+          'Are you sure you want to delete $count selected items and their associated scripts?\n\nThis will permanently remove the files from your disk.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final videosToRemove = selectedVideos.value.toList();
+      for (final video in videosToRemove) {
+        await _deleteMediaFiles(video);
+        oBox.mediaService.remove(video.id);
+      }
+      selectedVideos.clear();
+    }
   }
 
   Future<void> _showBulkAddCategoryDialog() async {
@@ -649,11 +895,16 @@ class _MediaLibraryState extends State<MediaLibrary>
 
   void _startPlaylist() {
     final playlistVideos = filteredMedia
-        .where((video) => !video.isDislike)
+        .where(
+          (video) =>
+              !video.isDislike &&
+              !video.fileNotFound &&
+              !(video.mainFunscript.target?.isScriptToken ?? false),
+        )
         .toList();
     if (playlistVideos.isEmpty) {
       if (!mounted) return;
-      Logger.error('No non-disliked videos to create a playlist');
+      Logger.error('No non-disliked and available videos to create a playlist');
       return;
     }
     if (!mounted) return;
@@ -669,7 +920,10 @@ class _MediaLibraryState extends State<MediaLibrary>
           ) &&
           !v.isFavorite &&
           !v.isDislike;
-      return !v.isDislike && !shouldHideUnrated;
+      return !v.isDislike &&
+          !v.fileNotFound &&
+          !shouldHideUnrated &&
+          !(v.mainFunscript.target?.isScriptToken ?? false);
     }).toList();
 
     if (availableVideos.isEmpty) {
@@ -678,5 +932,24 @@ class _MediaLibraryState extends State<MediaLibrary>
       }
       return;
     }
+
+    // shuffle the list
+    availableVideos.shuffle();
+    // Determine the number of items to take (up to 12).
+    final count = min(12, availableVideos.length);
+    // Take the first 'count' elements from the shuffled list.
+    availableVideos = availableVideos.take(count).toList();
+
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return WheelOfFortuneDialog(
+          mediaFiles: availableVideos,
+          onMediaSelected: (media) {
+            getIt.get<VideoPlayer>().openSingleVideo(media);
+          },
+        );
+      },
+    );
   }
 }

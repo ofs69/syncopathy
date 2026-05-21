@@ -115,6 +115,9 @@ class _VideoWidgetState extends State<VideoWidget>
                   _startHideControlsTimer();
                 },
                 child: MouseRegion(
+                  cursor: showControls
+                      ? MouseCursor.defer
+                      : SystemMouseCursors.none,
                   onExit: (_) => widget.showControls.value = false,
                   onHover: (_) {
                     widget.showControls.value = true;

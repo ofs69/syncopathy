@@ -42,7 +42,7 @@ class SimpleMode {
   }
 
   static Future<void> pickAndLoadFiles(PlayerModel playerModel) async {
-    final files = await FilePicker.platform.pickFiles(
+    final files = await FilePicker.pickFiles(
       dialogTitle: "Pick files to load",
       type: FileType.custom,
       allowedExtensions: allowedExtensions,

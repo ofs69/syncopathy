@@ -1,10 +1,9 @@
 import 'dart:io';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 
 /// A file hash that takes a lot of shortcuts to be as fast as possible
-Future<String?> fastFileHash(String path) async {
-  final file = File(path);
-
+Future<String?> fastFileHash(File file) async {
   if (!await file.exists()) {
     return null;
   }
@@ -41,6 +40,7 @@ Future<String?> fastFileHash(String path) async {
       await raf.close();
     }
   } catch (e) {
+    debugPrint(e.toString());
     return null;
   }
 }

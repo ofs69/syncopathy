@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/persistence/entities/user_category.dart';
@@ -24,11 +25,13 @@ class CategorySelectionDialog extends StatefulWidget {
       _CategorySelectionDialogState();
 }
 
-class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
+class _CategorySelectionDialogState extends State<CategorySelectionDialog>
+    with SignalsMixin {
   final _searchController = TextEditingController();
   final _newCategoryController = TextEditingController();
-  List<UserCategory> _userCategories = [];
-  bool _isLoading = true;
+  late final ListSignal<UserCategory> _userCategories = createListSignal([]);
+  late final Signal<bool> _isLoading = createSignal(true);
+  late final Signal<String> _searchText = createSignal("");
 
   int allCategoriesCategoryId = -1;
   int uncategorizedCategoryId = -2;
@@ -52,18 +55,17 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(() {
+      _searchText.value = _searchController.text;
+    });
     _loadCategories();
   }
 
   Future<void> _loadCategories() async {
-    setState(() {
-      _isLoading = true;
-    });
+    _isLoading.value = true;
     final categories = oBox.userCategoryService.getAllUserCategories();
-    setState(() {
-      _userCategories = categories;
-      _isLoading = false;
-    });
+    _userCategories.value = categories;
+    _isLoading.value = false;
   }
 
   @override
@@ -75,18 +77,20 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredUserCategories = _userCategories
+    final userCategories = _userCategories.watch(context);
+    final isLoading = _isLoading.watch(context);
+    final searchText = _searchText.watch(context);
+
+    final filteredUserCategories = userCategories
         .where(
-          (item) => item.name.toLowerCase().contains(
-            _searchController.text.toLowerCase(),
-          ),
+          (item) => item.name.toLowerCase().contains(searchText.toLowerCase()),
         )
         .where(
           (item) => widget.preFilterCategoriesIds?.contains(item.id) ?? true,
         )
         .toList();
 
-    final isSearching = _searchController.text.isNotEmpty;
+    final isSearching = searchText.isNotEmpty;
     return DraggableScrollableSheet(
       expand: false,
       builder: (BuildContext context, ScrollController scrollController) {
@@ -96,7 +100,6 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
               padding: const EdgeInsets.all(16.0),
               child: TextField(
                 controller: _searchController,
-                onChanged: (value) => setState(() {}),
                 decoration: InputDecoration(
                   labelText: 'Search Categories',
                   prefixIcon: const Icon(Icons.search),
@@ -107,7 +110,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
               ),
             ),
             Expanded(
-              child: _isLoading
+              child: isLoading
                   ? const Center(child: CircularProgressIndicator.adaptive())
                   : isSearching
                   ? _buildSearchResults(filteredUserCategories)
@@ -178,6 +181,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
               onTap: () => Navigator.of(context).pop(item.id),
             );
           }
+          return const SizedBox.shrink();
         } else {
           final item = filteredCategories[index - _metaCategories.length];
           return ListTile(
@@ -231,7 +235,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                 key: ValueKey(item.id),
                 title: Text(item.name),
                 onTap: () => Navigator.of(context).pop(item.id),
-                contentPadding: EdgeInsets.fromLTRB(16.0, 0.0, 40.0, 0.0),
+                contentPadding: const EdgeInsets.fromLTRB(16.0, 0.0, 40.0, 0.0),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -279,16 +283,14 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                 ),
               );
             },
-            onReorder: (int oldIndex, int newIndex) async {
-              if (oldIndex < newIndex) {
-                newIndex -= 1;
-              }
+            onReorderItem: (int oldIndex, int newIndex) async {
               final UserCategory item = _userCategories.removeAt(oldIndex);
               _userCategories.insert(newIndex, item);
-              setState(() {});
+              setState(() {}); // without this the UI does ugly things
               // TODO: do a bulk save here
-              for (final cat in _userCategories) {
-                oBox.userCategoryService.save(cat);
+              for (var i = 0; i < _userCategories.length; i++) {
+                _userCategories[i].sortOrder = i;
+                oBox.userCategoryService.save(_userCategories[i]);
               }
             },
           ),

@@ -126,7 +126,12 @@ class MediaFilterOverlayState extends State<MediaFilterOverlay>
       initialSelection: null,
       expandedInsets: EdgeInsets.zero,
       dropdownMenuEntries: availableFilters.entries.map((filter) {
-        return DropdownMenuEntry<String?>(value: filter.key, label: filter.key);
+        final f = filter.value();
+        return DropdownMenuEntry<String?>(
+          value: filter.key,
+          label: f.label,
+          leadingIcon: Icon(f.icon),
+        );
       }).toList(),
       onSelected: (selectedFilter) {
         if (selectedFilter == null) return;
@@ -142,23 +147,23 @@ class MediaFilterOverlayState extends State<MediaFilterOverlay>
     FilterBase filter, {
     required void Function() onDelete,
   }) {
+    final enabled = filter.enabled.watch(context);
+    final negated = filter.negated.watch(context);
     return Row(
       children: [
         Checkbox(
-          value: filter.enabled,
-          onChanged: (value) => setState(() {
-            filter.enabled = value ?? true;
-          }),
+          value: enabled,
+          onChanged: (value) {
+            filter.enabled.value = value ?? true;
+          },
         ),
         IconButton(
           icon: Icon(
-            filter.negated ? Icons.remove : Icons.add,
-            color: filter.negated ? Colors.red : Colors.grey,
+            negated ? Icons.remove : Icons.add,
+            color: negated ? Colors.red : Colors.grey,
           ),
           onPressed: () {
-            setState(() {
-              filter.negated = !filter.negated;
-            });
+            filter.negated.value = !filter.negated.value;
           },
         ),
         const SizedBox(width: 4),

@@ -77,6 +77,7 @@ class MediaFile {
   String mediaPath;
   int playCount;
   bool fileNotFound;
+  bool thumbnailGenerationFailed;
 
   final metadata = ToOne<MediaMetadata>();
 
@@ -92,6 +93,7 @@ class MediaFile {
     required this.fileHash,
     required this.playCount,
     required this.fileNotFound,
+    this.thumbnailGenerationFailed = false,
     List<String>? aliases,
     this.type,
     this.rating,

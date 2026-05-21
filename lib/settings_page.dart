@@ -32,8 +32,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _addPath() async {
     final settings = context.read<SettingsModel>();
-    final String? selectedDirectory = await FilePicker.platform
-        .getDirectoryPath();
+    final String? selectedDirectory = await FilePicker.getDirectoryPath();
 
     if (selectedDirectory != null) {
       settings.mediaPaths.add(selectedDirectory);

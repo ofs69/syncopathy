@@ -39,8 +39,10 @@ class PlayerModel with EffectDispose {
   late final ReadonlySignal<MediaFunscript?> currentlyOpen;
 
   final Signal<Funscript?> simpleModeFunscript = signal(null);
+  final Signal<int> selectedFunscriptIndex = signal(0);
 
   bool _videoViewCounted = false;
+  bool _skipToActionProcessed = false;
 
   final Debouncer _processingDebouncer = Debouncer(milliseconds: 300);
 
@@ -77,9 +79,12 @@ class PlayerModel with EffectDispose {
           return;
         }
 
+        if (_skipToActionProcessed) return;
+
         // Skip to first stroke if enabled
         untracked(() {
           if (_settings.skipToAction.value) {
+            _skipToActionProcessed = true;
             final actions = funscript.originalActions;
             if (actions.isNotEmpty) {
               final startTime = FunscriptAlgorithms.findFirstStroke(actions);
@@ -156,6 +161,7 @@ class PlayerModel with EffectDispose {
     effectAdd([
       effect(() async {
         final media = player.currentMedia.value;
+        final index = selectedFunscriptIndex.value;
         final totalDuration = player.duration.value;
         final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
         final rdpEpsilon = _settings.rdpEpsilon.value;
@@ -165,7 +171,9 @@ class PlayerModel with EffectDispose {
         final strokeRange = _settings.minMaxRange.value;
         final smoothIntervalMs = _settings.catmullRomSplineSmoothInterval.value;
 
-        final funscriptFile = media?.funscripts.firstOrNull;
+        final funscriptFile = (media?.funscripts.length ?? 0) > index
+            ? media?.funscripts[index]
+            : null;
 
         if (media == null ||
             funscriptFile == null ||
@@ -176,12 +184,12 @@ class PlayerModel with EffectDispose {
         }
         try {
           Funscript? funscript;
-          if (__currentFunscript.value == null ||
-              (__currentFunscript.value != null &&
-                  __currentFunscript.value?.filePath != funscriptFile.path)) {
+          final currentFunscript = untracked(() => _currentFunscript.value);
+          if (currentFunscript == null ||
+              (currentFunscript.filePath != funscriptFile.path)) {
             funscript = await Funscript.fromFile(funscriptFile.path);
           } else {
-            funscript = __currentFunscript.value;
+            funscript = currentFunscript;
           }
 
           if (funscript?.likelyScriptToken ?? false) {
@@ -211,8 +219,19 @@ class PlayerModel with EffectDispose {
       }),
       // View counting logic
       effect(() {
-        final _ = player.currentMedia.value;
+        final media = player.currentMedia.value;
         _videoViewCounted = false;
+
+        // Initialize the index with the mainFunscript
+        if (media != null) {
+          final mainFsId = media.mainFunscript.targetId;
+          final index = media.funscripts.indexWhere((fs) => fs.id == mainFsId);
+          selectedFunscriptIndex.value = index != -1 ? index : 0;
+        } else {
+          selectedFunscriptIndex.value = 0;
+        }
+
+        _skipToActionProcessed = false;
       }),
       effect(() {
         final video = currentlyOpen.value?.media;

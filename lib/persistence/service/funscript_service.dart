@@ -42,4 +42,8 @@ class FunscriptService {
         .sorted()
         .toList();
   }
+
+  List<FunscriptFile> getAll() => _box.getAll();
+
+  Future<List<FunscriptFile>> getAllAsync() async => _box.getAllAsync();
 }

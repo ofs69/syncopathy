@@ -8,6 +8,8 @@ class PlaylistModel {
   final Signal<List<PlaylistItem>> _entries;
   late final ReadonlySignal<int> currentIndex;
   late final ReadonlySignal<PlaylistItem?> currentPlaylistItem;
+  late final ReadonlySignal<Map<String, int>> _canonicalFilenamesToIndex;
+  late final ReadonlySignal<Set<String>> canonicalFilenames;
 
   ReadonlySignal<List<PlaylistItem>> get entries => _entries;
 
@@ -16,11 +18,21 @@ class PlaylistModel {
     currentPlaylistItem = computed(
       () => _entries.value.firstWhereOrNull((e) => e.current),
     );
+    _canonicalFilenamesToIndex = computed(() {
+      final map = <String, int>{};
+      for (var i = 0; i < _entries.value.length; i++) {
+        map[p.canonicalize(_entries.value[i].filename)] = i;
+      }
+      return map;
+    });
+    canonicalFilenames = computed(
+      () => _canonicalFilenamesToIndex.value.keys.toSet(),
+    );
   }
 
   int getIndexForVideo(MediaFile video) {
     final videoPath = p.canonicalize(video.mediaPath);
-    return _entries.indexWhere((v) => p.canonicalize(v.filename) == videoPath);
+    return _canonicalFilenamesToIndex.value[videoPath] ?? -1;
   }
 
   static PlaylistModel fromJson(String jsonString) {

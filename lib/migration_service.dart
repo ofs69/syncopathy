@@ -7,14 +7,19 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:pool/pool.dart';
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/ioc.dart';
+import 'package:syncopathy/media_library/media_metadata_retriever.dart';
 import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/media_library_settings_model.dart';
+import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/model/json/funscript_metadata.dart';
 import 'package:syncopathy/objectbox.g.dart';
 import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/key_value.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
+import 'package:syncopathy/persistence/entities/media_metadata.dart';
 import 'package:syncopathy/persistence/entities/user_category.dart';
 import 'package:syncopathy/persistence/fast_file_hash.dart';
 import 'package:syncopathy/sqlite/models/key_value_pair_old.dart';
@@ -28,11 +33,52 @@ class HashingResult {
   HashingResult(this.mediaHashes, this.duplicateFiles);
 }
 
+class _FunscriptData {
+  final String? funscriptHash;
+  final FunscriptMetadata? metadata;
+  final bool isScriptToken;
+  final bool fileNotFound;
+  final double averageSpeed;
+  final double averageMin;
+  final double averageMax;
+
+  _FunscriptData({
+    required this.funscriptHash,
+    required this.metadata,
+    required this.isScriptToken,
+    required this.fileNotFound,
+    required this.averageSpeed,
+    required this.averageMin,
+    required this.averageMax,
+  });
+}
+
+class _TransactionParams {
+  final List<KeyValuePairOld> keyValues;
+  final List<UserCategoryOld> categories;
+  final List<VideoOld> videos;
+  final Map<int, String> mediaHashes;
+  final Map<int, MediaMetadataRetrieved?> mediaMetadata;
+  final Map<int, _FunscriptData> funscriptData;
+  final SendPort sendPort;
+
+  _TransactionParams(
+    this.keyValues,
+    this.categories,
+    this.videos,
+    this.mediaHashes,
+    this.mediaMetadata,
+    this.funscriptData,
+    this.sendPort,
+  );
+}
+
 class MigrationService {
   final Signal<String> statusSignal = signal("...");
   final Signal<double> progress = signal(0.0);
-
-  final SetSignal<List<VideoOld>> duplicateVideos = setSignal({});
+  final Signal<Duration?> eta = signal(null);
+  final Signal<bool> isMigrating = signal(false);
+  final Signal<bool> hasMigrated = signal(false);
 
   Future<void> renameThumbnail(
     Directory supportDir,
@@ -47,6 +93,7 @@ class MigrationService {
   }
 
   Future<void> migrate() async {
+    isMigrating.value = true;
     final supportDirectory = await getApplicationSupportDirectory();
 
     final videos = await SQLiteHelper().getAllVideos();
@@ -60,148 +107,193 @@ class MigrationService {
       await Directory(p.join(supportDirectory.path, "thumbnails")).create();
     } catch (_) {}
 
-    // Video Id -> Media Hash
+    // Video Id -> Media Hash & Metadata
     Map<int, String> mediaHashes = {};
-    {
-      // Media Hash -> Videos
-      Map<String, List<VideoOld>> duplicateFiles = {};
-      int progressCounter = 0;
+    Map<int, MediaMetadataRetrieved?> mediaMetadata = {};
+    Map<int, _FunscriptData> funscriptDataMap = {};
+    try {
+      {
+        int progressCounter = 0;
 
-      final pool = Pool(32);
-      final fileHashes = videos.map((video) {
-        return pool.withResource(() async {
-          return (video, await fastFileHash(video.videoPath));
-        });
-      }).toList();
+        final pool = Pool(32);
+        final fileData = videos.map((video) {
+          return pool.withResource(() async {
+            final file = File(video.videoPath);
+            final hash = await fastFileHash(file);
+            MediaMetadataRetrieved? metadata;
+            if (hash != null) {
+              metadata = await MediaMetadataRetriever.runFFprobe(
+                video.videoPath,
+              );
+            }
 
-      statusSignal.value = "Busy hashing...";
-      progressCounter = 0;
-      progress.value = 0.0;
+            FunscriptMetadata? funscriptMetadata;
+            String? funscriptHash;
+            bool isScriptToken = false;
+            bool fileNotFound = true;
+            double averageSpeed = 0;
+            double averageMin = 0;
+            double averageMax = 0;
+            try {
+              final funscriptJsonText = await File(
+                video.funscriptPath,
+              ).readAsString();
+              final funscript = FunscriptJson.fromJson(
+                jsonDecode(funscriptJsonText),
+              );
+              isScriptToken = Funscript.isScriptToken(funscript.actions);
+              funscriptMetadata = funscript.metadata;
+              funscriptHash = funscript.computeFunscriptHash();
+              averageSpeed = FunscriptAlgorithms.averageSpeed(
+                funscript.actions,
+              );
+              averageMin = FunscriptAlgorithms.averageMin(funscript.actions);
+              averageMax = FunscriptAlgorithms.averageMax(funscript.actions);
+              fileNotFound = false;
+            } catch (e) {
+              if (kDebugMode) debugPrint(e.toString());
+            }
 
-      final stream = Stream.fromFutures(fileHashes);
+            return (
+              video,
+              hash,
+              metadata,
+              _FunscriptData(
+                funscriptHash: funscriptHash,
+                metadata: funscriptMetadata,
+                isScriptToken: isScriptToken,
+                fileNotFound: fileNotFound,
+                averageSpeed: averageSpeed,
+                averageMin: averageMin,
+                averageMax: averageMax,
+              ),
+            );
+          });
+        }).toList();
 
-      await for (final (video, mediaHash) in stream) {
-        if (mediaHash == null) {
-          continue; // Use continue instead of return to process others
+        statusSignal.value = "Busy hashing and retrieving metadata...";
+        progressCounter = 0;
+        progress.value = 0.0;
+        eta.value = null;
+
+        final stream = Stream.fromFutures(fileData);
+        final stopwatch = Stopwatch()..start();
+
+        await for (final (video, mediaHash, metadata, fData) in stream) {
+          if (mediaHash == null) {
+            continue; // Use continue instead of return to process others
+          }
+
+          // Update UI based on the specific video that just finished
+          statusSignal.value = "Processed: ${p.basename(video.videoPath)}";
+
+          mediaHashes.putIfAbsent(video.id!, () => mediaHash);
+          mediaMetadata.putIfAbsent(video.id!, () => metadata);
+          funscriptDataMap.putIfAbsent(video.id!, () => fData);
+          await renameThumbnail(supportDirectory, video.videoHash, mediaHash);
+
+          // Update progress bar
+          progressCounter++;
+          progress.value = progressCounter / videos.length;
+
+          final elapsed = stopwatch.elapsed;
+          final estimatedTotal = elapsed * (videos.length / progressCounter);
+          eta.value = estimatedTotal - elapsed;
         }
 
-        // Update UI based on the specific video that just finished
-        statusSignal.value = "Processed: ${p.basename(video.videoPath)}";
-
-        final dups = duplicateFiles.putIfAbsent(mediaHash, () => []);
-        dups.add(video);
-
-        if (dups.length > 1) {
-          duplicateVideos.add(dups);
-        }
-
-        mediaHashes.putIfAbsent(video.id!, () => mediaHash);
-        await renameThumbnail(supportDirectory, video.videoHash, mediaHash);
-
-        // Update progress bar
-        progressCounter++;
-        progress.value = progressCounter / videos.length;
+        statusSignal.value = "Writing transaction...";
+        progressCounter = 0;
+        progress.value = 0.0;
+        eta.value = null;
       }
 
-      statusSignal.value = "Writing transaction...";
-      progressCounter = 0;
-      progress.value = 0.0;
-    }
-
-    final receivePort = ReceivePort();
-    try {
-      receivePort.listen((p) => progress.value = p as double);
-      await writeToDatabase(
-        keyValues,
-        categories,
-        videos,
-        mediaHashes,
-        receivePort.sendPort,
-      );
+      final receivePort = ReceivePort();
+      try {
+        receivePort.listen((p) => progress.value = p as double);
+        await _writeToDatabase(
+          _TransactionParams(
+            keyValues,
+            categories,
+            videos,
+            mediaHashes,
+            mediaMetadata,
+            funscriptDataMap,
+            receivePort.sendPort,
+          ),
+        );
+      } finally {
+        receivePort.close();
+      }
+      await getIt.get<SettingsModel>().load();
+      if (getIt.isRegistered<MediaLibrarySettingsModel>()) {
+        await getIt.get<MediaLibrarySettingsModel>().load();
+      }
+      hasMigrated.value = true;
     } finally {
-      receivePort.close();
+      isMigrating.value = false;
     }
   }
 
-  static Future<void> writeToDatabase(
-    List<KeyValuePairOld> keyValues,
-    List<UserCategoryOld> categories,
-    List<VideoOld> videos,
-    Map<int, String> mediaHashes,
-    SendPort sendPort,
-  ) async {
+  static Future<void> _writeToDatabase(_TransactionParams params) async {
     await oBox.store.runInTransactionAsync(TxMode.write, (store, parameter) {
-      SendPort sendPort = parameter;
+      final params = parameter;
       final kvBox = store.box<KeyValue>();
-      for (final kv in keyValues) {
-        kvBox.put(KeyValue(key: kv.id!, value: kv.value));
-      }
+      kvBox.putMany(
+        params.keyValues
+            .map((kv) => KeyValue(key: kv.id!, value: kv.value))
+            .toList(),
+      );
 
-      // CategoryId -> UserCategoiry
+      // CategoryId -> UserCategory
       Map<int, UserCategory> categoryMap = {};
       final categoryBox = store.box<UserCategory>();
-      for (final categoryOld in categories) {
-        final found = categoryBox
-            .query(UserCategory_.name.equals(categoryOld.name))
-            .build()
-            .findFirst();
-        if (found == null) {
-          final category = UserCategory(
+      final existingCategories = categoryBox.getAll();
+
+      for (final categoryOld in params.categories) {
+        var category = existingCategories
+            .where((c) => c.name == categoryOld.name)
+            .firstOrNull;
+        if (category == null) {
+          category = UserCategory(
             name: categoryOld.name,
             description: categoryOld.description,
             sortOrder: categoryOld.sortOrder,
           );
-          categoryBox.put(category);
-          categoryMap[categoryOld.id!] = category;
         } else {
-          found.name = categoryOld.name;
-          found.description = categoryOld.description;
-          found.sortOrder = categoryOld.sortOrder;
-          categoryBox.put(found);
-          categoryMap[categoryOld.id!] = found;
+          category.description = categoryOld.description;
+          category.sortOrder = categoryOld.sortOrder;
         }
+        categoryBox.put(category);
+        categoryMap[categoryOld.id!] = category;
       }
 
       final funscriptBox = store.box<FunscriptFile>();
       final mediaBox = store.box<MediaFile>();
+      final metadataBox = store.box<MediaMetadata>();
 
       // Media Hash -> Media File
       Map<String, MediaFile> mediaMap = {};
-      int progressCounter = 0;
-      for (final video in videos) {
-        bool isScriptToken = false;
-        bool fileNotFound = true;
+      List<FunscriptFile> funscriptsToPut = [];
+      List<MediaMetadata> metadataToPut = [];
 
-        FunscriptMetadata? metadata;
-        String? funscriptHash;
-        try {
-          final funscriptJsonText = File(
-            video.funscriptPath,
-          ).readAsStringSync();
-          final funscript = FunscriptJson.fromJson(
-            jsonDecode(funscriptJsonText),
+      for (final video in params.videos) {
+        final fData = params.funscriptData[video.id!];
+        FunscriptFile? funscript;
+        if (fData != null) {
+          funscript = FunscriptFile(
+            funscriptHash: fData.funscriptHash,
+            path: video.funscriptPath,
+            averageMax: fData.averageMax,
+            averageMin: fData.averageMin,
+            averageSpeed: fData.averageSpeed,
+            metadata: fData.metadata,
+            fileNotFound: fData.fileNotFound,
+            isScriptToken: fData.isScriptToken,
           );
-          isScriptToken = Funscript.isScriptToken(funscript.actions);
-          metadata = funscript.metadata;
-          funscriptHash = funscript.computeFunscriptHash();
-          fileNotFound = false;
-        } catch (e) {
-          if (kDebugMode) debugPrint(e.toString());
+          funscriptsToPut.add(funscript);
         }
 
-        final funscript = FunscriptFile(
-          funscriptHash: funscriptHash,
-          path: video.funscriptPath,
-          averageMax: video.averageMax,
-          averageMin: video.averageMin,
-          averageSpeed: video.averageSpeed,
-          metadata: metadata,
-          fileNotFound: fileNotFound,
-          isScriptToken: isScriptToken,
-        );
-        funscriptBox.put(funscript);
-
-        final mediaHash = mediaHashes[video.id!];
+        final mediaHash = params.mediaHashes[video.id!];
         MediaFile? media = mediaMap[mediaHash];
         if (media == null) {
           final rating = switch ((video.isFavorite, video.isDislike)) {
@@ -219,6 +311,27 @@ class MigrationService {
             fileNotFound: mediaHash == null,
           );
           media.mainFunscript.target = funscript;
+
+          final meta = params.mediaMetadata[video.id!];
+          if (meta != null) {
+            final mediaMetadata = MediaMetadata(
+              duration: meta.duration,
+              aspectRatio: meta.aspectRatio,
+              audioChannels: meta.audioChannels,
+              audioCodec: meta.audioCodec,
+              bitRate: meta.bitRate,
+              creationTime: meta.creationTime,
+              frameRate: meta.frameRate,
+              height: meta.height,
+              width: meta.width,
+              pixelFormat: meta.pixelFormat,
+              rotation: meta.rotation,
+              videoCodec: meta.videoCodec,
+            );
+            media.metadata.target = mediaMetadata;
+            metadataToPut.add(mediaMetadata);
+          }
+
           if (mediaHash != null) {
             mediaMap[mediaHash] = media;
           }
@@ -226,21 +339,24 @@ class MigrationService {
         // put all names into aliases
         media.aliases.add(video.title);
         // associate all funscripts
-        media.funscripts.add(funscript);
-        mediaBox.put(media);
+        if (funscript != null) media.funscripts.add(funscript);
 
         for (final categoryOld in video.categories) {
           final category = categoryMap[categoryOld.id!];
           if (category != null) {
             if (!category.entries.contains(media)) {
               category.entries.add(media);
-              categoryBox.put(category);
             }
           }
         }
-        progressCounter += 1;
-        sendPort.send(progressCounter / videos.length);
       }
-    }, sendPort);
+
+      funscriptBox.putMany(funscriptsToPut);
+      metadataBox.putMany(metadataToPut);
+      mediaBox.putMany(mediaMap.values.toList());
+      categoryBox.putMany(categoryMap.values.toList());
+
+      params.sendPort.send(1.0);
+    }, params);
   }
 }
