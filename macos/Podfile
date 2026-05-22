@@ -1,25 +1,34 @@
-platform :osx, '11.0'
+# Diagnostic Podfile to find the helper scripts
+puts "--- DEBUG: Listing macos/Flutter directory ---"
+Dir.glob("Flutter/**/*").each { |f| puts f }
+puts "--- DEBUG: End of listing ---"
 
-# CocoaPods analytics sends network stats synchronously affecting build performance.
-ENV['COCOAPODS_DISABLE_STATS'] = '1'
-
-project 'Runner', {
-  'Debug' => :debug,
-  'Release' => :release,
-  'Profile' => :profile,
-}
-
-# Load Flutter macOS pod helpers.
-macos_instance_implementation = File.join(File.dirname(File.realpath(__FILE__)), 'Flutter', 'ephemeral', 'Config', 'macos_pod_helpers.rb')
-if File.exist?(macos_instance_implementation)
-  load macos_instance_implementation
+# Attempt to load the most likely path
+helper_path = File.join(File.dirname(File.realpath(__FILE__)), 'Flutter', 'ephemeral', 'Config', 'macos_pod_helpers.rb')
+if File.exist?(helper_path)
+  load helper_path
+else
+  # Try another common path
+  helper_path = File.join(File.dirname(File.realpath(__FILE__)), 'Flutter', 'ephemeral', 'macos_pod_helpers.rb')
+  if File.exist?(helper_path)
+    load helper_path
+  else
+    puts "!!! ERROR: Could not find macos_pod_helpers.rb !!!"
+  end
 end
+
+platform :osx, '11.0'
 
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
-  flutter_install_all_macos_pods File.dirname(File.realpath(__FILE__))
+  if respond_to?(:flutter_install_all_macos_pods)
+    flutter_install_all_macos_pods File.dirname(File.realpath(__FILE__))
+  else
+    puts "!!! ERROR: flutter_install_all_macos_pods method not found !!!"
+  end
+
   target 'RunnerTests' do
     inherit! :search_paths
   end
@@ -27,7 +36,9 @@ end
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|
-    flutter_additional_macos_build_settings(target)
+    if respond_to?(:flutter_additional_macos_build_settings)
+      flutter_additional_macos_build_settings(target)
+    end
     target.build_configurations.each do |config|
       config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
     end
