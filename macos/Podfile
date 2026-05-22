@@ -9,6 +9,12 @@ project 'Runner', {
   'Profile' => :profile,
 }
 
+# Load Flutter macOS pod helpers.
+macos_instance_implementation = File.join(File.dirname(File.realpath(__FILE__)), 'Flutter', 'ephemeral', 'Config', 'macos_pod_helpers.rb')
+if File.exist?(macos_instance_implementation)
+  load macos_instance_implementation
+end
+
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
