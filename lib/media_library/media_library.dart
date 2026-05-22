@@ -467,25 +467,6 @@ class _MediaLibraryState extends State<MediaLibrary>
         Expanded(
           child: Stack(
             children: [
-              // if (isLoading)
-              //   Center(
-              //     child: Column(
-              //       mainAxisAlignment: MainAxisAlignment.center,
-              //       children: [
-              //         const CircularProgressIndicator(),
-              //         const SizedBox(height: 16),
-              //         Watch.builder(
-              //           builder: (context) {
-              //             final value = context
-              //                 .read<MediaManager>()
-              //                 .videoCountNotifier
-              //                 .value;
-              //             return Text('Found $value videos...');
-              //           },
-              //         ),
-              //       ],
-              //     ),
-              //   ),
               if (!currentlyFiltering && mediaFiles.isEmpty)
                 Center(
                   child: Text(

@@ -212,7 +212,8 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                if (widget.media.fileNotFound || (mainFunscript?.fileNotFound ?? false))
+                if (widget.media.fileNotFound ||
+                    (mainFunscript?.fileNotFound ?? false))
                   Container(
                     color: Colors.black45,
                     child: Center(

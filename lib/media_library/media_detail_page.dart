@@ -112,7 +112,10 @@ class _MediaDetailPageState extends State<MediaDetailPage>
 
     if (result != null && result.files.single.path != null) {
       final newPath = result.files.single.path!;
-      final newHash = await fastFileHash(File(newPath));
+      final newHash = await fastFileHash(
+        File(newPath),
+        cacheService: oBox.fastHashCacheService,
+      );
       if (newHash != null) {
         widget.media.fileHash = newHash;
         widget.media.fileNotFound = false;
@@ -130,7 +133,10 @@ class _MediaDetailPageState extends State<MediaDetailPage>
     if (result != null) {
       for (final file in result.files) {
         if (file.path == null) continue;
-        final hash = await fastFileHash(File(file.path!));
+        final hash = await fastFileHash(
+          File(file.path!),
+          cacheService: oBox.fastHashCacheService,
+        );
         final newFs = FunscriptFile(
           path: file.path!,
           averageSpeed: 0,

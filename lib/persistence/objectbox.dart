@@ -1,6 +1,7 @@
 import 'package:path/path.dart' as p;
 
 import 'package:syncopathy/objectbox.g.dart';
+import 'package:syncopathy/persistence/service/fast_hash_cache_service.dart';
 import 'package:syncopathy/persistence/service/funscript_service.dart';
 import 'package:syncopathy/persistence/service/key_value_service.dart';
 import 'package:syncopathy/persistence/service/user_category_service.dart';
@@ -12,12 +13,14 @@ class ObjectBox {
   late final UserCategoryService userCategoryService;
   late final MediaService mediaService;
   late final FunscriptService funscriptService;
+  late final FastHashCacheService fastHashCacheService;
 
   ObjectBox._create(this.store) {
     keyValueService = KeyValueService(store);
     userCategoryService = UserCategoryService(store);
     mediaService = MediaService(store);
     funscriptService = FunscriptService(store);
+    fastHashCacheService = FastHashCacheService(store);
   }
 
   static Future<ObjectBox> create(String path) async {

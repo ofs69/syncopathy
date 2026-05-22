@@ -81,7 +81,7 @@ class MediaMetadataRetriever
       final results = await Future.wait([
         process.stdout.transform(utf8.decoder).join(),
         process.stderr.transform(utf8.decoder).join(),
-      ]).timeout(const Duration(seconds: 5));
+      ]);
 
       if (await process.exitCode != 0) return null;
 

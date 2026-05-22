@@ -14,6 +14,7 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
+import 'persistence/entities/fast_hash_cache.dart';
 import 'persistence/entities/funscript_file.dart';
 import 'persistence/entities/key_value.dart';
 import 'persistence/entities/media_file.dart';
@@ -352,6 +353,47 @@ final _entities = <obx_int.ModelEntity>[
     ],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(6, 5727764668235585434),
+    name: 'FastHashCache',
+    lastPropertyId: const obx_int.IdUid(5, 8622196053774173294),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 925282429157251049),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 4361694555681228990),
+        name: 'path',
+        type: 9,
+        flags: 8,
+        indexId: const obx_int.IdUid(6, 1713004275202719678),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 811196167974958723),
+        name: 'mtime',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 8724096252079660520),
+        name: 'size',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 8622196053774173294),
+        name: 'hash',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -397,8 +439,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(5, 4087446821988631846),
-    lastIndexId: const obx_int.IdUid(5, 3924789283185766064),
+    lastEntityId: const obx_int.IdUid(6, 5727764668235585434),
+    lastIndexId: const obx_int.IdUid(6, 1713004275202719678),
     lastRelationId: const obx_int.IdUid(2, 3712515284933883622),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
@@ -823,6 +865,57 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    FastHashCache: obx_int.EntityDefinition<FastHashCache>(
+      model: _entities[5],
+      toOneRelations: (FastHashCache object) => [],
+      toManyRelations: (FastHashCache object) => {},
+      getId: (FastHashCache object) => object.id,
+      setId: (FastHashCache object, int id) {
+        object.id = id;
+      },
+      objectToFB: (FastHashCache object, fb.Builder fbb) {
+        final pathOffset = fbb.writeString(object.path);
+        final hashOffset = fbb.writeString(object.hash);
+        fbb.startTable(6);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, pathOffset);
+        fbb.addInt64(2, object.mtime);
+        fbb.addInt64(3, object.size);
+        fbb.addOffset(4, hashOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final pathParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final mtimeParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          8,
+          0,
+        );
+        final sizeParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          10,
+          0,
+        );
+        final hashParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final object = FastHashCache(
+          path: pathParam,
+          mtime: mtimeParam,
+          size: sizeParam,
+          hash: hashParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -1055,5 +1148,33 @@ class UserCategory_ {
   /// see [UserCategory.entries]
   static final entries = obx.QueryRelationToMany<UserCategory, MediaFile>(
     _entities[4].relations[0],
+  );
+}
+
+/// [FastHashCache] entity fields to define ObjectBox queries.
+class FastHashCache_ {
+  /// See [FastHashCache.id].
+  static final id = obx.QueryIntegerProperty<FastHashCache>(
+    _entities[5].properties[0],
+  );
+
+  /// See [FastHashCache.path].
+  static final path = obx.QueryStringProperty<FastHashCache>(
+    _entities[5].properties[1],
+  );
+
+  /// See [FastHashCache.mtime].
+  static final mtime = obx.QueryIntegerProperty<FastHashCache>(
+    _entities[5].properties[2],
+  );
+
+  /// See [FastHashCache.size].
+  static final size = obx.QueryIntegerProperty<FastHashCache>(
+    _entities[5].properties[3],
+  );
+
+  /// See [FastHashCache.hash].
+  static final hash = obx.QueryStringProperty<FastHashCache>(
+    _entities[5].properties[4],
   );
 }

@@ -119,7 +119,10 @@ class MigrationService {
         final fileData = videos.map((video) {
           return pool.withResource(() async {
             final file = File(video.videoPath);
-            final hash = await fastFileHash(file);
+            final hash = await fastFileHash(
+              file,
+              cacheService: oBox.fastHashCacheService,
+            );
             MediaMetadataRetrieved? metadata;
             if (hash != null) {
               metadata = await MediaMetadataRetriever.runFFprobe(
@@ -135,15 +138,17 @@ class MigrationService {
             double averageMin = 0;
             double averageMax = 0;
             try {
-              final funscriptJsonText = await File(
-                video.funscriptPath,
-              ).readAsString();
+              final funscriptFile = File(video.funscriptPath);
+              funscriptHash = await fastFileHash(
+                funscriptFile,
+                cacheService: oBox.fastHashCacheService,
+              );
+              final funscriptJsonText = await funscriptFile.readAsString();
               final funscript = FunscriptJson.fromJson(
                 jsonDecode(funscriptJsonText),
               );
               isScriptToken = Funscript.isScriptToken(funscript.actions);
               funscriptMetadata = funscript.metadata;
-              funscriptHash = funscript.computeFunscriptHash();
               averageSpeed = FunscriptAlgorithms.averageSpeed(
                 funscript.actions,
               );

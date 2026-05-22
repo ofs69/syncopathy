@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:signals/signals_flutter.dart';
@@ -15,6 +14,8 @@ import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/json/funscript_metadata.dart';
 import 'package:syncopathy/model/settings_model.dart';
+import 'package:syncopathy/objectbox.g.dart';
+import 'package:syncopathy/persistence/service/fast_hash_cache_service.dart';
 import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/persistence/entities/media_metadata.dart';
@@ -66,6 +67,7 @@ class _IndexingParams {
   final List<String> searchPaths;
   final Set<String> mediaHashesWithMetadata;
   final SendPort progressPort;
+  final ByteData storeReference;
 
   Map<String?, MediaFile> get allMediasMap => {
     for (var element in allMedias) element.fileHash: element,
@@ -80,6 +82,7 @@ class _IndexingParams {
     required this.searchPaths,
     required this.mediaHashesWithMetadata,
     required this.progressPort,
+    required this.storeReference,
   });
 }
 
@@ -179,6 +182,7 @@ class MediaManager {
               .whereType<String>()
               .toSet(),
           progressPort: receivePort.sendPort,
+          storeReference: oBox.store.reference,
         ),
       );
 
@@ -331,176 +335,194 @@ class MediaManager {
   }
 
   static Future<_IndexingResult> _indexing(_IndexingParams params) async {
-    void updateStatus(String status, [double? progress]) {
-      params.progressPort.send(
-        _ProgressUpdate(status: status, progress: progress),
-      );
-    }
+    final store = Store.fromReference(
+      getObjectBoxModel(),
+      params.storeReference,
+    );
+    final cacheService = FastHashCacheService(store);
 
-    final videoExtensions = {'.mp4', '.mkv', '.avi', '.mov', '.wmv', '.webm'};
-    final audioExtensions = {
-      '.mp3',
-      '.aac',
-      '.wav',
-      '.flac',
-      '.ogg',
-      '.m4a',
-      '.wma',
-      '.opus',
-    };
-    final combinedExtension = {...videoExtensions, ...audioExtensions};
-
-    updateStatus("Listing files...");
-
-    final List<File> mediaFiles = [];
-    final List<File> funscriptFiles = [];
-
-    for (final path in params.searchPaths) {
-      final dir = Directory(path);
-      if (!await dir.exists()) {
-        continue;
+    try {
+      void updateStatus(String status, [double? progress]) {
+        params.progressPort.send(
+          _ProgressUpdate(status: status, progress: progress),
+        );
       }
 
-      await for (final entity in dir.list(
-        recursive: true,
-        followLinks: false,
-      )) {
-        if (entity is File) {
-          final extension = p.extension(entity.path).toLowerCase();
-          if (combinedExtension.contains(extension)) {
-            mediaFiles.add(entity);
-          } else if (extension == '.funscript') {
-            funscriptFiles.add(entity);
+      final videoExtensions = {'.mp4', '.mkv', '.avi', '.mov', '.wmv', '.webm'};
+      final audioExtensions = {
+        '.mp3',
+        '.aac',
+        '.wav',
+        '.flac',
+        '.ogg',
+        '.m4a',
+        '.wma',
+        '.opus',
+      };
+      final combinedExtension = {...videoExtensions, ...audioExtensions};
+
+      updateStatus("Listing files...");
+
+      final List<File> mediaFiles = [];
+      final List<File> funscriptFiles = [];
+
+      for (final path in params.searchPaths) {
+        final dir = Directory(path);
+        if (!await dir.exists()) {
+          continue;
+        }
+
+        await for (final entity in dir.list(
+          recursive: true,
+          followLinks: false,
+        )) {
+          if (entity is File) {
+            final extension = p.extension(entity.path).toLowerCase();
+            if (combinedExtension.contains(extension)) {
+              mediaFiles.add(entity);
+            } else if (extension == '.funscript') {
+              funscriptFiles.add(entity);
+            }
           }
         }
       }
-    }
 
-    Trie mediaTrie = Trie();
-    Map<String, _FoundMediaFile> groups = {};
+      Trie mediaTrie = Trie();
+      Map<String, _FoundMediaFile> groups = {};
 
-    final pool = Pool(32);
+      final pool = Pool(32);
 
-    updateStatus("Hashing media files...", 0.0);
-    int processedMedia = 0;
-    final totalMedia = mediaFiles.length;
+      updateStatus("Hashing media files...", 0.0);
+      int processedMedia = 0;
+      final totalMedia = mediaFiles.length;
 
-    final mediaFilesWithHashes = mediaFiles.map((media) {
-      return pool.withResource(() async {
-        final hash = await fastFileHash(media);
-        processedMedia++;
-        if (processedMedia % 10 == 0 || processedMedia == totalMedia) {
-          updateStatus(
-            "Hashing media files ($processedMedia/$totalMedia)",
-            processedMedia / totalMedia,
-          );
-        }
-        return (media, hash);
-      });
-    }).toList();
-
-    await for (var (file, hash) in Stream.fromFutures(mediaFilesWithHashes)) {
-      final basename = p.basenameWithoutExtension(file.path);
-      if (hash == null) continue;
-
-      final extension = p.extension(file.path).toLowerCase();
-      final type = videoExtensions.contains(extension)
-          ? MediaType.video
-          : MediaType.audio;
-
-      mediaTrie.insert(basename);
-      groups[basename] = _FoundMediaFile(file, hash, type, null);
-    }
-
-    updateStatus("Hashing funscripts...", 0.0);
-    int processedFunscripts = 0;
-    final totalFunscripts = funscriptFiles.length;
-
-    final funscriptFilesWithHashes = funscriptFiles.map((file) {
-      return pool.withResource(() async {
-        try {
-          final funscriptJsonText = await file.readAsString();
-          final funscript = FunscriptJson.fromJson(
-            jsonDecode(funscriptJsonText),
-          );
-          final funscriptHash = funscript.computeFunscriptHash();
-          final actions = funscript.actions;
-
-          processedFunscripts++;
-          if (processedFunscripts % 10 == 0 ||
-              processedFunscripts == totalFunscripts) {
+      final mediaFilesWithHashes = mediaFiles.map((media) {
+        return pool.withResource(() async {
+          final hash = await fastFileHash(media, cacheService: cacheService);
+          processedMedia++;
+          if (processedMedia % 10 == 0 || processedMedia == totalMedia) {
             updateStatus(
-              "Hashing funscripts ($processedFunscripts/$totalFunscripts)",
-              processedFunscripts / totalFunscripts,
+              "Hashing media files ($processedMedia/$totalMedia)",
+              processedMedia / totalMedia,
             );
           }
+          return (media, hash);
+        });
+      }).toList();
 
-          return (
-            file,
-            _FoundFunscriptFile(
-              file: file,
-              funscriptHash: funscriptHash,
-              averageSpeed: FunscriptAlgorithms.averageSpeed(actions),
-              averageMin: FunscriptAlgorithms.averageMin(actions),
-              averageMax: FunscriptAlgorithms.averageMax(actions),
-              isScriptToken: Funscript.isScriptToken(actions),
-              metadata: funscript.metadata,
-            ),
-          );
-        } catch (_) {}
-        processedFunscripts++;
-        return (file, null);
-      });
-    }).toList();
+      await for (var (file, hash) in Stream.fromFutures(mediaFilesWithHashes)) {
+        final basename = p.basenameWithoutExtension(file.path);
+        if (hash == null) continue;
 
-    final Map<String, _FoundFunscriptFile> allFoundFunscripts = {};
-    await for (var (file, foundFunscript) in Stream.fromFutures(
-      funscriptFilesWithHashes,
-    )) {
-      if (foundFunscript == null) continue;
-      allFoundFunscripts[foundFunscript.funscriptHash] = foundFunscript;
+        final extension = p.extension(file.path).toLowerCase();
+        final type = videoExtensions.contains(extension)
+            ? MediaType.video
+            : MediaType.audio;
 
-      final basename = p.basenameWithoutExtension(file.path);
-      final bestMatch = mediaTrie.findLongestPrefix(basename);
-
-      if (bestMatch != null) {
-        var group = groups[bestMatch];
-        if (group == null) continue;
-        group.funscripts.add(foundFunscript);
+        mediaTrie.insert(basename);
+        groups[basename] = _FoundMediaFile(file, hash, type, null);
       }
-    }
 
-    // Only index media if it has at least one funscript,
-    // OR if it was already in the database (to allow tracking missing files).
-    final existingMediaHashes = params.allMediasMap.keys.toSet();
-    groups.removeWhere(
-      (key, value) =>
-          value.funscripts.isEmpty &&
-          !existingMediaHashes.contains(value.mediaHash),
-    );
+      updateStatus("Hashing funscripts...", 0.0);
+      int processedFunscripts = 0;
+      final totalFunscripts = funscriptFiles.length;
 
-    updateStatus("Retrieving metadata...", 0.0);
-    int processedMetadata = 0;
-    final totalMetadata = groups.values.length;
+      final funscriptFilesWithHashes = funscriptFiles.map((file) {
+        return pool.withResource(() async {
+          try {
+            final funscriptHash = await fastFileHash(
+              file,
+              cacheService: cacheService,
+            );
+            if (funscriptHash == null) {
+              processedFunscripts++;
+              return (file, null);
+            }
+            final funscriptJsonText = await file.readAsString();
+            final funscript = FunscriptJson.fromJson(
+              jsonDecode(funscriptJsonText),
+            );
+            final actions = funscript.actions;
 
-    final metadataFutures = groups.values.map((m) {
-      return pool.withResource(() async {
-        if (!params.mediaHashesWithMetadata.contains(m.mediaHash)) {
-          m.metadata = await MediaMetadataRetriever.runFFprobe(m.file.path);
+            processedFunscripts++;
+            if (processedFunscripts % 10 == 0 ||
+                processedFunscripts == totalFunscripts) {
+              updateStatus(
+                "Hashing funscripts ($processedFunscripts/$totalFunscripts)",
+                processedFunscripts / totalFunscripts,
+              );
+            }
+
+            return (
+              file,
+              _FoundFunscriptFile(
+                file: file,
+                funscriptHash: funscriptHash,
+                averageSpeed: FunscriptAlgorithms.averageSpeed(actions),
+                averageMin: FunscriptAlgorithms.averageMin(actions),
+                averageMax: FunscriptAlgorithms.averageMax(actions),
+                isScriptToken: Funscript.isScriptToken(actions),
+                metadata: funscript.metadata,
+              ),
+            );
+          } catch (_) {}
+          processedFunscripts++;
+          return (file, null);
+        });
+      }).toList();
+
+      final Map<String, _FoundFunscriptFile> allFoundFunscripts = {};
+      await for (var (file, foundFunscript) in Stream.fromFutures(
+        funscriptFilesWithHashes,
+      )) {
+        if (foundFunscript == null) continue;
+        allFoundFunscripts[foundFunscript.funscriptHash] = foundFunscript;
+
+        final basename = p.basenameWithoutExtension(file.path);
+        final bestMatch = mediaTrie.findLongestPrefix(basename);
+
+        if (bestMatch != null) {
+          var group = groups[bestMatch];
+          if (group == null) continue;
+          group.funscripts.add(foundFunscript);
         }
-        processedMetadata++;
-        if (processedMetadata % 5 == 0 || processedMetadata == totalMetadata) {
-          updateStatus(
-            "Retrieving metadata ($processedMetadata/$totalMetadata)",
-            processedMetadata / totalMetadata,
-          );
-        }
+      }
+
+      // Only index media if it has at least one funscript,
+      // OR if it was already in the database (to allow tracking missing files).
+      final existingMediaHashes = params.allMediasMap.keys.toSet();
+      groups.removeWhere(
+        (key, value) =>
+            value.funscripts.isEmpty &&
+            !existingMediaHashes.contains(value.mediaHash),
+      );
+
+      updateStatus("Retrieving metadata...", 0.0);
+      int processedMetadata = 0;
+      final totalMetadata = groups.values.length;
+
+      final metadataFutures = groups.values.map((m) {
+        return pool.withResource(() async {
+          if (!params.mediaHashesWithMetadata.contains(m.mediaHash)) {
+            m.metadata = await MediaMetadataRetriever.runFFprobe(m.file.path);
+          }
+          processedMetadata++;
+          if (processedMetadata % 5 == 0 ||
+              processedMetadata == totalMetadata) {
+            updateStatus(
+              "Retrieving metadata ($processedMetadata/$totalMetadata)",
+              processedMetadata / totalMetadata,
+            );
+          }
+        });
       });
-    });
-    await Future.wait(metadataFutures);
+      await Future.wait(metadataFutures);
 
-    updateStatus("Finalizing...");
-    return _importGroups(params, groups, allFoundFunscripts);
+      updateStatus("Finalizing...");
+      return _importGroups(params, groups, allFoundFunscripts);
+    } finally {
+      store.close();
+    }
   }
 
   static Future<_IndexingResult> _importGroups(

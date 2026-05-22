@@ -1,6 +1,3 @@
-import 'dart:convert';
-
-import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:syncopathy/model/json/funscript_metadata.dart';
 
@@ -99,16 +96,4 @@ class FunscriptJson {
   factory FunscriptJson.fromJson(Map<String, dynamic> json) =>
       _$FunscriptJsonFromJson(json);
   Map<String, dynamic> toJson() => _$FunscriptJsonToJson(this);
-
-  // a hash based on the actions
-  // it changes when an action changes is added or removed
-  String computeFunscriptHash() {
-    final buffer = StringBuffer();
-    for (final action in actions) {
-      buffer.write('${action.at}${action.pos}');
-    }
-    final content = buffer.toString();
-    final bytes = utf8.encode(content);
-    return sha256.convert(bytes).toString();
-  }
 }
