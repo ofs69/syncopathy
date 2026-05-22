@@ -138,8 +138,8 @@ jobs:
           fi
 
           pod repo update
-          pod update ObjectBox
           pod install
+          pod update ObjectBox
           cd ..
           
           # Run actual build
