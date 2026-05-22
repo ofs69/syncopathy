@@ -123,7 +123,22 @@ jobs:
           echo '{ "HANDY_APPLICATION_ID": "${{ secrets.HANDY_APPLICATION_ID }}" }' > config.json
 
       - name: Build macOS release
-        run: flutter build macos --release --dart-define-from-file=config.json
+        run: |
+          # Run build once to generate Podfile and ephemeral files
+          flutter build macos --release --dart-define-from-file=config.json || true
+          
+          # Force deployment target in Podfile
+          if [ -f macos/Podfile ]; then
+            sed -i '' 's/platform :osx, .*/platform :osx, "11.0"/' macos/Podfile
+            cd macos
+            pod repo update
+            pod update ObjectBox
+            pod install
+            cd ..
+          fi
+          
+          # Run actual build
+          flutter build macos --release --dart-define-from-file=config.json
 
       - name: Zip Release
         run: zip -ry syncopathy-macos-${{ github.ref_name }}.zip build/macos/Build/Products/Release/syncopathy.app
