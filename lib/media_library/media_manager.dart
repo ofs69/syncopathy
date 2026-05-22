@@ -390,7 +390,7 @@ class MediaManager {
       Trie mediaTrie = Trie();
       Map<String, _FoundMediaFile> groups = {};
 
-      final pool = Pool(8);
+      final pool = Pool(4);
 
       updateStatus("Hashing media files...", 0.0);
       int processedMedia = 0;

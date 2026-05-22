@@ -115,7 +115,7 @@ class MigrationService {
       {
         int progressCounter = 0;
 
-        final pool = Pool(8);
+        final pool = Pool(4);
         final fileData = videos.map((video) {
           return pool.withResource(() async {
             final file = File(video.videoPath);

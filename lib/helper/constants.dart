@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncopathy/helper/extensions.dart';
 
-const int maxConcurrentProcess = 2;
+const int maxConcurrentProcess = 4;
 
 const double speedNormalizationValue = 0.4;
 Color get favoriteColor => Colors.amber.shade600;
