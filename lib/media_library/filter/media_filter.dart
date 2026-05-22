@@ -73,17 +73,29 @@ final Map<String, FilterBase Function()> availableFilters = {
       ];
     },
   ),
+  "Playable": () => BoolFilter(
+    label: "Playable",
+    icon: Icons.play_circle_outline,
+    retriever: (media) => [media.isPlayable],
+  ),
   "Missing Files": () => BoolFilter(
     label: "Missing Files",
     icon: Icons.file_open_outlined,
     retriever: (media) => [
-      media.fileNotFound || media.funscripts.any((fs) => fs.fileNotFound),
+      media.fileNotFound ||
+          media.mainFunscript.target == null ||
+          media.funscripts.any((fs) => fs.fileNotFound),
     ],
   ),
   "Script Tokens": () => BoolFilter(
     label: "Script Tokens",
     icon: Icons.generating_tokens,
     retriever: (media) => [media.mainFunscript.target?.isScriptToken ?? false],
+  ),
+  "Date Added": () => DateFilter(
+    label: "Date Added",
+    icon: Icons.calendar_today,
+    retriever: (media) => [media.firstIndexedOn],
   ),
 };
 

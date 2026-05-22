@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:objectbox/objectbox.dart';
+import 'package:syncopathy/objectbox.g.dart';
 import 'package:syncopathy/persistence/entities/funscript_file.dart';
 
 class FunscriptService {
@@ -8,6 +8,19 @@ class FunscriptService {
 
   int save(FunscriptFile mediaList) {
     return _box.put(mediaList);
+  }
+
+  void saveMany(List<FunscriptFile> funscripts) {
+    _box.putMany(funscripts);
+  }
+
+  FunscriptFile? getByHash(String hash) {
+    final query = _box.query(FunscriptFile_.funscriptHash.equals(hash)).build();
+    try {
+      return query.findFirst();
+    } finally {
+      query.close();
+    }
   }
 
   List<String> getAllAuthors() {

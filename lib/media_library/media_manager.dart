@@ -208,6 +208,8 @@ class MediaManager {
             funscript.averageMax = found.averageMax;
             funscript.isScriptToken = found.isScriptToken;
             funscript.metadata = found.metadata;
+
+            funscript.firstIndexedOn ??= DateTime.now();
           } else {
             funscript.fileNotFound = true;
           }
@@ -227,7 +229,7 @@ class MediaManager {
             fileNotFound: false,
             funscriptHash: newFound.funscriptHash,
             metadata: newFound.metadata,
-          );
+          )..firstIndexedOn ??= DateTime.now();
           funscriptBox.put(funscript); // Put to get ID
           funscriptMap[newFound.funscriptHash] = funscript;
         }
@@ -241,6 +243,8 @@ class MediaManager {
           if (found != null) {
             media.mediaPath = found.file.path;
             media.fileNotFound = false;
+            media.firstIndexedOn ??= DateTime.now();
+
             final basename = p.basenameWithoutExtension(found.file.path);
             if (!media.aliases.contains(basename)) {
               media.aliases.add(basename);
@@ -280,7 +284,7 @@ class MediaManager {
             fileNotFound: false,
             type: newFound.type,
             aliases: [p.basenameWithoutExtension(newFound.file.path)],
-          );
+          )..firstIndexedOn ??= DateTime.now();
           if (newFound.metadata != null) {
             media.metadata.target = MediaMetadata(
               duration: newFound.metadata!.duration,
@@ -438,11 +442,52 @@ class MediaManager {
               processedFunscripts++;
               return (file, null);
             }
-            final funscriptJsonText = await file.readAsString();
-            final funscript = FunscriptJson.fromJson(
-              jsonDecode(funscriptJsonText),
-            );
-            final actions = funscript.actions;
+
+            final existing = params.allFunscriptsMap[funscriptHash];
+            final basename = p.basenameWithoutExtension(file.path);
+            final bestMatch = mediaTrie.findLongestPrefix(basename);
+
+            if (existing == null && bestMatch == null) {
+              processedFunscripts++;
+              if (processedFunscripts % 10 == 0 ||
+                  processedFunscripts == totalFunscripts) {
+                updateStatus(
+                  "Hashing funscripts ($processedFunscripts/$totalFunscripts)",
+                  processedFunscripts / totalFunscripts,
+                );
+              }
+              return (file, null);
+            }
+
+            _FoundFunscriptFile found;
+
+            if (existing != null) {
+              found = _FoundFunscriptFile(
+                file: file,
+                funscriptHash: funscriptHash,
+                averageSpeed: existing.averageSpeed,
+                averageMin: existing.averageMin,
+                averageMax: existing.averageMax,
+                isScriptToken: existing.isScriptToken,
+                metadata: existing.metadata,
+              );
+            } else {
+              final funscriptJsonText = await file.readAsString();
+              final funscript = FunscriptJson.fromJson(
+                jsonDecode(funscriptJsonText),
+              );
+              final actions = funscript.actions;
+
+              found = _FoundFunscriptFile(
+                file: file,
+                funscriptHash: funscriptHash,
+                averageSpeed: FunscriptAlgorithms.averageSpeed(actions),
+                averageMin: FunscriptAlgorithms.averageMin(actions),
+                averageMax: FunscriptAlgorithms.averageMax(actions),
+                isScriptToken: Funscript.isScriptToken(actions),
+                metadata: funscript.metadata,
+              );
+            }
 
             processedFunscripts++;
             if (processedFunscripts % 10 == 0 ||
@@ -453,18 +498,7 @@ class MediaManager {
               );
             }
 
-            return (
-              file,
-              _FoundFunscriptFile(
-                file: file,
-                funscriptHash: funscriptHash,
-                averageSpeed: FunscriptAlgorithms.averageSpeed(actions),
-                averageMin: FunscriptAlgorithms.averageMin(actions),
-                averageMax: FunscriptAlgorithms.averageMax(actions),
-                isScriptToken: Funscript.isScriptToken(actions),
-                metadata: funscript.metadata,
-              ),
-            );
+            return (file, found);
           } catch (_) {}
           processedFunscripts++;
           return (file, null);

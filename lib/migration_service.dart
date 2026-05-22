@@ -4,7 +4,6 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:pool/pool.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/funscript_algo.dart';
@@ -80,32 +79,12 @@ class MigrationService {
   final Signal<bool> isMigrating = signal(false);
   final Signal<bool> hasMigrated = signal(false);
 
-  Future<void> renameThumbnail(
-    Directory supportDir,
-    String oldHash,
-    String newHash,
-  ) async {
-    final path = p.join(supportDir.path, "thumbnails_old", oldHash);
-    final newPath = p.join(supportDir.path, "thumbnails", newHash);
-    try {
-      await File(path).rename(newPath);
-    } catch (_) {}
-  }
-
   Future<void> migrate() async {
     isMigrating.value = true;
-    final supportDirectory = await getApplicationSupportDirectory();
 
     final videos = await SQLiteHelper().getAllVideos();
     final categories = await SQLiteHelper().getAllUserCategories();
     final keyValues = await SQLiteHelper().getAllKeyValues();
-
-    try {
-      await Directory(
-        p.join(supportDirectory.path, "thumbnails"),
-      ).rename(p.join(supportDirectory.path, "thumbnails_old"));
-      await Directory(p.join(supportDirectory.path, "thumbnails")).create();
-    } catch (_) {}
 
     // Video Id -> Media Hash & Metadata
     Map<int, String> mediaHashes = {};
@@ -195,7 +174,6 @@ class MigrationService {
           mediaHashes.putIfAbsent(video.id!, () => mediaHash);
           mediaMetadata.putIfAbsent(video.id!, () => metadata);
           funscriptDataMap.putIfAbsent(video.id!, () => fData);
-          await renameThumbnail(supportDirectory, video.videoHash, mediaHash);
 
           // Update progress bar
           progressCounter++;
@@ -294,7 +272,7 @@ class MigrationService {
             metadata: fData.metadata,
             fileNotFound: fData.fileNotFound,
             isScriptToken: fData.isScriptToken,
-          );
+          )..firstIndexedOn = video.dateFirstFound;
           funscriptsToPut.add(funscript);
         }
 
@@ -314,7 +292,7 @@ class MigrationService {
             type: MediaType.video,
             fileHash: mediaHash,
             fileNotFound: mediaHash == null,
-          );
+          )..firstIndexedOn = video.dateFirstFound;
           media.mainFunscript.target = funscript;
 
           final meta = params.mediaMetadata[video.id!];

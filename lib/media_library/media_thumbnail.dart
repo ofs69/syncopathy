@@ -51,7 +51,7 @@ class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
     super.initState();
     widget.controller._regenerateCallback = _generateThumbnail;
     widget.controller._setThumbnailCallback = _setThumbnail;
-    _generateThumbnail(0.01, false);
+    _generateThumbnail(0.03, false);
   }
 
   @override

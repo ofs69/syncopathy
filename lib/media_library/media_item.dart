@@ -247,8 +247,43 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
                         ],
                       ),
                     ),
-                  ),
-                if (mainFunscript?.isScriptToken ?? false)
+                  )
+                else if (mainFunscript == null)
+                  Container(
+                    color: Colors.black45,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.description_outlined,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withAlphaF(0.8),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              "NO SCRIPT",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else if (mainFunscript.isScriptToken)
                   Container(
                     color: Colors.black45,
                     child: Center(
@@ -478,7 +513,7 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
       PopupMenuItem(
         onTap: widget.onDelete,
         child: const Text(
-          'Delete Script & Video',
+          'Remove from Library',
           style: TextStyle(color: Colors.red),
         ),
       ),

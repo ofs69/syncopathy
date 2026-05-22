@@ -31,15 +31,27 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
   ThumbnailGenerator._internal() : super(maxConcurrent: maxConcurrentProcess);
   factory ThumbnailGenerator() => _instance;
 
+  Future<File?> _getThumbnailFile(String? fileHash) async {
+    if (fileHash == null || fileHash.length < 4) return null;
+    final appDataPath = await getApplicationSupportDirectory();
+    final thumbDir = Directory(p.join(appDataPath.path, 'thumbnails'));
+
+    // Sharding: use first 2 characters then next 2 characters
+    // abcdef... -> thumbnails/ab/cd/abcdef...
+    final shard1 = fileHash.substring(0, 2);
+    final shard2 = fileHash.substring(2, 4);
+    final shardedPath = p.join(thumbDir.path, shard1, shard2, fileHash);
+    return File(shardedPath);
+  }
+
   @override
   Future<Uint8List?> processRequest(ThumbnailRequest request) async {
     final fileHash = request.file.fileHash;
-    final appDataPath = await getApplicationSupportDirectory();
-    final thumbnailFile = File(
-      p.join(appDataPath.path, 'thumbnails', fileHash!),
-    );
+    final thumbnailFile = await _getThumbnailFile(fileHash);
 
-    if (!request.regenerate && await thumbnailFile.exists()) {
+    if (thumbnailFile != null &&
+        !request.regenerate &&
+        await thumbnailFile.exists()) {
       return await thumbnailFile.readAsBytes();
     }
 
@@ -74,13 +86,14 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
       var metadata = request.file.metadata.target;
       if (metadata == null) return null;
 
-      final appDataPath = await getApplicationSupportDirectory();
-      final thumbDir = Directory(p.join(appDataPath.path, 'thumbnails'));
-      await thumbDir.create(recursive: true);
-      final thumbnailFile = File(p.join(thumbDir.path, fileHash));
+      final thumbnailFile = await _getThumbnailFile(fileHash);
+      if (thumbnailFile == null) return null;
+
       if (!request.regenerate && await thumbnailFile.exists()) {
         return thumbnailFile;
       }
+
+      await thumbnailFile.parent.create(recursive: true);
 
       double? seekTimeSeconds;
       if (metadata.duration > 0) {
@@ -109,10 +122,10 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
 
       // Note: We are already inside a Pool resource from the base class,
       // so we just run the process directly.
-      ProcessResult result = await Process.run(
+      var result = await Process.run(
         'ffmpeg',
         ffmpegArgs,
-      ).timeout(const Duration(seconds: 10));
+      );
 
       if (result.exitCode != 0 && seekTimeSeconds != null) {
         // Retry logic: Remove -ss args (indices 2 and 3)

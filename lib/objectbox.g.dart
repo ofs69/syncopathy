@@ -27,7 +27,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(1, 7964640067007867812),
     name: 'FunscriptFile',
-    lastPropertyId: const obx_int.IdUid(9, 933975487797801512),
+    lastPropertyId: const obx_int.IdUid(10, 545516618309890199),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -84,6 +84,12 @@ final _entities = <obx_int.ModelEntity>[
         type: 1,
         flags: 0,
       ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 545516618309890199),
+        name: 'firstIndexedOn',
+        type: 10,
+        flags: 0,
+      ),
     ],
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[
@@ -126,7 +132,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(3, 4983243076224748221),
     name: 'MediaFile',
-    lastPropertyId: const obx_int.IdUid(12, 4547609838283988533),
+    lastPropertyId: const obx_int.IdUid(13, 8974836752561150809),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -206,6 +212,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(12, 4547609838283988533),
         name: 'thumbnailGenerationFailed',
         type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 8974836752561150809),
+        name: 'firstIndexedOn',
+        type: 10,
         flags: 0,
       ),
     ],
@@ -471,7 +483,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final funscriptHashOffset = object.funscriptHash == null
             ? null
             : fbb.writeString(object.funscriptHash!);
-        fbb.startTable(10);
+        fbb.startTable(11);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, pathOffset);
         fbb.addOffset(2, metadataDbOffset);
@@ -481,12 +493,18 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addFloat64(6, object.averageMax);
         fbb.addBool(7, object.isScriptToken);
         fbb.addBool(8, object.fileNotFound);
+        fbb.addInt64(9, object.firstIndexedOn?.millisecondsSinceEpoch);
         fbb.finish(fbb.endTable());
         return object.id;
       },
       objectFromFB: (obx.Store store, ByteData fbData) {
         final buffer = fb.BufferContext(fbData);
         final rootOffset = buffer.derefObject(0);
+        final firstIndexedOnValue = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          22,
+        );
         final pathParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 6, '');
@@ -536,7 +554,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
               ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
               ..metadataDb = const fb.StringReader(
                 asciiOptimization: true,
-              ).vTableGetNullable(buffer, rootOffset, 8);
+              ).vTableGetNullable(buffer, rootOffset, 8)
+              ..firstIndexedOn = firstIndexedOnValue == null
+                  ? null
+                  : DateTime.fromMillisecondsSinceEpoch(firstIndexedOnValue);
         obx_int.InternalToManyAccess.setRelInfo<FunscriptFile>(
           object.media,
           store,
@@ -600,7 +621,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final nameOffset = fbb.writeString(object.name);
         final dbAliasesOffset = fbb.writeString(object.dbAliases);
         final mediaPathOffset = fbb.writeString(object.mediaPath);
-        fbb.startTable(13);
+        fbb.startTable(14);
         fbb.addInt64(0, object.id);
         fbb.addInt64(1, object.dbType);
         fbb.addInt64(2, object.dbRating);
@@ -613,12 +634,18 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addInt64(9, object.metadata.targetId);
         fbb.addInt64(10, object.mainFunscript.targetId);
         fbb.addBool(11, object.thumbnailGenerationFailed);
+        fbb.addInt64(12, object.firstIndexedOn?.millisecondsSinceEpoch);
         fbb.finish(fbb.endTable());
         return object.id;
       },
       objectFromFB: (obx.Store store, ByteData fbData) {
         final buffer = fb.BufferContext(fbData);
         final rootOffset = buffer.derefObject(0);
+        final firstIndexedOnValue = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          28,
+        );
         final nameParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
@@ -668,7 +695,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
               )
               ..dbAliases = const fb.StringReader(
                 asciiOptimization: true,
-              ).vTableGet(buffer, rootOffset, 14, '');
+              ).vTableGet(buffer, rootOffset, 14, '')
+              ..firstIndexedOn = firstIndexedOnValue == null
+                  ? null
+                  : DateTime.fromMillisecondsSinceEpoch(firstIndexedOnValue);
         object.metadata.targetId = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
@@ -967,6 +997,11 @@ class FunscriptFile_ {
   static final fileNotFound = obx.QueryBooleanProperty<FunscriptFile>(
     _entities[0].properties[8],
   );
+
+  /// See [FunscriptFile.firstIndexedOn].
+  static final firstIndexedOn = obx.QueryDateProperty<FunscriptFile>(
+    _entities[0].properties[9],
+  );
 }
 
 /// [KeyValue] entity fields to define ObjectBox queries.
@@ -1047,6 +1082,11 @@ class MediaFile_ {
   /// See [MediaFile.thumbnailGenerationFailed].
   static final thumbnailGenerationFailed = obx.QueryBooleanProperty<MediaFile>(
     _entities[2].properties[11],
+  );
+
+  /// See [MediaFile.firstIndexedOn].
+  static final firstIndexedOn = obx.QueryDateProperty<MediaFile>(
+    _entities[2].properties[12],
   );
 
   /// see [MediaFile.funscripts]

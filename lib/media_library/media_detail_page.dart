@@ -1,13 +1,19 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/ioc.dart';
+import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/json/funscript_json.dart';
+import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/persistence/entities/user_category.dart';
@@ -27,7 +33,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
   late final TextEditingController _nameController;
   late final TextEditingController _aliasController;
   late final ListSignal<String> _tempAliases;
-  late final Signal<int> _mainFunscriptId;
+  late final Signal<FunscriptFile?> _mainFunscriptSignal;
   late final Signal<String> _nameSignal;
   late final Signal<MediaRating> _ratingSignal;
   late final Signal<MediaType> _typeSignal;
@@ -47,7 +53,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
 
     _aliasController = TextEditingController();
     _tempAliases = createListSignal(List.from(widget.media.aliases));
-    _mainFunscriptId = createSignal(widget.media.mainFunscript.targetId);
+    _mainFunscriptSignal = createSignal(widget.media.mainFunscript.target);
     _ratingSignal = createSignal(widget.media.rating ?? MediaRating.noRating);
     _typeSignal = createSignal(widget.media.type ?? MediaType.unknown);
     _pathSignal = createSignal(widget.media.mediaPath);
@@ -60,7 +66,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
       effect(() {
         _nameSignal.value;
         _tempAliases.value;
-        _mainFunscriptId.value;
+        _mainFunscriptSignal.value;
         _ratingSignal.value;
         _typeSignal.value;
         _pathSignal.value;
@@ -100,54 +106,187 @@ class _MediaDetailPageState extends State<MediaDetailPage>
     widget.media.rating = _ratingSignal.value;
     widget.media.type = _typeSignal.value;
     widget.media.mediaPath = _pathSignal.value;
+    widget.media.mainFunscript.target = _mainFunscriptSignal.value;
 
+    oBox.funscriptService.saveMany(_funscriptsSignal.value);
     oBox.mediaService.save(widget.media);
   }
 
-  Future<void> _relocatePath() async {
+  bool _isPathInConfiguredMediaPaths(String filePath) {
+    final settings = getIt.get<SettingsModel>();
+    final configuredPaths = settings.mediaPaths.value;
+
+    final canonFile = p.canonicalize(filePath);
+    for (final configuredPath in configuredPaths) {
+      if (p.isWithin(p.canonicalize(configuredPath), canonFile)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _showPathWarning(String filePath) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'The selected file is outside of your configured media paths:\n$filePath',
+          ),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+  }
+
+  Future<({String path, String hash})?> _pickAndHashFile() async {
     final result = await FilePicker.pickFiles(
       type: FileType.any,
       allowMultiple: false,
     );
 
     if (result != null && result.files.single.path != null) {
-      final newPath = result.files.single.path!;
-      final newHash = await fastFileHash(
-        File(newPath),
+      final path = result.files.single.path!;
+
+      if (!_isPathInConfiguredMediaPaths(path)) {
+        _showPathWarning(path);
+        return null;
+      }
+
+      final hash = await fastFileHash(
+        File(path),
         cacheService: oBox.fastHashCacheService,
       );
-      if (newHash != null) {
-        widget.media.fileHash = newHash;
-        widget.media.fileNotFound = false;
-        _pathSignal.value = newPath;
+      if (hash != null) {
+        return (path: path, hash: hash);
       }
+    }
+    return null;
+  }
+
+  Future<FunscriptFile?> _loadFunscriptData(String path, String hash) async {
+    try {
+      final file = File(path);
+      final jsonText = await file.readAsString();
+      final json = FunscriptJson.fromJson(jsonDecode(jsonText));
+      final actions = json.actions;
+
+      return FunscriptFile(
+        path: path,
+        averageSpeed: FunscriptAlgorithms.averageSpeed(actions),
+        averageMin: FunscriptAlgorithms.averageMin(actions),
+        averageMax: FunscriptAlgorithms.averageMax(actions),
+        isScriptToken: Funscript.isScriptToken(actions),
+        fileNotFound: false,
+        funscriptHash: hash,
+        metadata: json.metadata,
+      )..firstIndexedOn = DateTime.now();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading funscript: $e')));
+      }
+      return null;
+    }
+  }
+
+  Future<void> _relocatePath() async {
+    final picked = await _pickAndHashFile();
+    if (picked != null) {
+      final existing = oBox.mediaService.getByHash(picked.hash);
+      if (existing != null && existing.id != widget.media.id) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Error: A media file with this hash already exists in the library.',
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
+      widget.media.fileHash = picked.hash;
+      widget.media.fileNotFound = false;
+      _pathSignal.value = picked.path;
     }
   }
 
   Future<void> _addFunscript() async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.any,
-      allowMultiple: true,
-    );
+    final picked = await _pickAndHashFile();
+    if (picked == null) return;
 
-    if (result != null) {
-      for (final file in result.files) {
-        if (file.path == null) continue;
-        final hash = await fastFileHash(
-          File(file.path!),
-          cacheService: oBox.fastHashCacheService,
-        );
-        final newFs = FunscriptFile(
-          path: file.path!,
-          averageSpeed: 0,
-          averageMin: 0,
-          averageMax: 0,
-          isScriptToken: false,
-          fileNotFound: false,
-          funscriptHash: hash,
-        );
+    FunscriptFile? fs = oBox.funscriptService.getByHash(picked.hash);
+    if (fs == null) {
+      fs = await _loadFunscriptData(picked.path, picked.hash);
+      if (fs == null) return;
+      oBox.funscriptService.save(fs);
+    }
+
+    final fsToLink = fs;
+    if (!_funscriptsSignal.any((f) => f.id == fsToLink.id)) {
+      widget.media.funscripts.add(fsToLink);
+      _funscriptsSignal.add(fsToLink);
+    }
+  }
+
+  Future<void> _relocateFunscript(FunscriptFile oldFs) async {
+    final picked = await _pickAndHashFile();
+    if (picked == null) return;
+
+    FunscriptFile? newFs = oBox.funscriptService.getByHash(picked.hash);
+
+    if (newFs != null && newFs.id != oldFs.id) {
+      // Found a different existing funscript with this hash.
+      // Use it and update its path/status just in case.
+      newFs.path = picked.path;
+      newFs.fileNotFound = false;
+      oBox.funscriptService.save(newFs);
+
+      final isMain = _mainFunscriptSignal.value?.id == oldFs.id;
+
+      widget.media.funscripts.remove(oldFs);
+      if (!widget.media.funscripts.any((f) => f.id == newFs.id)) {
         widget.media.funscripts.add(newFs);
-        _funscriptsSignal.add(newFs);
+      }
+
+      if (isMain) {
+        _mainFunscriptSignal.value = newFs;
+        widget.media.mainFunscript.target = newFs;
+      }
+
+      _funscriptsSignal.value = List.from(widget.media.funscripts);
+    } else {
+      // Either newFs is null or it's the same funscript (by ID).
+      // Update the current instance (oldFs) to ensure UI correctly reflects changes.
+      final FunscriptFile source;
+      if (newFs == null) {
+        final loaded = await _loadFunscriptData(picked.path, picked.hash);
+        if (loaded == null) return;
+        source = loaded;
+      } else {
+        source = newFs;
+      }
+
+      oldFs.path = picked.path;
+      oldFs.funscriptHash = picked.hash;
+      oldFs.averageSpeed = source.averageSpeed;
+      oldFs.averageMin = source.averageMin;
+      oldFs.averageMax = source.averageMax;
+      oldFs.isScriptToken = source.isScriptToken;
+      oldFs.metadata = source.metadata;
+      oldFs.fileNotFound = false;
+
+      oBox.funscriptService.save(oldFs);
+      // Trigger UI update by assigning a new list
+      _funscriptsSignal.value = List.from(_funscriptsSignal.value);
+
+      // Force update of main funscript signal if this was the main one
+      if (_mainFunscriptSignal.value?.id == oldFs.id) {
+        _mainFunscriptSignal.value = null; // Reset to force trigger
+        _mainFunscriptSignal.value = oldFs;
       }
     }
   }
@@ -322,7 +461,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
                     const Divider(height: 40),
 
                     _buildSectionTitle('Technical Information'),
-                    _buildTechnicalInfo(),
+                    Watch((context) => _buildTechnicalInfo()),
                   ],
                 ),
               ),
@@ -353,6 +492,14 @@ class _MediaDetailPageState extends State<MediaDetailPage>
 
   Widget _buildTechnicalInfo() {
     final meta = widget.media.metadata.target;
+    final dateStr = widget.media.firstIndexedOn != null
+        ? widget.media.firstIndexedOn!
+              .toLocal()
+              .toString()
+              .split('.')
+              .first // Remove microseconds
+        : 'Unknown';
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -379,6 +526,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
               ),
             ),
             _buildInfoRow('File Hash', widget.media.fileHash ?? 'Unknown'),
+            _buildInfoRow('Date Added', dateStr),
             _buildInfoRow('Play Count', widget.media.playCount.toString()),
             if (meta != null) ...[
               const Divider(),
@@ -447,31 +595,71 @@ class _MediaDetailPageState extends State<MediaDetailPage>
       return Card(
         child: Column(
           children: allScripts.map((fs) {
-            final isMain = _mainFunscriptId.value == fs.id;
+            final isMain =
+                _mainFunscriptSignal.value?.id == fs.id && fs.id != 0;
             return ListTile(
               leading: Icon(
-                isMain ? Icons.star_rounded : Icons.description_outlined,
-                color: isMain ? Colors.amber : null,
+                fs.fileNotFound
+                    ? Icons.error_outline
+                    : (isMain
+                          ? Icons.star_rounded
+                          : Icons.description_outlined),
+                color: fs.fileNotFound
+                    ? Colors.red
+                    : (isMain ? Colors.amber : null),
               ),
-              title: Text(fs.fileName),
-              subtitle: Text(fs.path),
+              title: Text(
+                fs.fileName,
+                style: TextStyle(
+                  color: fs.fileNotFound ? Colors.red : null,
+                  decoration: fs.fileNotFound
+                      ? TextDecoration.lineThrough
+                      : null,
+                ),
+              ),
+              subtitle: Text(
+                fs.path,
+                style: TextStyle(
+                  color: fs.fileNotFound
+                      ? Colors.red.withValues(alpha: 0.7)
+                      : null,
+                ),
+              ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (fs.fileNotFound)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8.0),
+                      child: Tooltip(
+                        message: 'File not found',
+                        child: Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.orange,
+                          size: 20,
+                        ),
+                      ),
+                    ),
                   if (isMain)
                     const Badge(label: Text('MAIN'))
                   else
                     TextButton(
                       onPressed: () {
-                        widget.media.mainFunscript.target = fs;
-                        _mainFunscriptId.value = fs.id;
+                        _mainFunscriptSignal.value = fs;
                       },
                       child: const Text('Set Main'),
                     ),
                   IconButton(
                     icon: const Icon(Icons.open_in_new),
-                    onPressed: () => PlatformUtils.openFileExplorer(fs.path),
+                    onPressed: fs.fileNotFound
+                        ? null
+                        : () => PlatformUtils.openFileExplorer(fs.path),
                     tooltip: 'Open in explorer',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.folder_open),
+                    onPressed: () => _relocateFunscript(fs),
+                    tooltip: 'Relocate',
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
@@ -479,8 +667,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
                       widget.media.funscripts.remove(fs);
                       _funscriptsSignal.remove(fs);
                       if (isMain) {
-                        widget.media.mainFunscript.target = null;
-                        _mainFunscriptId.value = 0;
+                        _mainFunscriptSignal.value = null;
                       }
                     },
                   ),

@@ -74,7 +74,7 @@ const _$SortOptionEnumMap = {
   SortOption.speed: 'speed',
   SortOption.depth: 'depth',
   SortOption.duration: 'duration',
-  SortOption.lastModified: 'lastModified',
+  SortOption.dateAdded: 'dateAdded',
   SortOption.playCount: 'playCount',
   SortOption.random: 'random',
 };

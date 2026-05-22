@@ -522,9 +522,9 @@ class _MediaLibraryState extends State<MediaLibrary>
                                 }
                               } else {
                                 // play media
-                                if (media.fileNotFound) {
+                                if (!media.isPlayable) {
                                   Logger.error(
-                                    'File not found: ${media.mediaPath}',
+                                    'Media is not playable: ${media.mediaPath}',
                                   );
                                   return;
                                 }
@@ -640,7 +640,7 @@ class _MediaLibraryState extends State<MediaLibrary>
                 ),
                 const VerticalDivider(),
                 Tooltip(
-                  message: 'Delete',
+                  message: 'Remove from Library',
                   child: IconButton(
                     icon: Icon(Icons.delete_forever, color: colorScheme.error),
                     onPressed: _bulkDeleteMedia,
@@ -728,28 +728,57 @@ class _MediaLibraryState extends State<MediaLibrary>
   }
 
   Future<void> _deleteMedia(MediaFile media) async {
-    final confirmed = await showDialog<bool>(
+    final result = await showDialog<(bool, bool)?>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Media?'),
-        content: Text(
-          'Are you sure you want to delete ${media.name} and its associated scripts?\n\nThis will permanently remove the files from your disk.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+      builder: (context) {
+        bool deleteFromDisk = false;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Remove Media?'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Are you sure you want to remove ${media.name} from your library?',
+                  ),
+                  const SizedBox(height: 16),
+                  CheckboxListTile(
+                    title: const Text('Delete files from disk'),
+                    value: deleteFromDisk,
+                    onChanged: (value) =>
+                        setState(() => deleteFromDisk = value ?? false),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, null),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () =>
+                      Navigator.pop(context, (true, deleteFromDisk)),
+                  child: const Text(
+                    'Remove',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
 
-    if (confirmed == true) {
-      await _deleteMediaFiles(media);
+    if (result != null && result.$1) {
+      if (result.$2) {
+        await _deleteMediaFiles(media);
+      }
       // Delete from database
       oBox.mediaService.remove(media.id);
     }
@@ -757,30 +786,59 @@ class _MediaLibraryState extends State<MediaLibrary>
 
   Future<void> _bulkDeleteMedia() async {
     final count = selectedVideos.length;
-    final confirmed = await showDialog<bool>(
+    final result = await showDialog<(bool, bool)?>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Delete $count Items?'),
-        content: Text(
-          'Are you sure you want to delete $count selected items and their associated scripts?\n\nThis will permanently remove the files from your disk.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+      builder: (context) {
+        bool deleteFromDisk = false;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Remove $count Items?'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Are you sure you want to remove $count selected items from your library?',
+                  ),
+                  const SizedBox(height: 16),
+                  CheckboxListTile(
+                    title: const Text('Delete files from disk'),
+                    value: deleteFromDisk,
+                    onChanged: (value) =>
+                        setState(() => deleteFromDisk = value ?? false),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, null),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () =>
+                      Navigator.pop(context, (true, deleteFromDisk)),
+                  child: const Text(
+                    'Remove',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
 
-    if (confirmed == true) {
+    if (result != null && result.$1) {
       final videosToRemove = selectedVideos.value.toList();
       for (final video in videosToRemove) {
-        await _deleteMediaFiles(video);
+        if (result.$2) {
+          await _deleteMediaFiles(video);
+        }
         oBox.mediaService.remove(video.id);
       }
       selectedVideos.clear();
@@ -878,12 +936,7 @@ class _MediaLibraryState extends State<MediaLibrary>
 
   void _startPlaylist() {
     final playlistVideos = filteredMedia
-        .where(
-          (video) =>
-              !video.isDislike &&
-              !video.fileNotFound &&
-              !(video.mainFunscript.target?.isScriptToken ?? false),
-        )
+        .where((video) => !video.isDislike && video.isPlayable)
         .toList();
     if (playlistVideos.isEmpty) {
       if (!mounted) return;
@@ -903,10 +956,7 @@ class _MediaLibraryState extends State<MediaLibrary>
           ) &&
           !v.isFavorite &&
           !v.isDislike;
-      return !v.isDislike &&
-          !v.fileNotFound &&
-          !shouldHideUnrated &&
-          !(v.mainFunscript.target?.isScriptToken ?? false);
+      return !v.isDislike && !shouldHideUnrated && v.isPlayable;
     }).toList();
 
     if (availableVideos.isEmpty) {

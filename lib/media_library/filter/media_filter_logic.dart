@@ -6,7 +6,7 @@ enum SortOption {
   speed('Speed'),
   depth('Depth'),
   duration('Duration'),
-  lastModified('Modified'),
+  dateAdded('Date Added'),
   playCount('Play Count'),
   random('Random');
 
@@ -106,8 +106,8 @@ class MediaFilterLogic {
         return m.metadata.target?.duration ?? 0.0;
       case SortOption.playCount:
         return m.playCount;
-      case SortOption.lastModified:
-        return m.metadata.target?.creationTime?.millisecondsSinceEpoch ?? 0;
+      case SortOption.dateAdded:
+        return m.firstIndexedOn?.millisecondsSinceEpoch ?? 0;
       case SortOption.speed:
         return m.mainFunscript.target?.averageSpeed ?? 0.0;
       case SortOption.depth:

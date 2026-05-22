@@ -79,6 +79,9 @@ class MediaFile {
   bool fileNotFound;
   bool thumbnailGenerationFailed;
 
+  @Property(type: PropertyType.date)
+  DateTime? firstIndexedOn;
+
   final metadata = ToOne<MediaMetadata>();
 
   final mainFunscript = ToOne<FunscriptFile>();
@@ -101,4 +104,12 @@ class MediaFile {
 
   bool get isFavorite => rating == MediaRating.like;
   bool get isDislike => rating == MediaRating.dislike;
+
+  bool get isPlayable {
+    final main = mainFunscript.target;
+    return !fileNotFound &&
+        main != null &&
+        !main.fileNotFound &&
+        !main.isScriptToken;
+  }
 }

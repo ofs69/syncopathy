@@ -28,6 +28,9 @@ class FunscriptFile {
   bool isScriptToken;
   bool fileNotFound;
 
+  @Property(type: PropertyType.date)
+  DateTime? firstIndexedOn;
+
   @Backlink('funscripts')
   final media = ToMany<MediaFile>();
 

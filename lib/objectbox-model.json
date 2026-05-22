@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:7964640067007867812",
-      "lastPropertyId": "9:933975487797801512",
+      "lastPropertyId": "10:545516618309890199",
       "name": "FunscriptFile",
       "properties": [
         {
@@ -53,6 +53,11 @@
           "id": "9:933975487797801512",
           "name": "fileNotFound",
           "type": 1
+        },
+        {
+          "id": "10:545516618309890199",
+          "name": "firstIndexedOn",
+          "type": 10
         }
       ],
       "relations": []
@@ -85,7 +90,7 @@
     },
     {
       "id": "3:4983243076224748221",
-      "lastPropertyId": "12:4547609838283988533",
+      "lastPropertyId": "13:8974836752561150809",
       "name": "MediaFile",
       "properties": [
         {
@@ -156,6 +161,11 @@
           "id": "12:4547609838283988533",
           "name": "thumbnailGenerationFailed",
           "type": 1
+        },
+        {
+          "id": "13:8974836752561150809",
+          "name": "firstIndexedOn",
+          "type": 10
         }
       ],
       "relations": [

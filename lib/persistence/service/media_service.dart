@@ -23,6 +23,15 @@ class MediaService {
     return _box.put(media);
   }
 
+  MediaFile? getByHash(String hash) {
+    final query = _box.query(MediaFile_.fileHash.equals(hash)).build();
+    try {
+      return query.findFirst();
+    } finally {
+      query.close();
+    }
+  }
+
   void resetAllVideosPlayCount() {
     final allMedia = _box.getAll();
     for (var media in allMedia) {
