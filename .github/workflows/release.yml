@@ -124,9 +124,13 @@ jobs:
 
       - name: Build macOS release
         run: |
-          # Run build once to generate Podfile and ephemeral files
-          flutter build macos --release --dart-define-from-file=config.json || true
-          
+          cd macos
+          pod init
+          pod repo update
+          pod update ObjectBox
+          pod install
+          cd ..
+
           # Force deployment target in Podfile
           if [ -f macos/Podfile ]; then
             if ! grep -q "platform :osx" macos/Podfile; then
@@ -134,12 +138,8 @@ jobs:
             else
               sed -i '' 's/^#* *platform :osx, .*/platform :osx, "11.0"/' macos/Podfile
             fi
-            cd macos
-            pod repo update
-            pod update ObjectBox
-            pod install
-            cd ..
           fi
+
           
           # Run actual build
           flutter build macos --release --dart-define-from-file=config.json
