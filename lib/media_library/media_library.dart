@@ -410,12 +410,14 @@ class _MediaLibraryState extends State<MediaLibrary>
                           Text(
                             mediaManager.indexingStatus.watch(context) ??
                                 "Indexing...",
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(fontFamily: 'monospace'),
                           )
                         else
                           Text(
                             '${mediaFiles.length} / $allMediaFilesCount videos',
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(fontFamily: 'monospace'),
                           ),
                       ],
                     ),
