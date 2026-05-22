@@ -129,7 +129,11 @@ jobs:
           
           # Force deployment target in Podfile
           if [ -f macos/Podfile ]; then
-            sed -i '' 's/platform :osx, .*/platform :osx, "11.0"/' macos/Podfile
+            if ! grep -q "platform :osx" macos/Podfile; then
+              echo "platform :osx, '11.0'" | cat - macos/Podfile > temp && mv temp macos/Podfile
+            else
+              sed -i '' 's/^#* *platform :osx, .*/platform :osx, "11.0"/' macos/Podfile
+            fi
             cd macos
             pod repo update
             pod update ObjectBox
