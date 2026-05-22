@@ -125,21 +125,22 @@ jobs:
       - name: Build macOS release
         run: |
           cd macos
-          pod init
+          # Podfile is usually created by flutter pub get if plugins are present
+          if [ ! -f Podfile ]; then
+            pod init
+          fi
+
+          # Force deployment target in Podfile
+          if ! grep -q "platform :osx" Podfile; then
+            echo "platform :osx, '11.0'" | cat - Podfile > temp && mv temp Podfile
+          else
+            sed -i '' 's/^#* *platform :osx, .*/platform :osx, "11.0"/' Podfile
+          fi
+
           pod repo update
           pod update ObjectBox
           pod install
           cd ..
-
-          # Force deployment target in Podfile
-          if [ -f macos/Podfile ]; then
-            if ! grep -q "platform :osx" macos/Podfile; then
-              echo "platform :osx, '11.0'" | cat - macos/Podfile > temp && mv temp macos/Podfile
-            else
-              sed -i '' 's/^#* *platform :osx, .*/platform :osx, "11.0"/' macos/Podfile
-            fi
-          fi
-
           
           # Run actual build
           flutter build macos --release --dart-define-from-file=config.json
