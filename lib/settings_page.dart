@@ -16,6 +16,7 @@ import 'package:syncopathy/media_library/thumbnail_generator.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
+import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/update_checker.dart';
 
@@ -96,12 +97,6 @@ class _SettingsPageState extends State<SettingsPage> {
         title: 'App',
         children: [_buildUpdateChecker(context)],
       ),
-      if (kDebugMode)
-        (context) => _buildSettingsCard(
-          context,
-          title: 'Debug',
-          children: [_buildDebugSettings(context)],
-        ),
     ];
   }
 
@@ -237,10 +232,24 @@ class _SettingsPageState extends State<SettingsPage> {
               final directory = await getApplicationSupportDirectory();
               PlatformUtils.openFileExplorer(directory.path);
             } catch (e) {
-              Logger.error('Error opening app data directory: $e');
+              final message = 'Error opening app data directory: $e';
+              Logger.error(message);
+              AlertManager.showError(message);
             }
           },
         ),
+        if (Logger.logFilePath != null)
+          ListTile(
+            title: const Text('Open Log File'),
+            subtitle: const Text('Opens the current log file.'),
+            trailing: const Icon(Icons.description_outlined),
+            onTap: () async {
+              final path = Logger.logFilePath;
+              if (path != null) {
+                PlatformUtils.openFileExplorer(path);
+              }
+            },
+          ),
         if (withMedia)
           ListTile(
             title: const Text('Generate Missing Thumbnails'),
@@ -311,27 +320,6 @@ class _SettingsPageState extends State<SettingsPage> {
               }
             },
           ),
-      ],
-    );
-  }
-
-  Widget _buildDebugSettings(BuildContext context) {
-    final settings = context.read<SettingsModel>();
-    return Column(
-      children: [
-        Watch(
-          (context) => SwitchListTile(
-            title: const Text('Toggle debug notifications'),
-            subtitle: const Text(
-              'Shows extra notifications with debug information.',
-            ),
-            value: settings.showDebugNotifications.value,
-            onChanged: (value) {
-              settings.showDebugNotifications.value = value;
-            },
-            secondary: const Icon(Icons.bug_report),
-          ),
-        ),
       ],
     );
   }

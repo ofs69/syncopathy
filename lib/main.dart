@@ -1,11 +1,13 @@
 import 'package:args/args.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/global_shortcuts.dart';
 import 'package:syncopathy/ioc.dart';
+import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 
 import 'package:syncopathy/model/battery_model.dart';
@@ -27,6 +29,9 @@ Future<Widget> _initializeAppAndRun({
 }) async {
   syncopathySimpleMode = simple;
   await PlatformInit.initPlatform(simple);
+
+  Logger.info('--- Application Started ---');
+
   KVStore.initKeyValueStore(simple);
 
   SettingsModel settings = SettingsModel();
@@ -75,6 +80,17 @@ Future<Widget> _initializeAppAndRun({
 void main(List<String> args) async {
   // comment this out if you want to use the signals devtools
   SignalsObserver.instance = null;
+
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    Logger.error(details.exceptionAsString(), details.exception, details.stack);
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    Logger.error('Uncaught platform error', error, stack);
+    return true;
+  };
+
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
 

@@ -17,6 +17,7 @@ import 'package:syncopathy/media_library/media_item.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/media_library/search_bar.dart';
 import 'package:syncopathy/media_library/wheel_of_fortune.dart';
+import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/video_player.dart';
@@ -730,6 +731,7 @@ class _MediaLibraryState extends State<MediaLibrary>
       }
     } catch (e) {
       Logger.error("Failed to delete physical files: $e");
+      AlertManager.showError("Failed to delete physical files: $e");
     }
   }
 

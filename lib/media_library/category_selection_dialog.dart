@@ -271,7 +271,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog>
                           if (confirm == true) {
                             oBox.userCategoryService.deleteCategory(item.id);
                             if (!context.mounted) return;
-                            NotificationFeedManager.showSuccessNotification(
+                            AlertManager.showSuccessAlert(
                               context,
                               'Category "${item.name}" deleted',
                             );

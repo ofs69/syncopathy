@@ -1,372 +1,222 @@
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/model/settings_model.dart';
-import 'package:uuid/uuid.dart';
-
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:uuid/uuid.dart';
 
-class NotificationMessage {
+class AlertMessage {
   final String id;
   final String message;
   final LogLevel level;
   final StackTrace stackTrace;
-  Timer? timer;
-  final Signal<double> progressNotifier = signal(1.0);
-  int remainingSeconds;
-  DateTime? startTime;
+  final DateTime timestamp;
+  bool isRead;
 
-  final int totalDurationSeconds;
-
-  NotificationMessage({
+  AlertMessage({
     required this.message,
     required this.level,
     required this.stackTrace,
-    this.timer,
-    int initialSeconds = 5,
   }) : id = const Uuid().v4(),
-       remainingSeconds = initialSeconds,
-       totalDurationSeconds = initialSeconds;
+       timestamp = DateTime.now(),
+       isRead = false;
 }
 
-class NotificationFeedManager extends ChangeNotifier {
-  final List<NotificationMessage> _notifications = [];
-  final GlobalKey<AnimatedListState> listKey = GlobalKey<AnimatedListState>();
+class AlertManager extends ChangeNotifier {
+  static const int _maxAlerts = 50;
+  final List<AlertMessage> _alerts = [];
+  final Signal<int> unreadCount = signal(0);
 
-  List<NotificationMessage> get notifications => _notifications;
+  List<AlertMessage> get alerts => _alerts;
 
-  void addNotification(String message, LogLevel level, StackTrace trace) {
-    // Ensure only one notification without a removal timer is active.
-    // If there's an existing notification whose timer was paused (e.g., by hovering),
-    // restart its timer so it eventually gets removed.
-    for (final existingNotification in _notifications) {
-      if (existingNotification.timer == null) {
-        _startRemovalTimer(existingNotification);
-      }
-    }
-
-    final notification = NotificationMessage(
+  void addAlert(String message, LogLevel level, [StackTrace? trace]) {
+    final alert = AlertMessage(
       message: message,
       level: level,
-      stackTrace: trace,
-      initialSeconds: 5,
+      stackTrace: trace ?? StackTrace.empty,
     );
-    notification.startTime =
-        DateTime.now(); // Set start time for new notification
-    _notifications.insert(0, notification);
-    listKey.currentState?.insertItem(
-      0,
-      duration: const Duration(milliseconds: 300),
-    );
-    _startRemovalTimer(notification);
+
+    if (_alerts.length >= _maxAlerts) {
+      _alerts.removeLast();
+    }
+
+    _alerts.insert(0, alert);
+    _updateUnreadCount();
     notifyListeners();
   }
 
-  void _startRemovalTimer(NotificationMessage notification) {
-    notification.timer?.cancel();
-    final int totalDurationSeconds = notification.totalDurationSeconds;
-
-    // Calculate the effective start time based on remaining seconds
-    notification.startTime = DateTime.now().subtract(
-      Duration(
-        milliseconds:
-            ((totalDurationSeconds - notification.remainingSeconds) * 1000)
-                .round(),
-      ),
-    );
-
-    notification.timer = Timer.periodic(const Duration(milliseconds: 16), (t) {
-      // Update every ~16ms for 60fps
-      final double elapsedSeconds =
-          DateTime.now().difference(notification.startTime!).inMilliseconds /
-          1000.0;
-      final double remaining = totalDurationSeconds - elapsedSeconds;
-
-      if (remaining > 0) {
-        notification.progressNotifier.value = remaining / totalDurationSeconds;
-        notification.remainingSeconds = remaining
-            .ceil(); // Update remaining seconds for pause/resume
-      } else {
-        t.cancel();
-        removeNotificationById(notification.id);
-      }
-    });
-  }
-
-  void removeNotificationById(String id) {
-    final index = _notifications.indexWhere((n) => n.id == id);
-    if (index != -1) {
-      final removedItem = _notifications.removeAt(index);
-      removedItem.timer?.cancel();
-      removedItem.timer = null; // Ensure timer is nullified on removal
-      listKey.currentState?.removeItem(
-        index,
-        (context, animation) => _buildRemovedItem(removedItem, animation),
-        duration: const Duration(milliseconds: 300),
-      );
+  void markAsRead(String id) {
+    final index = _alerts.indexWhere((a) => a.id == id);
+    if (index != -1 && !_alerts[index].isRead) {
+      _alerts[index].isRead = true;
+      _updateUnreadCount();
       notifyListeners();
     }
   }
 
-  Widget _buildRemovedItem(
-    NotificationMessage notification,
-    Animation<double> animation,
-  ) {
-    return SlideTransition(
-      position: Tween<Offset>(
-        begin: const Offset(1, 0),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeIn)),
-      child: NotificationCard(notification: notification),
-    );
+  void removeAlert(String id) {
+    _alerts.removeWhere((a) => a.id == id);
+    _updateUnreadCount();
+    notifyListeners();
   }
 
-  void pauseRemovalTimer(String id) {
-    final index = _notifications.indexWhere((n) => n.id == id);
-    if (index != -1) {
-      final notification = _notifications[index];
-      notification.timer?.cancel();
-      notification.timer = null; // Explicitly set to null
+  void clearAll() {
+    _alerts.clear();
+    _updateUnreadCount();
+    notifyListeners();
+  }
+
+  void _updateUnreadCount() {
+    unreadCount.value = _alerts.where((a) => !a.isRead).length;
+  }
+
+  static void showSuccess(String message) {
+    try {
+      final manager = getIt<AlertManager>();
+      manager.addAlert(message, LogLevel.info);
+    } catch (e) {
+      debugPrint('AlertManager not yet registered: $e');
     }
   }
 
-  void resumeRemovalTimer(String id) {
-    final index = _notifications.indexWhere((n) => n.id == id);
-    if (index != -1) {
-      final notification = _notifications[index];
-      _startRemovalTimer(notification);
+  static void showError(String message, [StackTrace? trace]) {
+    try {
+      final manager = getIt<AlertManager>();
+      manager.addAlert(message, LogLevel.error, trace);
+    } catch (e) {
+      debugPrint('AlertManager not yet registered: $e');
     }
   }
 
-  static void showSuccessNotification(BuildContext context, String message) {
-    Provider.of<NotificationFeedManager>(
+  static void showSuccessAlert(BuildContext context, String message) {
+    Provider.of<AlertManager>(
       context,
       listen: false,
-    ).addNotification(message, LogLevel.info, StackTrace.current);
+    ).addAlert(message, LogLevel.info);
   }
 
-  static void showErrorNotification(BuildContext context, String message) {
-    Provider.of<NotificationFeedManager>(
+  static void showErrorAlert(
+    BuildContext context,
+    String message, [
+    StackTrace? trace,
+  ]) {
+    Provider.of<AlertManager>(
       context,
       listen: false,
-    ).addNotification(message, LogLevel.error, StackTrace.current);
+    ).addAlert(message, LogLevel.error, trace);
   }
 }
 
-class NotificationFeed extends StatelessWidget {
-  const NotificationFeed({super.key});
+class AlertPanel extends StatelessWidget {
+  const AlertPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<NotificationFeedManager>(
+    return Consumer<AlertManager>(
       builder: (context, manager, child) {
-        return Align(
-          alignment: Alignment.topRight,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: 400,
-              child: AnimatedList(
-                key: manager.listKey,
-                initialItemCount: manager.notifications.length,
-                shrinkWrap: true,
-                reverse: true,
-                itemBuilder: (context, index, animation) {
-                  final notification = manager.notifications[index];
-                  return _buildAddedItem(notification, animation);
-                },
+        return Drawer(
+          width: 400,
+          child: Column(
+            children: [
+              AppBar(
+                title: const Text('Alerts'),
+                automaticallyImplyLeading: false,
+                actions: [
+                  if (manager.alerts.isNotEmpty)
+                    TextButton(
+                      onPressed: manager.clearAll,
+                      child: const Text('Clear All'),
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
               ),
-            ),
+              Expanded(
+                child: manager.alerts.isEmpty
+                    ? const Center(child: Text('No alerts'))
+                    : ListView.builder(
+                        itemCount: manager.alerts.length,
+                        itemBuilder: (context, index) {
+                          final alert = manager.alerts[index];
+                          return AlertItem(alert: alert);
+                        },
+                      ),
+              ),
+            ],
           ),
         );
       },
     );
   }
-
-  Widget _buildAddedItem(
-    NotificationMessage notification,
-    Animation<double> animation,
-  ) {
-    return SlideTransition(
-      position: Tween<Offset>(
-        begin: const Offset(1, 0),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
-      child: NotificationCard(notification: notification),
-    );
-  }
 }
 
-class NotificationCard extends StatefulWidget {
-  final NotificationMessage notification;
+class AlertItem extends StatefulWidget {
+  final AlertMessage alert;
 
-  const NotificationCard({super.key, required this.notification});
+  const AlertItem({super.key, required this.alert});
 
   @override
-  State<NotificationCard> createState() => _NotificationCardState();
+  State<AlertItem> createState() => _AlertItemState();
 }
 
-class _NotificationCardState extends State<NotificationCard> {
-  bool _isHovering = false;
+class _AlertItemState extends State<AlertItem> {
   bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
-    final manager = Provider.of<NotificationFeedManager>(
-      context,
-      listen: false,
-    );
-    final color = switch (widget.notification.level) {
+    final manager = Provider.of<AlertManager>(context, listen: false);
+    final color = switch (widget.alert.level) {
       LogLevel.warning => Colors.orange,
       LogLevel.error => Colors.red,
-      _ => Colors.grey,
+      LogLevel.info => Colors.blue,
+      LogLevel.debug => Colors.grey,
     };
 
-    return MouseRegion(
-      onEnter: (_) {
-        setState(() {
-          _isHovering = true;
-        });
-        manager.pauseRemovalTimer(widget.notification.id);
-      },
-      onExit: (_) {
-        setState(() {
-          _isHovering = false;
-        });
-        manager.resumeRemovalTimer(widget.notification.id);
-      },
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _isExpanded = !_isExpanded;
-          });
-        },
-        child: Stack(
-          children: [
-            Card(
-              color: (_isHovering
-                  ? const Color.fromRGBO(30, 30, 30, 0.9)
-                  : const Color.fromRGBO(0, 0, 0, 0.7)),
-              margin: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(width: 5, height: 50, color: color),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          child: Text(
-                            widget.notification.message,
-                            style: const TextStyle(color: Colors.white),
-                            maxLines: _isExpanded ? null : 4,
-                            overflow: _isExpanded
-                                ? null
-                                : TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: () {
-                          manager.removeNotificationById(
-                            widget.notification.id,
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-                  ),
-                  if (_isExpanded)
-                    Row(
-                      children: [
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16.0),
-                            child: Text(
-                              widget.notification.stackTrace.toString(),
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                      ],
-                    ),
-                ],
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      color: widget.alert.isRead ? null : Colors.blueGrey.withAlpha(50),
+      child: Column(
+        children: [
+          ListTile(
+            leading: Icon(
+              widget.alert.level == LogLevel.error
+                  ? Icons.error_outline
+                  : Icons.info_outline,
+              color: color,
+            ),
+            title: Text(
+              widget.alert.message,
+              maxLines: _isExpanded ? null : 2,
+              overflow: _isExpanded ? null : TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              '${widget.alert.timestamp.hour.toString().padLeft(2, '0')}:${widget.alert.timestamp.minute.toString().padLeft(2, '0')}',
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete_outline, size: 20),
+              onPressed: () => manager.removeAlert(widget.alert.id),
+            ),
+            onTap: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+              if (!widget.alert.isRead) {
+                manager.markAsRead(widget.alert.id);
+              }
+            },
+          ),
+          if (_isExpanded && widget.alert.stackTrace.toString().isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SelectableText(
+                widget.alert.stackTrace.toString(),
+                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
               ),
             ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Watch.builder(
-                builder: (context) {
-                  final progress = widget.notification.progressNotifier.value;
-                  return LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: Colors.transparent,
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
-  }
-}
-
-class LogNotificationObserver extends StatefulWidget {
-  final Widget child;
-
-  const LogNotificationObserver({super.key, required this.child});
-
-  @override
-  State<LogNotificationObserver> createState() =>
-      _LogNotificationObserverState();
-}
-
-class _LogNotificationObserverState extends State<LogNotificationObserver> {
-  StreamSubscription? _logSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    _startLogSubscription();
-  }
-
-  void _startLogSubscription() {
-    _logSubscription?.cancel(); // Cancel any existing subscription
-    final notificationFeedManager = context.read<NotificationFeedManager>();
-    final showDebugNotifications = context
-        .read<SettingsModel>()
-        .showDebugNotifications;
-    _logSubscription = logStream.listen((entry) {
-      if (entry.level == LogLevel.warning ||
-          entry.level == LogLevel.error ||
-          showDebugNotifications.value) {
-        notificationFeedManager.addNotification(
-          entry.message,
-          entry.level,
-          entry.stackTrace,
-        );
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _logSubscription?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
   }
 }

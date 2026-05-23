@@ -9,6 +9,7 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/json/buttplug_backend_settings.dart';
+import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 import 'package:syncopathy/player/player_backend.dart';
 
@@ -168,11 +169,13 @@ class ButtplugBaseBackend extends PlayerBackend implements ICommandBackendBase {
         _device = strokerDevice;
         _connected.value = true;
       } else {
+        AlertManager.showError("No compatible Buttplug device found.");
         await _client!.disconnect();
       }
       await _client!.stopScanning();
     } catch (e) {
       Logger.error("Connection error: $e");
+      AlertManager.showError("Buttplug connection error: $e");
       _connected.value = false;
       _client = null;
       _connector = null;

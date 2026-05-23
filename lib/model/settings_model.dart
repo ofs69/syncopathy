@@ -33,7 +33,6 @@ class SettingsModel {
 
   // Not persisted in the database
   final Signal<int?> catmullRomSplineSmoothInterval = signal(null);
-  final Signal<bool> showDebugNotifications = signal(kDebugMode);
   final Signal<Duration> funscriptGraphViewDuration = signal(
     Duration(seconds: 5),
   );

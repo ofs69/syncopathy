@@ -2,19 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:syncopathy/ioc.dart';
+import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/persistence/objectbox.dart';
 import 'package:syncopathy/sqlite/sqlite_helper.dart';
 import 'package:window_manager/window_manager.dart';
 
 class PlatformInit {
   static Future<void> initPlatform(bool simpleMode) async {
+    final appSupportDir = await getApplicationSupportDirectory();
+    Logger.addSink(RollingFileSink(directory: appSupportDir));
+
     if (!simpleMode) {
       // Initialize FFI for SQLite on desktop
       if (isDesktop()) {
         sqfliteFfiInit();
         databaseFactory = databaseFactoryFfi;
       }
-      final appSupportDir = await getApplicationSupportDirectory();
       oBox = await ObjectBox.create(appSupportDir.path);
       await SQLiteHelper().initDb(directory: appSupportDir.path);
     }

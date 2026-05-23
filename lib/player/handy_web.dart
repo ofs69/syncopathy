@@ -14,6 +14,7 @@ import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/model/json/handyV3/handy_event.dart';
 import 'package:syncopathy/model/json/handyV3/handy_request.dart';
 import 'package:syncopathy/model/json/handyV3/handy_response.dart';
+import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
 
 class RatelimitMiddleware extends InterceptorContract {
@@ -58,9 +59,10 @@ class RatelimitMiddleware extends InterceptorContract {
     // Special handling for the 429 status code
     if (response.statusCode == 429) {
       final retryAfter = headers['retry-after'];
-      Logger.error(
-        'Rate limit hit! Retry after: ${retryAfter ?? "unknown"} seconds.',
-      );
+      final message =
+          'Rate limit hit! Retry after: ${retryAfter ?? "unknown"} seconds.';
+      Logger.error(message);
+      AlertManager.showError(message);
     }
 
     return response;
@@ -180,7 +182,12 @@ class HandyWeb with EffectDispose {
 
     final info = await getInfo();
     // if this doesn't return a result we are not connected
-    if (!info.isResult) return false;
+    if (!info.isResult) {
+      AlertManager.showError(
+        "Failed to connect to Handy: ${info.error?.message ?? 'Unknown error'}",
+      );
+      return false;
+    }
 
     // Sync time
     {
@@ -286,11 +293,15 @@ class HandyWeb with EffectDispose {
                 currentData += line.substring(5);
               }
             },
-            onError: (e) => Logger.error("Stream Error: $e"),
+            onError: (e) {
+              Logger.error("Stream Error: $e");
+              AlertManager.showError("Handy stream error: $e");
+            },
             cancelOnError: true,
           );
     } catch (e) {
       Logger.error("Connection Error: $e");
+      AlertManager.showError("Handy connection error: $e");
     }
     return null;
   }

@@ -13,6 +13,7 @@ import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/playlist_controls.dart';
 import 'package:syncopathy/simple/simple_mode/simple_mode.dart';
+import 'package:syncopathy/notification_feed.dart';
 
 import 'package:syncopathy/helper/constants.dart';
 import 'package:window_manager/window_manager.dart';
@@ -138,6 +139,24 @@ class CustomAppBarState extends State<CustomAppBar> {
         const SizedBox(width: 4.0),
         ConnectionButton(),
         const SizedBox(width: 4.0),
+
+        Watch.builder(
+          builder: (context) {
+            final unreadCount = context.read<AlertManager>().unreadCount.value;
+            return Badge(
+              label: Text('$unreadCount'),
+              isLabelVisible: unreadCount > 0,
+              child: IconButton(
+                icon: const Icon(Icons.notifications_none),
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer();
+                },
+              ),
+            );
+          },
+        ),
+        const SizedBox(width: 4),
+
         // Window control buttons
         if (!kIsWeb)
           WindowCaptionButton.minimize(

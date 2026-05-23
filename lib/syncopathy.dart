@@ -27,7 +27,11 @@ class Syncopathy extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => NotificationFeedManager(),
+      create: (_) {
+        final manager = AlertManager();
+        getIt.registerSingleton<AlertManager>(manager);
+        return manager;
+      },
       child: MaterialApp(
         title: 'Syncopathy',
         debugShowCheckedModeBanner: false,
@@ -198,65 +202,63 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
     final isPortrait = PlatformUtils.isPortrait(context);
     final withMedia = !syncopathySimpleMode;
 
-    return LogNotificationObserver(
-      child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight),
-          child: ExcludeFocus(child: CustomAppBar(widgetTitle: widget.title)),
-        ),
-        bottomNavigationBar: isPortrait
-            ? NavigationBar(
-                selectedIndex: _selectedIndex,
-                onDestinationSelected: _onTabChanged,
-                destinations: _bottomDestinations(withMedia),
-              )
-            : null,
-        body: SimpleModeDragAndDrop(
-          child: Row(
-            children: [
-              if (!isPortrait)
-                ExcludeFocus(
-                  excluding: true,
-                  child: NavigationRail(
-                    selectedIndex: _selectedIndex,
-                    onDestinationSelected: _onTabChanged,
-                    labelType: NavigationRailLabelType.all,
-                    destinations: _destinations(withMedia),
-                    trailing: withMedia
-                        ? Expanded(
-                            child: Align(
-                              alignment: Alignment.bottomCenter,
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 24.0),
-                                child: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 300),
-                                  child: _buildStatus(context),
-                                ),
+    return Scaffold(
+      endDrawer: const AlertPanel(),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: ExcludeFocus(child: CustomAppBar(widgetTitle: widget.title)),
+      ),
+      bottomNavigationBar: isPortrait
+          ? NavigationBar(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: _onTabChanged,
+              destinations: _bottomDestinations(withMedia),
+            )
+          : null,
+      body: SimpleModeDragAndDrop(
+        child: Row(
+          children: [
+            if (!isPortrait)
+              ExcludeFocus(
+                excluding: true,
+                child: NavigationRail(
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: _onTabChanged,
+                  labelType: NavigationRailLabelType.all,
+                  destinations: _destinations(withMedia),
+                  trailing: withMedia
+                      ? Expanded(
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 24.0),
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                child: _buildStatus(context),
                               ),
                             ),
-                          )
-                        : null,
-                  ),
-                ),
-              const VerticalDivider(thickness: 1, width: 1),
-              Expanded(
-                child: Stack(
-                  children: [
-                    PageContent(
-                      selectedIndex: _selectedIndex,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _selectedIndex = index;
-                        });
-                      },
-                      pageController: _pageController,
-                    ),
-                    const NotificationFeed(),
-                  ],
+                          ),
+                        )
+                      : null,
                 ),
               ),
-            ],
-          ),
+            const VerticalDivider(thickness: 1, width: 1),
+            Expanded(
+              child: Stack(
+                children: [
+                  PageContent(
+                    selectedIndex: _selectedIndex,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _selectedIndex = index;
+                      });
+                    },
+                    pageController: _pageController,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
