@@ -11,28 +11,24 @@ import 'package:syncopathy/player/video_player.dart';
 final Map<String, FilterBase Function()> availableFilters = {
   "Title": () => StringFilter(
     label: "Title",
-    icon: Icons.movie,
+    icon: Icons.title,
+    category: FilterCategory.media,
+    sortOrder: 0,
     retriever: (media) => [media.name, ...media.aliases],
-  ),
-  "Path": () => StringFilter(
-    label: "Path",
-    icon: Icons.movie,
-    retriever: (media) => [media.mediaPath],
-  ),
-  "Play Count": () => NumberFilter(
-    label: "Play Count",
-    icon: Icons.movie,
-    retriever: (media) => [media.playCount],
   ),
   "Type": () => EnumFilter<MediaType>(
     label: "Type",
-    icon: Icons.movie,
+    icon: Icons.category,
+    category: FilterCategory.media,
+    sortOrder: 1,
     retriever: (media) => [(media.type ?? MediaType.unknown).id],
     enumValues: MediaType.values,
   ),
   "Category": () => CategoryFilter(
     label: "Category",
-    icon: Icons.movie,
+    icon: Icons.label,
+    category: FilterCategory.media,
+    sortOrder: 2,
     retriever: (media) => media.categories.isEmpty
         ? [-2]
         : media.categories.map((c) => c.id).toList(),
@@ -40,28 +36,45 @@ final Map<String, FilterBase Function()> availableFilters = {
   ),
   "Rating": () => EnumFilter<MediaRating>(
     label: "Rating",
-    icon: Icons.movie,
+    icon: Icons.star,
+    category: FilterCategory.media,
+    sortOrder: 3,
     retriever: (media) => [(media.rating ?? MediaRating.noRating).id],
     enumValues: MediaRating.values,
   ),
-  "Playlist": () => PlaylistFilter(
-    label: "Playlist",
-    icon: Icons.playlist_play,
+  "Date Added": () => DateFilter(
+    label: "Date Added",
+    icon: Icons.calendar_today,
+    category: FilterCategory.media,
+    sortOrder: 4,
+    retriever: (media) => [media.firstIndexedOn],
+  ),
+  "Path": () => StringFilter(
+    label: "Path",
+    icon: Icons.folder,
+    category: FilterCategory.media,
+    sortOrder: 5,
     retriever: (media) => [media.mediaPath],
   ),
   "Funscript Count": () => NumberFilter(
     label: "Funscript Count",
-    icon: Icons.description,
+    icon: Icons.numbers,
+    category: FilterCategory.funscript,
+    sortOrder: 0,
     retriever: (media) => [media.funscripts.length],
   ),
   "Average Speed": () => NumberFilter(
     label: "Average Speed",
-    icon: Icons.description,
+    icon: Icons.speed,
+    category: FilterCategory.funscript,
+    sortOrder: 1,
     retriever: (media) => [media.mainFunscript.target?.averageSpeed],
   ),
   "Metadata": () => MetadataFilter(
     label: "Metadata",
-    icon: Icons.description,
+    icon: Icons.tag,
+    category: FilterCategory.funscript,
+    sortOrder: 2,
     retriever: (media) {
       final fs = media.mainFunscript.target;
       if (fs == null || fs.metadata == null) return [];
@@ -73,35 +86,61 @@ final Map<String, FilterBase Function()> availableFilters = {
       ];
     },
   ),
+  "Script Tokens": () => BoolFilter(
+    label: "Script Tokens",
+    icon: Icons.generating_tokens,
+    category: FilterCategory.funscript,
+    sortOrder: 3,
+    retriever: (media) => [media.mainFunscript.target?.isScriptToken ?? false],
+  ),
+  "Play Count": () => NumberFilter(
+    label: "Play Count",
+    icon: Icons.analytics,
+    category: FilterCategory.status,
+    sortOrder: 0,
+    retriever: (media) => [media.playCount],
+  ),
+  "Playlist": () => PlaylistFilter(
+    label: "Playlist",
+    icon: Icons.playlist_play,
+    category: FilterCategory.status,
+    sortOrder: 1,
+    retriever: (media) => [media.mediaPath],
+  ),
   "Playable": () => BoolFilter(
     label: "Playable",
     icon: Icons.play_circle_outline,
+    category: FilterCategory.status,
+    sortOrder: 2,
     retriever: (media) => [media.isPlayable],
   ),
   "Missing Files": () => BoolFilter(
     label: "Missing Files",
-    icon: Icons.file_open_outlined,
+    icon: Icons.error_outline,
+    category: FilterCategory.status,
+    sortOrder: 3,
     retriever: (media) => [
       media.fileNotFound ||
           media.mainFunscript.target == null ||
           media.funscripts.any((fs) => fs.fileNotFound),
     ],
   ),
-  "Script Tokens": () => BoolFilter(
-    label: "Script Tokens",
-    icon: Icons.generating_tokens,
-    retriever: (media) => [media.mainFunscript.target?.isScriptToken ?? false],
-  ),
-  "Date Added": () => DateFilter(
-    label: "Date Added",
-    icon: Icons.calendar_today,
-    retriever: (media) => [media.firstIndexedOn],
-  ),
 };
+
+enum FilterCategory {
+  media("Media"),
+  funscript("Funscript"),
+  status("Status & Playback");
+
+  final String label;
+  const FilterCategory(this.label);
+}
 
 abstract class FilterBase<T> {
   final String label;
   final IconData icon;
+  final FilterCategory category;
+  final int sortOrder;
   final Signal<bool> negated = signal(false);
   final Signal<bool> enabled = signal(true);
 
@@ -115,6 +154,8 @@ abstract class FilterBase<T> {
   FilterBase({
     required this.label,
     required this.icon,
+    required this.category,
+    required this.sortOrder,
     required this.retriever,
   });
 
@@ -163,6 +204,8 @@ class NumberFilter extends FilterBase<num> {
   NumberFilter({
     required super.label,
     required super.icon,
+    required super.category,
+    required super.sortOrder,
     required super.retriever,
   });
 
@@ -235,6 +278,8 @@ class StringFilter extends FilterBase<String> {
   StringFilter({
     required super.label,
     required super.icon,
+    required super.category,
+    required super.sortOrder,
     required super.retriever,
   });
 
@@ -304,6 +349,8 @@ class DateFilter extends FilterBase<DateTime> {
   DateFilter({
     required super.label,
     required super.icon,
+    required super.category,
+    required super.sortOrder,
     required super.retriever,
   });
 
@@ -392,6 +439,8 @@ class EnumFilter<E extends Enum> extends FilterBase<int> {
   EnumFilter({
     required super.label,
     required super.icon,
+    required super.category,
+    required super.sortOrder,
     required super.retriever,
     required this.enumValues,
   });
@@ -428,6 +477,8 @@ class CategoryFilter extends FilterBase<int> {
   CategoryFilter({
     required super.label,
     required super.icon,
+    required super.category,
+    required super.sortOrder,
     required super.retriever,
     required this.categories,
   });
@@ -480,6 +531,8 @@ class MetadataFilter extends FilterBase<String> {
   MetadataFilter({
     required super.label,
     required super.icon,
+    required super.category,
+    required super.sortOrder,
     required super.retriever,
   });
 
@@ -589,6 +642,8 @@ class PlaylistFilter extends FilterBase<String> {
   PlaylistFilter({
     required super.label,
     required super.icon,
+    required super.category,
+    required super.sortOrder,
     required super.retriever,
   });
 
@@ -624,6 +679,8 @@ class BoolFilter extends FilterBase<bool> {
   BoolFilter({
     required super.label,
     required super.icon,
+    required super.category,
+    required super.sortOrder,
     required super.retriever,
   });
 

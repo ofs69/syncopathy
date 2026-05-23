@@ -319,7 +319,6 @@ class FunscriptAlgorithms {
     actions = List.of(actions);
     actions.removeWhere((a) => a.at < 0);
 
-
     // Insert point at 0
     // Important for looping correctly
     if (actions.first.at != 0) {

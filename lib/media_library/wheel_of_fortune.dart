@@ -78,19 +78,21 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog>
       content: SizedBox(
         height: 600,
         width: 600,
-        child: FortuneWheel(
-          selected: _selected.stream,
-          animateFirst: false,
-          items: items,
-          rotationCount: 4,
-          duration: const Duration(seconds: 2, milliseconds: 0),
-          onAnimationEnd: () {
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (!context.mounted) return;
-              Navigator.of(context).pop();
-              widget.onMediaSelected(widget.mediaFiles[_selectedIndex.value]);
-            });
-          },
+        child: RepaintBoundary(
+          child: FortuneWheel(
+            selected: _selected.stream,
+            animateFirst: false,
+            items: items,
+            rotationCount: 4,
+            duration: const Duration(seconds: 2, milliseconds: 0),
+            onAnimationEnd: () {
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (!context.mounted) return;
+                Navigator.of(context).pop();
+                widget.onMediaSelected(widget.mediaFiles[_selectedIndex.value]);
+              });
+            },
+          ),
         ),
       ),
       actionsAlignment: MainAxisAlignment.center,

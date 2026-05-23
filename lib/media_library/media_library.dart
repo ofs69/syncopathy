@@ -122,9 +122,6 @@ class _MediaLibraryState extends State<MediaLibrary>
     final currentlyFiltering = isFiltering.watch(context);
     final mediaSettings = context.read<MediaLibrarySettingsModel>();
     final videosPerRow = mediaSettings.videosPerRow.watch(context);
-    final allMediaFilesCount = oBox.mediaService.allMediaFiles
-        .watch(context)
-        .length;
 
     final showDuration = mediaSettings.showDuration.watch(context);
     final showPlayCount = mediaSettings.showPlayCount.watch(context);
@@ -406,19 +403,24 @@ class _MediaLibraryState extends State<MediaLibrary>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        if (mediaManager.isIndexing.watch(context))
-                          Text(
-                            mediaManager.indexingStatus.watch(context) ??
-                                "Indexing...",
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(fontFamily: 'monospace'),
-                          )
-                        else
-                          Text(
-                            '${mediaFiles.length} / $allMediaFilesCount videos',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(fontFamily: 'monospace'),
-                          ),
+                        Watch((context) {
+                          if (mediaManager.isIndexing.value) {
+                            return Text(
+                              mediaManager.indexingStatus.value ??
+                                  "Indexing...",
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(fontFamily: 'monospace'),
+                            );
+                          } else {
+                            final total =
+                                oBox.mediaService.allMediaFiles.value.length;
+                            return Text(
+                              '${mediaFiles.length} / $total videos',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(fontFamily: 'monospace'),
+                            );
+                          }
+                        }),
                       ],
                     ),
                   ),
@@ -434,33 +436,37 @@ class _MediaLibraryState extends State<MediaLibrary>
                 ),
                 const SizedBox(width: 8),
                 // refresh index button
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.refresh),
-                      onPressed: mediaManager.isIndexing.watch(context)
-                          ? null
-                          : mediaManager.startIndexing,
-                      tooltip: 'Refresh',
-                      style: IconButton.styleFrom(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onInverseSurface,
-                      ),
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    if (mediaManager.isIndexing.watch(context))
-                      SizedBox(
-                        width: 32,
-                        height: 32,
-                        child: CircularProgressIndicator(
-                          value: mediaManager.indexingProgress.watch(context),
-                          strokeWidth: 3,
+                Watch((context) {
+                  final isIndexing = mediaManager.isIndexing.value;
+                  final progress = mediaManager.indexingProgress.value;
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.refresh),
+                        onPressed: isIndexing
+                            ? null
+                            : mediaManager.startIndexing,
+                        tooltip: 'Refresh',
+                        style: IconButton.styleFrom(
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.onInverseSurface,
                         ),
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                  ],
-                ),
+                      if (isIndexing)
+                        SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: CircularProgressIndicator(
+                            value: progress,
+                            strokeWidth: 3,
+                          ),
+                        ),
+                    ],
+                  );
+                }),
                 const SizedBox(width: 4),
               ],
             ),

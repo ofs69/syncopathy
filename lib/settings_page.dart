@@ -41,7 +41,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final allCards = _buildAllSettingsCards(context);
+    final cardBuilders = _getCardBuilders();
     return SingleChildScrollView(
       padding: EdgeInsets.all(24.0),
       child: MasonryGridView.count(
@@ -50,32 +50,32 @@ class _SettingsPageState extends State<SettingsPage> {
         crossAxisCount: (MediaQuery.of(context).size.width / 500.0)
             .clamp(1, 3)
             .toInt(),
-        itemCount: allCards.length,
+        itemCount: cardBuilders.length,
         mainAxisSpacing: 24, // Vertical gap between cards
         crossAxisSpacing: 24, // Horizontal gap between
         itemBuilder: (context, index) {
-          return allCards[index];
+          return cardBuilders[index](context);
         },
       ),
     );
   }
 
-  List<Widget> _buildAllSettingsCards(BuildContext context) {
+  List<Widget Function(BuildContext)> _getCardBuilders() {
     return [
-      _buildSettingsCard(
+      (context) => _buildSettingsCard(
         context,
         title: 'Player Backend',
         children: [_buildPlayerBackendSettings(context)],
       ),
       if (!syncopathySimpleMode)
-        _buildSettingsCard(
+        (context) => _buildSettingsCard(
           context,
           title: 'Media Library Paths',
           subtitle:
               'Folders to search for videos and funscripts (searched recursively).',
           children: [_buildMediaPaths(context)],
         ),
-      _buildSettingsCard(
+      (context) => _buildSettingsCard(
         context,
         title: 'Video Player',
         children: [
@@ -86,18 +86,18 @@ class _SettingsPageState extends State<SettingsPage> {
         ],
       ),
       if (!kIsWeb)
-        _buildSettingsCard(
+        (context) => _buildSettingsCard(
           context,
           title: 'Data Management',
           children: [_buildAppDataSettings(context)],
         ),
-      _buildSettingsCard(
+      (context) => _buildSettingsCard(
         context,
         title: 'App',
         children: [_buildUpdateChecker(context)],
       ),
       if (kDebugMode)
-        _buildSettingsCard(
+        (context) => _buildSettingsCard(
           context,
           title: 'Debug',
           children: [_buildDebugSettings(context)],
@@ -173,46 +173,52 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildSkipToActionSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return SwitchListTile(
-      title: const Text('Skip to action'),
-      subtitle: const Text('Skips to the part where the funscript begins.'),
-      value: settings.skipToAction.watch(context),
-      onChanged: (value) {
-        settings.skipToAction.value = value;
-      },
-      secondary: const Icon(Icons.skip_next),
+    return Watch(
+      (context) => SwitchListTile(
+        title: const Text('Skip to action'),
+        subtitle: const Text('Skips to the part where the funscript begins.'),
+        value: settings.skipToAction.value,
+        onChanged: (value) {
+          settings.skipToAction.value = value;
+        },
+        secondary: const Icon(Icons.skip_next),
+      ),
     );
   }
 
   Widget _buildEmbeddedVideoPlayerSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return SwitchListTile(
-      title: const Text('Use Embedded Video Player'),
-      subtitle: const Text(
-        'Enables an embedded video player (Requires Restart).',
+    return Watch(
+      (context) => SwitchListTile(
+        title: const Text('Use Embedded Video Player'),
+        subtitle: const Text(
+          'Enables an embedded video player (Requires Restart).',
+        ),
+        value: settings.embeddedVideoPlayer.value,
+        onChanged: (value) {
+          settings.embeddedVideoPlayer.value = value;
+        },
+        secondary: const Icon(Icons.video_collection),
+        isThreeLine: true,
       ),
-      value: settings.embeddedVideoPlayer.watch(context),
-      onChanged: (value) {
-        settings.embeddedVideoPlayer.value = value;
-      },
-      secondary: const Icon(Icons.video_collection),
-      isThreeLine: true,
     );
   }
 
   Widget _buildAutoSwitchToVideoPlayerTabSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return SwitchListTile(
-      title: const Text('Auto Switch to Video Player Tab'),
-      subtitle: const Text(
-        'Automatically switches to the video player tab when a video is loaded.',
+    return Watch(
+      (context) => SwitchListTile(
+        title: const Text('Auto Switch to Video Player Tab'),
+        subtitle: const Text(
+          'Automatically switches to the video player tab when a video is loaded.',
+        ),
+        value: settings.autoSwitchToVideoPlayerTab.value,
+        onChanged: (value) {
+          settings.autoSwitchToVideoPlayerTab.value = value;
+        },
+        secondary: const Icon(Icons.tab),
+        isThreeLine: true,
       ),
-      value: settings.autoSwitchToVideoPlayerTab.watch(context),
-      onChanged: (value) {
-        settings.autoSwitchToVideoPlayerTab.value = value;
-      },
-      secondary: const Icon(Icons.tab),
-      isThreeLine: true,
     );
   }
 
@@ -313,16 +319,18 @@ class _SettingsPageState extends State<SettingsPage> {
     final settings = context.read<SettingsModel>();
     return Column(
       children: [
-        SwitchListTile(
-          title: const Text('Toggle debug notifications'),
-          subtitle: const Text(
-            'Shows extra notifications with debug information.',
+        Watch(
+          (context) => SwitchListTile(
+            title: const Text('Toggle debug notifications'),
+            subtitle: const Text(
+              'Shows extra notifications with debug information.',
+            ),
+            value: settings.showDebugNotifications.value,
+            onChanged: (value) {
+              settings.showDebugNotifications.value = value;
+            },
+            secondary: const Icon(Icons.bug_report),
           ),
-          value: settings.showDebugNotifications.watch(context),
-          onChanged: (value) {
-            settings.showDebugNotifications.value = value;
-          },
-          secondary: const Icon(Icons.bug_report),
         ),
       ],
     );
@@ -390,46 +398,48 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildPlayerBackendSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
     final playerModel = context.read<PlayerModel>();
-    final backend = playerModel.playerBackend.watch(context);
-    final backendType = settings.playerBackendType.watch(context);
-    final isLoaded =
-        backend?.backendType != null && backend?.backendType == backendType;
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
-          child: !isLoaded
-              ? Center(child: CircularProgressIndicator())
-              : DropdownMenu<PlayerBackendType>(
-                  initialSelection: backendType,
-                  expandedInsets: EdgeInsets.zero,
-                  requestFocusOnTap: false,
-                  enableSearch: false,
-                  inputDecorationTheme: const InputDecorationTheme(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 8.0,
-                      vertical: 8.0,
+    return Watch((context) {
+      final backend = playerModel.playerBackend.value;
+      final backendType = settings.playerBackendType.value;
+      final isLoaded =
+          backend?.backendType != null && backend?.backendType == backendType;
+
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
+            child: !isLoaded
+                ? Center(child: CircularProgressIndicator())
+                : DropdownMenu<PlayerBackendType>(
+                    initialSelection: backendType,
+                    expandedInsets: EdgeInsets.zero,
+                    requestFocusOnTap: false,
+                    enableSearch: false,
+                    inputDecorationTheme: const InputDecorationTheme(
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 8.0,
+                      ),
                     ),
+                    dropdownMenuEntries: PlayerBackendType.values.map((e) {
+                      return DropdownMenuEntry<PlayerBackendType>(
+                        value: e,
+                        label: e.toDisplayString(),
+                      );
+                    }).toList(),
+                    onSelected: (selectedEnum) {
+                      if (selectedEnum != null) {
+                        settings.playerBackendType.value = selectedEnum;
+                      }
+                    },
                   ),
-                  dropdownMenuEntries: PlayerBackendType.values.map((e) {
-                    return DropdownMenuEntry<PlayerBackendType>(
-                      value: e,
-                      label: e.toDisplayString(),
-                    );
-                  }).toList(),
-
-                  onSelected: (selectedEnum) {
-                    if (selectedEnum != null) {
-                      settings.playerBackendType.value = selectedEnum;
-                    }
-                  },
-                ),
-        ),
-        if (backend != null && isLoaded)
-          ListTile(title: backend.settingsWidget(context)),
-      ],
-    );
+          ),
+          if (backend != null && isLoaded)
+            ListTile(title: backend.settingsWidget(context)),
+        ],
+      );
+    });
   }
 
   void _callGenerateMissingThumbnails() {

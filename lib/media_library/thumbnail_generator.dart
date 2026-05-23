@@ -122,10 +122,7 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
 
       // Note: We are already inside a Pool resource from the base class,
       // so we just run the process directly.
-      var result = await Process.run(
-        'ffmpeg',
-        ffmpegArgs,
-      );
+      var result = await Process.run('ffmpeg', ffmpegArgs);
 
       if (result.exitCode != 0 && seekTimeSeconds != null) {
         // Retry logic: Remove -ss args (indices 2 and 3)
