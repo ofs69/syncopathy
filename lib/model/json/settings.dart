@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
+import 'package:syncopathy/model/shortcut_settings.dart';
 
 part 'settings.g.dart';
 
@@ -18,6 +19,7 @@ class Settings {
   bool invert;
   PlayerBackendType playerBackendType;
   bool funscriptGraphEnabled;
+  Map<String, ShortcutBinding> customShortcuts = {};
 
   static const String key = "MainAppSettings";
 
@@ -35,7 +37,9 @@ class Settings {
     this.invert = false,
     this.playerBackendType = PlayerBackendType.handyStrokerStreamingBluetooth,
     this.funscriptGraphEnabled = true,
-  }) : mediaPaths = List.of(mediaPaths);
+    Map<String, ShortcutBinding> customShortcuts = const {},
+  }) : mediaPaths = List.of(mediaPaths),
+       customShortcuts = Map.of(customShortcuts);
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
       _$SettingsFromJson(json);

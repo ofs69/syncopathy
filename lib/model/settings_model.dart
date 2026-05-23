@@ -7,6 +7,7 @@ import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/model/json/settings.dart';
+import 'package:syncopathy/model/shortcut_settings.dart';
 
 class SettingsModel {
   late Settings _entity;
@@ -30,6 +31,7 @@ class SettingsModel {
     PlayerBackendType.handyStrokerStreamingBluetooth,
   );
   final Signal<bool> funscriptGraphEnabled = signal(false);
+  final MapSignal<String, ShortcutBinding> customShortcuts = mapSignal({});
 
   // Not persisted in the database
   final Signal<int?> catmullRomSplineSmoothInterval = signal(null);
@@ -63,6 +65,7 @@ class SettingsModel {
     invert.value = _entity.invert;
     playerBackendType.value = _entity.playerBackendType;
     funscriptGraphEnabled.value = _entity.funscriptGraphEnabled;
+    customShortcuts.value = _entity.customShortcuts;
 
     _saveEffectDispose = effect(() async {
       _entity.min = min.value;
@@ -78,6 +81,7 @@ class SettingsModel {
       _entity.invert = invert.value;
       _entity.playerBackendType = playerBackendType.value;
       _entity.funscriptGraphEnabled = funscriptGraphEnabled.value;
+      _entity.customShortcuts = customShortcuts.value;
       await _save();
     });
   }

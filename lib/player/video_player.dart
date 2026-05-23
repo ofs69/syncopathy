@@ -232,6 +232,11 @@ abstract class VideoPlayer with EffectDispose {
 
   void seekTo(Duration seek) => player.seek(seek);
 
+  void seekRelative(Duration offset) {
+    final current = player.state.position;
+    seekTo(current + offset);
+  }
+
   void setSpeed(double speed) => player.setRate(speed.clamp(0.5, 2.0));
 
   void setVolume(double volume) => player.setVolume(volume.clamp(0, 130));

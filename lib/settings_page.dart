@@ -18,6 +18,8 @@ import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
+import 'package:syncopathy/model/shortcut_settings.dart';
+import 'package:syncopathy/widgets/shortcut_rebind_dialog.dart';
 import 'package:syncopathy/update_checker.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -85,6 +87,11 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildAutoSwitchToVideoPlayerTabSettings(context),
           _buildSkipToActionSettings(context),
         ],
+      ),
+      (context) => _buildSettingsCard(
+        context,
+        title: 'Shortcuts',
+        children: [_buildShortcutSettings(context)],
       ),
       if (!kIsWeb)
         (context) => _buildSettingsCard(
@@ -179,6 +186,43 @@ class _SettingsPageState extends State<SettingsPage> {
         secondary: const Icon(Icons.skip_next),
       ),
     );
+  }
+
+  Widget _buildShortcutSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
+    return Watch((context) {
+      final customShortcuts = settings.customShortcuts.value;
+      return Column(
+        children: ShortcutDefinitions.all.map((shortcut) {
+          final binding =
+              customShortcuts[shortcut.id] ?? shortcut.defaultBinding;
+          return ListTile(
+            title: Text(shortcut.name),
+            subtitle: Text(shortcut.description),
+            trailing: OutlinedButton(
+              onPressed: () => _showRebindDialog(context, shortcut),
+              child: Text(binding.toString()),
+            ),
+          );
+        }).toList(),
+      );
+    });
+  }
+
+  Future<void> _showRebindDialog(
+    BuildContext context,
+    AppShortcut shortcut,
+  ) async {
+    final settings = context.read<SettingsModel>();
+
+    final ShortcutBinding? newBinding = await showDialog<ShortcutBinding>(
+      context: context,
+      builder: (context) => ShortcutRebindDialog(shortcut: shortcut),
+    );
+
+    if (newBinding != null) {
+      settings.customShortcuts[shortcut.id] = newBinding;
+    }
   }
 
   Widget _buildEmbeddedVideoPlayerSettings(BuildContext context) {

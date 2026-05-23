@@ -30,6 +30,12 @@ Settings _$SettingsFromJson(Map<String, dynamic> json) => Settings(
       ) ??
       PlayerBackendType.handyStrokerStreamingBluetooth,
   funscriptGraphEnabled: json['funscriptGraphEnabled'] as bool? ?? true,
+  customShortcuts:
+      (json['customShortcuts'] as Map<String, dynamic>?)?.map(
+        (k, e) =>
+            MapEntry(k, ShortcutBinding.fromJson(e as Map<String, dynamic>)),
+      ) ??
+      const {},
 );
 
 Map<String, dynamic> _$SettingsToJson(Settings instance) => <String, dynamic>{
@@ -46,6 +52,7 @@ Map<String, dynamic> _$SettingsToJson(Settings instance) => <String, dynamic>{
   'invert': instance.invert,
   'playerBackendType': _$PlayerBackendTypeEnumMap[instance.playerBackendType]!,
   'funscriptGraphEnabled': instance.funscriptGraphEnabled,
+  'customShortcuts': instance.customShortcuts,
 };
 
 const _$SettingsJsonSchema = {
@@ -69,6 +76,24 @@ const _$SettingsJsonSchema = {
     'invert': {'type': 'boolean', 'default': false},
     'playerBackendType': {'type': 'object'},
     'funscriptGraphEnabled': {'type': 'boolean', 'default': true},
+    'customShortcuts': {
+      'type': 'object',
+      'additionalProperties': {r'$ref': r'#/$defs/ShortcutBinding'},
+      'default': {},
+    },
+  },
+  r'$defs': {
+    'ShortcutBinding': {
+      'type': 'object',
+      'properties': {
+        'keyId': {'type': 'integer'},
+        'control': {'type': 'boolean', 'default': false},
+        'shift': {'type': 'boolean', 'default': false},
+        'alt': {'type': 'boolean', 'default': false},
+        'meta': {'type': 'boolean', 'default': false},
+      },
+      'required': ['keyId'],
+    },
   },
 };
 
