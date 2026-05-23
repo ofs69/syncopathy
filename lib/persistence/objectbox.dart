@@ -24,7 +24,7 @@ class ObjectBox {
   }
 
   static Future<ObjectBox> create(String path) async {
-    final store = await openStore(directory: p.join(path, "objectbox_beta"));
+    final store = await openStore(directory: p.join(path, "objectbox"));
     return ObjectBox._create(store);
   }
 }

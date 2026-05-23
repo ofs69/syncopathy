@@ -83,7 +83,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
   Future<void> _migrationModal() async {
     if (syncopathySimpleMode) return;
     final sharedPref = await SharedPreferences.getInstance();
-    final wasMigrated = sharedPref.getBool('wasObjectBoxMigratedBeta') ?? false;
+    final wasMigrated = sharedPref.getBool('wasObjectBoxMigrated') ?? false;
     if (wasMigrated) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -93,7 +93,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
         barrierDismissible: false,
         builder: (context) => const MigrationModal(),
       );
-      sharedPref.setBool('wasObjectBoxMigratedBeta', true);
+      sharedPref.setBool('wasObjectBoxMigrated', true);
     });
   }
 
