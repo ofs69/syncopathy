@@ -58,19 +58,23 @@ class _MoveMediaDialogState extends State<MoveMediaDialog> with SignalsMixin {
 
     for (final media in widget.selectedMedia) {
       if (seenPaths.add(media.mediaPath)) {
-        entries.add(_FileEntry(
-          path: media.mediaPath,
-          isFunscript: false,
-          mediaFile: media,
-        ));
+        entries.add(
+          _FileEntry(
+            path: media.mediaPath,
+            isFunscript: false,
+            mediaFile: media,
+          ),
+        );
       }
       for (final script in media.funscripts) {
         if (seenPaths.add(script.path)) {
-          entries.add(_FileEntry(
-            path: script.path,
-            isFunscript: true,
-            funscriptFile: script,
-          ));
+          entries.add(
+            _FileEntry(
+              path: script.path,
+              isFunscript: true,
+              funscriptFile: script,
+            ),
+          );
         }
       }
     }
@@ -101,8 +105,9 @@ class _MoveMediaDialogState extends State<MoveMediaDialog> with SignalsMixin {
           await src.copy(newPath);
           await src.delete();
         }
-        final inSearchPaths =
-            widget.searchPaths.any((sp) => p.isWithin(sp, newPath));
+        final inSearchPaths = widget.searchPaths.any(
+          (sp) => p.isWithin(sp, newPath),
+        );
         if (inSearchPaths) {
           if (entry.mediaFile != null) {
             entry.mediaFile!.mediaPath = newPath;
@@ -174,7 +179,9 @@ class _MoveMediaDialogState extends State<MoveMediaDialog> with SignalsMixin {
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: entry.isFunscript
                                     ? colorScheme.tertiaryContainer
@@ -222,7 +229,10 @@ class _MoveMediaDialogState extends State<MoveMediaDialog> with SignalsMixin {
             const SizedBox(height: 8),
             Text(
               'The library will be reindexed after moving to update file locations.',
-              style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+              style: TextStyle(
+                fontSize: 11,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 8),
             Row(

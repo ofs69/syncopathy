@@ -49,8 +49,9 @@ class _DeleteMediaDialogState extends State<DeleteMediaDialog>
       }
       for (final script in media.funscripts) {
         // Omit funscripts shared with media outside the selection
-        final sharedWithOthers =
-            script.media.any((m) => !selectedIds.contains(m.id));
+        final sharedWithOthers = script.media.any(
+          (m) => !selectedIds.contains(m.id),
+        );
         if (sharedWithOthers) continue;
         if (seenPaths.add(script.path)) {
           entries.add(_FileEntry(path: script.path, isFunscript: true));
@@ -71,14 +72,17 @@ class _DeleteMediaDialogState extends State<DeleteMediaDialog>
           final file = File(media.mediaPath);
           if (await file.exists()) await file.delete();
           for (final script in media.funscripts) {
-            final sharedWithOthers =
-                script.media.any((m) => !selectedIds.contains(m.id));
+            final sharedWithOthers = script.media.any(
+              (m) => !selectedIds.contains(m.id),
+            );
             if (sharedWithOthers) continue;
             final scriptFile = File(script.path);
             if (await scriptFile.exists()) await scriptFile.delete();
           }
         } catch (e) {
-          AlertManager.showError('Failed to delete files for ${media.name}: $e');
+          AlertManager.showError(
+            'Failed to delete files for ${media.name}: $e',
+          );
         }
       }
     }
@@ -130,7 +134,9 @@ class _DeleteMediaDialogState extends State<DeleteMediaDialog>
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: entry.isFunscript
                                     ? colorScheme.tertiaryContainer
@@ -178,8 +184,9 @@ class _DeleteMediaDialogState extends State<DeleteMediaDialog>
             const SizedBox(height: 12),
             CheckboxListTile(
               value: deleteFromDisk,
-              onChanged:
-                  isDeleting ? null : (v) => _deleteFromDisk.value = v ?? false,
+              onChanged: isDeleting
+                  ? null
+                  : (v) => _deleteFromDisk.value = v ?? false,
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
               dense: true,
