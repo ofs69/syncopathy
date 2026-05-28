@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:path/path.dart' as p;
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/funscript_algo.dart';
@@ -140,13 +141,10 @@ class _MediaDetailPageState extends State<MediaDetailPage>
   }
 
   Future<({String path, String hash})?> _pickAndHashFile() async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.any,
-      allowMultiple: false,
-    );
+    final result = await FilePicker.pickFile(type: FileType.any);
 
-    if (result != null && result.files.single.path != null) {
-      final path = result.files.single.path!;
+    if (result != null && result.path != null) {
+      final path = result.path!;
 
       if (!_isPathInConfiguredMediaPaths(path)) {
         _showPathWarning(path);
@@ -559,7 +557,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontFamily: 'monospace'),
+              style: GoogleFonts.robotoMono(),
               overflow: TextOverflow.ellipsis,
             ),
           ),

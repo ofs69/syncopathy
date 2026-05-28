@@ -13,6 +13,7 @@ class FunscriptProcessParams {
   final double playbackSpeed;
   final RangeValues strokeRange;
   final int? smoothIntervalMs;
+  final double? intensity;
 
   FunscriptProcessParams({
     required this.actions,
@@ -24,6 +25,7 @@ class FunscriptProcessParams {
     required this.playbackSpeed,
     required this.strokeRange,
     this.smoothIntervalMs,
+    this.intensity,
   });
 }
 
@@ -301,6 +303,49 @@ class FunscriptAlgorithms {
         .toList();
   }
 
+  static List<FunscriptAction> intensity(
+    List<FunscriptAction> actions,
+    double intensityFactor,
+  ) {
+    if (actions.length < 2 || intensityFactor == 1.0) {
+      return actions;
+    }
+
+    final sortedActions = List<FunscriptAction>.from(actions)..sort();
+    final int n = sortedActions.length;
+
+    // Use a centered moving average to find the local baseline.
+    // A 2-second window (1000ms before, 1000ms after) is good for separating
+    // stroke oscillations from baseline shifts.
+    const int halfWindowMs = 1000;
+
+    final List<double> baselines = List.filled(n, 0.0);
+    double sum = 0;
+    int left = 0;
+    int right = 0;
+
+    for (int i = 0; i < n; i++) {
+      final t = sortedActions[i].at;
+      while (right < n && sortedActions[right].at <= t + halfWindowMs) {
+        sum += sortedActions[right].pos;
+        right++;
+      }
+      while (left < n && sortedActions[left].at < t - halfWindowMs) {
+        sum -= sortedActions[left].pos;
+        left++;
+      }
+      // Safety check: right - left should always be >= 1 because sortedActions[i] is in the window.
+      baselines[i] = sum / (right - left);
+    }
+
+    return List.generate(n, (i) {
+      final a = sortedActions[i];
+      final b = baselines[i];
+      final newPos = b + (a.pos - b) * intensityFactor;
+      return FunscriptAction(at: a.at, pos: newPos.round().clamp(0, 100));
+    });
+  }
+
   static List<FunscriptAction> processForHandy(FunscriptProcessParams params) {
     var actions = params.actions;
     final totalDuration = params.totalDuration;
@@ -311,6 +356,7 @@ class FunscriptAlgorithms {
     final rdpEpsilon = params.rdpEpsilon;
     final smoothIntervalMs = params.smoothIntervalMs;
     final invert = params.invert;
+    final intensity = params.intensity;
 
     if (actions.isEmpty) {
       return actions;
@@ -335,6 +381,10 @@ class FunscriptAlgorithms {
 
     if (remapRange != null) {
       actions = FunscriptAlgorithms.remapRange(actions, remapRange);
+    }
+
+    if (intensity != null && intensity != 1.0) {
+      actions = FunscriptAlgorithms.intensity(actions, intensity);
     }
 
     if (slewMaxRateOfChangePerSecond != null) {

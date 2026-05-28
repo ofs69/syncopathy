@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/floating_toolbar.dart';
@@ -410,7 +411,7 @@ class _MediaLibraryState extends State<MediaLibrary>
                               mediaManager.indexingStatus.value ??
                                   "Indexing...",
                               style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(fontFamily: 'monospace'),
+                                  ?.merge(GoogleFonts.robotoMono()),
                             );
                           } else {
                             final total =
@@ -418,7 +419,7 @@ class _MediaLibraryState extends State<MediaLibrary>
                             return Text(
                               '${mediaFiles.length} / $total videos',
                               style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(fontFamily: 'monospace'),
+                                  ?.merge(GoogleFonts.robotoMono()),
                             );
                           }
                         }),
@@ -724,6 +725,8 @@ class _MediaLibraryState extends State<MediaLibrary>
         await mediaFile.delete();
       }
       for (final script in media.funscripts) {
+        final sharedWithOthers = script.media.any((m) => m.id != media.id);
+        if (sharedWithOthers) continue;
         final scriptFile = File(script.path);
         if (await scriptFile.exists()) {
           await scriptFile.delete();

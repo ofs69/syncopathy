@@ -120,6 +120,7 @@ class PlayerModel with EffectDispose {
         final rdpEpsilon = _settings.rdpEpsilon.value;
         final remapFullRange = _settings.remapFullRange.value;
         final invert = _settings.invert.value;
+        final intensity = _settings.intensity.value;
         final playbackSpeed = player.playbackSpeed.value;
         final strokeRange = _settings.minMaxRange.value;
         final smoothIntervalMs = _settings.catmullRomSplineSmoothInterval.value;
@@ -140,6 +141,7 @@ class PlayerModel with EffectDispose {
                 FunscriptProcessParams(
                   actions: funscript.originalActions,
                   invert: invert,
+                  intensity: intensity,
                   totalDuration: totalDuration,
                   playbackSpeed: playbackSpeed,
                   strokeRange: strokeRange,
@@ -167,6 +169,7 @@ class PlayerModel with EffectDispose {
         final rdpEpsilon = _settings.rdpEpsilon.value;
         final remapFullRange = _settings.remapFullRange.value;
         final invert = _settings.invert.value;
+        final intensity = _settings.intensity.value;
         final playbackSpeed = player.playbackSpeed.value;
         final strokeRange = _settings.minMaxRange.value;
         final smoothIntervalMs = _settings.catmullRomSplineSmoothInterval.value;
@@ -203,6 +206,7 @@ class PlayerModel with EffectDispose {
                 FunscriptProcessParams(
                   actions: funscript.originalActions,
                   invert: invert,
+                  intensity: intensity,
                   totalDuration: totalDuration,
                   playbackSpeed: playbackSpeed,
                   strokeRange: strokeRange,

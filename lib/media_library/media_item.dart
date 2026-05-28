@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/constants.dart';
@@ -81,11 +82,10 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
             if (text != null)
               Text(
                 text,
-                style: TextStyle(
+                style: GoogleFonts.robotoMono(
                   color: onSurface,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'monospace',
                 ),
               ),
           ],

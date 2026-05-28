@@ -46,7 +46,6 @@ class SimpleMode {
       dialogTitle: "Pick files to load",
       type: FileType.custom,
       allowedExtensions: allowedExtensions,
-      allowMultiple: true,
     );
     if (files == null) return;
     for (final file in files.files) {

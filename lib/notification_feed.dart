@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -212,7 +213,7 @@ class _AlertItemState extends State<AlertItem> {
               padding: const EdgeInsets.all(16.0),
               child: SelectableText(
                 widget.alert.stackTrace.toString(),
-                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+                style: GoogleFonts.robotoMono(fontSize: 12),
               ),
             ),
         ],

@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/model/json/funscript_metadata.dart';
 
@@ -16,6 +17,17 @@ class Funscript {
   FunscriptMetadata? get metadata => json.metadata;
 
   final Signal<List<FunscriptAction>> processedActions = signal([]);
+
+  late final ReadonlySignal<double> averageSpeed = computed(
+    () => FunscriptAlgorithms.averageSpeed(processedActions.value),
+  );
+  late final ReadonlySignal<double> averageMin = computed(
+    () => FunscriptAlgorithms.averageMin(processedActions.value),
+  );
+  late final ReadonlySignal<double> averageMax = computed(
+    () => FunscriptAlgorithms.averageMax(processedActions.value),
+  );
+
   late final bool likelyScriptToken;
 
   final String filePath;

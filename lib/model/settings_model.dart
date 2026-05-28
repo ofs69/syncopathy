@@ -34,6 +34,7 @@ class SettingsModel {
   final MapSignal<String, ShortcutBinding> customShortcuts = mapSignal({});
 
   // Not persisted in the database
+  final Signal<double?> intensity = signal(null);
   final Signal<int?> catmullRomSplineSmoothInterval = signal(null);
   final Signal<Duration> funscriptGraphViewDuration = signal(
     Duration(seconds: 5),

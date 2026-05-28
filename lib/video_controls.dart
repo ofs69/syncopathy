@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/heatmap.dart';
@@ -80,7 +81,7 @@ class _VideoControlsState extends State<VideoControls> {
                           padding: const EdgeInsets.all(10.0),
                           child: Text(
                             _formatResponsiveTimestamp(player, isPortrait),
-                            style: const TextStyle(fontFamily: 'monospace'),
+                            style: GoogleFonts.robotoMono(),
                           ),
                         );
                       },

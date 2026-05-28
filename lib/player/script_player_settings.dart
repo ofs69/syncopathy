@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
@@ -43,6 +44,8 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
                   children: [
                     _buildRdpEpsilonSettings(context),
                     _buildSlewRateSettings(context),
+                    _buildFunscriptStats(context),
+                    _buildIntensitySettings(context),
                     _buildCatmullRomSplineSmoothSettings(context),
                     _buildInvertSettings(context),
                     _buildRemapFullRangeSettings(context),
@@ -76,33 +79,36 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
     required double max,
     required int divisions,
     required ValueChanged<double> onChanged,
+    String? label,
+    bool showNumericInput = true,
   }) {
+    final slider = Slider(
+      value: value,
+      min: min,
+      max: max,
+      divisions: divisions,
+      label: label ?? value.round().toString(),
+      onChanged: onChanged,
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Slider(
-              value: value,
-              min: min,
-              max: max,
-              divisions: divisions,
-              label: value.round().toString(),
-              onChanged: onChanged,
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: FocusNumericInput(
-              value: value,
-              min: min,
-              max: max,
-              onChanged: onChanged,
-            ),
-          ),
-        ],
-      ),
+      child: showNumericInput
+          ? Row(
+              children: [
+                Expanded(flex: 3, child: slider),
+                Expanded(
+                  flex: 1,
+                  child: FocusNumericInput(
+                    value: value,
+                    min: min,
+                    max: max,
+                    onChanged: onChanged,
+                  ),
+                ),
+              ],
+            )
+          : slider,
     );
   }
 
@@ -242,6 +248,63 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
     );
   }
 
+  Widget _buildFunscriptStats(BuildContext context) {
+    final playerModel = context.read<PlayerModel>();
+    return Watch((context) {
+      final currentlyOpen = playerModel.currentlyOpen.value;
+      if (currentlyOpen == null) return const SizedBox.shrink();
+      final funscript = currentlyOpen.funscript;
+
+      final speed = funscript.averageSpeed.value;
+      final min = funscript.averageMin.value;
+      final max = funscript.averageMax.value;
+
+      return ListTile(
+        leading: const Icon(Icons.analytics_outlined),
+        title: const Text('Processed Script Stats'),
+        subtitle: Text(
+          'Avg Speed: ${speed.toStringAsFixed(1)} | Avg Min: ${min.round()} | Avg Max: ${max.round()}',
+        ),
+      );
+    });
+  }
+
+  Widget _buildIntensitySettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
+    return Watch((context) {
+      final intensity = settings.intensity.value;
+      return Column(
+        children: [
+          SwitchListTile(
+            title: const Text('Intensity'),
+            subtitle: const Text(
+              'Increases the stroke length of each stroke, resulting in higher speed.',
+            ),
+            value: intensity != null,
+            onChanged: (value) {
+              settings.intensity.value = value ? 1.0 : null;
+            },
+            secondary: const Icon(Icons.bolt),
+            isThreeLine: true,
+          ),
+          if (intensity != null)
+            _buildSliderWithNumericInput(
+              context,
+              value: intensity * 100.0,
+              min: 100,
+              max: 500,
+              divisions: 20,
+              label: intensity.toStringAsFixed(1),
+              showNumericInput: false,
+              onChanged: (value) {
+                settings.intensity.value = value / 100.0;
+              },
+            ),
+        ],
+      );
+    });
+  }
+
   Widget _buildMinMaxSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
 
@@ -379,7 +442,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
                 title: Text('Stats for nerds'),
                 subtitle: Text(
                   hspState.toString(),
-                  style: TextStyle(fontFamily: 'monospace'),
+                  style: GoogleFonts.robotoMono(),
                 ),
                 isThreeLine: true,
               );

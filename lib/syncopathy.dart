@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:signals/signals_flutter.dart';
@@ -37,6 +38,9 @@ class Syncopathy extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
+          textTheme: GoogleFonts.robotoTextTheme(
+            ThemeData(brightness: Brightness.dark).textTheme,
+          ),
           colorScheme: ColorScheme.fromSeed(
             seedColor: Colors.blueAccent,
             brightness: Brightness.dark,

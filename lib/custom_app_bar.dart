@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
@@ -117,8 +118,7 @@ class CustomAppBarState extends State<CustomAppBar> {
                 child: Text(
                   '${batteryModel.batteryLevel.watch(context).toString().padLeft(3, ' ')}%',
                   textAlign: TextAlign.end, // Aligns text against the icon
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
+                  style: GoogleFonts.robotoMono(
                     fontFeatures: [FontFeature.tabularFigures()],
                   ),
                 ),
