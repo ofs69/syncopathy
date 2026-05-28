@@ -14,11 +14,14 @@ import 'package:syncopathy/media_library/filter/media_filter.dart';
 import 'package:syncopathy/media_library/filter/media_filter_logic.dart';
 import 'package:syncopathy/media_library/media_filter_overlay.dart';
 import 'package:syncopathy/media_library/media_item.dart';
+import 'package:syncopathy/media_library/delete_media_dialog.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
+import 'package:syncopathy/media_library/move_media_dialog.dart';
 import 'package:syncopathy/media_library/search_bar.dart';
 import 'package:syncopathy/media_library/wheel_of_fortune.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
+import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/settings_overlay.dart';
@@ -651,6 +654,14 @@ class _MediaLibraryState extends State<MediaLibrary>
                 ),
                 const VerticalDivider(),
                 Tooltip(
+                  message: 'Move Files',
+                  child: IconButton(
+                    icon: const Icon(Icons.drive_file_move),
+                    onPressed: _showMoveMediaDialog,
+                  ),
+                ),
+                const VerticalDivider(),
+                Tooltip(
                   message: 'Remove from Library',
                   child: IconButton(
                     icon: Icon(Icons.delete_forever, color: colorScheme.error),
@@ -797,65 +808,24 @@ class _MediaLibraryState extends State<MediaLibrary>
     }
   }
 
-  Future<void> _bulkDeleteMedia() async {
-    final count = selectedVideos.length;
-    final result = await showDialog<(bool, bool)?>(
+  Future<void> _showMoveMediaDialog() async {
+    final result = await showDialog<bool>(
       context: context,
-      builder: (context) {
-        bool deleteFromDisk = false;
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text('Remove $count Items?'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Are you sure you want to remove $count selected items from your library?',
-                  ),
-                  const SizedBox(height: 16),
-                  CheckboxListTile(
-                    title: const Text('Delete files from disk'),
-                    value: deleteFromDisk,
-                    onChanged: (value) =>
-                        setState(() => deleteFromDisk = value ?? false),
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, null),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () =>
-                      Navigator.pop(context, (true, deleteFromDisk)),
-                  child: const Text(
-                    'Remove',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      builder: (context) => MoveMediaDialog(
+        selectedMedia: Set.from(selectedVideos.value),
+        searchPaths: context.read<SettingsModel>().mediaPaths.value,
+      ),
     );
+    if (result == true) selectedVideos.clear();
+  }
 
-    if (result != null && result.$1) {
-      final videosToRemove = selectedVideos.value.toList();
-      for (final video in videosToRemove) {
-        if (result.$2) {
-          await _deleteMediaFiles(video);
-        }
-        oBox.mediaService.remove(video.id);
-      }
-      selectedVideos.clear();
-    }
+  Future<void> _bulkDeleteMedia() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) =>
+          DeleteMediaDialog(selectedMedia: Set.from(selectedVideos.value)),
+    );
+    if (result == true) selectedVideos.clear();
   }
 
   Future<void> _showBulkAddCategoryDialog() async {

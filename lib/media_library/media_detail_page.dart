@@ -498,21 +498,54 @@ class _MediaDetailPageState extends State<MediaDetailPage>
               .first // Remove microseconds
         : 'Unknown';
 
+    final fileNotFound = widget.media.fileNotFound;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            _buildInfoRow(
-              'File Path',
-              _pathSignal.value,
-              action: Row(
-                mainAxisSize: MainAxisSize.min,
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Row(
                 children: [
+                  const SizedBox(
+                    width: 120,
+                    child: Text(
+                      'File Path',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      _pathSignal.value,
+                      style: GoogleFonts.robotoMono().copyWith(
+                        color: fileNotFound ? Colors.red : null,
+                        decoration: fileNotFound
+                            ? TextDecoration.lineThrough
+                            : null,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (fileNotFound)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 4.0),
+                      child: Tooltip(
+                        message: 'File not found',
+                        child: Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.orange,
+                          size: 20,
+                        ),
+                      ),
+                    ),
                   IconButton(
                     icon: const Icon(Icons.open_in_new),
-                    onPressed: () =>
-                        PlatformUtils.openFileExplorer(_pathSignal.value),
+                    onPressed: fileNotFound
+                        ? null
+                        : () =>
+                              PlatformUtils.openFileExplorer(_pathSignal.value),
                     tooltip: 'Open in explorer',
                   ),
                   IconButton(
