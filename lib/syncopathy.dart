@@ -38,6 +38,7 @@ class Syncopathy extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
+          fontFamily: GoogleFonts.roboto().fontFamily,
           textTheme: GoogleFonts.robotoTextTheme(
             ThemeData(brightness: Brightness.dark).textTheme,
           ),
