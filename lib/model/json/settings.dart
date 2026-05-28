@@ -10,8 +10,8 @@ class Settings {
   int max = 100;
   int offsetMs;
   List<String> mediaPaths = [];
-  double? slewMaxRateOfChange;
-  double? rdpEpsilon;
+  double slewMaxRateOfChange;
+  double rdpEpsilon;
   bool remapFullRange;
   bool skipToAction;
   bool embeddedVideoPlayer;

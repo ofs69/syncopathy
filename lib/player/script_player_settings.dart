@@ -123,14 +123,14 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
             subtitle: const Text(
               'Reduces the number of points in the funscript. Higher values mean more simplification.',
             ),
-            value: rdpEpsilon != null,
+            value: rdpEpsilon >= 0,
             onChanged: (value) {
-              settings.rdpEpsilon.value = value ? 7.0 : null;
+              settings.rdpEpsilon.value = value ? 7.0 : -1;
             },
             secondary: const Icon(Icons.timeline),
             isThreeLine: true,
           ),
-          if (rdpEpsilon != null)
+          if (rdpEpsilon >= 0)
             _buildSliderWithNumericInput(
               context,
               value: rdpEpsilon,
@@ -191,14 +191,14 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
             subtitle: const Text(
               'Modify the funscript limiting the rate of change, preventing jerky movements. Measured in percent per second.',
             ),
-            value: slewMaxRateOfChange != null,
+            value: slewMaxRateOfChange >= 0,
             onChanged: (value) {
-              settings.slewMaxRateOfChange.value = value ? 400 : null;
+              settings.slewMaxRateOfChange.value = value ? 400 : -1;
             },
             secondary: const Icon(Icons.speed),
             isThreeLine: true,
           ),
-          if (slewMaxRateOfChange != null)
+          if (slewMaxRateOfChange >= 0)
             _buildSliderWithNumericInput(
               context,
               value: slewMaxRateOfChange,

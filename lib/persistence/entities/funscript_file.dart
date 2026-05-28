@@ -19,7 +19,11 @@ class FunscriptFile {
       ? metadata = FunscriptMetadata.fromJson(jsonDecode(json))
       : metadata = null;
 
-  String? funscriptHash;
+  @Index(type: IndexType.value)
+  @Unique(onConflict: ConflictStrategy.fail)
+  String funscriptHash;
+
+  int algorithmVersion = 0;
 
   double averageSpeed;
   double averageMin;

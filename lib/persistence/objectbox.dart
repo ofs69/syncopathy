@@ -21,6 +21,9 @@ class ObjectBox {
     mediaService = MediaService(store);
     funscriptService = FunscriptService(store);
     fastHashCacheService = FastHashCacheService(store);
+
+    // Remove this at some point in the future
+    funscriptService.removeDuplicates(store);
   }
 
   static Future<ObjectBox> create(String path) async {

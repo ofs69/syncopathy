@@ -56,7 +56,7 @@ class MediaFile {
 
   @Index(type: IndexType.value)
   @Unique(onConflict: ConflictStrategy.fail)
-  String? fileHash;
+  String fileHash;
 
   // main name
   String name;

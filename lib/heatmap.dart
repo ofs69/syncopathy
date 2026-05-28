@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/throttler.dart';
+import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/player/video_player.dart';
@@ -226,6 +227,51 @@ class HeatmapPainter extends CustomPainter {
       numSegments,
       (_) => _SegmentData(),
     );
+
+    // Precompute effective speeds per action pair using the acceleration model.
+    // Output unit: remapped pos/ms (matching the previous raw speed unit).
+    final remapScale = (strokeRange.end - strokeRange.start) / 100.0;
+    final effectiveSpeeds = List<double>.filled(actions.length - 1, 0.0);
+    {
+      var prevSpeed = 0.0;
+      var prevDir = 0;
+      for (int j = 0; j < actions.length - 1; j++) {
+        final a1 = actions[j];
+        final a2 = actions[j + 1];
+        final dt = (a2.at - a1.at).toDouble() / playbackSpeed;
+        if (dt <= 0) continue;
+        final rawDp = a2.pos - a1.pos;
+        if (rawDp == 0) {
+          prevSpeed = 0.0;
+          prevDir = 0;
+          continue;
+        }
+        final dir = rawDp > 0 ? 1 : -1;
+        if (prevDir != 0 && dir != prevDir) prevSpeed = 0.0;
+        prevDir = dir;
+        final targetSpeed = rawDp.abs() / dt * 1000.0; // raw pos/s
+        final tRampMs =
+            (targetSpeed - prevSpeed).abs() /
+            FunscriptAlgorithms.acceleration *
+            1000;
+        final double effectiveSpeed;
+        if (tRampMs >= dt) {
+          final sign = targetSpeed >= prevSpeed ? 1.0 : -1.0;
+          final effectiveEnd =
+              prevSpeed + sign * FunscriptAlgorithms.acceleration * (dt / 1000);
+          effectiveSpeed = (prevSpeed + effectiveEnd) / 2;
+          prevSpeed = effectiveEnd;
+        } else {
+          effectiveSpeed =
+              ((prevSpeed + targetSpeed) / 2 * tRampMs +
+                  targetSpeed * (dt - tRampMs)) /
+              dt;
+          prevSpeed = targetSpeed;
+        }
+        effectiveSpeeds[j] = effectiveSpeed * remapScale / 1000.0;
+      }
+    }
+
     int currentActionIndex = 0;
 
     for (int i = 0; i < numSegments; i++) {
@@ -247,23 +293,10 @@ class HeatmapPainter extends CustomPainter {
         // Check for overlap
         if (max(p1.at.toDouble(), segmentStartTime) <
             min(p2.at.toDouble(), segmentEndTime)) {
-          final p1PosRemap = remapWithClamp(
-            p1.pos.toDouble(),
-            strokeRange.start,
-            strokeRange.end,
-          );
-
-          final p2PosRemap = remapWithClamp(
-            p2.pos.toDouble(),
-            strokeRange.start,
-            strokeRange.end,
-          );
-
-          // Speed Calculation
+          // Speed from precomputed acceleration model
           final timeDiff = (p2.at - p1.at).toDouble() / playbackSpeed;
           if (timeDiff > 0) {
-            segments[i].totalSpeed +=
-                (p2PosRemap - p1PosRemap).abs() / timeDiff;
+            segments[i].totalSpeed += effectiveSpeeds[tempIdx];
             segments[i].speedCount++;
           }
 

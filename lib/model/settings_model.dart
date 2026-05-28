@@ -20,8 +20,8 @@ class SettingsModel {
   );
   final Signal<int> offsetMs = signal(0);
   final ListSignal<String> mediaPaths = listSignal([]);
-  final Signal<double?> slewMaxRateOfChange = signal(null);
-  final Signal<double?> rdpEpsilon = signal(null);
+  final Signal<double> slewMaxRateOfChange = signal(-1);
+  final Signal<double> rdpEpsilon = signal(-1);
   final Signal<bool> remapFullRange = signal(false);
   final Signal<bool> skipToAction = signal(false);
   final Signal<bool> embeddedVideoPlayer = signal(kIsWeb);

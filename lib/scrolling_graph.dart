@@ -6,6 +6,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/buffer_list.dart';
+import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/player_model.dart';
@@ -97,30 +98,56 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
       if (funscript.processedActions.value.length < 2) return [];
 
       final actions = funscript.processedActions.value;
+      final remapScale = (strokeRange.end - strokeRange.start) / 100.0;
       final speeds = <double>[];
+      var prevSpeed = 0.0;
+      var prevDir = 0;
       for (int i = 0; i < actions.length - 1; i++) {
         final p1 = actions[i];
         final p2 = actions[i + 1];
 
         final timeDiff = (p2.at - p1.at) / playbackSpeed;
-        if (timeDiff > 0) {
-          final posDiff =
-              (remapWithClamp(
-                        p2.pos.toDouble(),
-                        strokeRange.start,
-                        strokeRange.end,
-                      ) -
-                      remapWithClamp(
-                        p1.pos.toDouble(),
-                        strokeRange.start,
-                        strokeRange.end,
-                      ))
-                  .abs();
-          final speed = posDiff / timeDiff; // % per millisecond
-          speeds.add(speed);
-        } else {
+        if (timeDiff <= 0) {
           speeds.add(0.0);
+          continue;
         }
+
+        final rawDp = p2.pos - p1.pos;
+        if (rawDp == 0) {
+          prevSpeed = 0.0;
+          prevDir = 0;
+          speeds.add(0.0);
+          continue;
+        }
+
+        final dir = rawDp > 0 ? 1 : -1;
+        if (prevDir != 0 && dir != prevDir) prevSpeed = 0.0;
+        prevDir = dir;
+
+        final targetSpeed =
+            rawDp.abs().toDouble() / timeDiff * 1000.0; // raw pos/s
+        final tRampMs =
+            (targetSpeed - prevSpeed).abs() /
+            FunscriptAlgorithms.acceleration *
+            1000;
+
+        final double effectiveSpeed;
+        if (tRampMs >= timeDiff) {
+          final sign = targetSpeed >= prevSpeed ? 1.0 : -1.0;
+          final effectiveEnd =
+              prevSpeed +
+              sign * FunscriptAlgorithms.acceleration * (timeDiff / 1000);
+          effectiveSpeed = (prevSpeed + effectiveEnd) / 2;
+          prevSpeed = effectiveEnd;
+        } else {
+          effectiveSpeed =
+              ((prevSpeed + targetSpeed) / 2 * tRampMs +
+                  targetSpeed * (timeDiff - tRampMs)) /
+              timeDiff;
+          prevSpeed = targetSpeed;
+        }
+
+        speeds.add(effectiveSpeed * remapScale / 1000.0); // remapped pos/ms
       }
 
       return speeds;

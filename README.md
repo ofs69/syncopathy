@@ -12,7 +12,7 @@ protoc --dart_out=lib/generated -Iprotos protos\messages.proto
 protoc --dart_out=lib/generated -Iprotos protos\notifications.proto
 
 // needs to be run when changing @JsonSerializable classes
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 ```
 I forked this library because I needed some changes
 [media-kit](https://github.com/ofs69/media-kit)

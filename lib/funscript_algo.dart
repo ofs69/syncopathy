@@ -30,7 +30,10 @@ class FunscriptProcessParams {
 }
 
 class FunscriptAlgorithms {
-  // Applies slew to the actions limiting the amount of change per second based on maxRateOfChangePerSecond
+  // Bump when averageSpeed, averageMin, averageMax, or isScriptToken logic changes.
+  // Existing DB entries with a lower version will be re-parsed on the next scan.
+  static const int algorithmVersion = 1;
+
   static List<FunscriptAction> slew(
     List<FunscriptAction> actions,
     double maxRateOfChangePerSecond,
@@ -158,15 +161,20 @@ class FunscriptAlgorithms {
     return result;
   }
 
+  // Rough approximation of motor ramp-up rate; not device-specific.
+  static const acceleration = 8000.0; // pos/s²
+
   static double averageSpeed(List<FunscriptAction> actions) {
     if (actions.length < 2) {
       return 0.0;
     }
 
-    // Sort actions by time to ensure segments are calculated correctly.
-    final sortedActions = List<FunscriptAction>.from(actions)..sort();
+    // Sort actions by time; strip negative timestamps (invalid data).
+    final sortedActions = actions.where((a) => a.at >= 0).toList()..sort();
 
     final List<({double speed, double weight})> segments = [];
+    var prevSpeed = 0.0;
+    var prevDirection = 0;
     for (int i = 1; i < sortedActions.length; i++) {
       final p1 = sortedActions[i - 1];
       final p2 = sortedActions[i];
@@ -174,10 +182,43 @@ class FunscriptAlgorithms {
       final timeDiff = (p2.at - p1.at).toDouble();
       if (timeDiff <= 0) continue;
 
-      final posDiff = (p2.pos - p1.pos).abs().toDouble();
+      final rawPosDiff = p2.pos - p1.pos;
+      if (rawPosDiff == 0) {
+        // Pause — device comes to rest.
+        prevSpeed = 0.0;
+        prevDirection = 0;
+        continue;
+      }
 
-      final speed = posDiff / timeDiff * 1000; // pos per second
-      segments.add((speed: speed, weight: timeDiff));
+      final direction = rawPosDiff > 0 ? 1 : -1;
+      if (prevDirection != 0 && direction != prevDirection) {
+        // Direction reversal — device must decelerate through zero.
+        prevSpeed = 0.0;
+      }
+      prevDirection = direction;
+
+      final posDiff = rawPosDiff.abs().toDouble();
+      final targetSpeed = posDiff / timeDiff * 1000; // pos per second
+
+      final double segmentAvgSpeed;
+      final tRampMs = (targetSpeed - prevSpeed).abs() / acceleration * 1000;
+      if (tRampMs >= timeDiff) {
+        // Device doesn't reach target speed within this segment.
+        final sign = targetSpeed >= prevSpeed ? 1.0 : -1.0;
+        final effectiveSpeed =
+            prevSpeed + sign * acceleration * (timeDiff / 1000);
+        segmentAvgSpeed = (prevSpeed + effectiveSpeed) / 2;
+        prevSpeed = effectiveSpeed;
+      } else {
+        // Device reaches target speed and cruises for the remainder.
+        segmentAvgSpeed =
+            ((prevSpeed + targetSpeed) / 2 * tRampMs +
+                targetSpeed * (timeDiff - tRampMs)) /
+            timeDiff;
+        prevSpeed = targetSpeed;
+      }
+
+      segments.add((speed: segmentAvgSpeed, weight: timeDiff));
     }
 
     if (segments.isEmpty) {
@@ -213,23 +254,10 @@ class FunscriptAlgorithms {
         .where((s) => s.speed >= lowerBound && s.speed <= upperBound)
         .toList();
 
-    // If all filtered segments are 0 speed but there were non-zero segments,
-    // the filtering was too aggressive (this happens when >75% of segments are 0).
-    if (filteredSegments.every((s) => s.speed == 0) &&
-        segments.any((s) => s.speed > 0)) {
-      double totalSpeed = 0;
-      double totalWeight = 0;
-      for (final s in segments) {
-        totalSpeed += s.speed * s.weight;
-        totalWeight += s.weight;
-      }
-      return totalWeight > 0 ? totalSpeed / totalWeight : 0.0;
-    }
-
     // Weighted average of filtered speeds
     double totalSpeed = 0;
     double totalWeight = 0;
-    for (final s in filteredSegments) {
+    for (final s in filteredSegments.isNotEmpty ? filteredSegments : segments) {
       totalSpeed += s.speed * s.weight;
       totalWeight += s.weight;
     }

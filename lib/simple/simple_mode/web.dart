@@ -162,7 +162,7 @@ class SimpleMode {
             playCount: 0,
             rating: MediaRating.noRating,
             type: MediaType.unknown,
-            fileHash: null,
+            fileHash: '',
             fileNotFound: true,
           ),
         );

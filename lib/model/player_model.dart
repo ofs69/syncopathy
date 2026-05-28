@@ -145,8 +145,10 @@ class PlayerModel with EffectDispose {
                   totalDuration: totalDuration,
                   playbackSpeed: playbackSpeed,
                   strokeRange: strokeRange,
-                  slewMaxRateOfChangePerSecond: slewMaxRateOfChange,
-                  rdpEpsilon: rdpEpsilon,
+                  slewMaxRateOfChangePerSecond: slewMaxRateOfChange < 0
+                      ? null
+                      : slewMaxRateOfChange,
+                  rdpEpsilon: rdpEpsilon < 0 ? null : rdpEpsilon,
                   remapRange: remapFullRange ? (0, 100) : null,
                   smoothIntervalMs: smoothIntervalMs,
                 ),
@@ -210,8 +212,10 @@ class PlayerModel with EffectDispose {
                   totalDuration: totalDuration,
                   playbackSpeed: playbackSpeed,
                   strokeRange: strokeRange,
-                  slewMaxRateOfChangePerSecond: slewMaxRateOfChange,
-                  rdpEpsilon: rdpEpsilon,
+                  slewMaxRateOfChangePerSecond: slewMaxRateOfChange < 0
+                      ? null
+                      : slewMaxRateOfChange,
+                  rdpEpsilon: rdpEpsilon < 0 ? null : rdpEpsilon,
                   remapRange: remapFullRange ? (0, 100) : null,
                   smoothIntervalMs: smoothIntervalMs,
                 ),

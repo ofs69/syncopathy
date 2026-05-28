@@ -27,7 +27,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(1, 7964640067007867812),
     name: 'FunscriptFile',
-    lastPropertyId: const obx_int.IdUid(10, 545516618309890199),
+    lastPropertyId: const obx_int.IdUid(17, 6625622394906514616),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -52,7 +52,8 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(4, 1356995452592052177),
         name: 'funscriptHash',
         type: 9,
-        flags: 0,
+        flags: 40,
+        indexId: const obx_int.IdUid(8, 283326192770610566),
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(5, 7130107968100975467),
@@ -88,6 +89,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(10, 545516618309890199),
         name: 'firstIndexedOn',
         type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(17, 6625622394906514616),
+        name: 'algorithmVersion',
+        type: 6,
         flags: 0,
       ),
     ],
@@ -452,12 +459,19 @@ obx_int.ModelDefinition getObjectBoxModel() {
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
     lastEntityId: const obx_int.IdUid(6, 5727764668235585434),
-    lastIndexId: const obx_int.IdUid(6, 1713004275202719678),
+    lastIndexId: const obx_int.IdUid(8, 283326192770610566),
     lastRelationId: const obx_int.IdUid(2, 3712515284933883622),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
-    retiredIndexUids: const [],
-    retiredPropertyUids: const [],
+    retiredIndexUids: const [9035604879022144741],
+    retiredPropertyUids: const [
+      7700980024447199009,
+      2806828708655684445,
+      1785538189675798910,
+      6987319965034416777,
+      2682520737983420239,
+      4932573886840962803,
+    ],
     retiredRelationUids: const [],
     modelVersion: 5,
     modelVersionParserMinimum: 5,
@@ -480,10 +494,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final metadataDbOffset = object.metadataDb == null
             ? null
             : fbb.writeString(object.metadataDb!);
-        final funscriptHashOffset = object.funscriptHash == null
-            ? null
-            : fbb.writeString(object.funscriptHash!);
-        fbb.startTable(11);
+        final funscriptHashOffset = fbb.writeString(object.funscriptHash);
+        fbb.startTable(18);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, pathOffset);
         fbb.addOffset(2, metadataDbOffset);
@@ -494,6 +506,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(7, object.isScriptToken);
         fbb.addBool(8, object.fileNotFound);
         fbb.addInt64(9, object.firstIndexedOn?.millisecondsSinceEpoch);
+        fbb.addInt64(16, object.algorithmVersion);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -540,7 +553,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         );
         final funscriptHashParam = const fb.StringReader(
           asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 10);
+        ).vTableGet(buffer, rootOffset, 10, '');
         final object =
             FunscriptFile(
                 path: pathParam,
@@ -557,7 +570,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
               ).vTableGetNullable(buffer, rootOffset, 8)
               ..firstIndexedOn = firstIndexedOnValue == null
                   ? null
-                  : DateTime.fromMillisecondsSinceEpoch(firstIndexedOnValue);
+                  : DateTime.fromMillisecondsSinceEpoch(firstIndexedOnValue)
+              ..algorithmVersion = const fb.Int64Reader().vTableGet(
+                buffer,
+                rootOffset,
+                36,
+                0,
+              );
         obx_int.InternalToManyAccess.setRelInfo<FunscriptFile>(
           object.media,
           store,
@@ -615,9 +634,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         object.id = id;
       },
       objectToFB: (MediaFile object, fb.Builder fbb) {
-        final fileHashOffset = object.fileHash == null
-            ? null
-            : fbb.writeString(object.fileHash!);
+        final fileHashOffset = fbb.writeString(object.fileHash);
         final nameOffset = fbb.writeString(object.name);
         final dbAliasesOffset = fbb.writeString(object.dbAliases);
         final mediaPathOffset = fbb.writeString(object.mediaPath);
@@ -654,7 +671,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         ).vTableGet(buffer, rootOffset, 16, '');
         final fileHashParam = const fb.StringReader(
           asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 10);
+        ).vTableGet(buffer, rootOffset, 10, '');
         final playCountParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
@@ -1001,6 +1018,11 @@ class FunscriptFile_ {
   /// See [FunscriptFile.firstIndexedOn].
   static final firstIndexedOn = obx.QueryDateProperty<FunscriptFile>(
     _entities[0].properties[9],
+  );
+
+  /// See [FunscriptFile.algorithmVersion].
+  static final algorithmVersion = obx.QueryIntegerProperty<FunscriptFile>(
+    _entities[0].properties[10],
   );
 }
 

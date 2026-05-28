@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:7964640067007867812",
-      "lastPropertyId": "10:545516618309890199",
+      "lastPropertyId": "17:6625622394906514616",
       "name": "FunscriptFile",
       "properties": [
         {
@@ -27,7 +27,9 @@
         {
           "id": "4:1356995452592052177",
           "name": "funscriptHash",
-          "type": 9
+          "indexId": "8:283326192770610566",
+          "type": 9,
+          "flags": 40
         },
         {
           "id": "5:7130107968100975467",
@@ -58,6 +60,11 @@
           "id": "10:545516618309890199",
           "name": "firstIndexedOn",
           "type": 10
+        },
+        {
+          "id": "17:6625622394906514616",
+          "name": "algorithmVersion",
+          "type": 6
         }
       ],
       "relations": []
@@ -325,14 +332,23 @@
     }
   ],
   "lastEntityId": "6:5727764668235585434",
-  "lastIndexId": "6:1713004275202719678",
+  "lastIndexId": "8:283326192770610566",
   "lastRelationId": "2:3712515284933883622",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
-  "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredIndexUids": [
+    9035604879022144741
+  ],
+  "retiredPropertyUids": [
+    7700980024447199009,
+    2806828708655684445,
+    1785538189675798910,
+    6987319965034416777,
+    2682520737983420239,
+    4932573886840962803
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

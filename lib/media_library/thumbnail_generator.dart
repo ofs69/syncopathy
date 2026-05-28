@@ -82,7 +82,7 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
   Future<File?> _generateThumbnailAndGetPath(ThumbnailRequest request) async {
     try {
       final fileHash = request.file.fileHash;
-      if (fileHash == null) return null;
+      if (fileHash.isEmpty) return null;
       var metadata = request.file.metadata.target;
       if (metadata == null) return null;
 

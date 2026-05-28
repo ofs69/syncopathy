@@ -451,10 +451,14 @@ class _MediaDetailPageState extends State<MediaDetailPage>
                     _buildSectionTitle('Funscripts'),
                     _buildFunscriptList(),
                     const SizedBox(height: 12),
-                    TextButton.icon(
-                      onPressed: _addFunscript,
-                      icon: const Icon(Icons.add_link),
-                      label: const Text('Add Funscript File'),
+                    Row(
+                      children: [
+                        TextButton.icon(
+                          onPressed: _addFunscript,
+                          icon: const Icon(Icons.add_link),
+                          label: const Text('Add Funscript File'),
+                        ),
+                      ],
                     ),
                     const Divider(height: 40),
 
@@ -499,6 +503,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
         : 'Unknown';
 
     final fileNotFound = widget.media.fileNotFound;
+    final mainFs = _mainFunscriptSignal.value;
 
     return Card(
       child: Padding(
@@ -556,7 +561,9 @@ class _MediaDetailPageState extends State<MediaDetailPage>
                 ],
               ),
             ),
-            _buildInfoRow('File Hash', widget.media.fileHash ?? 'Unknown'),
+            _buildInfoRow('File Hash', widget.media.fileHash),
+            if (mainFs != null)
+              _buildInfoRow('Funscript Hash', mainFs.funscriptHash),
             _buildInfoRow('Date Added', dateStr),
             _buildInfoRow('Play Count', widget.media.playCount.toString()),
             if (meta != null) ...[
@@ -648,13 +655,25 @@ class _MediaDetailPageState extends State<MediaDetailPage>
                       : null,
                 ),
               ),
-              subtitle: Text(
-                fs.path,
-                style: TextStyle(
-                  color: fs.fileNotFound
-                      ? Colors.red.withValues(alpha: 0.7)
-                      : null,
-                ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    fs.path,
+                    style: TextStyle(
+                      color: fs.fileNotFound
+                          ? Colors.red.withValues(alpha: 0.7)
+                          : null,
+                    ),
+                  ),
+                  Text(
+                    'Hash: ${fs.funscriptHash}',
+                    style: GoogleFonts.robotoMono(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,

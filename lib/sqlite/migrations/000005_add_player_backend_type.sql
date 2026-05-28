@@ -1,1 +1,0 @@
-ALTER TABLE settings ADD COLUMN playerBackendType TEXT NOT NULL DEFAULT 'buttplugStrokerCommand';

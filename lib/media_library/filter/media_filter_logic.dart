@@ -59,11 +59,8 @@ class MediaFilterLogic {
     // Schwartzian transform: pre-calculate sort keys and lowercase titles
     // to avoid expensive relation lookups and string operations during sort comparisons.
     final mapped = filtered.map((m) {
-      return (
-        media: m,
-        sortKey: _getSortKey(m, sortOption, randomSeed),
-        titleKey: m.name.toLowerCase(),
-      );
+      final sortKey = _getSortKey(m, sortOption, randomSeed);
+      return (media: m, sortKey: sortKey, titleKey: m.name.toLowerCase());
     }).toList();
 
     mapped.sort((a, b) {

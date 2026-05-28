@@ -107,6 +107,7 @@ class _FoundMediaFile {
   final MediaType type;
   MediaMetadataRetrieved? metadata;
   final List<_FoundFunscriptFile> funscripts = [];
+  final List<String> extraAliases = [];
   _FoundMediaFile(this.file, this.mediaHash, this.type, this.metadata);
 }
 
@@ -208,28 +209,30 @@ class MediaManager {
             funscript.averageMax = found.averageMax;
             funscript.isScriptToken = found.isScriptToken;
             funscript.metadata = found.metadata;
+            funscript.algorithmVersion = FunscriptAlgorithms.algorithmVersion;
 
             funscript.firstIndexedOn ??= DateTime.now();
           } else {
             funscript.fileNotFound = true;
           }
-          if (funscript.funscriptHash != null) {
-            funscriptMap[funscript.funscriptHash!] = funscript;
-          }
+          funscriptMap[funscript.funscriptHash] = funscript;
         }
 
         // Add new funscripts
         for (final newFound in result.newFoundFunscript.values) {
-          final funscript = FunscriptFile(
-            path: newFound.file.path,
-            averageSpeed: newFound.averageSpeed,
-            averageMin: newFound.averageMin,
-            averageMax: newFound.averageMax,
-            isScriptToken: newFound.isScriptToken,
-            fileNotFound: false,
-            funscriptHash: newFound.funscriptHash,
-            metadata: newFound.metadata,
-          )..firstIndexedOn ??= DateTime.now();
+          final funscript =
+              FunscriptFile(
+                  path: newFound.file.path,
+                  averageSpeed: newFound.averageSpeed,
+                  averageMin: newFound.averageMin,
+                  averageMax: newFound.averageMax,
+                  isScriptToken: newFound.isScriptToken,
+                  fileNotFound: false,
+                  funscriptHash: newFound.funscriptHash,
+                  metadata: newFound.metadata,
+                )
+                ..algorithmVersion = FunscriptAlgorithms.algorithmVersion
+                ..firstIndexedOn ??= DateTime.now();
           funscriptBox.put(funscript); // Put to get ID
           funscriptMap[newFound.funscriptHash] = funscript;
         }
@@ -248,6 +251,11 @@ class MediaManager {
             final basename = p.basenameWithoutExtension(found.file.path);
             if (!media.aliases.contains(basename)) {
               media.aliases.add(basename);
+            }
+            for (final alias in found.extraAliases) {
+              if (!media.aliases.contains(alias)) {
+                media.aliases.add(alias);
+              }
             }
 
             if (media.metadata.target == null && found.metadata != null) {
@@ -269,9 +277,7 @@ class MediaManager {
           } else {
             media.fileNotFound = true;
           }
-          if (media.fileHash != null) {
-            mediaMap[media.fileHash!] = media;
-          }
+          mediaMap[media.fileHash] = media;
         }
 
         // Add new media
@@ -283,7 +289,10 @@ class MediaManager {
             playCount: 0,
             fileNotFound: false,
             type: newFound.type,
-            aliases: [p.basenameWithoutExtension(newFound.file.path)],
+            aliases: [
+              p.basenameWithoutExtension(newFound.file.path),
+              ...newFound.extraAliases,
+            ],
           )..firstIndexedOn ??= DateTime.now();
           if (newFound.metadata != null) {
             media.metadata.target = MediaMetadata(
@@ -461,7 +470,9 @@ class MediaManager {
 
             _FoundFunscriptFile found;
 
-            if (existing != null) {
+            if (existing != null &&
+                existing.algorithmVersion >=
+                    FunscriptAlgorithms.algorithmVersion) {
               found = _FoundFunscriptFile(
                 file: file,
                 funscriptHash: funscriptHash,
@@ -567,9 +578,17 @@ class MediaManager {
     final dbMediaMap = params.allMediasMap;
     final dbFunscriptMap = params.allFunscriptsMap;
 
-    final allFoundMediaMap = {
-      for (final media in groups.values) media.mediaHash: media,
-    };
+    final allFoundMediaMap = <String, _FoundMediaFile>{};
+    for (final media in groups.values) {
+      if (allFoundMediaMap.containsKey(media.mediaHash)) {
+        allFoundMediaMap[media.mediaHash]!.funscripts.addAll(media.funscripts);
+        allFoundMediaMap[media.mediaHash]!.extraAliases.add(
+          p.basenameWithoutExtension(media.file.path),
+        );
+      } else {
+        allFoundMediaMap[media.mediaHash] = media;
+      }
+    }
 
     final allFoundFunscriptMap = {
       for (final funscript in groups.values.expand((m) => m.funscripts))
