@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:syncopathy/notification_feed.dart';
 import 'package:path/path.dart' as p;
 import 'package:syncopathy/ioc.dart';
-import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
@@ -78,10 +78,10 @@ class SimpleMode {
           playerModel.simpleModeFunscript.value = funscript;
         } else {
           playerModel.simpleModeFunscript.value = null;
-          Logger.error("Script token playback is not supported.");
+          AlertManager.showError("Script token playback is not supported.");
         }
       } catch (e) {
-        Logger.error(e.toString());
+        AlertManager.showError(e.toString());
       }
     } else if (ext.length > 1 && allowedExtensions.contains(ext.substring(1))) {
       getIt.get<VideoPlayer>().openSingleVideo(

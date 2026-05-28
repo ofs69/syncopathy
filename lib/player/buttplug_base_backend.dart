@@ -174,7 +174,6 @@ class ButtplugBaseBackend extends PlayerBackend implements ICommandBackendBase {
       }
       await _client!.stopScanning();
     } catch (e) {
-      Logger.error("Connection error: $e");
       AlertManager.showError("Buttplug connection error: $e");
       _connected.value = false;
       _client = null;

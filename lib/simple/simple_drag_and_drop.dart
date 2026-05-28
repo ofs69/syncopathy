@@ -1,10 +1,10 @@
 import 'package:desktop_drop/desktop_drop.dart';
+import 'package:syncopathy/notification_feed.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/ioc.dart';
-import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/simple/simple_mode/simple_mode.dart';
 
@@ -89,7 +89,7 @@ class _SimpleModeDragAndDropState extends State<SimpleModeDragAndDrop>
         );
       }
     } catch (e) {
-      Logger.error(e.toString());
+      AlertManager.showError(e.toString());
     }
   }
 }

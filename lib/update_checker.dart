@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:syncopathy/notification_feed.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UpdateChecker {
@@ -12,7 +13,7 @@ class UpdateChecker {
   static Future<void> openReleasePage() async {
     final url = Uri.parse('https://github.com/ofs69/syncopathy/releases');
     if (!await launchUrl(url)) {
-      Logger.error('Could not launch $url');
+      AlertManager.showError('Could not open releases page.');
     }
   }
 

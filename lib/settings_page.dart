@@ -277,7 +277,6 @@ class _SettingsPageState extends State<SettingsPage> {
               PlatformUtils.openFileExplorer(directory.path);
             } catch (e) {
               final message = 'Error opening app data directory: $e';
-              Logger.error(message);
               AlertManager.showError(message);
             }
           },

@@ -31,6 +31,17 @@ class AlertManager extends ChangeNotifier {
   List<AlertMessage> get alerts => _alerts;
 
   void addAlert(String message, LogLevel level, [StackTrace? trace]) {
+    switch (level) {
+      case LogLevel.error:
+        Logger.error(message, null, trace);
+      case LogLevel.warning:
+        Logger.warning(message);
+      case LogLevel.info:
+        Logger.info(message);
+      case LogLevel.debug:
+        Logger.debug(message);
+    }
+
     final alert = AlertMessage(
       message: message,
       level: level,

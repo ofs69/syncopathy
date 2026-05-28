@@ -61,7 +61,6 @@ class RatelimitMiddleware extends InterceptorContract {
       final retryAfter = headers['retry-after'];
       final message =
           'Rate limit hit! Retry after: ${retryAfter ?? "unknown"} seconds.';
-      Logger.error(message);
       AlertManager.showError(message);
     }
 
@@ -294,13 +293,11 @@ class HandyWeb with EffectDispose {
               }
             },
             onError: (e) {
-              Logger.error("Stream Error: $e");
               AlertManager.showError("Handy stream error: $e");
             },
             cancelOnError: true,
           );
     } catch (e) {
-      Logger.error("Connection Error: $e");
       AlertManager.showError("Handy connection error: $e");
     }
     return null;

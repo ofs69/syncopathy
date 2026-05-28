@@ -2,12 +2,12 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
+import 'package:syncopathy/notification_feed.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pool/pool.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/task_queue.dart';
 import 'package:syncopathy/ioc.dart';
-import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 
 class ThumbnailRequest extends BaseRequest {
@@ -134,10 +134,10 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
       if (result.exitCode == 0 && await thumbnailFile.exists()) {
         return thumbnailFile;
       } else {
-        Logger.error('ffmpeg error: ${result.stderr}');
+        AlertManager.showError('ffmpeg error: ${result.stderr}');
       }
     } catch (e) {
-      Logger.error('Error generating thumbnail: $e');
+      AlertManager.showError('Error generating thumbnail: $e');
     }
     return null;
   }

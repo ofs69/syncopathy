@@ -9,7 +9,6 @@ import 'package:syncopathy/floating_toolbar.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/ioc.dart' show getIt, oBox;
-import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_library/category_selection_dialog.dart';
 import 'package:syncopathy/media_library/filter/media_filter.dart';
 import 'package:syncopathy/media_library/filter/media_filter_logic.dart';
@@ -531,8 +530,21 @@ class _MediaLibraryState extends State<MediaLibrary>
                               } else {
                                 // play media
                                 if (!media.isPlayable) {
-                                  Logger.error(
-                                    'Media is not playable: ${media.mediaPath}',
+                                  final main = media.mainFunscript.target;
+                                  final String reason;
+                                  if (media.fileNotFound) {
+                                    reason = 'Media file not found.';
+                                  } else if (main == null) {
+                                    reason = 'No funscript assigned.';
+                                  } else if (main.fileNotFound) {
+                                    reason = 'Funscript file not found.';
+                                  } else if (main.isScriptToken) {
+                                    reason = 'Funscript is a script token.';
+                                  } else {
+                                    reason = 'Unknown reason.';
+                                  }
+                                  AlertManager.showError(
+                                    '${media.name} cannot be played: $reason',
                                   );
                                   return;
                                 }
@@ -733,7 +745,6 @@ class _MediaLibraryState extends State<MediaLibrary>
         }
       }
     } catch (e) {
-      Logger.error("Failed to delete physical files: $e");
       AlertManager.showError("Failed to delete physical files: $e");
     }
   }
@@ -951,7 +962,7 @@ class _MediaLibraryState extends State<MediaLibrary>
         .toList();
     if (playlistVideos.isEmpty) {
       if (!mounted) return;
-      Logger.error('No non-disliked and available videos to create a playlist');
+      AlertManager.showError('No playable videos in the current filter.');
       return;
     }
     if (!mounted) return;
@@ -972,7 +983,7 @@ class _MediaLibraryState extends State<MediaLibrary>
 
     if (availableVideos.isEmpty) {
       if (mounted) {
-        Logger.error('No videos available to choose from');
+        AlertManager.showError('No playable videos available to choose from.');
       }
       return;
     }
