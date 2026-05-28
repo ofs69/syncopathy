@@ -223,39 +223,30 @@ class _MediaLibraryState extends State<MediaLibrary>
                             : 'Sort Ascending'),
                 ),
                 const SizedBox(width: 8),
-                Stack(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.tune),
-                      isSelected: showFilterSettings,
-                      style: IconButton.styleFrom(
-                        backgroundColor: showFilterSettings
-                            ? Theme.of(context).colorScheme.primaryContainer
-                            : Theme.of(context).colorScheme.onInverseSurface,
-                        foregroundColor: showFilterSettings
-                            ? Theme.of(context).colorScheme.onPrimaryContainer
-                            : Theme.of(context).colorScheme.primary,
-                      ),
-                      color: Theme.of(context).colorScheme.primary,
-                      onPressed: () =>
-                          _showFilterSettings.value = !showFilterSettings,
-                    ),
-                    if (mediaFilter.isCustomized.watch(context))
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: IgnorePointer(
-                          child: Container(
-                            width: 10,
-                            height: 10,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+                IconButton(
+                  icon: const Icon(Icons.tune),
+                  isSelected: showFilterSettings,
+                  style: IconButton.styleFrom(
+                    backgroundColor: showFilterSettings
+                        ? Theme.of(context).colorScheme.secondaryContainer
+                        : mediaFilter.isCustomized.watch(context)
+                        ? Theme.of(context).colorScheme.primaryContainer
+                        : Theme.of(context).colorScheme.onInverseSurface,
+                    foregroundColor: showFilterSettings
+                        ? Theme.of(context).colorScheme.onSecondaryContainer
+                        : mediaFilter.isCustomized.watch(context)
+                        ? Theme.of(context).colorScheme.onPrimaryContainer
+                        : Theme.of(context).colorScheme.primary,
+                    side: mediaFilter.isCustomized.watch(context)
+                        ? BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 1.0,
+                          )
+                        : BorderSide.none,
+                  ),
+                  color: Theme.of(context).colorScheme.primary,
+                  onPressed: () =>
+                      _showFilterSettings.value = !showFilterSettings,
                 ),
                 const SizedBox(width: 8),
                 MenuAnchor(
