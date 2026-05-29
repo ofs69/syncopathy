@@ -12,7 +12,7 @@ class MediaSearchBar extends StatefulWidget {
 
 class _MediaSearchBarState extends State<MediaSearchBar> {
   final _searchController = TextEditingController();
-  final Debouncer _debouncer = Debouncer(milliseconds: 300);
+  final Debouncer _debouncer = Debouncer(milliseconds: 200);
 
   @override
   void initState() {

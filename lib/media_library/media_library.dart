@@ -211,16 +211,20 @@ class _MediaLibraryState extends State<MediaLibrary>
                 ),
                 IconButton(
                   icon: Icon(
-                    isSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                    sortOption == SortOption.random
+                        ? Icons.shuffle
+                        : isSortAscending
+                        ? Icons.arrow_upward
+                        : Icons.arrow_downward,
                   ),
                   onPressed: sortOption == SortOption.random
-                      ? null
+                      ? () => randomSeed.value = Random().nextInt(1000000)
                       : () {
                           mediaSettings.isSortAscending.value =
                               !mediaSettings.isSortAscending.value;
                         },
                   tooltip: sortOption == SortOption.random
-                      ? 'Not available for Random sort'
+                      ? 'Randomize'
                       : (isSortAscending
                             ? 'Sort Descending'
                             : 'Sort Ascending'),
@@ -478,89 +482,81 @@ class _MediaLibraryState extends State<MediaLibrary>
                   ),
                 )
               else
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 500),
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return FadeTransition(opacity: animation, child: child);
-                      },
-                  child: _fade(
-                    ExcludeFocus(
-                      child: GridView.builder(
-                        key: ValueKey(mediaFiles.length),
-                        padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: videosPerRow,
-                          childAspectRatio: 16 / 9,
-                        ),
-                        itemCount: mediaFiles.length,
-                        itemBuilder: (context, index) {
-                          final media = mediaFiles[index];
-                          final isSelected = selectedVideos.contains(media);
+                _fade(
+                  ExcludeFocus(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: videosPerRow,
+                        childAspectRatio: 16 / 9,
+                      ),
+                      itemCount: mediaFiles.length,
+                      itemBuilder: (context, index) {
+                        final media = mediaFiles[index];
+                        final isSelected = selectedVideos.contains(media);
 
-                          return MediaItem(
-                            key: Key(media.mediaPath),
-                            media: media,
-                            isSelected: isSelected,
-                            showAverageMinMax: showAverageMinMax,
-                            showAverageSpeed: showAverageSpeed,
-                            showDuration: showDuration,
-                            showPlayCount: showPlayCount,
-                            showTitle: showTitle,
-                            onLongPress: () {
+                        return MediaItem(
+                          key: Key(media.mediaPath),
+                          media: media,
+                          isSelected: isSelected,
+                          showAverageMinMax: showAverageMinMax,
+                          showAverageSpeed: showAverageSpeed,
+                          showDuration: showDuration,
+                          showPlayCount: showPlayCount,
+                          showTitle: showTitle,
+                          onLongPress: () {
+                            if (isSelected) {
+                              selectedVideos.remove(media);
+                            } else {
+                              selectedVideos.add(media);
+                            }
+                          },
+                          onTap: () {
+                            if (isSelecting) {
                               if (isSelected) {
                                 selectedVideos.remove(media);
                               } else {
                                 selectedVideos.add(media);
                               }
-                            },
-                            onTap: () {
-                              if (isSelecting) {
-                                if (isSelected) {
-                                  selectedVideos.remove(media);
+                            } else {
+                              // play media
+                              if (!media.isPlayable) {
+                                final main = media.mainFunscript.target;
+                                final String reason;
+                                if (media.fileNotFound) {
+                                  reason = 'Media file not found.';
+                                } else if (main == null) {
+                                  reason = 'No funscript assigned.';
+                                } else if (main.fileNotFound) {
+                                  reason = 'Funscript file not found.';
+                                } else if (main.isScriptToken) {
+                                  reason = 'Funscript is a script token.';
                                 } else {
-                                  selectedVideos.add(media);
+                                  reason = 'Unknown reason.';
                                 }
-                              } else {
-                                // play media
-                                if (!media.isPlayable) {
-                                  final main = media.mainFunscript.target;
-                                  final String reason;
-                                  if (media.fileNotFound) {
-                                    reason = 'Media file not found.';
-                                  } else if (main == null) {
-                                    reason = 'No funscript assigned.';
-                                  } else if (main.fileNotFound) {
-                                    reason = 'Funscript file not found.';
-                                  } else if (main.isScriptToken) {
-                                    reason = 'Funscript is a script token.';
-                                  } else {
-                                    reason = 'Unknown reason.';
-                                  }
-                                  AlertManager.showError(
-                                    '${media.name} cannot be played: $reason',
-                                  );
-                                  return;
-                                }
-                                getIt.get<VideoPlayer>().openSingleVideo(media);
+                                AlertManager.showError(
+                                  '${media.name} cannot be played: $reason',
+                                );
+                                return;
                               }
-                            },
-                            toggleDislike: () {
-                              media.rating = media.rating != MediaRating.dislike
-                                  ? MediaRating.dislike
-                                  : MediaRating.noRating;
-                              oBox.mediaService.save(media);
-                            },
-                            toggleFavorite: () {
-                              media.rating = media.rating != MediaRating.like
-                                  ? MediaRating.like
-                                  : MediaRating.noRating;
-                              oBox.mediaService.save(media);
-                            },
-                            onDelete: () => _deleteMedia(media),
-                          );
-                        },
-                      ),
+                              getIt.get<VideoPlayer>().openSingleVideo(media);
+                            }
+                          },
+                          toggleDislike: () {
+                            media.rating = media.rating != MediaRating.dislike
+                                ? MediaRating.dislike
+                                : MediaRating.noRating;
+                            oBox.mediaService.save(media);
+                          },
+                          toggleFavorite: () {
+                            media.rating = media.rating != MediaRating.like
+                                ? MediaRating.like
+                                : MediaRating.noRating;
+                            oBox.mediaService.save(media);
+                          },
+                          onDelete: () => _deleteMedia(media),
+                        );
+                      },
                     ),
                   ),
                 ),

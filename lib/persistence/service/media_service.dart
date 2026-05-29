@@ -13,7 +13,11 @@ class MediaService {
     _box
         .query()
         .watch(triggerImmediately: true)
-        .debounceTime(Duration(milliseconds: 100))
+        .throttleTime(
+          const Duration(milliseconds: 100),
+          leading: true,
+          trailing: true,
+        )
         .listen((query) {
           _allMediaFiles.value = query.find();
         });

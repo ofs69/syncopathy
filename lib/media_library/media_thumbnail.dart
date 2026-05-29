@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -42,9 +43,14 @@ class MediaThumbnail extends StatefulWidget {
   State<MediaThumbnail> createState() => _MediaThumbnailState();
 }
 
+enum _LoadingState { idle, quiet, visible }
+
 class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
-  late final Signal<bool> _loading = createSignal(true);
+  late final Signal<_LoadingState> _loadingState = createSignal(
+    _LoadingState.idle,
+  );
   late final Signal<Uint8List?> _thumbnail = createSignal(null);
+  Timer? _loadingTimer;
 
   @override
   void initState() {
@@ -56,23 +62,28 @@ class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
 
   @override
   void dispose() {
+    _loadingTimer?.cancel();
     super.dispose();
     widget.controller._dispose();
   }
 
   Future<void> _setThumbnail(Future<Uint8List?> bytesFuture) async {
-    try {
-      _loading.value = true;
-      final bytes = await bytesFuture;
-
-      if (mounted) {
-        _thumbnail.value = bytes;
+    _loadingState.value = _LoadingState.quiet;
+    _loadingTimer?.cancel();
+    _loadingTimer = Timer(const Duration(milliseconds: 200), () {
+      if (_loadingState.value == _LoadingState.quiet) {
+        _loadingState.value = _LoadingState.visible;
       }
+    });
+    try {
+      final bytes = await bytesFuture;
+      if (mounted) _thumbnail.value = bytes;
     } catch (e) {
       Logger.warning("Thumbnail error: $e");
     } finally {
       if (mounted) {
-        _loading.value = false;
+        _loadingTimer?.cancel();
+        _loadingState.value = _LoadingState.idle;
       }
     }
   }
@@ -96,21 +107,32 @@ class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
         ? Icons.audiotrack
         : Icons.movie;
 
-    final loading = _loading.watch(context);
+    final loadingState = _loadingState.watch(context);
     final thumbnail = _thumbnail.watch(context);
 
-    final thumbnailWidget = switch ((loading, thumbnail)) {
-      (false, null) => Center(
+    final thumbnailWidget = switch ((loadingState, thumbnail)) {
+      (_LoadingState.visible, _) => const Center(
+        key: ValueKey('loading'),
+        child: CircularProgressIndicator(),
+      ),
+      (_, null) => Center(
+        key: const ValueKey('empty'),
         child: Icon(
           mediaIcon,
           size: 48,
           color: Theme.of(context).colorScheme.onSurface.withAlphaF(0.5),
         ),
       ),
-      (true, _) => const Center(child: CircularProgressIndicator()),
-      (false, Uint8List bytes) => Image.memory(bytes, fit: BoxFit.cover),
+      (_, Uint8List bytes) => Image.memory(
+        bytes,
+        fit: BoxFit.cover,
+        key: const ValueKey('loaded'),
+      ),
     };
 
-    return Stack(fit: StackFit.expand, children: [thumbnailWidget]);
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 500),
+      child: thumbnailWidget,
+    );
   }
 }

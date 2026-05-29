@@ -69,10 +69,10 @@ class _IndexingParams {
   final SendPort progressPort;
   final ByteData storeReference;
 
-  Map<String?, MediaFile> get allMediasMap => {
+  late final Map<String?, MediaFile> allMediasMap = {
     for (var element in allMedias) element.fileHash: element,
   };
-  Map<String?, FunscriptFile> get allFunscriptsMap => {
+  late final Map<String?, FunscriptFile> allFunscriptsMap = {
     for (var element in allFunscripts) element.funscriptHash: element,
   };
 
@@ -401,7 +401,7 @@ class MediaManager {
       }
 
       Trie mediaTrie = Trie();
-      Map<String, _FoundMediaFile> groups = {};
+      Map<String, List<_FoundMediaFile>> groups = {};
 
       final pool = Pool(4);
 
@@ -433,7 +433,9 @@ class MediaManager {
             : MediaType.audio;
 
         mediaTrie.insert(basename);
-        groups[basename] = _FoundMediaFile(file, hash, type, null);
+        groups
+            .putIfAbsent(basename, () => [])
+            .add(_FoundMediaFile(file, hash, type, null));
       }
 
       updateStatus("Hashing funscripts...", 0.0);
@@ -527,26 +529,32 @@ class MediaManager {
         final bestMatch = mediaTrie.findLongestPrefix(basename);
 
         if (bestMatch != null) {
-          var group = groups[bestMatch];
-          if (group == null) continue;
-          group.funscripts.add(foundFunscript);
+          final groupList = groups[bestMatch];
+          if (groupList == null) continue;
+          for (final group in groupList) {
+            group.funscripts.add(foundFunscript);
+          }
         }
       }
 
       // Only index media if it has at least one funscript,
       // OR if it was already in the database (to allow tracking missing files).
       final existingMediaHashes = params.allMediasMap.keys.toSet();
-      groups.removeWhere(
-        (key, value) =>
-            value.funscripts.isEmpty &&
-            !existingMediaHashes.contains(value.mediaHash),
-      );
+      for (final key in groups.keys.toList()) {
+        groups[key]!.removeWhere(
+          (m) =>
+              m.funscripts.isEmpty &&
+              !existingMediaHashes.contains(m.mediaHash),
+        );
+        if (groups[key]!.isEmpty) groups.remove(key);
+      }
 
       updateStatus("Retrieving metadata...", 0.0);
       int processedMetadata = 0;
-      final totalMetadata = groups.values.length;
+      final allGroupEntries = groups.values.expand((list) => list).toList();
+      final totalMetadata = allGroupEntries.length;
 
-      final metadataFutures = groups.values.map((m) {
+      final metadataFutures = allGroupEntries.map((m) {
         return pool.withResource(() async {
           if (!params.mediaHashesWithMetadata.contains(m.mediaHash)) {
             m.metadata = await MediaMetadataRetriever.runFFprobe(m.file.path);
@@ -572,14 +580,14 @@ class MediaManager {
 
   static Future<_IndexingResult> _importGroups(
     _IndexingParams params,
-    Map<String, _FoundMediaFile> groups,
+    Map<String, List<_FoundMediaFile>> groups,
     Map<String, _FoundFunscriptFile> allFoundFunscripts,
   ) async {
     final dbMediaMap = params.allMediasMap;
     final dbFunscriptMap = params.allFunscriptsMap;
 
     final allFoundMediaMap = <String, _FoundMediaFile>{};
-    for (final media in groups.values) {
+    for (final media in groups.values.expand((list) => list)) {
       if (allFoundMediaMap.containsKey(media.mediaHash)) {
         allFoundMediaMap[media.mediaHash]!.funscripts.addAll(media.funscripts);
         allFoundMediaMap[media.mediaHash]!.extraAliases.add(
@@ -591,7 +599,8 @@ class MediaManager {
     }
 
     final allFoundFunscriptMap = {
-      for (final funscript in groups.values.expand((m) => m.funscripts))
+      for (final funscript
+          in groups.values.expand((list) => list).expand((m) => m.funscripts))
         funscript.funscriptHash: funscript,
     };
 
