@@ -124,9 +124,11 @@ class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
         ),
       ),
       (_, Uint8List bytes) => Image.memory(
+        key: const ValueKey('loaded'),
         bytes,
         fit: BoxFit.cover,
-        key: const ValueKey('loaded'),
+        width: double.infinity,
+        height: double.infinity,
       ),
     };
 
