@@ -103,11 +103,15 @@ class _DeleteMediaDialogState extends State<DeleteMediaDialog>
     final isDeleting = _isDeleting.watch(context);
     final count = widget.selectedMedia.length;
 
+    final screenSize = MediaQuery.of(context).size;
+    final contentWidth = screenSize.width * 0.6;
+    final contentHeight = screenSize.height * 0.6;
+
     return AlertDialog(
       title: Text('Remove ${count == 1 ? '1 Item' : '$count Items'}?'),
       content: SizedBox(
-        width: 520,
-        height: 420,
+        width: contentWidth,
+        height: contentHeight,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

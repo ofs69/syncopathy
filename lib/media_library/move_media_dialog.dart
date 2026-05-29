@@ -143,11 +143,15 @@ class _MoveMediaDialogState extends State<MoveMediaDialog> with SignalsMixin {
     final anySelected = _entries.any((e) => e.selected.watch(context));
     final canMove = dest != null && anySelected && !isMoving;
 
+    final screenSize = MediaQuery.of(context).size;
+    final contentWidth = screenSize.width * 0.6;
+    final contentHeight = screenSize.height * 0.6;
+
     return AlertDialog(
       title: const Text('Move Files'),
       content: SizedBox(
-        width: 520,
-        height: 400,
+        width: contentWidth,
+        height: contentHeight,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
