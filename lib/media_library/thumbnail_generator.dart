@@ -16,11 +16,13 @@ class ThumbnailRequest extends BaseRequest {
   final MediaFile file;
   final double seekFraction;
   final bool regenerate;
+  final bool retryFailed;
 
   ThumbnailRequest({
     required this.file,
     this.seekFraction = 0.01,
     this.regenerate = false,
+    this.retryFailed = false,
   });
 }
 
@@ -55,7 +57,9 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
       return await thumbnailFile.readAsBytes();
     }
 
-    if (!request.regenerate && request.file.thumbnailGenerationFailed) {
+    if (!request.regenerate &&
+        !request.retryFailed &&
+        request.file.thumbnailGenerationFailed) {
       return null;
     }
 

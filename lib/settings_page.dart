@@ -508,7 +508,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 final futures = <Future>[];
                 for (final media in videos) {
                   var future = ThumbnailGenerator()
-                      .addRequest(ThumbnailRequest(file: media))
+                      .addRequest(
+                        ThumbnailRequest(file: media, retryFailed: true),
+                      )
                       .then((_) {
                         setState(() {
                           generatedCount += 1;
