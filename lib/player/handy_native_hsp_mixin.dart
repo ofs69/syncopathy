@@ -27,19 +27,76 @@ enum HspStateAdapterPlayState {
   }
 }
 
+/// Snapshot of the device's HSP playback state.
+///
+/// Field semantics mirror `HspState` in `protos/constants.proto` (the source of
+/// truth — see the block comment there). Read carefully: these fields are NOT
+/// all sampled at the same instant, and some are internal bookkeeping rather
+/// than exact playback facts. The snapshot is assembled field-by-field while
+/// playback continues in the background, so individual fields may be from
+/// slightly different instants. Use it as an approximate status indicator, not
+/// as a source for exact-frame synchronization.
 class HspStateAdapter {
   final HspStateAdapterPlayState playState;
+
+  /// Time of the first point in the buffer. Describes the buffer contents, not
+  /// the live playback position, and updates only when points are added or
+  /// cleared. Source: `HspState.first_point_time` in `protos/constants.proto`.
   final int firstPointTime;
+
+  /// Time of the last point in the buffer. Describes the buffer contents, not
+  /// the live playback position, and updates only when points are added or
+  /// cleared. Source: `HspState.last_point_time` in `protos/constants.proto`.
   final int lastPointTime;
+
+  /// The live playback clock at the moment this message was generated. Advances
+  /// continuously while playing. While paused it may continue to drift rather
+  /// than freeze at the pause instant, so treat it as meaningful only while
+  /// [playState] indicates active playback. Source: `HspState.current_time` in
+  /// `protos/constants.proto`.
   final int currentTime;
+
+  /// Number of points currently in the buffer. Source: `HspState.points` in
+  /// `protos/constants.proto`.
   final int points;
+
+  /// An internal index into the point buffer that tracks roughly where playback
+  /// is. It does NOT move in lockstep with [currentTime] and is NOT guaranteed
+  /// to be monotonic: it can jump forward when catching up, and step backward
+  /// when playback is re-synced to the server clock or resumed. It also reflects
+  /// internal scheduling, not necessarily the device's physical position (the
+  /// actuator can lag), so the real position may trail what this suggests. Treat
+  /// it as an approximate position marker, not as an exact or ever-increasing
+  /// count of points reached, and do NOT assume it corresponds to [currentTime]
+  /// — if you need the point the clock is currently between, compute it yourself
+  /// from [currentTime] and the point list. Source: `HspState.current_point` in
+  /// `protos/constants.proto`.
   final int currentPoint;
+
   final bool pauseOnStarving;
+
+  /// Max number of points the buffer can hold; depends on the device. Source:
+  /// `HspState.max_points` in `protos/constants.proto`.
   final int maxPoints;
+
+  /// True if the buffer is looping after the last point. Source:
+  /// `HspState.loop` in `protos/constants.proto`.
   final bool loop;
+
+  /// The current playback rate. Source: `HspState.playback_rate` in
+  /// `protos/constants.proto`.
   final double playbackRate;
+
+  /// The stream id of the current stream. Source: `HspState.stream_id` in
+  /// `protos/constants.proto`.
   final int streamId;
+
+  /// The current point playing; -1 when playing an absolute index. Source:
+  /// `HspState.tail_point_stream_index` in `protos/constants.proto`.
   final int tailPointStreamIndex;
+
+  /// When to trigger a threshold notification. Source:
+  /// `HspState.tail_point_stream_index_threshold` in `protos/constants.proto`.
   final int tailPointStreamIndexThreshold;
 
   HspStateAdapter({

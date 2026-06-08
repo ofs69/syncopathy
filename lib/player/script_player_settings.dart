@@ -46,7 +46,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
                     _buildSlewRateSettings(context),
                     _buildFunscriptStats(context),
                     _buildIntensitySettings(context),
-                    _buildCatmullRomSplineSmoothSettings(context),
+                    _buildPchipSmoothSettings(context),
                     _buildInvertSettings(context),
                     _buildRemapFullRangeSettings(context),
                   ],
@@ -146,25 +146,25 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
     });
   }
 
-  Widget _buildCatmullRomSplineSmoothSettings(BuildContext context) {
+  Widget _buildPchipSmoothSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
     return Watch((context) {
-      final smoothInterval = settings.catmullRomSplineSmoothInterval.value;
+      final smoothInterval = settings.pchipSmoothInterval.value;
       return Column(
         children: [
           SwitchListTile(
-            title: const Text('Catmull-Rom Spline Smoothing'),
+            title: const Text('Spline Smoothing'),
             subtitle: const Text(
               'Modify the funscript adding spline smoothing.',
             ),
             value: smoothInterval != null,
             onChanged: (value) {
-              settings.catmullRomSplineSmoothInterval.value = value ? 50 : null;
+              settings.pchipSmoothInterval.value = value ? 50 : null;
             },
             secondary: const Icon(Icons.route_rounded),
             isThreeLine: true,
           ),
-          if (smoothInterval != null)
+          if (smoothInterval != null) ...[
             _buildSliderWithNumericInput(
               context,
               value: smoothInterval.toDouble(),
@@ -172,9 +172,10 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
               max: 100,
               divisions: 5,
               onChanged: (value) {
-                settings.catmullRomSplineSmoothInterval.value = value.toInt();
+                settings.pchipSmoothInterval.value = value.toInt();
               },
             ),
+          ],
         ],
       );
     });

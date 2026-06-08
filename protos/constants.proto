@@ -1,4 +1,4 @@
-// Auto-generated on 2026-03-13 13:37:25
+// Auto-generated on 2026-06-05 10:33:20
 syntax = "proto3";
 package hdy_rpc;
 //NB! The codes are not in order, but in groups
@@ -121,6 +121,34 @@ enum HspPlayState{
     HSP_STATE_PAUSED = 3;
     HSP_STATE_STARVING= 4;
 }
+/*
+HSP state snapshot semantics (read carefully — these fields are NOT all sampled at the
+same instant, and some are internal bookkeeping rather than exact playback facts):
+  current_time   — the live playback clock at the moment this message was generated.
+                   It advances continuously while playing.
+  current_point  — an internal index into the point buffer that tracks roughly where
+                   playback is. It is updated as playback progresses, but it does NOT
+                   move in lockstep with current_time and is NOT guaranteed to be
+                   monotonic: it can jump forward when catching up, and step backward
+                   when playback is re-synced to the server clock or resumed. Treat it
+                   as an approximate position marker, not as an exact or ever-increasing
+                   count of points reached.
+Consequence: current_time and current_point are sampled/updated at different moments and
+by different mechanisms, so they will frequently disagree. Do NOT assume current_point
+corresponds to current_time. If you need the point the clock is currently between,
+compute it yourself from current_time and the point list; do not infer it from
+current_point.
+current_point also reflects internal scheduling, not necessarily the device's physical
+position — the actuator can lag (gentle start, speed limits, post-resync catch-up), so
+the real position may trail what current_point suggests.
+While paused, current_time may continue to drift rather than freeze at the pause instant;
+treat current_time as meaningful only while play_state indicates active playback.
+first_point_time / last_point_time / points describe the buffer contents, not the live
+playback position, and update only when points are added or cleared.
+Finally, this snapshot is assembled field-by-field while playback continues in the
+background, so individual fields may be from slightly different instants. Use it as an
+approximate status indicator, not as a source for exact-frame synchronization.
+*/
 message HspState{
     HspPlayState play_state = 1;
     uint32 points = 2; //points in the buffer

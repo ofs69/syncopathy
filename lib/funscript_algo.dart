@@ -429,11 +429,7 @@ class FunscriptAlgorithms {
     }
 
     if (smoothIntervalMs != null) {
-      actions = FunscriptAlgorithms.catmullRomSmooth(
-        actions,
-        smoothIntervalMs,
-        5,
-      );
+      actions = FunscriptAlgorithms.pchipSmooth(actions, smoothIntervalMs, 5);
       // apply rdp again with epsilon 1.0
       actions = FunscriptAlgorithms.rdp(actions, 1.0);
     }
@@ -503,7 +499,7 @@ class FunscriptAlgorithms {
     return 0;
   }
 
-  static List<FunscriptAction> catmullRomSmooth(
+  static List<FunscriptAction> pchipSmooth(
     List<FunscriptAction> actions,
     int minIntervalMs,
     int maxIntermediatePoints,
@@ -540,13 +536,7 @@ class FunscriptAlgorithms {
           int currentTime = p1.at + (stepSize * j).round();
           double t = (currentTime - p1.at) / duration;
 
-          double interpolatedPos = _catmullRom(
-            p0.pos.toDouble(),
-            p1.pos.toDouble(),
-            p2.pos.toDouble(),
-            p3.pos.toDouble(),
-            t,
-          );
+          double interpolatedPos = _pchip(p0, p1, p2, p3, t);
 
           smoothed.add(
             FunscriptAction(
@@ -562,22 +552,51 @@ class FunscriptAlgorithms {
     return smoothed;
   }
 
-  /// Standard Catmull-Rom Spline formula:
-  /// 0.5 * ((2*P1) + (P2-P0)*t + (2*P0-5*P1+4*P2-P3)*t^2 + (-P0+3*P1-3*P2+P3)*t^3)
-  static double _catmullRom(
-    double p0,
-    double p1,
-    double p2,
-    double p3,
+  static double _pchip(
+    FunscriptAction p0,
+    FunscriptAction p1,
+    FunscriptAction p2,
+    FunscriptAction p3,
     double t,
   ) {
+    double h0 = (p1.at - p0.at).toDouble();
+    double h1 = (p2.at - p1.at).toDouble();
+    double h2 = (p3.at - p2.at).toDouble();
+
+    double d0 = h0 > 0 ? (p1.pos - p0.pos) / h0 : 0.0;
+    double d1 = h1 > 0 ? (p2.pos - p1.pos) / h1 : 0.0;
+    double d2 = h2 > 0 ? (p3.pos - p2.pos) / h2 : 0.0;
+
+    double m1;
+    if (h0 == 0) {
+      m1 = d1;
+    } else if (d0 * d1 <= 0) {
+      m1 = 0;
+    } else {
+      double w1 = 2 * h1 + h0;
+      double w2 = h1 + 2 * h0;
+      m1 = (w1 + w2) / (w1 / d0 + w2 / d1);
+    }
+
+    double m2;
+    if (h2 == 0) {
+      m2 = d1;
+    } else if (d1 * d2 <= 0) {
+      m2 = 0;
+    } else {
+      double w1 = 2 * h2 + h1;
+      double w2 = h2 + 2 * h1;
+      m2 = (w1 + w2) / (w1 / d1 + w2 / d2);
+    }
+
     double t2 = t * t;
     double t3 = t2 * t;
 
-    return 0.5 *
-        ((2 * p1) +
-            (-p0 + p2) * t +
-            (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
-            (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
+    double h00 = 2 * t3 - 3 * t2 + 1;
+    double h10 = t3 - 2 * t2 + t;
+    double h01 = -2 * t3 + 3 * t2;
+    double h11 = t3 - t2;
+
+    return h00 * p1.pos + h10 * h1 * m1 + h01 * p2.pos + h11 * h1 * m2;
   }
 }

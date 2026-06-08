@@ -17,6 +17,7 @@ class Settings {
   bool embeddedVideoPlayer;
   bool autoSwitchToVideoPlayerTab;
   bool invert;
+  @JsonKey(unknownEnumValue: PlayerBackendType.handyStrokerStreamingBluetooth)
   PlayerBackendType playerBackendType;
   bool funscriptGraphEnabled;
   Map<String, ShortcutBinding> customShortcuts = {};
@@ -41,8 +42,15 @@ class Settings {
   }) : mediaPaths = List.of(mediaPaths),
        customShortcuts = Map.of(customShortcuts);
 
-  factory Settings.fromJson(Map<String, dynamic> json) =>
-      _$SettingsFromJson(json);
+  factory Settings.fromJson(Map<String, dynamic> json) {
+    try {
+      return _$SettingsFromJson(json);
+    } catch (_) {
+      // Corrupted or incompatible persisted data (e.g. removed enum value,
+      // type mismatch). Fall back to defaults rather than crashing.
+      return Settings();
+    }
+  }
 
   Map<String, dynamic> toJson() => _$SettingsToJson(this);
 

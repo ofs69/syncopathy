@@ -27,6 +27,7 @@ Settings _$SettingsFromJson(Map<String, dynamic> json) => Settings(
       $enumDecodeNullable(
         _$PlayerBackendTypeEnumMap,
         json['playerBackendType'],
+        unknownValue: PlayerBackendType.handyStrokerStreamingBluetooth,
       ) ??
       PlayerBackendType.handyStrokerStreamingBluetooth,
   funscriptGraphEnabled: json['funscriptGraphEnabled'] as bool? ?? true,

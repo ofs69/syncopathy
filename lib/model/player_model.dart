@@ -123,7 +123,7 @@ class PlayerModel with EffectDispose {
         final intensity = _settings.intensity.value;
         final playbackSpeed = player.playbackSpeed.value;
         final strokeRange = _settings.minMaxRange.value;
-        final smoothIntervalMs = _settings.catmullRomSplineSmoothInterval.value;
+        final smoothIntervalMs = _settings.pchipSmoothInterval.value;
 
         if (media == null || totalDuration == null || totalDuration < 0.1) {
           __currentFunscript.value = null;
@@ -174,7 +174,7 @@ class PlayerModel with EffectDispose {
         final intensity = _settings.intensity.value;
         final playbackSpeed = player.playbackSpeed.value;
         final strokeRange = _settings.minMaxRange.value;
-        final smoothIntervalMs = _settings.catmullRomSplineSmoothInterval.value;
+        final smoothIntervalMs = _settings.pchipSmoothInterval.value;
 
         final funscriptFile = (media?.funscripts.length ?? 0) > index
             ? media?.funscripts[index]

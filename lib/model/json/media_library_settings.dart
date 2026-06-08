@@ -15,6 +15,7 @@ class MediaLibrarySettings {
   bool showDuration;
   bool showPlayCount;
   bool separateFavorites;
+  @JsonKey(fromJson: _visibilityFiltersFromJson)
   List<VideoFilter> visibilityFilters;
 
   static const String key = "MediaLibrarySettings";
@@ -32,10 +33,34 @@ class MediaLibrarySettings {
     this.visibilityFilters = const [],
   });
 
-  factory MediaLibrarySettings.fromJson(Map<String, dynamic> json) =>
-      _$MediaLibrarySettingsFromJson(json);
+  factory MediaLibrarySettings.fromJson(Map<String, dynamic> json) {
+    try {
+      return _$MediaLibrarySettingsFromJson(json);
+    } catch (_) {
+      // Corrupted or incompatible persisted data (e.g. removed enum value,
+      // type mismatch). Fall back to defaults rather than crashing.
+      return MediaLibrarySettings();
+    }
+  }
 
   Map<String, dynamic> toJson() => _$MediaLibrarySettingsToJson(this);
 
   static const jsonSchema = _$MediaLibrarySettingsJsonSchema;
+}
+
+/// Tolerantly decodes the persisted visibility filters, silently dropping any
+/// values that no longer map to a known [VideoFilter] (e.g. a removed enum
+/// member) instead of throwing.
+List<VideoFilter> _visibilityFiltersFromJson(List<dynamic>? json) {
+  if (json == null) return const [];
+  final result = <VideoFilter>[];
+  for (final value in json) {
+    for (final entry in _$VideoFilterEnumMap.entries) {
+      if (entry.value == value) {
+        result.add(entry.key);
+        break;
+      }
+    }
+  }
+  return result;
 }

@@ -24,11 +24,9 @@ MediaLibrarySettings _$MediaLibrarySettingsFromJson(
   showDuration: json['showDuration'] as bool? ?? true,
   showPlayCount: json['showPlayCount'] as bool? ?? true,
   separateFavorites: json['separateFavorites'] as bool? ?? true,
-  visibilityFilters:
-      (json['visibilityFilters'] as List<dynamic>?)
-          ?.map((e) => $enumDecode(_$VideoFilterEnumMap, e))
-          .toList() ??
-      const [],
+  visibilityFilters: json['visibilityFilters'] == null
+      ? const []
+      : _visibilityFiltersFromJson(json['visibilityFilters'] as List?),
 );
 
 Map<String, dynamic> _$MediaLibrarySettingsToJson(

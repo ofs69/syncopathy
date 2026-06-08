@@ -63,7 +63,11 @@ class SyncopathyHomePage extends StatefulWidget {
 
 class _SyncopathyHomePageState extends State<SyncopathyHomePage>
     with EffectDispose {
-  int _selectedIndex = 0;
+  // The visible page index is backed by the global [activePageIndex] signal,
+  // which build() watches — assigning it rebuilds this widget reactively and
+  // lets the media grid suspend its refresh while it's off-screen.
+  int get _selectedIndex => activePageIndex.value;
+  set _selectedIndex(int index) => activePageIndex.value = index;
 
   late final PageController _pageController = PageController(
     initialPage: _selectedIndex,
@@ -116,9 +120,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
       return;
     }
 
-    setState(() {
-      _selectedIndex = index;
-    });
+    _selectedIndex = index;
     final int currentPage = _pageController.page?.round() ?? _selectedIndex;
     final int pageDelta = (index - currentPage).abs();
     _pageController.animateToPage(
@@ -132,16 +134,12 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
     final settings = context.read<SettingsModel>();
 
     if (currentlyOpen != null && settings.autoSwitchToVideoPlayerTab.value) {
-      setState(() {
-        _selectedIndex = 1; // Navigate to Video Player tab
-      });
+      _selectedIndex = 1; // Navigate to Video Player tab
       _pageController.animateToPage(
         1,
         duration: const Duration(milliseconds: 300),
         curve: Curves.ease,
       );
-    } else {
-      setState(() {});
     }
   }
 
@@ -187,6 +185,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
   Widget build(BuildContext context) {
     final isPortrait = PlatformUtils.isPortrait(context);
     final withMedia = !syncopathySimpleMode;
+    final selectedIndex = activePageIndex.watch(context);
 
     return Scaffold(
       endDrawer: const AlertPanel(),
@@ -196,7 +195,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
       ),
       bottomNavigationBar: isPortrait
           ? NavigationBar(
-              selectedIndex: _selectedIndex,
+              selectedIndex: selectedIndex,
               onDestinationSelected: _onTabChanged,
               destinations: _bottomDestinations(withMedia),
             )
@@ -208,7 +207,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
               ExcludeFocus(
                 excluding: true,
                 child: NavigationRail(
-                  selectedIndex: _selectedIndex,
+                  selectedIndex: selectedIndex,
                   onDestinationSelected: _onTabChanged,
                   labelType: NavigationRailLabelType.all,
                   destinations: _destinations(withMedia),
@@ -233,12 +232,8 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
               child: Stack(
                 children: [
                   PageContent(
-                    selectedIndex: _selectedIndex,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _selectedIndex = index;
-                      });
-                    },
+                    selectedIndex: selectedIndex,
+                    onPageChanged: (index) => _selectedIndex = index,
                     pageController: _pageController,
                   ),
                 ],

@@ -7,7 +7,8 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/floating_toolbar.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
-import 'package:syncopathy/ioc.dart' show getIt, oBox;
+import 'package:syncopathy/ioc.dart'
+    show activePageIndex, getIt, mediaPageIndex, oBox;
 import 'package:syncopathy/media_library/category_selection_dialog.dart';
 import 'package:syncopathy/media_library/filter/media_filter.dart';
 import 'package:syncopathy/media_library/filter/media_filter_logic.dart';
@@ -82,6 +83,15 @@ class _MediaLibraryState extends State<MediaLibrary>
   }
 
   List<MediaFile> _filterSignal() {
+    // Suspend the grid's reactivity while the media page isn't the visible page.
+    // Reading activePageIndex first makes it the only dependency when inactive,
+    // so DB writes during video playback (e.g. the view-count bump) don't re-run
+    // filterAndSort or rebuild the off-screen grid on the UI thread. When the
+    // page becomes visible again this recomputes once with fresh data.
+    if (activePageIndex.value != mediaPageIndex) {
+      return _lastFiltered;
+    }
+
     final mediaSettings = context.read<MediaLibrarySettingsModel>();
 
     // Watch all relevant signals to trigger re-computation.
@@ -108,7 +118,7 @@ class _MediaLibraryState extends State<MediaLibrary>
       searchedMedia = oBox.mediaService.findByQuery(query);
     }
 
-    return MediaFilterLogic.filterAndSort(
+    _lastFiltered = MediaFilterLogic.filterAndSort(
       media: searchedMedia,
       customFilter: mediaFilter,
       sortOption: sortOption,
@@ -118,7 +128,12 @@ class _MediaLibraryState extends State<MediaLibrary>
       randomSeed: seed,
       playlistState: playlist.entries.value,
     );
+    return _lastFiltered;
   }
+
+  // Last computed result, returned as-is while the page is off-screen so the
+  // grid keeps its content without re-running the filter/sort pipeline.
+  List<MediaFile> _lastFiltered = const [];
 
   @override
   Widget build(BuildContext context) {

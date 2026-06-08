@@ -35,7 +35,7 @@ class SettingsModel {
 
   // Not persisted in the database
   final Signal<double?> intensity = signal(null);
-  final Signal<int?> catmullRomSplineSmoothInterval = signal(null);
+  final Signal<int?> pchipSmoothInterval = signal(null);
   final Signal<Duration> funscriptGraphViewDuration = signal(
     Duration(seconds: 5),
   );

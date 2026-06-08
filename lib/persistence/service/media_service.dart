@@ -18,8 +18,8 @@ class MediaService {
           leading: true,
           trailing: true,
         )
-        .listen((query) {
-          _allMediaFiles.value = query.find();
+        .listen((query) async {
+          _allMediaFiles.value = await query.findAsync();
         });
   }
 
