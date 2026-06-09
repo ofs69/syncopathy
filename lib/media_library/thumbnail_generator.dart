@@ -97,7 +97,15 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
         return thumbnailFile;
       }
 
-      await thumbnailFile.parent.create(recursive: true);
+      try {
+        await thumbnailFile.parent.create(recursive: true);
+      } on FileSystemException {
+        // Directory.create(recursive: true) is not atomic: concurrent
+        // requests can race on a shared intermediate dir (e.g. the base
+        // thumbnails/ dir on first scan) and one throws "File exists".
+        // If the directory now exists the race is benign; otherwise rethrow.
+        if (!await thumbnailFile.parent.exists()) rethrow;
+      }
 
       double? seekTimeSeconds;
       if (metadata.duration > 0) {
