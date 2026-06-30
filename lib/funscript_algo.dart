@@ -32,7 +32,7 @@ class FunscriptProcessParams {
 class FunscriptAlgorithms {
   // Bump when averageSpeed, averageMin, averageMax, or isScriptToken logic changes.
   // Existing DB entries with a lower version will be re-parsed on the next scan.
-  static const int algorithmVersion = 1;
+  static const int algorithmVersion = 6;
 
   static List<FunscriptAction> slew(
     List<FunscriptAction> actions,
@@ -161,8 +161,36 @@ class FunscriptAlgorithms {
     return result;
   }
 
-  // Rough approximation of motor ramp-up rate; not device-specific.
+  // Approximate Handy kinematic limits used to model real device motion.
+  // The motor cannot move infinitely fast: it ramps up at `acceleration` and
+  // tops out at `maxSpeed`. At every stroke reversal velocity must pass
+  // through zero, so each stroke is modeled as a rest-to-rest accelerate /
+  // (optionally cruise) / decelerate profile. It also cannot sustain
+  // arbitrarily slow motion, so a stroke commanded slower than `minSpeed` is
+  // really executed at `minSpeed`.
   static const acceleration = 8000.0; // pos/s²
+  static const maxSpeed = 600.0; // pos/s
+  static const minSpeed = 30.0; // pos/s — slowest motion the motor can sustain
+
+  /// Effective average speed (pos/s) achievable over a single monotonic
+  /// stroke of total distance [dist] (pos) and duration [tau] (seconds),
+  /// starting and ending at rest. While the commanded motion is within reach
+  /// the stroke is covered fully (speed == dist / tau); once the acceleration
+  /// or top-speed limit is hit the device falls short and the speed is capped
+  /// at what it can physically deliver. Slow commands are floored at
+  /// [minSpeed], the slowest the hardware can actually move.
+  static double strokeSpeed(double dist, double tau) {
+    final double maxDist;
+    if (tau <= 2 * maxSpeed / acceleration) {
+      // Triangular profile: accelerate to a peak then brake; never reaches maxSpeed.
+      maxDist = acceleration * tau * tau / 4.0;
+    } else {
+      // Trapezoidal profile: ramp to maxSpeed, cruise, then brake to rest.
+      maxDist = maxSpeed * tau - maxSpeed * maxSpeed / acceleration;
+    }
+    final actualDist = dist < maxDist ? dist : maxDist;
+    return (actualDist / tau).clamp(minSpeed, maxSpeed);
+  }
 
   static double averageSpeed(List<FunscriptAction> actions) {
     if (actions.length < 2) {
@@ -172,97 +200,103 @@ class FunscriptAlgorithms {
     // Sort actions by time; strip negative timestamps (invalid data).
     final sortedActions = actions.where((a) => a.at >= 0).toList()..sort();
 
-    final List<({double speed, double weight})> segments = [];
-    var prevSpeed = 0.0;
-    var prevDirection = 0;
-    for (int i = 1; i < sortedActions.length; i++) {
-      final p1 = sortedActions[i - 1];
-      final p2 = sortedActions[i];
+    // Break the script into monotonic strokes delimited by direction
+    // reversals and pauses. The device comes to rest at every reversal, so
+    // each stroke is an independent rest-to-rest motion described purely by
+    // its total distance and duration.
+    final List<({double speed, double weight})> strokes = [];
 
-      final timeDiff = (p2.at - p1.at).toDouble();
-      if (timeDiff <= 0) continue;
-
-      final rawPosDiff = p2.pos - p1.pos;
-      if (rawPosDiff == 0) {
-        // Pause — device comes to rest.
-        prevSpeed = 0.0;
-        prevDirection = 0;
-        continue;
-      }
-
-      final direction = rawPosDiff > 0 ? 1 : -1;
-      if (prevDirection != 0 && direction != prevDirection) {
-        // Direction reversal — device must decelerate through zero.
-        prevSpeed = 0.0;
-      }
-      prevDirection = direction;
-
-      final posDiff = rawPosDiff.abs().toDouble();
-      final targetSpeed = posDiff / timeDiff * 1000; // pos per second
-
-      final double segmentAvgSpeed;
-      final tRampMs = (targetSpeed - prevSpeed).abs() / acceleration * 1000;
-      if (tRampMs >= timeDiff) {
-        // Device doesn't reach target speed within this segment.
-        final sign = targetSpeed >= prevSpeed ? 1.0 : -1.0;
-        final effectiveSpeed =
-            prevSpeed + sign * acceleration * (timeDiff / 1000);
-        segmentAvgSpeed = (prevSpeed + effectiveSpeed) / 2;
-        prevSpeed = effectiveSpeed;
-      } else {
-        // Device reaches target speed and cruises for the remainder.
-        segmentAvgSpeed =
-            ((prevSpeed + targetSpeed) / 2 * tRampMs +
-                targetSpeed * (timeDiff - tRampMs)) /
-            timeDiff;
-        prevSpeed = targetSpeed;
-      }
-
-      segments.add((speed: segmentAvgSpeed, weight: timeDiff));
+    void addStroke(int startIdx, int endIdx) {
+      if (endIdx <= startIdx) return;
+      final p0 = sortedActions[startIdx];
+      final pN = sortedActions[endIdx];
+      final tauMs = (pN.at - p0.at).toDouble();
+      if (tauMs <= 0) return;
+      final dist = (pN.pos - p0.pos).abs().toDouble();
+      if (dist == 0) return;
+      // Weight each stroke by the distance it travels (pos units), NOT by its
+      // duration. Time-weighting lets a single long idle drift (e.g. a 150s gap
+      // covering 20 pos) swamp the score and pin it to minSpeed, even when the
+      // actual strokes are fast. Distance-weighting measures the average speed
+      // per unit of physical motion the device performs, so idle time — which
+      // covers little distance — contributes negligibly and the score reflects
+      // how fast the script actually moves.
+      strokes.add((speed: strokeSpeed(dist, tauMs / 1000.0), weight: dist));
     }
 
-    if (segments.isEmpty) {
+    int runStart = 0;
+    int runDir = 0;
+    for (int i = 1; i < sortedActions.length; i++) {
+      final diff = sortedActions[i].pos - sortedActions[i - 1].pos;
+      final dir = diff == 0 ? 0 : (diff > 0 ? 1 : -1);
+
+      if (dir == 0) {
+        // Pause — close any open stroke; the flat section is rest.
+        if (runDir != 0) addStroke(runStart, i - 1);
+        runDir = 0;
+        runStart = i;
+      } else if (runDir == 0) {
+        // Begin a new stroke at the previous point.
+        runStart = i - 1;
+        runDir = dir;
+      } else if (dir != runDir) {
+        // Reversal at point i-1 — close this stroke and start the next there.
+        addStroke(runStart, i - 1);
+        runStart = i - 1;
+        runDir = dir;
+      }
+    }
+    if (runDir != 0) addStroke(runStart, sortedActions.length - 1);
+
+    if (strokes.isEmpty) {
       return 0.0;
     }
 
-    // Outlier filtering using IQR.
-    // We need at least 4 data points for this to be meaningful.
-    if (segments.length < 4) {
-      double totalSpeed = 0;
-      double totalWeight = 0;
-      for (final s in segments) {
-        totalSpeed += s.speed * s.weight;
-        totalWeight += s.weight;
+    final totalWeight = strokes.fold<double>(0, (a, s) => a + s.weight);
+    if (totalWeight <= 0) return 0.0;
+
+    // Robust distance-weighted mean. Speeds are already physically bounded to
+    // [minSpeed, maxSpeed], so we only damp atypical strokes rather than hard
+    // outliers. Quartiles are taken over the distance-weighted distribution
+    // (consistent with the weighted mean), and a loose 3.0x IQR fence
+    // winsorizes — clamps, not drops — extreme strokes so no motion is
+    // discarded. Needs >= 4 strokes for the quartiles to mean anything.
+    if (strokes.length >= 4) {
+      final sorted = [...strokes]..sort((a, b) => a.speed.compareTo(b.speed));
+      final q1 = _weightedQuantile(sorted, totalWeight, 0.25);
+      final q3 = _weightedQuantile(sorted, totalWeight, 0.75);
+      final iqr = q3 - q1;
+      final lower = q1 - 3.0 * iqr;
+      final upper = q3 + 3.0 * iqr;
+
+      double sum = 0;
+      for (final s in strokes) {
+        sum += s.speed.clamp(lower, upper) * s.weight;
       }
-      return totalWeight > 0 ? totalSpeed / totalWeight : 0.0;
+      return sum / totalWeight;
     }
 
-    final sortedSpeeds = segments.map((s) => s.speed).toList()..sort();
-
-    // Use n-1 to calculate indices for better IQR on small lists.
-    final q1Index = ((sortedSpeeds.length - 1) * 0.25).round();
-    final q3Index = ((sortedSpeeds.length - 1) * 0.75).round();
-    final q1 = sortedSpeeds[q1Index];
-    final q3 = sortedSpeeds[q3Index];
-    final iqr = q3 - q1;
-
-    // Values outside of this range are considered outliers.
-    final lowerBound = q1 - 1.5 * iqr;
-    final upperBound = q3 + 1.5 * iqr;
-
-    final filteredSegments = segments
-        .where((s) => s.speed >= lowerBound && s.speed <= upperBound)
-        .toList();
-
-    // Weighted average of filtered speeds
-    double totalSpeed = 0;
-    double totalWeight = 0;
-    for (final s in filteredSegments.isNotEmpty ? filteredSegments : segments) {
-      totalSpeed += s.speed * s.weight;
-      totalWeight += s.weight;
+    double sum = 0;
+    for (final s in strokes) {
+      sum += s.speed * s.weight;
     }
+    return sum / totalWeight;
+  }
 
-    return totalWeight > 0 ? totalSpeed / totalWeight : 0.0;
+  /// Quantile [q] (0..1) over a weight (distance) distribution. [sorted] must
+  /// be ascending by speed.
+  static double _weightedQuantile(
+    List<({double speed, double weight})> sorted,
+    double totalWeight,
+    double q,
+  ) {
+    final target = totalWeight * q;
+    double cumulative = 0;
+    for (final s in sorted) {
+      cumulative += s.weight;
+      if (cumulative >= target) return s.speed;
+    }
+    return sorted.last.speed;
   }
 
   static double averageMin(List<FunscriptAction> actions) {

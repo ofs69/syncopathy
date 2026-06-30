@@ -228,48 +228,52 @@ class HeatmapPainter extends CustomPainter {
       (_) => _SegmentData(),
     );
 
-    // Precompute effective speeds per action pair using the acceleration model.
+    // Precompute effective speed per action pair using the same rest-to-rest
+    // stroke model as FunscriptAlgorithms.averageSpeed: split the script into
+    // monotonic strokes between reversals/pauses, compute each stroke's
+    // achievable speed once, and assign it to every pair inside the stroke.
     // Output unit: remapped pos/ms (matching the previous raw speed unit).
     final remapScale = (strokeRange.end - strokeRange.start) / 100.0;
     final effectiveSpeeds = List<double>.filled(actions.length - 1, 0.0);
     {
-      var prevSpeed = 0.0;
-      var prevDir = 0;
-      for (int j = 0; j < actions.length - 1; j++) {
-        final a1 = actions[j];
-        final a2 = actions[j + 1];
-        final dt = (a2.at - a1.at).toDouble() / playbackSpeed;
-        if (dt <= 0) continue;
-        final rawDp = a2.pos - a1.pos;
-        if (rawDp == 0) {
-          prevSpeed = 0.0;
-          prevDir = 0;
-          continue;
+      void fillStroke(int startIdx, int endIdx) {
+        if (endIdx <= startIdx) return;
+        final tauMs =
+            (actions[endIdx].at - actions[startIdx].at).toDouble() /
+            playbackSpeed;
+        if (tauMs <= 0) return;
+        final dist = (actions[endIdx].pos - actions[startIdx].pos)
+            .abs()
+            .toDouble();
+        if (dist == 0) return;
+        final speed =
+            FunscriptAlgorithms.strokeSpeed(dist, tauMs / 1000.0) *
+            remapScale /
+            1000.0;
+        for (int k = startIdx; k < endIdx; k++) {
+          effectiveSpeeds[k] = speed;
         }
-        final dir = rawDp > 0 ? 1 : -1;
-        if (prevDir != 0 && dir != prevDir) prevSpeed = 0.0;
-        prevDir = dir;
-        final targetSpeed = rawDp.abs() / dt * 1000.0; // raw pos/s
-        final tRampMs =
-            (targetSpeed - prevSpeed).abs() /
-            FunscriptAlgorithms.acceleration *
-            1000;
-        final double effectiveSpeed;
-        if (tRampMs >= dt) {
-          final sign = targetSpeed >= prevSpeed ? 1.0 : -1.0;
-          final effectiveEnd =
-              prevSpeed + sign * FunscriptAlgorithms.acceleration * (dt / 1000);
-          effectiveSpeed = (prevSpeed + effectiveEnd) / 2;
-          prevSpeed = effectiveEnd;
-        } else {
-          effectiveSpeed =
-              ((prevSpeed + targetSpeed) / 2 * tRampMs +
-                  targetSpeed * (dt - tRampMs)) /
-              dt;
-          prevSpeed = targetSpeed;
-        }
-        effectiveSpeeds[j] = effectiveSpeed * remapScale / 1000.0;
       }
+
+      int runStart = 0;
+      int runDir = 0;
+      for (int j = 1; j < actions.length; j++) {
+        final diff = actions[j].pos - actions[j - 1].pos;
+        final dir = diff == 0 ? 0 : (diff > 0 ? 1 : -1);
+        if (dir == 0) {
+          if (runDir != 0) fillStroke(runStart, j - 1);
+          runDir = 0;
+          runStart = j;
+        } else if (runDir == 0) {
+          runStart = j - 1;
+          runDir = dir;
+        } else if (dir != runDir) {
+          fillStroke(runStart, j - 1);
+          runStart = j - 1;
+          runDir = dir;
+        }
+      }
+      if (runDir != 0) fillStroke(runStart, actions.length - 1);
     }
 
     int currentActionIndex = 0;
