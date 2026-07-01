@@ -228,52 +228,19 @@ class HeatmapPainter extends CustomPainter {
       (_) => _SegmentData(),
     );
 
-    // Precompute effective speed per action pair using the same rest-to-rest
-    // stroke model as FunscriptAlgorithms.averageSpeed: split the script into
-    // monotonic strokes between reversals/pauses, compute each stroke's
-    // achievable speed once, and assign it to every pair inside the stroke.
-    // Output unit: remapped pos/ms (matching the previous raw speed unit).
+    // Precompute effective speed per action pair from the same dwell-aware,
+    // jitter-merged strokes as FunscriptAlgorithms.averageSpeed, so the heatmap
+    // colouring and the aggregate score always agree. Each coarse stroke's
+    // speed is assigned to every action pair it spans. Output unit: remapped
+    // pos/ms (matching the previous raw speed unit); playbackSpeed scales it
+    // linearly, as faster playback drives proportionally faster motion.
     final remapScale = (strokeRange.end - strokeRange.start) / 100.0;
     final effectiveSpeeds = List<double>.filled(actions.length - 1, 0.0);
-    {
-      void fillStroke(int startIdx, int endIdx) {
-        if (endIdx <= startIdx) return;
-        final tauMs =
-            (actions[endIdx].at - actions[startIdx].at).toDouble() /
-            playbackSpeed;
-        if (tauMs <= 0) return;
-        final dist = (actions[endIdx].pos - actions[startIdx].pos)
-            .abs()
-            .toDouble();
-        if (dist == 0) return;
-        final speed =
-            FunscriptAlgorithms.strokeSpeed(dist, tauMs / 1000.0) *
-            remapScale /
-            1000.0;
-        for (int k = startIdx; k < endIdx; k++) {
-          effectiveSpeeds[k] = speed;
-        }
+    for (final s in FunscriptAlgorithms.strokeSegments(actions)) {
+      final speed = s.speed * playbackSpeed * remapScale / 1000.0;
+      for (int k = s.start; k < s.end; k++) {
+        effectiveSpeeds[k] = speed;
       }
-
-      int runStart = 0;
-      int runDir = 0;
-      for (int j = 1; j < actions.length; j++) {
-        final diff = actions[j].pos - actions[j - 1].pos;
-        final dir = diff == 0 ? 0 : (diff > 0 ? 1 : -1);
-        if (dir == 0) {
-          if (runDir != 0) fillStroke(runStart, j - 1);
-          runDir = 0;
-          runStart = j;
-        } else if (runDir == 0) {
-          runStart = j - 1;
-          runDir = dir;
-        } else if (dir != runDir) {
-          fillStroke(runStart, j - 1);
-          runStart = j - 1;
-          runDir = dir;
-        }
-      }
-      if (runDir != 0) fillStroke(runStart, actions.length - 1);
     }
 
     int currentActionIndex = 0;

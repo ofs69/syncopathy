@@ -32,7 +32,7 @@ class FunscriptProcessParams {
 class FunscriptAlgorithms {
   // Bump when averageSpeed, averageMin, averageMax, or isScriptToken logic changes.
   // Existing DB entries with a lower version will be re-parsed on the next scan.
-  static const int algorithmVersion = 6;
+  static const int algorithmVersion = 8;
 
   static List<FunscriptAction> slew(
     List<FunscriptAction> actions,
@@ -192,6 +192,163 @@ class FunscriptAlgorithms {
     return (actualDist / tau).clamp(minSpeed, maxSpeed);
   }
 
+  // Sub-threshold position jitter (< this many pos) does not break a stroke.
+  // Many scripts ride fast jitter on top of a coarse stroke; splitting at every
+  // micro-reversal would chop one fast move into a crowd of crawling strokes
+  // and badly under-rate the motion. Real strokes are almost always >= 20 pos,
+  // so a 10-pos floor merges only noise, not genuine strokes.
+  static const int strokeMergeAmplitude = 10;
+
+  /// Minimum rest-to-rest time (seconds) the device physically needs to move
+  /// [dist] pos, given [acceleration] and [maxSpeed].
+  static double kinematicMinTime(double dist) {
+    if (dist <= 0) return 0.0;
+    if (dist <= maxSpeed * maxSpeed / acceleration) {
+      // Triangular: never reaches maxSpeed.
+      return 2.0 * sqrt(dist / acceleration);
+    }
+    // Trapezoidal: ramp to maxSpeed, cruise, brake.
+    return dist / maxSpeed + maxSpeed / acceleration;
+  }
+
+  /// Effective speed (pos/s) of a stroke that travels [dist] pos over commanded
+  /// time [tCmd] (seconds) and then holds at its destination for [dwell]
+  /// (seconds) before the next move.
+  ///
+  /// A trailing hold lets the device finish a move it could not complete in the
+  /// commanded time — but only up to the device's own maximum for that distance;
+  /// any hold beyond that is genuine rest and never dilutes the speed. A stroke
+  /// already achievable within [tCmd] is unaffected by its dwell. This is what
+  /// makes a "snap to position then hold" stroke read as the fast motion it is,
+  /// instead of being mis-rated as physically impossible over the snap alone.
+  static double dwellSpeed(double dist, double tCmd, double dwell) {
+    final tMin = kinematicMinTime(dist);
+    final window = tCmd + dwell;
+    if (window >= tMin) {
+      // The move completes: device runs at min(commanded, device-max) speed.
+      final tEff = tCmd > tMin ? tCmd : tMin;
+      if (tEff <= 0) return minSpeed;
+      return (dist / tEff).clamp(minSpeed, maxSpeed);
+    }
+    // Even with the hold the device falls short of [dist]; use all it has.
+    return strokeSpeed(dist, window);
+  }
+
+  /// Coarse-motion reversal points (pivots) of [sortedActions], with
+  /// sub-[strokeMergeAmplitude] jitter merged away. Consecutive pivots alternate
+  /// between local minima and maxima of the coarse motion. This is the shared
+  /// segmentation behind [averageSpeed], [averageMin]/[averageMax] and the
+  /// heatmap, so all of them describe the same strokes.
+  ///
+  /// [sortedActions] must be ascending by time. Each pivot carries its position,
+  /// the arrival/departure timestamps of the node it sits on (so a hold at an
+  /// extreme is kept separate from travel time), and the index of its first
+  /// sample in [sortedActions] (so strokes map back to the action list).
+  static List<({int pos, int arriveMs, int departMs, int actionIndex})> pivots(
+    List<FunscriptAction> sortedActions,
+  ) {
+    // Collapse runs of equal position into nodes.
+    final nodePos = <int>[];
+    final nodeFirst = <int>[];
+    final nodeLast = <int>[];
+    final nodeIdx = <int>[];
+    for (int i = 0; i < sortedActions.length; i++) {
+      final a = sortedActions[i];
+      if (nodePos.isNotEmpty && nodePos.last == a.pos) {
+        nodeLast[nodeLast.length - 1] = a.at;
+      } else {
+        nodePos.add(a.pos);
+        nodeFirst.add(a.at);
+        nodeLast.add(a.at);
+        nodeIdx.add(i);
+      }
+    }
+    final int nodeCount = nodePos.length;
+    final result = <({int pos, int arriveMs, int departMs, int actionIndex})>[];
+    if (nodeCount < 2) return result;
+
+    // Zigzag pivot detection: a direction reversal only closes a stroke when
+    // the position retraces by at least [strokeMergeAmplitude]. Sub-threshold
+    // jitter is absorbed into the coarse stroke, so a fast-but-jittery move is
+    // measured as one fast stroke rather than many crawling micro-strokes.
+    final pivotNodes = <int>[0];
+    int last = 0;
+    int ext = 0;
+    int direction = 0; // 0 unknown, 1 up, -1 down
+    for (int k = 1; k < nodeCount; k++) {
+      final p = nodePos[k];
+      if (direction == 0) {
+        if ((p - nodePos[last]).abs() > (nodePos[ext] - nodePos[last]).abs()) {
+          ext = k;
+        }
+        if ((p - nodePos[last]).abs() >= strokeMergeAmplitude) {
+          direction = p > nodePos[last] ? 1 : -1;
+          ext = k;
+        }
+      } else if (direction == 1) {
+        if (p >= nodePos[ext]) {
+          ext = k;
+        } else if (nodePos[ext] - p >= strokeMergeAmplitude) {
+          pivotNodes.add(ext);
+          last = ext;
+          direction = -1;
+          ext = k;
+        }
+      } else {
+        if (p <= nodePos[ext]) {
+          ext = k;
+        } else if (p - nodePos[ext] >= strokeMergeAmplitude) {
+          pivotNodes.add(ext);
+          last = ext;
+          direction = 1;
+          ext = k;
+        }
+      }
+    }
+    if (ext != pivotNodes.last) pivotNodes.add(ext);
+
+    for (final n in pivotNodes) {
+      result.add((
+        pos: nodePos[n],
+        arriveMs: nodeFirst[n],
+        departMs: nodeLast[n],
+        actionIndex: nodeIdx[n],
+      ));
+    }
+    return result;
+  }
+
+  /// Segment [sortedActions] (ascending by time) into coarse dwell-aware
+  /// strokes — the shared basis for the [averageSpeed] score and the heatmap
+  /// colouring, so the two always agree. Each entry carries the stroke's
+  /// dwell-aware [speed] (pos/s), the [distance] travelled (pos, used as the
+  /// averaging weight) and the action-index span `[start, end)` it covers.
+  ///
+  /// One stroke runs from one extreme to the next; its commanded time excludes
+  /// any hold at either end, and the trailing hold at the destination is
+  /// credited only insofar as the move needed it to complete (see [dwellSpeed]).
+  static List<({double speed, double distance, int start, int end})>
+  strokeSegments(List<FunscriptAction> sortedActions) {
+    final segments = <({double speed, double distance, int start, int end})>[];
+    final pv = pivots(sortedActions);
+    for (int j = 1; j < pv.length; j++) {
+      final a = pv[j - 1];
+      final b = pv[j];
+      final tCmdMs = (b.arriveMs - a.departMs).toDouble(); // travel, ms
+      final dist = (b.pos - a.pos).abs().toDouble();
+      final dwellMs = (b.departMs - b.arriveMs).toDouble(); // hold, ms
+      if (tCmdMs <= 0 || dist == 0) continue;
+      final speed = dwellSpeed(dist, tCmdMs / 1000.0, dwellMs / 1000.0);
+      segments.add((
+        speed: speed,
+        distance: dist,
+        start: a.actionIndex,
+        end: b.actionIndex,
+      ));
+    }
+    return segments;
+  }
+
   static double averageSpeed(List<FunscriptAction> actions) {
     if (actions.length < 2) {
       return 0.0;
@@ -199,70 +356,36 @@ class FunscriptAlgorithms {
 
     // Sort actions by time; strip negative timestamps (invalid data).
     final sortedActions = actions.where((a) => a.at >= 0).toList()..sort();
+    if (sortedActions.length < 2) return 0.0;
 
-    // Break the script into monotonic strokes delimited by direction
-    // reversals and pauses. The device comes to rest at every reversal, so
-    // each stroke is an independent rest-to-rest motion described purely by
-    // its total distance and duration.
-    final List<({double speed, double weight})> strokes = [];
+    final segments = strokeSegments(sortedActions);
+    if (segments.isEmpty) return 0.0;
 
-    void addStroke(int startIdx, int endIdx) {
-      if (endIdx <= startIdx) return;
-      final p0 = sortedActions[startIdx];
-      final pN = sortedActions[endIdx];
-      final tauMs = (pN.at - p0.at).toDouble();
-      if (tauMs <= 0) return;
-      final dist = (pN.pos - p0.pos).abs().toDouble();
-      if (dist == 0) return;
-      // Weight each stroke by the distance it travels (pos units), NOT by its
-      // duration. Time-weighting lets a single long idle drift (e.g. a 150s gap
-      // covering 20 pos) swamp the score and pin it to minSpeed, even when the
-      // actual strokes are fast. Distance-weighting measures the average speed
-      // per unit of physical motion the device performs, so idle time — which
-      // covers little distance — contributes negligibly and the score reflects
-      // how fast the script actually moves.
-      strokes.add((speed: strokeSpeed(dist, tauMs / 1000.0), weight: dist));
-    }
+    // Weight each stroke by the distance it travels (pos units), NOT by its
+    // duration. Time-weighting lets a single long idle drift (e.g. a 150s gap
+    // covering 20 pos) swamp the score and pin it to minSpeed, even when the
+    // actual strokes are fast. Distance-weighting measures the average speed
+    // per unit of physical motion, so idle time — which covers little
+    // distance — contributes negligibly. Speeds are already physically bounded
+    // to [minSpeed, maxSpeed], so the robust mean only damps atypical strokes.
+    return _robustWeightedMean([
+      for (final s in segments) (value: s.speed, weight: s.distance),
+    ]);
+  }
 
-    int runStart = 0;
-    int runDir = 0;
-    for (int i = 1; i < sortedActions.length; i++) {
-      final diff = sortedActions[i].pos - sortedActions[i - 1].pos;
-      final dir = diff == 0 ? 0 : (diff > 0 ? 1 : -1);
-
-      if (dir == 0) {
-        // Pause — close any open stroke; the flat section is rest.
-        if (runDir != 0) addStroke(runStart, i - 1);
-        runDir = 0;
-        runStart = i;
-      } else if (runDir == 0) {
-        // Begin a new stroke at the previous point.
-        runStart = i - 1;
-        runDir = dir;
-      } else if (dir != runDir) {
-        // Reversal at point i-1 — close this stroke and start the next there.
-        addStroke(runStart, i - 1);
-        runStart = i - 1;
-        runDir = dir;
-      }
-    }
-    if (runDir != 0) addStroke(runStart, sortedActions.length - 1);
-
-    if (strokes.isEmpty) {
-      return 0.0;
-    }
-
-    final totalWeight = strokes.fold<double>(0, (a, s) => a + s.weight);
-    if (totalWeight <= 0) return 0.0;
-
-    // Robust distance-weighted mean. Speeds are already physically bounded to
-    // [minSpeed, maxSpeed], so we only damp atypical strokes rather than hard
-    // outliers. Quartiles are taken over the distance-weighted distribution
-    // (consistent with the weighted mean), and a loose 3.0x IQR fence
-    // winsorizes — clamps, not drops — extreme strokes so no motion is
-    // discarded. Needs >= 4 strokes for the quartiles to mean anything.
-    if (strokes.length >= 4) {
-      final sorted = [...strokes]..sort((a, b) => a.speed.compareTo(b.speed));
+  /// Distance-weighted mean of (value, weight) pairs with a loose 3.0x IQR
+  /// fence that winsorizes — clamps, not drops — atypical values before
+  /// averaging, so no sample is discarded. Quartiles are taken over the
+  /// weighted distribution (consistent with the weighted mean) and need >= 4
+  /// samples to mean anything; below that it is a plain weighted mean. Shared
+  /// by [averageSpeed] and [averageMin]/[averageMax] so all three damp outliers
+  /// identically. [items] must be non-empty with total weight > 0.
+  static double _robustWeightedMean(
+    List<({double value, double weight})> items,
+  ) {
+    final totalWeight = items.fold<double>(0, (a, s) => a + s.weight);
+    if (items.length >= 4) {
+      final sorted = [...items]..sort((a, b) => a.value.compareTo(b.value));
       final q1 = _weightedQuantile(sorted, totalWeight, 0.25);
       final q3 = _weightedQuantile(sorted, totalWeight, 0.75);
       final iqr = q3 - q1;
@@ -270,23 +393,23 @@ class FunscriptAlgorithms {
       final upper = q3 + 3.0 * iqr;
 
       double sum = 0;
-      for (final s in strokes) {
-        sum += s.speed.clamp(lower, upper) * s.weight;
+      for (final s in items) {
+        sum += s.value.clamp(lower, upper) * s.weight;
       }
       return sum / totalWeight;
     }
 
     double sum = 0;
-    for (final s in strokes) {
-      sum += s.speed * s.weight;
+    for (final s in items) {
+      sum += s.value * s.weight;
     }
     return sum / totalWeight;
   }
 
-  /// Quantile [q] (0..1) over a weight (distance) distribution. [sorted] must
-  /// be ascending by speed.
+  /// Quantile [q] (0..1) over a weighted distribution. [sorted] must be
+  /// ascending by value.
   static double _weightedQuantile(
-    List<({double speed, double weight})> sorted,
+    List<({double value, double weight})> sorted,
     double totalWeight,
     double q,
   ) {
@@ -294,69 +417,61 @@ class FunscriptAlgorithms {
     double cumulative = 0;
     for (final s in sorted) {
       cumulative += s.weight;
-      if (cumulative >= target) return s.speed;
+      if (cumulative >= target) return s.value;
     }
-    return sorted.last.speed;
+    return sorted.last.value;
+  }
+
+  /// Local extremes (valleys for [wantMin], peaks otherwise) of the coarse
+  /// jitter-merged motion, each weighted by the depth of its adjacent stroke.
+  static List<({double value, double weight})> _extremes(
+    List<({int pos, int arriveMs, int departMs, int actionIndex})> pv,
+    bool wantMin,
+  ) {
+    final out = <({double value, double weight})>[];
+    for (int k = 0; k < pv.length; k++) {
+      final p = pv[k].pos;
+      final prev = k > 0 ? pv[k - 1].pos : pv[k + 1].pos;
+      final next = k < pv.length - 1 ? pv[k + 1].pos : pv[k - 1].pos;
+      final isExtreme = wantMin
+          ? (p <= prev && p <= next)
+          : (p >= prev && p >= next);
+      if (isExtreme) {
+        final w = max((p - prev).abs(), (p - next).abs()).toDouble();
+        out.add((value: p.toDouble(), weight: w));
+      }
+    }
+    return out;
   }
 
   static double averageMin(List<FunscriptAction> actions) {
-    if (actions.length < 2) {
-      if (actions.isEmpty) return 0.0;
-      return actions.map((a) => a.pos).reduce(min).toDouble();
-    }
+    if (actions.isEmpty) return 0.0;
+    final sorted = actions.where((a) => a.at >= 0).toList()..sort();
+    if (sorted.isEmpty) return 0.0;
 
-    final sortedActions = List<FunscriptAction>.from(actions)..sort();
-    final mins = <double>[];
-    int lastDir = 0;
-    for (int i = 1; i < sortedActions.length; i++) {
-      final dir = (sortedActions[i].pos - sortedActions[i - 1].pos).sign;
-      if (dir == 0) continue;
-
-      if (dir == 1 && lastDir <= 0) {
-        mins.add(sortedActions[i - 1].pos.toDouble());
-      }
-      lastDir = dir;
-    }
-
-    if (lastDir == -1) {
-      mins.add(sortedActions.last.pos.toDouble());
-    }
-
-    if (mins.isEmpty) {
-      return sortedActions.map((a) => a.pos).reduce(min).toDouble();
-    }
-
-    return mins.reduce((a, b) => a + b) / mins.length;
+    // Distance-weighted, winsorized average of the coarse motion's valleys, so
+    // micro-reversals mid-stroke and shallow mid-range filler don't pull the
+    // reported minimum up. Deep strokes define the range; a lone stray dip is
+    // clamped by the fence (mirrors averageSpeed's robust weighting).
+    final pv = pivots(sorted);
+    final mins = _extremes(pv, true);
+    if (mins.isEmpty) return sorted.map((a) => a.pos).reduce(min).toDouble();
+    return _robustWeightedMean(mins);
   }
 
   static double averageMax(List<FunscriptAction> actions) {
-    if (actions.length < 2) {
-      if (actions.isEmpty) return 0.0;
-      return actions.map((a) => a.pos).reduce(max).toDouble();
-    }
+    if (actions.isEmpty) return 0.0;
+    final sorted = actions.where((a) => a.at >= 0).toList()..sort();
+    if (sorted.isEmpty) return 0.0;
 
-    final sortedActions = List<FunscriptAction>.from(actions)..sort();
-    final maxes = <double>[];
-    int lastDir = 0;
-    for (int i = 1; i < sortedActions.length; i++) {
-      final dir = (sortedActions[i].pos - sortedActions[i - 1].pos).sign;
-      if (dir == 0) continue;
-
-      if (dir == -1 && lastDir >= 0) {
-        maxes.add(sortedActions[i - 1].pos.toDouble());
-      }
-      lastDir = dir;
-    }
-
-    if (lastDir == 1) {
-      maxes.add(sortedActions.last.pos.toDouble());
-    }
-
-    if (maxes.isEmpty) {
-      return sortedActions.map((a) => a.pos).reduce(max).toDouble();
-    }
-
-    return maxes.reduce((a, b) => a + b) / maxes.length;
+    // Distance-weighted, winsorized average of the coarse motion's peaks, so
+    // micro-reversals mid-stroke and shallow mid-range filler don't pull the
+    // reported maximum down. Deep strokes define the range; a lone stray spike
+    // is clamped by the fence (mirrors averageSpeed's robust weighting).
+    final pv = pivots(sorted);
+    final maxes = _extremes(pv, false);
+    if (maxes.isEmpty) return sorted.map((a) => a.pos).reduce(max).toDouble();
+    return _robustWeightedMean(maxes);
   }
 
   static List<FunscriptAction> invert(List<FunscriptAction> actions) {
