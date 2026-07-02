@@ -111,18 +111,18 @@ class _MoveMediaDialogState extends State<MoveMediaDialog> with SignalsMixin {
         if (inSearchPaths) {
           if (entry.mediaFile != null) {
             entry.mediaFile!.mediaPath = newPath;
-            oBox.mediaService.save(entry.mediaFile!);
+            oBox.mediaRepository.save(entry.mediaFile!);
           } else if (entry.funscriptFile != null) {
             entry.funscriptFile!.path = newPath;
-            oBox.funscriptService.save(entry.funscriptFile!);
+            oBox.mediaRepository.saveFunscript(entry.funscriptFile!);
           }
         } else {
           if (entry.mediaFile != null) {
             entry.mediaFile!.fileNotFound = true;
-            oBox.mediaService.save(entry.mediaFile!);
+            oBox.mediaRepository.save(entry.mediaFile!);
           } else if (entry.funscriptFile != null) {
             entry.funscriptFile!.fileNotFound = true;
-            oBox.funscriptService.save(entry.funscriptFile!);
+            oBox.mediaRepository.saveFunscript(entry.funscriptFile!);
           }
         }
       } catch (e) {

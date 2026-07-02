@@ -109,8 +109,8 @@ class _MediaDetailPageState extends State<MediaDetailPage>
     widget.media.mediaPath = _pathSignal.value;
     widget.media.mainFunscript.target = _mainFunscriptSignal.value;
 
-    oBox.funscriptService.saveMany(_funscriptsSignal.value);
-    oBox.mediaService.save(widget.media);
+    oBox.mediaRepository.saveFunscripts(_funscriptsSignal.value);
+    oBox.mediaRepository.save(widget.media);
   }
 
   bool _isPathInConfiguredMediaPaths(String filePath) {
@@ -220,7 +220,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
     if (fs == null) {
       fs = await _loadFunscriptData(picked.path, picked.hash);
       if (fs == null) return;
-      oBox.funscriptService.save(fs);
+      oBox.mediaRepository.saveFunscript(fs);
     }
 
     final fsToLink = fs;
@@ -241,7 +241,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
       // Use it and update its path/status just in case.
       newFs.path = picked.path;
       newFs.fileNotFound = false;
-      oBox.funscriptService.save(newFs);
+      oBox.mediaRepository.saveFunscript(newFs);
 
       final isMain = _mainFunscriptSignal.value?.id == oldFs.id;
 
@@ -273,7 +273,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
       oldFs.applyMetricsFrom(source);
       oldFs.fileNotFound = false;
 
-      oBox.funscriptService.save(oldFs);
+      oBox.mediaRepository.saveFunscript(oldFs);
       // Trigger UI update by assigning a new list
       _funscriptsSignal.value = List.from(_funscriptsSignal.value);
 

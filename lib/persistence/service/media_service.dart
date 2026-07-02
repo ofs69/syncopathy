@@ -27,6 +27,10 @@ class MediaService {
     return _box.put(media);
   }
 
+  void saveMany(List<MediaFile> medias) {
+    _box.putMany(medias);
+  }
+
   MediaFile? getByHash(String hash) {
     final query = _box.query(MediaFile_.fileHash.equals(hash)).build();
     try {

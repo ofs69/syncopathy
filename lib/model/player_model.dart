@@ -264,8 +264,7 @@ class PlayerModel with EffectDispose {
                 if (moreCurrentVideo == video && !_videoViewCounted) {
                   // Count the view
                   _videoViewCounted = true;
-                  video.playCount += 1;
-                  oBox.mediaService.save(video);
+                  oBox.mediaRepository.incrementPlayCount(video);
                 }
               }
             });

@@ -1,6 +1,7 @@
 import 'package:path/path.dart' as p;
 
 import 'package:syncopathy/objectbox.g.dart';
+import 'package:syncopathy/persistence/repository/media_repository.dart';
 import 'package:syncopathy/persistence/service/fast_hash_cache_service.dart';
 import 'package:syncopathy/persistence/service/funscript_service.dart';
 import 'package:syncopathy/persistence/service/key_value_service.dart';
@@ -15,12 +16,17 @@ class ObjectBox {
   late final FunscriptService funscriptService;
   late final FastHashCacheService fastHashCacheService;
 
+  /// Intent-named command layer over [mediaService]/[funscriptService]; the UI
+  /// routes entity mutations through this instead of saving inline.
+  late final MediaRepository mediaRepository;
+
   ObjectBox._create(this.store) {
     keyValueService = KeyValueService(store);
     userCategoryService = UserCategoryService(store);
     mediaService = MediaService(store);
     funscriptService = FunscriptService(store);
     fastHashCacheService = FastHashCacheService(store);
+    mediaRepository = MediaRepository(mediaService, funscriptService);
 
     // Remove this at some point in the future
     funscriptService.removeDuplicates(store);

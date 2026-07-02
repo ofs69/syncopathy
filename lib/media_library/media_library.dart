@@ -577,18 +577,10 @@ class _MediaLibraryState extends State<MediaLibrary>
               getIt.get<VideoPlayer>().openSingleVideo(media);
             }
           },
-          toggleDislike: () {
-            media.rating = media.rating != MediaRating.dislike
-                ? MediaRating.dislike
-                : MediaRating.noRating;
-            oBox.mediaService.save(media);
-          },
-          toggleFavorite: () {
-            media.rating = media.rating != MediaRating.like
-                ? MediaRating.like
-                : MediaRating.noRating;
-            oBox.mediaService.save(media);
-          },
+          toggleDislike: () =>
+              oBox.mediaRepository.toggleRating(media, MediaRating.dislike),
+          toggleFavorite: () =>
+              oBox.mediaRepository.toggleRating(media, MediaRating.like),
           onDelete: () => _deleteMedia(media),
         );
       },
@@ -695,10 +687,7 @@ class _MediaLibraryState extends State<MediaLibrary>
   }
 
   void _bulkSetRating(MediaRating rating) {
-    for (final video in selectedVideos.value) {
-      video.rating = rating;
-      oBox.mediaService.save(video);
-    }
+    oBox.mediaRepository.bulkSetRating(selectedVideos.value, rating);
     selectedVideos.clear();
   }
 
@@ -725,10 +714,7 @@ class _MediaLibraryState extends State<MediaLibrary>
     );
 
     if (confirmed == true) {
-      for (final video in selectedVideos.value) {
-        video.playCount = 0;
-        oBox.mediaService.save(video);
-      }
+      oBox.mediaRepository.bulkResetPlayCount(selectedVideos.value);
       selectedVideos.clear();
     }
   }
@@ -766,10 +752,7 @@ class _MediaLibraryState extends State<MediaLibrary>
         ? oBox.userCategoryService.getById(categoryId)
         : null;
     if (category != null) {
-      for (final video in selectedVideos.value) {
-        video.categories.add(category);
-        oBox.mediaService.save(video);
-      }
+      oBox.mediaRepository.bulkAddCategory(selectedVideos.value, category);
       selectedVideos.clear();
     }
   }
@@ -802,10 +785,7 @@ class _MediaLibraryState extends State<MediaLibrary>
       preFilterCategories: categoriesToSelect,
     );
     if (category != null) {
-      for (final video in selectedVideos.value) {
-        video.categories.removeWhere((c) => c.id == category);
-        oBox.mediaService.save(video);
-      }
+      oBox.mediaRepository.bulkRemoveCategory(selectedVideos.value, category);
       selectedVideos.clear();
     }
   }

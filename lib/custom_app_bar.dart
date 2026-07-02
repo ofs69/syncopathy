@@ -253,9 +253,8 @@ class CustomAppBarState extends State<CustomAppBar> {
       icon: Icon(active ? activeIcon : inactiveIcon, color: active ? activeColor : null),
       onPressed: () {
         setState(() {
-          video.rating = active ? MediaRating.noRating : rating;
+          oBox.mediaRepository.toggleRating(video, rating);
         });
-        oBox.mediaService.save(video);
       },
       tooltip: active ? activeTooltip : inactiveTooltip,
     );

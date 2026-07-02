@@ -69,13 +69,14 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
 
       if (bytes != null) {
         if (request.file.thumbnailGenerationFailed) {
-          request.file.thumbnailGenerationFailed = false;
-          oBox.mediaService.save(request.file);
+          oBox.mediaRepository.setThumbnailGenerationFailed(
+            request.file,
+            false,
+          );
         }
       } else {
         if (!request.file.thumbnailGenerationFailed) {
-          request.file.thumbnailGenerationFailed = true;
-          oBox.mediaService.save(request.file);
+          oBox.mediaRepository.setThumbnailGenerationFailed(request.file, true);
         }
       }
 

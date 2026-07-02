@@ -88,7 +88,7 @@ class _DeleteMediaDialogState extends State<DeleteMediaDialog>
     }
 
     for (final media in widget.selectedMedia) {
-      oBox.mediaService.remove(media.id);
+      oBox.mediaRepository.remove(media.id);
     }
 
     getIt.get<MediaManager>().startIndexing();

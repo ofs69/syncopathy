@@ -480,7 +480,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (mediaManager == null || mediaSettings == null) {
       return;
     }
-    oBox.mediaService.resetAllVideosPlayCount();
+    oBox.mediaRepository.resetAllPlayCounts();
   }
 
   Future<void> _generateMissingThumbnails() async {
