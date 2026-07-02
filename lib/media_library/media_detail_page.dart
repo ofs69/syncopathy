@@ -270,21 +270,17 @@ class _MediaDetailPageState extends State<MediaDetailPage>
 
       oldFs.path = picked.path;
       oldFs.funscriptHash = picked.hash;
-      oldFs.averageSpeed = source.averageSpeed;
-      oldFs.averageMin = source.averageMin;
-      oldFs.averageMax = source.averageMax;
-      oldFs.isScriptToken = source.isScriptToken;
-      oldFs.metadata = source.metadata;
+      oldFs.applyMetricsFrom(source);
       oldFs.fileNotFound = false;
 
       oBox.funscriptService.save(oldFs);
       // Trigger UI update by assigning a new list
       _funscriptsSignal.value = List.from(_funscriptsSignal.value);
 
-      // Force update of main funscript signal if this was the main one
+      // oldFs was mutated in place, so the main-funscript signal holds the same
+      // instance; force a re-emit so dependents pick up the new metrics.
       if (_mainFunscriptSignal.value?.id == oldFs.id) {
-        _mainFunscriptSignal.value = null; // Reset to force trigger
-        _mainFunscriptSignal.value = oldFs;
+        _mainFunscriptSignal.set(oldFs, force: true);
       }
     }
   }
@@ -492,14 +488,17 @@ class _MediaDetailPageState extends State<MediaDetailPage>
     });
   }
 
+  static String _formatDateTime(DateTime d) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${d.year}-${two(d.month)}-${two(d.day)} '
+        '${two(d.hour)}:${two(d.minute)}:${two(d.second)}';
+  }
+
   Widget _buildTechnicalInfo() {
     final meta = widget.media.metadata.target;
-    final dateStr = widget.media.firstIndexedOn != null
-        ? widget.media.firstIndexedOn!
-              .toLocal()
-              .toString()
-              .split('.')
-              .first // Remove microseconds
+    final indexedOn = widget.media.firstIndexedOn;
+    final dateStr = indexedOn != null
+        ? _formatDateTime(indexedOn.toLocal())
         : 'Unknown';
 
     final fileNotFound = widget.media.fileNotFound;

@@ -50,4 +50,15 @@ class FunscriptFile {
   });
 
   String get fileName => path.split(Platform.pathSeparator).last;
+
+  /// Copies the computed metrics and metadata from [source] onto this instance.
+  /// Used when relocating a funscript to a file whose analysis lives elsewhere,
+  /// without replacing this entity (and its DB id / relations).
+  void applyMetricsFrom(FunscriptFile source) {
+    averageSpeed = source.averageSpeed;
+    averageMin = source.averageMin;
+    averageMax = source.averageMax;
+    isScriptToken = source.isScriptToken;
+    metadata = source.metadata;
+  }
 }
