@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
@@ -35,6 +34,16 @@ abstract class VideoPlayer with EffectDispose {
   late final ReadonlySignal<String> loadedPath;
   late final ReadonlySignal<bool> buffering;
   late final ReadonlySignal<MediaFile?> currentMedia;
+  // Canonical media path -> video, rebuilt only when the loaded list changes,
+  // so resolving the current track is an O(1) lookup instead of canonicalizing
+  // the whole list on every track change.
+  late final ReadonlySignal<Map<String, MediaFile>> _canonicalVideoMap =
+      computed(() {
+        return <String, MediaFile>{
+          for (final v in _previouslyLoadedVideos.value)
+            p.canonicalize(v.mediaPath): v,
+        };
+      });
   late final ReadonlySignal<int> currentPositionSeconds; // for UI
   late final ReadonlySignal<int> currentPositionFixedStep; // for UI
   ReadonlySignal<bool> get paused;
@@ -116,16 +125,9 @@ abstract class VideoPlayer with EffectDispose {
     currentMedia = computed(() {
       final playlistModel = currentPlaylist.value;
       final entry = playlistModel.currentPlaylistItem.value;
-      var filename = entry?.filename;
-      if (filename != null) {
-        filename = p.canonicalize(filename);
-        final video = _previouslyLoadedVideos.value.firstWhereOrNull((v) {
-          final videoPath = p.canonicalize(v.mediaPath);
-          return videoPath == filename;
-        });
-        return video;
-      }
-      return null;
+      final filename = entry?.filename;
+      if (filename == null) return null;
+      return _canonicalVideoMap.value[p.canonicalize(filename)];
     });
 
     player.setPlaylistMode(PlaylistMode.loop);
