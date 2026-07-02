@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/generated/constants.pb.dart';
-import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/player/handy_ble.dart';
 import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
 import 'package:syncopathy/player/player_backend.dart';
 
 abstract class HandyBluetoothBackendBase extends PlayerBackend
+    with HandyHspCommandDelegation
     implements IHandyHspBase, ICommandBackendBase {
   @override
   ReadonlySignal<bool> get connected => _connected;
@@ -104,58 +104,5 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
   }
 
   @override
-  void hspAdd(
-    List<FunscriptAction> points, {
-    required bool flush,
-    required int? tailPointStreamIndex,
-    required int? tailPointThreshold,
-  }) => _handyBle.value?.hspAdd(
-    points.map((a) => Point(t: a.at, x: a.pos)).toList(),
-    flush: flush,
-    tailPointStreamIndex: tailPointStreamIndex,
-    tailPointThreshold: tailPointThreshold,
-  );
-
-  @override
-  void hspCurrentTimeSet({required int currentTime, required double filter}) =>
-      _handyBle.value?.hspCurrentTimeSet(
-        currentTime: currentTime,
-        filter: filter,
-      );
-
-  @override
-  void hspFlush() => _handyBle.value?.hspFlush();
-
-  @override
-  void hspPause() => _handyBle.value?.hspPause();
-
-  @override
-  void hspPlay({
-    required int startTime,
-    required double playbackRate,
-    required bool loop,
-    required bool pauseOnStarving,
-  }) => _handyBle.value?.hspPlay(
-    startTime: startTime,
-    playbackRate: playbackRate,
-    loop: loop,
-    pauseOnStarving: pauseOnStarving,
-  );
-
-  @override
-  void hspResume() => _handyBle.value?.hspResume();
-
-  @override
-  void hspSetup({int? streamId}) =>
-      _handyBle.value?.hspSetup(streamId: streamId);
-
-  @override
-  void hspStop() => _handyBle.value?.hspStop();
-
-  @override
-  void hspLoop(bool loop) => _handyBle.value?.hspLoop(loop);
-
-  @override
-  void positionWithDuration(double relPos, int moveOverTimeMs) =>
-      _handyBle.value?.positionWithDuration(relPos, moveOverTimeMs);
+  IHspCommands? get hspCommandTarget => _handyBle.value;
 }

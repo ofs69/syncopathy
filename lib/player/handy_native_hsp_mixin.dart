@@ -194,9 +194,10 @@ class HspStateAdapter {
   }
 }
 
-abstract class IHandyHspBase {
-  ReadonlySignal<HspStateAdapter?> get hspStateAdapter;
-
+/// The HSP stream commands a device transport (BLE or Web) exposes. Both
+/// `HandyBle` and `HandyWeb` implement this so the two backend bases can share a
+/// single set of forwarders via [HandyHspCommandDelegation].
+abstract interface class IHspCommands {
   void hspSetup({int? streamId});
   void hspFlush();
   void hspAdd(
@@ -216,6 +217,74 @@ abstract class IHandyHspBase {
   void hspCurrentTimeSet({required int currentTime, required double filter});
   void hspStop();
   void hspLoop(bool loop);
+  void positionWithDuration(double relPos, int moveOverTimeMs);
+}
+
+abstract class IHandyHspBase implements IHspCommands {
+  ReadonlySignal<HspStateAdapter?> get hspStateAdapter;
+}
+
+/// Forwards every [IHspCommands] call to [hspCommandTarget] — the live transport,
+/// or null when disconnected. Both backend bases mix this in so they don't each
+/// hand-write the same ten one-line forwarders; they only supply the target.
+mixin HandyHspCommandDelegation implements IHspCommands {
+  IHspCommands? get hspCommandTarget;
+
+  @override
+  void hspSetup({int? streamId}) =>
+      hspCommandTarget?.hspSetup(streamId: streamId);
+
+  @override
+  void hspFlush() => hspCommandTarget?.hspFlush();
+
+  @override
+  void hspAdd(
+    List<FunscriptAction> points, {
+    required bool flush,
+    required int? tailPointStreamIndex,
+    required int? tailPointThreshold,
+  }) => hspCommandTarget?.hspAdd(
+    points,
+    flush: flush,
+    tailPointStreamIndex: tailPointStreamIndex,
+    tailPointThreshold: tailPointThreshold,
+  );
+
+  @override
+  void hspPlay({
+    required int startTime,
+    required double playbackRate,
+    required bool loop,
+    required bool pauseOnStarving,
+  }) => hspCommandTarget?.hspPlay(
+    startTime: startTime,
+    playbackRate: playbackRate,
+    loop: loop,
+    pauseOnStarving: pauseOnStarving,
+  );
+
+  @override
+  void hspResume() => hspCommandTarget?.hspResume();
+
+  @override
+  void hspPause() => hspCommandTarget?.hspPause();
+
+  @override
+  void hspCurrentTimeSet({required int currentTime, required double filter}) =>
+      hspCommandTarget?.hspCurrentTimeSet(
+        currentTime: currentTime,
+        filter: filter,
+      );
+
+  @override
+  void hspStop() => hspCommandTarget?.hspStop();
+
+  @override
+  void hspLoop(bool loop) => hspCommandTarget?.hspLoop(loop);
+
+  @override
+  void positionWithDuration(double relPos, int moveOverTimeMs) =>
+      hspCommandTarget?.positionWithDuration(relPos, moveOverTimeMs);
 }
 
 // A helper class to track the on device buffer and determine which actions are
@@ -393,36 +462,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     if (hspState == null) return;
     final playerPlaying = !timesource.paused.value;
 
-    {
-      // fallback mechanism to set the internalHandyPlaying state from the hspState with a 200ms debouncer
-      final currentPlayStateAccordingToDevice = switch (hspState.playState) {
-        HspStateAdapterPlayState.hspStateNotInitialized => false,
-        HspStateAdapterPlayState.hspStatePlaying => true,
-        HspStateAdapterPlayState.hspStateStopped => false,
-        HspStateAdapterPlayState.hspStatePaused => false,
-        // I think it only turns starving when pauseWhenStarving is turned on
-        HspStateAdapterPlayState.hspStateStarving => false,
-      };
-      if (currentPlayStateAccordingToDevice != _internalHandyPlaying) {
-        if (kDebugMode) {
-          debugPrint(
-            "playingDevice: $currentPlayStateAccordingToDevice internalPlayState: $_internalHandyPlaying",
-          );
-        }
-        _internalHandyPlayStateDebouncer.run(() {
-          if (_internalHandyPlaying != currentPlayStateAccordingToDevice) {
-            if (kDebugMode) {
-              debugPrint(
-                "DEBOUNCER SET _internalHandyPlaying=$currentPlayStateAccordingToDevice",
-              );
-            }
-            // Ideally this case never happens
-            _internalHandyPlaying = currentPlayStateAccordingToDevice;
-            _hspStateChange(hspState);
-          }
-        });
-      }
-    }
+    _reconcileInternalPlayingState(hspState);
 
     if (kDebugMode) {
       if (_lastState != hspState.playState) {
@@ -474,6 +514,38 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     }
   }
 
+  /// Fallback that nudges [_internalHandyPlaying] back toward what the device
+  /// actually reports, on a 200ms debounce, whenever the two disagree. Ideally
+  /// this never fires; it guards against our optimistic local flag drifting from
+  /// the device's real play state.
+  void _reconcileInternalPlayingState(HspStateAdapter hspState) {
+    final devicePlaying = switch (hspState.playState) {
+      HspStateAdapterPlayState.hspStateNotInitialized => false,
+      HspStateAdapterPlayState.hspStatePlaying => true,
+      HspStateAdapterPlayState.hspStateStopped => false,
+      HspStateAdapterPlayState.hspStatePaused => false,
+      // I think it only turns starving when pauseWhenStarving is turned on
+      HspStateAdapterPlayState.hspStateStarving => false,
+    };
+    if (devicePlaying == _internalHandyPlaying) return;
+
+    if (kDebugMode) {
+      debugPrint(
+        "playingDevice: $devicePlaying internalPlayState: $_internalHandyPlaying",
+      );
+    }
+    _internalHandyPlayStateDebouncer.run(() {
+      if (_internalHandyPlaying != devicePlaying) {
+        if (kDebugMode) {
+          debugPrint("DEBOUNCER SET _internalHandyPlaying=$devicePlaying");
+        }
+        // Ideally this case never happens
+        _internalHandyPlaying = devicePlaying;
+        _hspStateChange(hspState);
+      }
+    });
+  }
+
   void _seeking(bool isSeeking) {
     final currentTime = timesource.currentRawMs;
     final state = hspStateAdapter.value;
@@ -502,107 +574,146 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     final state = hspStateAdapter.value;
     if (state == null) return;
     if (_currentStreamId != state.streamId) {
-      _syncTimer?.cancel();
-      _syncTimer = null;
+      _cancelSyncTimer();
       return;
     }
 
     final actions = currentActions.value;
 
-    // Check if actions have changed
+    // Re-bootstrap if the script itself changed under us.
     if (_bufferedActionsReference != actions) {
       _resetPlayback(actions);
     }
-
     if (actions == null) return;
 
     final isPlaying = !timesource.paused.value;
     final currentTime = timesource.currentRawMs;
 
     if (isPlaying) {
-      if (_internalActionBuffer.isNotEmpty) {
-        final expectedFirstTime = _internalActionBuffer.firstAt;
-        final expectedLastTime = _internalActionBuffer.lastAt;
-        if (currentTime < expectedFirstTime || currentTime > expectedLastTime) {
-          if (state.points > 0) {
+      _maintainBuffer(state, actions, currentTime);
+      _scheduleClockSync();
+    } else {
+      _cancelSyncTimer();
+    }
+  }
+
+  /// Keeps the device buffer fed while playing. Bootstraps from scratch when
+  /// nothing is buffered; re-bootstraps on a stall (the playhead has fallen
+  /// outside the buffered window); otherwise eagerly buffers the next chunk.
+  void _maintainBuffer(
+    HspStateAdapter state,
+    List<FunscriptAction> actions,
+    int currentTime,
+  ) {
+    if (_internalActionBuffer.isEmpty) {
+      hspSetup();
+      _bootstrapBuffer(actions);
+      return;
+    }
+
+    final expectedFirstTime = _internalActionBuffer.firstAt;
+    final expectedLastTime = _internalActionBuffer.lastAt;
+    final playheadOutsideBuffer =
+        currentTime < expectedFirstTime || currentTime > expectedLastTime;
+
+    if (playheadOutsideBuffer) {
+      if (state.points > 0) {
+        if (kDebugMode) {
+          debugPrint(
+            "STALL currentTime: $currentTime expectedFirstTime: $expectedFirstTime expectedLastTime: $expectedLastTime",
+          );
+        }
+        _resetPlayback(actions);
+      }
+      return;
+    }
+
+    _eagerBufferThrottle.run(
+      () => _eagerBufferAhead(state, actions, currentTime),
+    );
+  }
+
+  /// Buffers the next [ActionBuffer] ahead of the playhead, unless the device is
+  /// near its point ceiling or we already have [_eagerBufferLimitMs] buffered.
+  void _eagerBufferAhead(
+    HspStateAdapter state,
+    List<FunscriptAction> actions,
+    int currentTime,
+  ) {
+    if (_internalActionBuffer.isEmpty) return;
+    if (kDebugMode) debugPrint("EAGER BUFFER");
+    final bufferId = _internalActionBuffer.lastBufferId + 1;
+    final actionBuffer = ActionBuffer.fromActions(bufferId, actions);
+    if (actionBuffer == null) return;
+
+    final bufferLength = actionBuffer.bufferLength;
+    if (_exceedsSoftPointLimit(state, bufferLength)) {
+      // soft limit reached — stop buffering
+      return;
+    }
+
+    final delta = _internalActionBuffer.lastAt - currentTime;
+    if (delta >= _eagerBufferLimitMs) {
+      // already have _eagerBufferLimitMs of actions buffered
+      return;
+    }
+
+    _bufferPoints([actionBuffer], flush: false);
+  }
+
+  /// Arms the self-rescheduling timer that keeps the device clock in sync: one
+  /// hard sync (filter 0.9) then progressively softer ones (0.5), backing off
+  /// from 1s toward 10s between attempts. No-op if a timer is already armed.
+  void _scheduleClockSync() {
+    _syncTimer ??= Timer(
+      Duration(seconds: _syncCounter < 3 ? _syncCounter + 1 : 10),
+      () {
+        try {
+          final currentTimeMs =
+              timesource.currentSmoothMs + settingsModel.offsetMs.value;
+          final state = hspStateAdapter.value;
+          if (state == null) return;
+          final handyPlaying =
+              state.playState == HspStateAdapterPlayState.hspStatePlaying;
+          if (!handyPlaying) return;
+
+          if (currentTimeMs >= state.firstPointTime &&
+              currentTimeMs <= state.lastPointTime) {
+            hspCurrentTimeSet(
+              currentTime: currentTimeMs,
+              // one hard sync 0.9 followed by soft syncs 0.5
+              filter: _syncCounter < 1 ? 0.9 : 0.5,
+            );
             if (kDebugMode) {
               debugPrint(
-                "STALL currentTime: $currentTime expectedFirstTime: $expectedFirstTime expectedLastTime: $expectedLastTime",
+                "SYNC COUNTER: $_syncCounter hard:${_syncCounter < 1} ${currentTimeMs}ms",
               );
             }
-            _resetPlayback(actions);
+            _syncCounter += 1;
           }
-        } else {
-          _eagerBufferThrottle.run(() {
-            if (_internalActionBuffer.isEmpty) return;
-            if (kDebugMode) debugPrint("EAGER BUFFER");
-            final bufferId = _internalActionBuffer.lastBufferId + 1;
-            final actionBuffer = ActionBuffer.fromActions(bufferId, actions);
-
-            if (actionBuffer != null) {
-              final bufferLength = actionBuffer.bufferLength;
-              final softMaxPoints = (state.maxPoints ~/ 100) * 100;
-              if (state.points + bufferLength > softMaxPoints) {
-                // stop buffering soft limit is reached
-                return;
-              }
-
-              final delta = _internalActionBuffer.lastAt - currentTime;
-              if (delta >= _eagerBufferLimitMs) {
-                // stop buffering
-                // there's already _eagerBufferLimitMs milliseconds of actions buffered
-                return;
-              }
-
-              // finally buffer the points no issues were found
-              _bufferPoints([actionBuffer], flush: false);
-            }
-          });
+        } finally {
+          _syncTimer = null;
         }
-      } else {
-        hspSetup();
-        _bootstrapBuffer(actions);
-      }
-    }
+      },
+    );
+  }
 
-    if (isPlaying) {
-      _syncTimer ??= Timer(
-        Duration(seconds: _syncCounter < 3 ? _syncCounter + 1 : 10),
-        () {
-          try {
-            if (isPlaying) {
-              final currentTimeMs =
-                  timesource.currentSmoothMs + settingsModel.offsetMs.value;
-              final state = hspStateAdapter.value;
-              if (state == null) return;
-              final handyPlaying =
-                  state.playState == HspStateAdapterPlayState.hspStatePlaying;
-              if (!handyPlaying) return;
+  void _cancelSyncTimer() {
+    _syncTimer?.cancel();
+    _syncTimer = null;
+  }
 
-              if (currentTimeMs >= state.firstPointTime &&
-                  currentTimeMs <= state.lastPointTime) {
-                hspCurrentTimeSet(
-                  currentTime: currentTimeMs,
-                  // one hard sync 0.9 followed by soft syncs 0.5
-                  filter: _syncCounter < 1 ? 0.9 : 0.5,
-                );
-                if (kDebugMode) {
-                  debugPrint(
-                    "SYNC COUNTER: $_syncCounter hard:${_syncCounter < 1} ${currentTimeMs}ms",
-                  );
-                }
-                _syncCounter += 1;
-              }
-            }
-          } finally {
-            _syncTimer = null;
-          }
-        },
-      );
-    } else {
-      _syncTimer?.cancel();
-      _syncTimer = null;
-    }
+  // The device's hard point ceiling is maxPoints; buffering stops a little below
+  // it, rounded down to a multiple of this, to keep headroom.
+  static const int _softPointLimitGranularity = 100;
+
+  /// Whether adding [additionalPoints] would push the device past its soft point
+  /// ceiling (maxPoints rounded down to [_softPointLimitGranularity]).
+  bool _exceedsSoftPointLimit(HspStateAdapter state, int additionalPoints) {
+    final softMaxPoints =
+        (state.maxPoints ~/ _softPointLimitGranularity) *
+        _softPointLimitGranularity;
+    return state.points + additionalPoints > softMaxPoints;
   }
 
   void _resetPlayback(List<FunscriptAction>? actions) {
@@ -737,8 +848,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     final actionBuffer = ActionBuffer.fromActions(bufferId, actions);
     if (actionBuffer != null) {
       final bufferLength = actionBuffer.bufferLength;
-      final softMaxPoints = (hspState.maxPoints ~/ 100) * 100;
-      if (hspState.points + bufferLength > softMaxPoints) {
+      if (_exceedsSoftPointLimit(hspState, bufferLength)) {
         // when the soft limit is reached we pause and flush the buffer
         hspPause();
         _bootstrapBuffer(actions);

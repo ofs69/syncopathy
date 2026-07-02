@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
-import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/model/json/handy_native_web_backend_settings.dart';
 import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
@@ -9,6 +8,7 @@ import 'package:syncopathy/player/handy_web.dart';
 import 'package:syncopathy/player/player_backend.dart';
 
 abstract class HandyWebBackendBase extends PlayerBackend
+    with HandyHspCommandDelegation
     implements IHandyHspBase, ICommandBackendBase {
   @override
   ReadonlySignal<HspStateAdapter?> get hspStateAdapter => handy.hspStateAdapter;
@@ -108,54 +108,5 @@ abstract class HandyWebBackendBase extends PlayerBackend
   }
 
   @override
-  void hspAdd(
-    List<FunscriptAction> points, {
-    required bool flush,
-    required int? tailPointStreamIndex,
-    required int? tailPointThreshold,
-  }) => handy.hspAdd(
-    points,
-    flush: flush,
-    tailPointStreamIndex: tailPointStreamIndex,
-    tailPointThreshold: tailPointThreshold,
-  );
-
-  @override
-  void hspCurrentTimeSet({required int currentTime, required double filter}) =>
-      handy.hspCurrentTimeSet(currentTime: currentTime, filter: filter);
-
-  @override
-  void hspFlush() => handy.hspFlush();
-
-  @override
-  void hspPause() => handy.hspPause();
-
-  @override
-  void hspPlay({
-    required int startTime,
-    required double playbackRate,
-    required bool loop,
-    required bool pauseOnStarving,
-  }) => handy.hspPlay(
-    startTime: startTime,
-    playbackRate: playbackRate,
-    loop: loop,
-    pauseOnStarving: pauseOnStarving,
-  );
-
-  @override
-  void hspResume() => handy.hspResume();
-
-  @override
-  void hspSetup({int? streamId}) => handy.hspSetup(streamId: streamId);
-
-  @override
-  void hspStop() => handy.hspStop();
-
-  @override
-  void hspLoop(bool loop) => handy.hspLoop(loop);
-
-  @override
-  void positionWithDuration(double relPos, int moveOverTimeMs) =>
-      handy.positionWithDuration(relPos, moveOverTimeMs);
+  IHspCommands? get hspCommandTarget => handy;
 }

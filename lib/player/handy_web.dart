@@ -96,7 +96,7 @@ class ApiQueue {
   }
 }
 
-class HandyWeb with EffectDispose {
+class HandyWeb with EffectDispose implements IHspCommands {
   String _connectionKey = "";
   String _applicationKey = "";
   Map<String, String> _defaultHeaders = {};
@@ -476,6 +476,7 @@ class HandyWeb with EffectDispose {
     );
   }
 
+  @override
   void hspSetup({int? streamId}) {
     if (!_connected.value) return;
     streamId ??= Random().nextInt(_maxInt32);
@@ -483,6 +484,7 @@ class HandyWeb with EffectDispose {
     _putHspCommand('hsp/setup', body: jsonEncode(request.toJson()));
   }
 
+  @override
   void hspAdd(
     List<FunscriptAction> points, {
     required bool flush,
@@ -510,6 +512,7 @@ class HandyWeb with EffectDispose {
     }
   }
 
+  @override
   void hspCurrentTimeSet({required int currentTime, required double filter}) {
     if (!_connected.value) return;
     final request = HspSynctime(
@@ -520,16 +523,19 @@ class HandyWeb with EffectDispose {
     _putHspCommand('hsp/synctime', body: jsonEncode(request.toJson()));
   }
 
+  @override
   void hspFlush() {
     if (!_connected.value) return;
     _putHspCommand('hsp/flush');
   }
 
+  @override
   void hspPause() {
     if (!_connected.value) return;
     _putHspCommand('hsp/pause');
   }
 
+  @override
   void hspPlay({
     required int startTime,
     required double playbackRate,
@@ -547,17 +553,20 @@ class HandyWeb with EffectDispose {
     _putHspCommand('hsp/play', body: jsonEncode(request.toJson()));
   }
 
+  @override
   void hspResume() {
     if (!_connected.value) return;
     final request = HspResume(pickUp: true);
     _putHspCommand('hsp/resume', body: jsonEncode(request.toJson()));
   }
 
+  @override
   void hspStop() {
     if (!_connected.value) return;
     _putHspCommand('hsp/stop');
   }
 
+  @override
   void hspLoop(bool loop) {
     if (!_connected.value) return;
     final request = HspLoop(loop: loop);
@@ -570,6 +579,7 @@ class HandyWeb with EffectDispose {
     _putHspCommand('hsp/pause/onstarving', body: jsonEncode(request.toJson()));
   }
 
+  @override
   void positionWithDuration(double relPos, int moveOverTimeMs) {
     if (!_connected.value) return;
     final request = HdspXpt(

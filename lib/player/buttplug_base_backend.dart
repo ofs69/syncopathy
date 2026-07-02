@@ -42,91 +42,16 @@ class ButtplugBaseBackend extends PlayerBackend implements ICommandBackendBase {
   @override
   bool get isBluetooth => false;
 
-  final _formKey = GlobalKey<FormState>();
   final _saveDebounce = Debouncer(milliseconds: 500);
 
   @override
   Widget settingsWidget(BuildContext context) {
-    return Form(
-      key: _formKey,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      onChanged: () {
-        if (_formKey.currentState?.validate() ?? false) {
-          _formKey.currentState?.save();
-          _saveSettings();
-        }
+    return _ButtplugSettingsForm(
+      settings: settings,
+      onChanged: (updated) {
+        settings = updated;
+        _saveSettings();
       },
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Hostname/IP Field
-          Expanded(
-            flex: 3,
-            child: TextFormField(
-              initialValue: settings.host,
-              onSaved: (newValue) => settings.host = newValue ?? settings.host,
-              decoration: InputDecoration(
-                labelText: 'Server Address',
-                hintText: 'localhost',
-                prefixText: 'ws://',
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                // Regex for valid hostname or IP address
-                final hostRegex = RegExp(
-                  r'^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$|^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$',
-                );
-
-                if (value == null || value.isEmpty) {
-                  return 'Hostname is required';
-                }
-                if (!hostRegex.hasMatch(value)) {
-                  return 'Invalid hostname or IP address';
-                }
-                return null;
-              },
-            ),
-          ),
-          SizedBox(width: 8),
-          // Port Field
-          Expanded(
-            flex: 1,
-            child: TextFormField(
-              initialValue: settings.port.toString(),
-              onSaved: (newValue) {
-                if (newValue != null) {
-                  settings.port = int.tryParse(newValue) ?? settings.port;
-                }
-              },
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Port',
-                hintText: '12345',
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                final port = int.tryParse(value ?? '');
-                if (port == null || port < 1 || port > 65535) {
-                  return 'Invalid Port';
-                }
-                return null;
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 4.0, left: 16.0),
-            child: IconButton(
-              icon: const Icon(Icons.refresh),
-              tooltip: 'Reset to Defaults',
-              onPressed: () {
-                settings = ButtplugBackendSettings();
-                _formKey.currentState?.reset();
-                _saveSettings();
-              },
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -150,9 +75,9 @@ class ButtplugBaseBackend extends PlayerBackend implements ICommandBackendBase {
 
     try {
       await _client!.connect(_connector!);
-      Logger.warning("Successfully connected to Buttplug server.");
+      Logger.info("Successfully connected to Buttplug server.");
 
-      Logger.warning("Waiting for device...");
+      Logger.info("Waiting for device...");
       await _client!.startScanning();
       await Future.delayed(Duration(seconds: 3));
 
@@ -163,7 +88,7 @@ class ButtplugBaseBackend extends PlayerBackend implements ICommandBackendBase {
       );
 
       if (strokerDevice != null) {
-        Logger.warning(
+        Logger.info(
           "Found device: ${strokerDevice.displayName ?? strokerDevice.name}",
         );
         _device = strokerDevice;
@@ -203,5 +128,110 @@ class ButtplugBaseBackend extends PlayerBackend implements ICommandBackendBase {
     _device = null;
     _connected.value = false;
     _isConnecting.value = false;
+  }
+}
+
+/// The connection form for the Buttplug backend (server address + port, with a
+/// reset-to-defaults button). Kept separate from the backend so the device
+/// logic doesn't own form layout, validators and the hostname regex. Mutates the
+/// passed [settings] in place and reports changes via [onChanged].
+class _ButtplugSettingsForm extends StatefulWidget {
+  final ButtplugBackendSettings settings;
+  final void Function(ButtplugBackendSettings settings) onChanged;
+
+  const _ButtplugSettingsForm({required this.settings, required this.onChanged});
+
+  @override
+  State<_ButtplugSettingsForm> createState() => _ButtplugSettingsFormState();
+}
+
+class _ButtplugSettingsFormState extends State<_ButtplugSettingsForm> {
+  final _formKey = GlobalKey<FormState>();
+  late ButtplugBackendSettings _settings = widget.settings;
+
+  // Valid hostname or IPv4 address.
+  static final _hostRegex = RegExp(
+    r'^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$|^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$',
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      onChanged: () {
+        if (_formKey.currentState?.validate() ?? false) {
+          _formKey.currentState?.save();
+          widget.onChanged(_settings);
+        }
+      },
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Hostname/IP Field
+          Expanded(
+            flex: 3,
+            child: TextFormField(
+              initialValue: _settings.host,
+              onSaved: (newValue) =>
+                  _settings.host = newValue ?? _settings.host,
+              decoration: const InputDecoration(
+                labelText: 'Server Address',
+                hintText: 'localhost',
+                prefixText: 'ws://',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Hostname is required';
+                }
+                if (!_hostRegex.hasMatch(value)) {
+                  return 'Invalid hostname or IP address';
+                }
+                return null;
+              },
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Port Field
+          Expanded(
+            flex: 1,
+            child: TextFormField(
+              initialValue: _settings.port.toString(),
+              onSaved: (newValue) {
+                if (newValue != null) {
+                  _settings.port = int.tryParse(newValue) ?? _settings.port;
+                }
+              },
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Port',
+                hintText: '12345',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                final port = int.tryParse(value ?? '');
+                if (port == null || port < 1 || port > 65535) {
+                  return 'Invalid Port';
+                }
+                return null;
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0, left: 16.0),
+            child: IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Reset to Defaults',
+              onPressed: () {
+                _settings = ButtplugBackendSettings();
+                _formKey.currentState?.reset();
+                widget.onChanged(_settings);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

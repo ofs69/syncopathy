@@ -12,7 +12,9 @@ import 'package:syncopathy/generated/messages.pb.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/player/bluetooth_connector.dart';
+import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 // Takes care of serializationg and deserialization on two separate isolates
@@ -127,7 +129,7 @@ class _PendingRequest {
   _PendingRequest(this.id, this.sentAt, this.completer);
 }
 
-class HandyBle with EffectDispose {
+class HandyBle with EffectDispose implements IHspCommands {
   final BtDevice _device;
   final List<_PendingRequest> _messageCompleters = [];
 
@@ -427,6 +429,7 @@ class HandyBle with EffectDispose {
     return null;
   }
 
+  @override
   void positionWithDuration(double relPos, int moveOverTimeMs) {
     final request = RequestHdspXpTSet(
       xp: relPos,
@@ -472,25 +475,28 @@ class HandyBle with EffectDispose {
     }
   }
 
+  @override
   void hspSetup({int? streamId}) {
     streamId ??= Random().nextInt(maxInt32);
     final request = RequestHspSetup(streamId: streamId);
     _sendRequest(Request(requestHspSetup: request));
   }
 
+  @override
   void hspFlush() {
     final request = RequestHspFlush();
     _sendRequest(Request(requestHspFlush: request));
   }
 
+  @override
   void hspAdd(
-    List<Point> points, {
+    List<FunscriptAction> points, {
     required bool flush,
     required int? tailPointStreamIndex,
     required int? tailPointThreshold,
   }) {
     final request = RequestHspAdd(
-      points: points,
+      points: points.map((a) => Point(t: a.at, x: a.pos)).toList(),
       flush: flush,
       tailPointStreamIndex: tailPointStreamIndex,
       tailPointThreshold: tailPointThreshold,
@@ -498,6 +504,7 @@ class HandyBle with EffectDispose {
     _sendRequest(Request(requestHspAdd: request));
   }
 
+  @override
   void hspPlay({
     required int startTime,
     required double playbackRate,
@@ -514,16 +521,19 @@ class HandyBle with EffectDispose {
     _sendRequest(Request(requestHspPlay: request));
   }
 
+  @override
   void hspResume() {
     final request = RequestHspResume(pickUp: false);
     _sendRequest(Request(requestHspResume: request));
   }
 
+  @override
   void hspPause() {
     final request = RequestHspPause();
     _sendRequest(Request(requestHspPause: request));
   }
 
+  @override
   void hspCurrentTimeSet({required int currentTime, required double filter}) {
     final request = RequestHspCurrentTimeSet(
       currentTime: currentTime,
@@ -533,11 +543,13 @@ class HandyBle with EffectDispose {
     _sendRequest(Request(requestHspCurrentTimeSet: request));
   }
 
+  @override
   void hspStop() {
     final request = RequestHspStop();
     _sendRequest(Request(requestHspStop: request));
   }
 
+  @override
   void hspLoop(bool loop) {
     final request = RequestHspLoopSet(loop: loop);
     _sendRequest(Request(requestHspLoopSet: request));
