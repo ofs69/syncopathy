@@ -50,6 +50,10 @@ class MediaKitPlayerImpl extends VideoPlayer {
     initSignals(player);
 
     nativePlayer?.setProperty('keep-open', 'yes');
+    // Prefetch the next playlist entry so switches don't pay the full load cost.
+    nativePlayer?.setProperty('prefetch-playlist', 'yes');
+    // Local files don't need the disk-backed cache (meant for network streams).
+    nativePlayer?.setProperty('cache-on-disk', 'no');
     nativePlayer?.command(["keybind", "CLOSE_WIN", "ignore"]);
     nativePlayer?.command(["keybind", "q", "ignore"]);
   }

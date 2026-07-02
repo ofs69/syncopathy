@@ -3,9 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/throttler.dart';
+import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
+import 'package:syncopathy/model/json/handyV3/handy_response.dart';
 import 'package:syncopathy/player/player_backend.dart';
 
 enum HspStateAdapterPlayState {
@@ -114,6 +116,65 @@ class HspStateAdapter {
     required this.tailPointStreamIndex,
     required this.tailPointStreamIndexThreshold,
   });
+
+  /// Builds an adapter from the native BLE/HDSP protobuf [HspState].
+  factory HspStateAdapter.fromNativeState(HspState state) {
+    final playState = switch (state.playState) {
+      HspPlayState.HSP_STATE_NOT_INITIALIZED =>
+        HspStateAdapterPlayState.hspStateNotInitialized,
+      HspPlayState.HSP_STATE_PAUSED => HspStateAdapterPlayState.hspStatePaused,
+      HspPlayState.HSP_STATE_PLAYING =>
+        HspStateAdapterPlayState.hspStatePlaying,
+      HspPlayState.HSP_STATE_STARVING =>
+        HspStateAdapterPlayState.hspStateStarving,
+      HspPlayState.HSP_STATE_STOPPED =>
+        HspStateAdapterPlayState.hspStateStopped,
+      _ => throw UnimplementedError("Unknown playState"),
+    };
+    return HspStateAdapter(
+      playState: playState,
+      firstPointTime: state.firstPointTime,
+      lastPointTime: state.lastPointTime,
+      currentTime: state.currentTime,
+      points: state.points,
+      currentPoint: state.currentPoint,
+      loop: state.loop,
+      maxPoints: state.maxPoints,
+      pauseOnStarving: state.pauseOnStarving,
+      playbackRate: state.playbackRate,
+      streamId: state.streamId,
+      tailPointStreamIndex: state.tailPointStreamIndex,
+      tailPointStreamIndexThreshold: state.tailPointStreamIndexThreshold,
+    );
+  }
+
+  /// Builds an adapter from the Handy Web API's [HandyHspState] JSON model,
+  /// whose [HandyHspState.playState] is an integer code rather than an enum.
+  factory HspStateAdapter.fromWebState(HandyHspState state) {
+    final playState = switch (state.playState) {
+      0 => HspStateAdapterPlayState.hspStateNotInitialized,
+      1 => HspStateAdapterPlayState.hspStatePlaying,
+      2 => HspStateAdapterPlayState.hspStateStopped,
+      3 => HspStateAdapterPlayState.hspStatePaused,
+      4 => HspStateAdapterPlayState.hspStateStarving,
+      _ => throw UnimplementedError("Unknown playState"),
+    };
+    return HspStateAdapter(
+      playState: playState,
+      firstPointTime: state.firstPointTime,
+      lastPointTime: state.lastPointTime,
+      currentTime: state.currentTime,
+      points: state.points,
+      currentPoint: state.currentPoint,
+      loop: state.loop,
+      maxPoints: state.maxPoints,
+      pauseOnStarving: state.pauseOnStarving,
+      playbackRate: state.playbackRate,
+      streamId: state.streamId,
+      tailPointStreamIndex: state.tailPointStreamIndex,
+      tailPointStreamIndexThreshold: state.tailPointStreamIndexThreshold,
+    );
+  }
 
   @override
   String toString() {

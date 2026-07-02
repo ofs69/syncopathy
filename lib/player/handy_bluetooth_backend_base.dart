@@ -44,34 +44,7 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
     _hspStateAdapter = computed(() {
       final state = hspState.value;
       if (state == null) return null;
-      final playState = switch (state.playState) {
-        HspPlayState.HSP_STATE_NOT_INITIALIZED =>
-          HspStateAdapterPlayState.hspStateNotInitialized,
-        HspPlayState.HSP_STATE_PAUSED =>
-          HspStateAdapterPlayState.hspStatePaused,
-        HspPlayState.HSP_STATE_PLAYING =>
-          HspStateAdapterPlayState.hspStatePlaying,
-        HspPlayState.HSP_STATE_STARVING =>
-          HspStateAdapterPlayState.hspStateStarving,
-        HspPlayState.HSP_STATE_STOPPED =>
-          HspStateAdapterPlayState.hspStateStopped,
-        _ => throw UnimplementedError("Unknown playState"),
-      };
-      return HspStateAdapter(
-        playState: playState,
-        firstPointTime: state.firstPointTime,
-        lastPointTime: state.lastPointTime,
-        currentTime: state.currentTime,
-        points: state.points,
-        currentPoint: state.currentPoint,
-        loop: state.loop,
-        maxPoints: state.maxPoints,
-        pauseOnStarving: state.pauseOnStarving,
-        playbackRate: state.playbackRate,
-        streamId: state.streamId,
-        tailPointStreamIndex: state.tailPointStreamIndex,
-        tailPointStreamIndexThreshold: state.tailPointStreamIndexThreshold,
-      );
+      return HspStateAdapter.fromNativeState(state);
     });
     effectAdd([
       effect(() {

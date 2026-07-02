@@ -133,29 +133,7 @@ class HandyWeb with EffectDispose {
     hspStateAdapter = computed(() {
       final state = _hspState.value;
       if (state == null) return null;
-      final playState = switch (state.playState) {
-        0 => HspStateAdapterPlayState.hspStateNotInitialized,
-        1 => HspStateAdapterPlayState.hspStatePlaying,
-        2 => HspStateAdapterPlayState.hspStateStopped,
-        3 => HspStateAdapterPlayState.hspStatePaused,
-        4 => HspStateAdapterPlayState.hspStateStarving,
-        _ => throw UnimplementedError("Unknown playState"),
-      };
-      return HspStateAdapter(
-        playState: playState,
-        firstPointTime: state.firstPointTime,
-        lastPointTime: state.lastPointTime,
-        currentTime: state.currentTime,
-        points: state.points,
-        currentPoint: state.currentPoint,
-        loop: state.loop,
-        maxPoints: state.maxPoints,
-        pauseOnStarving: state.pauseOnStarving,
-        playbackRate: state.playbackRate,
-        streamId: state.streamId,
-        tailPointStreamIndex: state.tailPointStreamIndex,
-        tailPointStreamIndexThreshold: state.tailPointStreamIndexThreshold,
-      );
+      return HspStateAdapter.fromWebState(state);
     });
   }
 

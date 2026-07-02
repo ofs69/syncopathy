@@ -146,7 +146,7 @@ abstract class FilterBase<T> {
 
   List<T?> Function(MediaFile) retriever;
 
-  ReadonlySignal<dynamic> get baseStateChange =>
+  late final ReadonlySignal<dynamic> baseStateChange =
       computed(() => (negated.value, enabled.value));
 
   ReadonlySignal<dynamic> get stateChange;
@@ -198,7 +198,7 @@ class NumberFilter extends FilterBase<num> {
   final Signal<String> value = signal("");
 
   @override
-  ReadonlySignal<dynamic> get stateChange =>
+  late final ReadonlySignal<dynamic> stateChange =
       computed(() => (operator.value, value.value, baseStateChange.value));
 
   NumberFilter({
@@ -272,7 +272,7 @@ class StringFilter extends FilterBase<String> {
   final Signal<String> value = signal("");
 
   @override
-  ReadonlySignal<dynamic> get stateChange =>
+  late final ReadonlySignal<dynamic> stateChange =
       computed(() => (operator.value, value.value, baseStateChange.value));
 
   StringFilter({
@@ -343,7 +343,7 @@ class DateFilter extends FilterBase<DateTime> {
   final Signal<DateTime?> value = signal(null);
 
   @override
-  ReadonlySignal<dynamic> get stateChange =>
+  late final ReadonlySignal<dynamic> stateChange =
       computed(() => (operator.value, value.value, baseStateChange.value));
 
   DateFilter({
@@ -433,7 +433,7 @@ class EnumFilter<E extends Enum> extends FilterBase<int> {
   final Signal<E?> selectedValue = signal(null);
 
   @override
-  ReadonlySignal<dynamic> get stateChange =>
+  late final ReadonlySignal<dynamic> stateChange =
       computed(() => (selectedValue.value, baseStateChange.value));
 
   EnumFilter({
@@ -471,7 +471,7 @@ class CategoryFilter extends FilterBase<int> {
   final List<UserCategory> categories;
 
   @override
-  ReadonlySignal<dynamic> get stateChange =>
+  late final ReadonlySignal<dynamic> stateChange =
       computed(() => (selectedCategoryId.value, baseStateChange.value));
 
   CategoryFilter({
@@ -519,7 +519,7 @@ class MetadataFilter extends FilterBase<String> {
   final Signal<Set<String>> selectedPerformers = signal({});
 
   @override
-  ReadonlySignal<dynamic> get stateChange => computed(
+  late final ReadonlySignal<dynamic> stateChange = computed(
     () => (
       selectedAuthors.value,
       selectedTags.value,
@@ -636,7 +636,7 @@ class MediaFilter {
 
 class PlaylistFilter extends FilterBase<String> {
   @override
-  ReadonlySignal<dynamic> get stateChange =>
+  late final ReadonlySignal<dynamic> stateChange =
       computed(() => (baseStateChange.value));
 
   PlaylistFilter({
@@ -673,7 +673,7 @@ class PlaylistFilter extends FilterBase<String> {
 
 class BoolFilter extends FilterBase<bool> {
   @override
-  ReadonlySignal<dynamic> get stateChange =>
+  late final ReadonlySignal<dynamic> stateChange =
       computed(() => (baseStateChange.value));
 
   BoolFilter({

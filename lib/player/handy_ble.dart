@@ -361,8 +361,6 @@ class HandyBle with EffectDispose {
 
       await Future.delayed(const Duration(milliseconds: 300));
       await _device.device.disconnect();
-
-      await Future.delayed(const Duration(seconds: 300));
     } catch (e) {
       debugPrint("Error during BLE dispose: $e");
     }

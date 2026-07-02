@@ -12,8 +12,9 @@ import 'package:syncopathy/model/json/funscript_metadata.dart';
 class Funscript {
   final FunscriptJson json;
 
+  late final List<FunscriptAction> _deduplicatedActions;
   UnmodifiableListView<FunscriptAction> get originalActions =>
-      UnmodifiableListView(json.actions);
+      UnmodifiableListView(_deduplicatedActions);
   FunscriptMetadata? get metadata => json.metadata;
 
   final Signal<List<FunscriptAction>> processedActions = signal([]);
@@ -34,15 +35,16 @@ class Funscript {
   String get fileName => p.basename(filePath);
 
   Funscript({required this.json, required this.filePath}) {
-    likelyScriptToken = isScriptToken(originalActions);
+    likelyScriptToken = isScriptToken(json.actions);
     // remove duplicate timestamps
     final uniqueActions = <FunscriptAction>[];
     final seenTimestamps = <int>{};
-    for (final action in originalActions) {
+    for (final action in json.actions) {
       if (seenTimestamps.add(action.at)) {
         uniqueActions.add(action);
       }
     }
+    _deduplicatedActions = uniqueActions;
   }
 
   // This determines if something is likely a script token
