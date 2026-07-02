@@ -15,6 +15,7 @@ import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/player/bluetooth_connector.dart';
 import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
+import 'package:syncopathy/player/hsp_clock_sync.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 // Takes care of serializationg and deserialization on two separate isolates
@@ -229,24 +230,20 @@ class HandyBle with EffectDispose implements IHspCommands {
 
     // Sync time
     {
-      const syncTries = 10;
-      var offsetAggregated = 0.0;
-      var rtdAggregated = 0.0;
-      for (var index = 0; index < syncTries; index += 1) {
-        final start = DateTime.now().millisecondsSinceEpoch;
-        final _ = await getClockOffset();
-        final server = DateTime.now().millisecondsSinceEpoch;
-        final end = server;
-        final rtd = end - start;
-        final offset = (server + (rtd / 2.0)) - end;
-
-        Logger.debug('RTD: $rtd\tOffset: $offset');
-        offsetAggregated += offset;
-        rtdAggregated += rtd;
-        await Future.delayed(Duration(milliseconds: 100));
-      }
-      estimatedAverageOffset = (offsetAggregated / syncTries).round();
-      final averageRtd = (rtdAggregated / syncTries).round();
+      final sync = await aggregateClockSync(
+        tries: 10,
+        delay: const Duration(milliseconds: 100),
+        sample: () async {
+          final start = DateTime.now().millisecondsSinceEpoch;
+          await getClockOffset();
+          final server = DateTime.now().millisecondsSinceEpoch;
+          final end = server;
+          final rtd = end - start;
+          return (rtd: rtd, offset: (server + (rtd / 2.0)) - end);
+        },
+      );
+      estimatedAverageOffset = sync.averageOffset;
+      final averageRtd = sync.averageRtd;
       Logger.debug(
         "Estimated average offset: $estimatedAverageOffset RTD: $averageRtd",
       );

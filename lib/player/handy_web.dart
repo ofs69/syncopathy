@@ -16,6 +16,7 @@ import 'package:syncopathy/model/json/handyV3/handy_request.dart';
 import 'package:syncopathy/model/json/handyV3/handy_response.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
+import 'package:syncopathy/player/hsp_clock_sync.dart';
 
 class RatelimitMiddleware extends InterceptorContract {
   @override
@@ -167,21 +168,18 @@ class HandyWeb with EffectDispose implements IHspCommands {
 
     // Sync time
     {
-      const syncTries = 10;
-      var offsetAggregated = 0.0;
-      for (var index = 0; index < syncTries; index += 1) {
-        final start = DateTime.now().millisecondsSinceEpoch;
-        final server = (await getServerTime())!;
-        final end = DateTime.now().millisecondsSinceEpoch;
-        final rtd = end - start;
-        final offset = (server + (rtd / 2.0)) - end;
-
-        Logger.debug('RTD: $rtd\tOffset: $offset');
-
-        offsetAggregated += offset;
-        await Future.delayed(Duration(milliseconds: 300));
-      }
-      estimatedAverageOffset = (offsetAggregated / syncTries).round();
+      final sync = await aggregateClockSync(
+        tries: 10,
+        delay: const Duration(milliseconds: 300),
+        sample: () async {
+          final start = DateTime.now().millisecondsSinceEpoch;
+          final server = (await getServerTime())!;
+          final end = DateTime.now().millisecondsSinceEpoch;
+          final rtd = end - start;
+          return (rtd: rtd, offset: (server + (rtd / 2.0)) - end);
+        },
+      );
+      estimatedAverageOffset = sync.averageOffset;
       Logger.debug("Estimated average offset: $estimatedAverageOffset");
       // I think this takes care of the clock offset??
       await htspClockSync();
