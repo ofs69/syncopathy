@@ -10,6 +10,7 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
+import 'package:syncopathy/helper/entity_binding.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/model/funscript.dart';
@@ -43,6 +44,36 @@ class _MediaDetailPageState extends State<MediaDetailPage>
   late final ListSignal<UserCategory> _categoriesSignal;
   late final Debouncer _saveDebouncer;
 
+  /// The scalar fields mirrored between [widget.media] and their editing
+  /// signals: each binding loads the entity's value into its signal on init and
+  /// copies it back in [_save], so there is one declaration per field instead of
+  /// a separate read site and write site to keep in sync. `name` is excluded
+  /// because it is driven by [_nameController]; `funscripts`/`categories` are
+  /// excluded because they are ObjectBox `ToMany` relations mutated in place and
+  /// persisted by the `put` in [_save].
+  late final List<EntityBinding> _bindings = [
+    EntityBinding(
+      () => _tempAliases.value = List.from(widget.media.aliases),
+      () => widget.media.aliases = _tempAliases.value,
+    ),
+    EntityBinding(
+      () => _ratingSignal.value = widget.media.rating ?? MediaRating.noRating,
+      () => widget.media.rating = _ratingSignal.value,
+    ),
+    EntityBinding(
+      () => _typeSignal.value = widget.media.type ?? MediaType.unknown,
+      () => widget.media.type = _typeSignal.value,
+    ),
+    EntityBinding(
+      () => _pathSignal.value = widget.media.mediaPath,
+      () => widget.media.mediaPath = _pathSignal.value,
+    ),
+    EntityBinding(
+      () => _mainFunscriptSignal.value = widget.media.mainFunscript.target,
+      () => widget.media.mainFunscript.target = _mainFunscriptSignal.value,
+    ),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -53,13 +84,19 @@ class _MediaDetailPageState extends State<MediaDetailPage>
     });
 
     _aliasController = TextEditingController();
-    _tempAliases = createListSignal(List.from(widget.media.aliases));
-    _mainFunscriptSignal = createSignal(widget.media.mainFunscript.target);
-    _ratingSignal = createSignal(widget.media.rating ?? MediaRating.noRating);
-    _typeSignal = createSignal(widget.media.type ?? MediaType.unknown);
-    _pathSignal = createSignal(widget.media.mediaPath);
+    // Scalar mirror signals — populated from the entity by `_bindings` below.
+    _tempAliases = createListSignal<String>([]);
+    _mainFunscriptSignal = createSignal<FunscriptFile?>(null);
+    _ratingSignal = createSignal(MediaRating.noRating);
+    _typeSignal = createSignal(MediaType.unknown);
+    _pathSignal = createSignal('');
+    // ToMany relations, kept in sync by their mutation handlers (see `_bindings`).
     _funscriptsSignal = createListSignal(List.from(widget.media.funscripts));
     _categoriesSignal = createListSignal(List.from(widget.media.categories));
+
+    for (final binding in _bindings) {
+      binding.loadFromEntity();
+    }
 
     _saveDebouncer = Debouncer(milliseconds: 500);
 
@@ -103,11 +140,9 @@ class _MediaDetailPageState extends State<MediaDetailPage>
 
   void _save() {
     widget.media.name = _nameController.text.trim();
-    widget.media.aliases = _tempAliases.value;
-    widget.media.rating = _ratingSignal.value;
-    widget.media.type = _typeSignal.value;
-    widget.media.mediaPath = _pathSignal.value;
-    widget.media.mainFunscript.target = _mainFunscriptSignal.value;
+    for (final binding in _bindings) {
+      binding.saveToEntity();
+    }
 
     oBox.mediaRepository.saveFunscripts(_funscriptsSignal.value);
     oBox.mediaRepository.save(widget.media);

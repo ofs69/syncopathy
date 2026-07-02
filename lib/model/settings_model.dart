@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
+import 'package:syncopathy/helper/entity_binding.dart';
 import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/model/json/settings.dart';
@@ -48,54 +49,54 @@ class SettingsModel {
   /// persisted setting means declaring its signal and adding one line here —
   /// there is no third copy site to keep in sync. Signals absent from this list
   /// are intentionally not persisted.
-  late final List<_EntityBinding> _bindings = [
-    _EntityBinding(() => min.value = _entity.min, () => _entity.min = min.value),
-    _EntityBinding(() => max.value = _entity.max, () => _entity.max = max.value),
-    _EntityBinding(
+  late final List<EntityBinding> _bindings = [
+    EntityBinding(() => min.value = _entity.min, () => _entity.min = min.value),
+    EntityBinding(() => max.value = _entity.max, () => _entity.max = max.value),
+    EntityBinding(
       () => offsetMs.value = _entity.offsetMs,
       () => _entity.offsetMs = offsetMs.value,
     ),
-    _EntityBinding(
+    EntityBinding(
       () => mediaPaths.value = _entity.mediaPaths,
       () => _entity.mediaPaths = mediaPaths.value,
     ),
-    _EntityBinding(
+    EntityBinding(
       () => slewMaxRateOfChange.value = _entity.slewMaxRateOfChange,
       () => _entity.slewMaxRateOfChange = slewMaxRateOfChange.value,
     ),
-    _EntityBinding(
+    EntityBinding(
       () => rdpEpsilon.value = _entity.rdpEpsilon,
       () => _entity.rdpEpsilon = rdpEpsilon.value,
     ),
-    _EntityBinding(
+    EntityBinding(
       () => remapFullRange.value = _entity.remapFullRange,
       () => _entity.remapFullRange = remapFullRange.value,
     ),
-    _EntityBinding(
+    EntityBinding(
       () => skipToAction.value = _entity.skipToAction,
       () => _entity.skipToAction = skipToAction.value,
     ),
-    _EntityBinding(
+    EntityBinding(
       () => embeddedVideoPlayer.value = _entity.embeddedVideoPlayer || kIsWeb,
       () => _entity.embeddedVideoPlayer = embeddedVideoPlayer.value,
     ),
-    _EntityBinding(
+    EntityBinding(
       () => autoSwitchToVideoPlayerTab.value = _entity.autoSwitchToVideoPlayerTab,
       () => _entity.autoSwitchToVideoPlayerTab = autoSwitchToVideoPlayerTab.value,
     ),
-    _EntityBinding(
+    EntityBinding(
       () => invert.value = _entity.invert,
       () => _entity.invert = invert.value,
     ),
-    _EntityBinding(
+    EntityBinding(
       () => playerBackendType.value = _entity.playerBackendType,
       () => _entity.playerBackendType = playerBackendType.value,
     ),
-    _EntityBinding(
+    EntityBinding(
       () => funscriptGraphEnabled.value = _entity.funscriptGraphEnabled,
       () => _entity.funscriptGraphEnabled = funscriptGraphEnabled.value,
     ),
-    _EntityBinding(
+    EntityBinding(
       () => customShortcuts.value = _entity.customShortcuts,
       () => _entity.customShortcuts = customShortcuts.value,
     ),
@@ -131,14 +132,4 @@ class SettingsModel {
   Future<void> _saveInternal() async {
     KVStore.put(Settings.key, _entity.toJson());
   }
-}
-
-/// Two-way copy for a single persisted setting: [loadFromEntity] pulls the
-/// entity's value into its signal, [saveToEntity] pushes the signal's value
-/// back. Reading the signal inside [saveToEntity] is what registers it as a
-/// dependency of the auto-save effect.
-class _EntityBinding {
-  final void Function() loadFromEntity;
-  final void Function() saveToEntity;
-  const _EntityBinding(this.loadFromEntity, this.saveToEntity);
 }
