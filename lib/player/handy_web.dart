@@ -137,7 +137,6 @@ class HandyWeb with EffectDispose {
     });
   }
 
-  // ReadonlySignal<bool> get connected => _connected;
   int estimatedAverageOffset = 0;
   Function(bool)? hspThresholdReached;
   Function()? hspLooped;
@@ -455,23 +454,19 @@ class HandyWeb with EffectDispose {
     return HandyResponse.empty();
   }
 
-  void hspSetup({int? streamId}) {
-    if (!_connected.value) return;
-    const int maxInt32 = 2147483647;
-    streamId ??= Random().nextInt(maxInt32);
-    final request = HspSetup(streamId: streamId);
-    final url = baseApiUrl.resolve('hsp/setup');
+  static const int _maxInt32 = 2147483647;
 
+  /// PUTs an HSP command to [path] and feeds the returned HspState back into
+  /// [_hspState] via [_handleStateResponse]. [body] is the already-encoded JSON
+  /// payload, or null for the bodyless commands (flush/pause/stop).
+  void _putHspCommand(String path, {String? body}) {
+    final url = baseApiUrl.resolve(path);
     _apiQueue.makeRequest(
       (client) => client
-          .put(
-            url,
-            headers: _defaultHeaders,
-            body: jsonEncode(request.toJson()),
-          )
+          .put(url, headers: _defaultHeaders, body: body)
           .then((response) {
             if (response.statusCode == 200) {
-              var state = HandyResponse<HandyHspState>.fromJson(
+              final state = HandyResponse<HandyHspState>.fromJson(
                 jsonDecode(response.body),
                 (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
               );
@@ -479,6 +474,13 @@ class HandyWeb with EffectDispose {
             }
           }),
     );
+  }
+
+  void hspSetup({int? streamId}) {
+    if (!_connected.value) return;
+    streamId ??= Random().nextInt(_maxInt32);
+    final request = HspSetup(streamId: streamId);
+    _putHspCommand('hsp/setup', body: jsonEncode(request.toJson()));
   }
 
   void hspAdd(
@@ -494,51 +496,17 @@ class HandyWeb with EffectDispose {
       tailPointStreamIndex: tailPointStreamIndex,
       tailPointThreshold: tailPointThreshold,
     );
+    _putHspCommand('hsp/add', body: jsonEncode(request.toJson()));
 
-    {
-      final url = baseApiUrl.resolve('hsp/add');
-      _apiQueue.makeRequest(
-        (client) => client
-            .put(
-              url,
-              headers: _defaultHeaders,
-              body: jsonEncode(request.toJson()),
-            )
-            .then((response) {
-              if (response.statusCode == 200) {
-                var state = HandyResponse<HandyHspState>.fromJson(
-                  jsonDecode(response.body),
-                  (json) =>
-                      HandyHspState.fromJson(json as Map<String, dynamic>),
-                );
-                _handleStateResponse(state);
-              }
-            }),
+    if (tailPointThreshold != null) {
+      // manually set the threshold
+      final thresholdRequest = HspThreshold(
+        tailPointThreshold: tailPointThreshold,
       );
-
-      if (tailPointThreshold != null) {
-        // manually set the threshold
-        final request = HspThreshold(tailPointThreshold: tailPointThreshold);
-        final url = baseApiUrl.resolve('hsp/threshold');
-        _apiQueue.makeRequest(
-          (client) => client
-              .put(
-                url,
-                headers: _defaultHeaders,
-                body: jsonEncode(request.toJson()),
-              )
-              .then((response) {
-                if (response.statusCode == 200) {
-                  var state = HandyResponse<HandyHspState>.fromJson(
-                    jsonDecode(response.body),
-                    (json) =>
-                        HandyHspState.fromJson(json as Map<String, dynamic>),
-                  );
-                  _handleStateResponse(state);
-                }
-              }),
-        );
-      }
+      _putHspCommand(
+        'hsp/threshold',
+        body: jsonEncode(thresholdRequest.toJson()),
+      );
     }
   }
 
@@ -549,60 +517,17 @@ class HandyWeb with EffectDispose {
       serverTime: estimatedServerTime(),
       filter: filter,
     );
-    final url = baseApiUrl.resolve('hsp/synctime');
-    _apiQueue.makeRequest(
-      (client) => client
-          .put(
-            url,
-            headers: _defaultHeaders,
-            body: jsonEncode(request.toJson()),
-          )
-          .then((response) {
-            if (response.statusCode == 200) {
-              var state = HandyResponse<HandyHspState>.fromJson(
-                jsonDecode(response.body),
-                (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
-              );
-              _handleStateResponse(state);
-            }
-          }),
-    );
+    _putHspCommand('hsp/synctime', body: jsonEncode(request.toJson()));
   }
 
   void hspFlush() {
     if (!_connected.value) return;
-    final url = baseApiUrl.resolve('hsp/flush');
-    _apiQueue.makeRequest(
-      (client) => client.put(url, headers: _defaultHeaders, body: null).then((
-        response,
-      ) {
-        if (response.statusCode == 200) {
-          var state = HandyResponse<HandyHspState>.fromJson(
-            jsonDecode(response.body),
-            (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
-          );
-          _handleStateResponse(state);
-        }
-      }),
-    );
+    _putHspCommand('hsp/flush');
   }
 
   void hspPause() {
     if (!_connected.value) return;
-    final url = baseApiUrl.resolve('hsp/pause');
-    _apiQueue.makeRequest(
-      (client) => client.put(url, headers: _defaultHeaders, body: null).then((
-        response,
-      ) {
-        if (response.statusCode == 200) {
-          var state = HandyResponse<HandyHspState>.fromJson(
-            jsonDecode(response.body),
-            (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
-          );
-          _handleStateResponse(state);
-        }
-      }),
-    );
+    _putHspCommand('hsp/pause');
   }
 
   void hspPlay({
@@ -619,111 +544,30 @@ class HandyWeb with EffectDispose {
       pauseOnStarving: pauseOnStarving,
       loop: loop,
     );
-    final url = baseApiUrl.resolve('hsp/play');
-    _apiQueue.makeRequest(
-      (client) => client
-          .put(
-            url,
-            headers: _defaultHeaders,
-            body: jsonEncode(request.toJson()),
-          )
-          .then((response) {
-            if (response.statusCode == 200) {
-              var state = HandyResponse<HandyHspState>.fromJson(
-                jsonDecode(response.body),
-                (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
-              );
-              _handleStateResponse(state);
-            }
-          }),
-    );
+    _putHspCommand('hsp/play', body: jsonEncode(request.toJson()));
   }
 
   void hspResume() {
     if (!_connected.value) return;
     final request = HspResume(pickUp: true);
-    final url = baseApiUrl.resolve('hsp/resume');
-    _apiQueue.makeRequest(
-      (client) => client
-          .put(
-            url,
-            headers: _defaultHeaders,
-            body: jsonEncode(request.toJson()),
-          )
-          .then((response) {
-            if (response.statusCode == 200) {
-              var state = HandyResponse<HandyHspState>.fromJson(
-                jsonDecode(response.body),
-                (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
-              );
-              _handleStateResponse(state);
-            }
-          }),
-    );
+    _putHspCommand('hsp/resume', body: jsonEncode(request.toJson()));
   }
 
   void hspStop() {
     if (!_connected.value) return;
-    final url = baseApiUrl.resolve('hsp/stop');
-    _apiQueue.makeRequest(
-      (client) => client.put(url, headers: _defaultHeaders, body: null).then((
-        response,
-      ) {
-        if (response.statusCode == 200) {
-          var state = HandyResponse<HandyHspState>.fromJson(
-            jsonDecode(response.body),
-            (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
-          );
-          _handleStateResponse(state);
-        }
-      }),
-    );
+    _putHspCommand('hsp/stop');
   }
 
   void hspLoop(bool loop) {
     if (!_connected.value) return;
     final request = HspLoop(loop: loop);
-    final url = baseApiUrl.resolve('hsp/loop');
-    _apiQueue.makeRequest(
-      (client) => client
-          .put(
-            url,
-            headers: _defaultHeaders,
-            body: jsonEncode(request.toJson()),
-          )
-          .then((response) {
-            if (response.statusCode == 200) {
-              var state = HandyResponse<HandyHspState>.fromJson(
-                jsonDecode(response.body),
-                (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
-              );
-              _handleStateResponse(state);
-            }
-          }),
-    );
+    _putHspCommand('hsp/loop', body: jsonEncode(request.toJson()));
   }
 
   void hspPauseOnStarving(bool pauseOnStarving) {
     if (!_connected.value) return;
     final request = HspPauseOnStarving(pauseOnStarving: pauseOnStarving);
-    final url = baseApiUrl.resolve('hsp/pause/onstarving');
-    _apiQueue.makeRequest(
-      (client) => client
-          .put(
-            url,
-            headers: _defaultHeaders,
-            body: jsonEncode(request.toJson()),
-          )
-          .then((response) {
-            if (response.statusCode == 200) {
-              var state = HandyResponse<HandyHspState>.fromJson(
-                jsonDecode(response.body),
-                (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
-              );
-              _handleStateResponse(state);
-            }
-          }),
-    );
+    _putHspCommand('hsp/pause/onstarving', body: jsonEncode(request.toJson()));
   }
 
   void positionWithDuration(double relPos, int moveOverTimeMs) {

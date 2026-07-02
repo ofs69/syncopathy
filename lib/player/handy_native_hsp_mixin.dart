@@ -659,7 +659,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
     // Merge buffers into one hspAdd
     final points = <FunscriptAction>[];
     var tailPointIndex = 0;
-    var tailPointTreshold = 0;
+    var tailPointThreshold = 0;
     for (final buffer in buffers) {
       if (_internalActionBuffer.containsBuffer(buffer.id)) {
         continue;
@@ -668,7 +668,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
       final bufferActions = buffer.toActions();
       points.addAll(bufferActions);
       tailPointIndex = buffer.tailPointIndex;
-      tailPointTreshold = buffer.tailPointTreshold;
+      tailPointThreshold = buffer.tailPointThreshold;
     }
 
     // If the buffer after the last one passed to this function is the last eagerly buffer it
@@ -683,7 +683,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         _internalActionBuffer.addToBuffer(lastBuffer);
         points.addAll(lastBuffer.toActions());
         tailPointIndex = lastBuffer.tailPointIndex;
-        tailPointTreshold = lastBuffer.tailPointTreshold;
+        tailPointThreshold = lastBuffer.tailPointThreshold;
       }
     }
 
@@ -695,7 +695,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
         points,
         flush: flush,
         tailPointStreamIndex: tailPointIndex,
-        tailPointThreshold: tailPointTreshold,
+        tailPointThreshold: tailPointThreshold,
       );
 
       int startTime = points.first.at;

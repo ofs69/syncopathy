@@ -15,6 +15,10 @@ import 'package:syncopathy/player/smooth_video_signals.dart';
 const int videoPlayerPositionFixedStepCount = 1000;
 
 abstract class VideoPlayer with EffectDispose {
+  static const double minPlaybackSpeed = 0.5;
+  static const double maxPlaybackSpeed = 2.0;
+  static const double maxVolume = 130;
+
   final bool embeddedPlayer;
 
   // TODO: remove _previouslyLoadedVideos and find a better way to resolve the filename from the playlist back to a video
@@ -82,10 +86,10 @@ abstract class VideoPlayer with EffectDispose {
     });
 
     loadedPath = computed(() {
-      final currentPlaylist = playlist.value;
-      final index = currentPlaylist.index;
-      if (index >= 0 && index < currentPlaylist.medias.length) {
-        return currentPlaylist.medias[index].uri;
+      final nativePlaylist = playlist.value;
+      final index = nativePlaylist.index;
+      if (index >= 0 && index < nativePlaylist.medias.length) {
+        return nativePlaylist.medias[index].uri;
       }
       return "";
     });
@@ -110,8 +114,8 @@ abstract class VideoPlayer with EffectDispose {
     });
 
     currentMedia = computed(() {
-      final playlist = currentPlaylist.value;
-      final entry = playlist.currentPlaylistItem.value;
+      final playlistModel = currentPlaylist.value;
+      final entry = playlistModel.currentPlaylistItem.value;
       var filename = entry?.filename;
       if (filename != null) {
         filename = p.canonicalize(filename);
@@ -128,10 +132,10 @@ abstract class VideoPlayer with EffectDispose {
     player.pause();
 
     currentPlaylist = computed(() {
-      final currentPlaylist = playlist.value;
-      final currentIndex = currentPlaylist.index;
+      final nativePlaylist = playlist.value;
+      final currentIndex = nativePlaylist.index;
       int counter = 0;
-      final entries = currentPlaylist.medias.map((media) {
+      final entries = nativePlaylist.medias.map((media) {
         final item = PlaylistItem(counter, media.uri, currentIndex == counter);
         counter += 1;
         return item;
@@ -172,9 +176,9 @@ abstract class VideoPlayer with EffectDispose {
 
   Future<void> openSingleVideo(MediaFile video) async {
     // If a playlist is currently open try to find the video and set the index
-    final playlist = currentPlaylist.value;
-    final index = playlist.getIndexForVideo(video);
-    if (index >= 0 && index < playlist.entries.length) {
+    final playlistModel = currentPlaylist.value;
+    final index = playlistModel.getIndexForVideo(video);
+    if (index >= 0 && index < playlistModel.entries.length) {
       player.jump(index);
       return;
     }
@@ -192,25 +196,25 @@ abstract class VideoPlayer with EffectDispose {
   }
 
   void jumpPreviousPlaylistEntry() {
-    final playlist = currentPlaylist.value;
-    final newIndex = (playlist.currentIndex.value - 1).clamp(
+    final playlistModel = currentPlaylist.value;
+    final newIndex = (playlistModel.currentIndex.value - 1).clamp(
       0,
-      playlist.entries.length - 1,
+      playlistModel.entries.length - 1,
     );
 
-    if (newIndex != playlist.currentIndex.value) {
+    if (newIndex != playlistModel.currentIndex.value) {
       player.jump(newIndex);
     }
   }
 
   void jumpNextPlaylistEntry() {
-    final playlist = currentPlaylist.value;
-    final newIndex = (playlist.currentIndex.value + 1).clamp(
+    final playlistModel = currentPlaylist.value;
+    final newIndex = (playlistModel.currentIndex.value + 1).clamp(
       0,
-      playlist.entries.length - 1,
+      playlistModel.entries.length - 1,
     );
 
-    if (newIndex != playlist.currentIndex.value) {
+    if (newIndex != playlistModel.currentIndex.value) {
       player.jump(newIndex);
     }
   }
@@ -237,9 +241,10 @@ abstract class VideoPlayer with EffectDispose {
     seekTo(current + offset);
   }
 
-  void setSpeed(double speed) => player.setRate(speed.clamp(0.5, 2.0));
+  void setSpeed(double speed) =>
+      player.setRate(speed.clamp(minPlaybackSpeed, maxPlaybackSpeed));
 
-  void setVolume(double volume) => player.setVolume(volume.clamp(0, 130));
+  void setVolume(double volume) => player.setVolume(volume.clamp(0, maxVolume));
 
   void togglePause() => player.playOrPause();
 

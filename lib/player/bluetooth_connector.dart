@@ -49,12 +49,12 @@ class BluetoothConnector {
               await device.connect();
               await Future.delayed(Duration(seconds: 1));
               final tx = await device.getCharacteristic(
-                "77835032-40f7-11ee-be56-0242ac120002",
-                service: "77834d26-40f7-11ee-be56-0242ac120002",
+                txId,
+                service: serviceId,
               );
               final rx = await device.getCharacteristic(
-                "77835410-40f7-11ee-be56-0242ac120002",
-                service: "77834d26-40f7-11ee-be56-0242ac120002",
+                rxId,
+                service: serviceId,
               );
               btDeviceCompleter.complete(BtDevice(device, tx, rx));
               break;

@@ -19,7 +19,7 @@ class ActionBuffer {
   final int endIndex;
 
   int get tailPointIndex => (id * maxBufferSize) + (endIndex - startIndex);
-  int get tailPointTreshold => (id * maxBufferSize);
+  int get tailPointThreshold => (id * maxBufferSize);
   int get bufferLength => endIndex - startIndex;
 
   ActionBuffer({
@@ -174,8 +174,38 @@ mixin CommandPacketBackend on ICommandBackendBase {
           });
         }
       }
-      return null;
     });
+  }
+
+  int _lastCommandPosition = -1;
+
+  // Skip commands whose implied device speed (pos/s) exceeds this; the motor
+  // cannot honour them and they only cause jitter.
+  // TODO: make this a user setting.
+  static const int ignoreSpeedThreshold = 500;
+
+  /// Sends [cmd] to the device unless it is a no-op or physically too fast.
+  /// [moveToPos] is the 0-100 position actually commanded — device backends pass
+  /// the raw position and let the device clamp to its stroke range, others pass
+  /// the already-clamped position. Does nothing when [shouldSend] is false.
+  void sendCommand(
+    CommandPacket cmd, {
+    required int moveToPos,
+    required bool shouldSend,
+  }) {
+    if (!shouldSend) return;
+    if (cmd.moveOverTimeMs > 0 &&
+        cmd.logicalMoveToPos != _lastCommandPosition) {
+      final speed =
+          (_lastCommandPosition - cmd.logicalMoveToPos).abs().toDouble() /
+          (cmd.moveOverTimeMs / 1000.0);
+      if (speed >= ignoreSpeedThreshold) return;
+      positionWithDuration(
+        (moveToPos / 100.0).clamp(0.0, 1.0),
+        cmd.moveOverTimeMs,
+      );
+      _lastCommandPosition = cmd.logicalMoveToPos;
+    }
   }
 
   void updateCommand(CommandPacket cmd);

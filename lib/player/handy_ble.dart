@@ -118,13 +118,31 @@ class ProtobufWorker {
   }
 }
 
+/// An in-flight request awaiting its response, tracked so late/timed-out
+/// completers can be reaped.
+class _PendingRequest {
+  final int id;
+  final DateTime sentAt;
+  final Completer<Response> completer;
+  _PendingRequest(this.id, this.sentAt, this.completer);
+}
+
 class HandyBle with EffectDispose {
   final BtDevice _device;
-  final List<(int, DateTime, Completer<Response>)> _messageCompleters = [];
+  final List<_PendingRequest> _messageCompleters = [];
+
+  // Handy BLE GATT identifiers, passed to the generic BluetoothConnector.
+  static const serviceUuid = "77834d26-40f7-11ee-be56-0242ac120002";
+  static const txUuid = "77835032-40f7-11ee-be56-0242ac120002";
+  static const rxUuid = "77835410-40f7-11ee-be56-0242ac120002";
+
+  // Max signed 32-bit int, reused as the request id meaning "no response
+  // expected" and as the ceiling for random stream ids.
+  static const int maxInt32 = 2147483647;
 
   int _messageIdCounter = 1;
   int get messageId => _messageIdCounter++;
-  static const noCompletionId = 2147483647;
+  static const noCompletionId = maxInt32;
 
   ReadonlySignal<HspState?> get hspState => _hspState;
   final Signal<HspState?> _hspState = signal(null);
@@ -241,9 +259,9 @@ class HandyBle with EffectDispose {
     Signal<int> strokeMax,
   ) async {
     final device = await BluetoothConnector().scanForDevice(
-      "77834d26-40f7-11ee-be56-0242ac120002",
-      "77835032-40f7-11ee-be56-0242ac120002",
-      "77835410-40f7-11ee-be56-0242ac120002",
+      serviceUuid,
+      txUuid,
+      rxUuid,
     );
     return device == null ? null : HandyBle(device, strokeMin, strokeMax);
   }
@@ -265,16 +283,16 @@ class HandyBle with EffectDispose {
     if (message.type == MessageType.MESSAGE_TYPE_RESPONSE) {
       Response response = message.response;
       if (response.id != noCompletionId) {
-        final completer = _messageCompleters.firstWhereOrNull(
-          (c) => c.$1 == response.id,
+        final pending = _messageCompleters.firstWhereOrNull(
+          (c) => c.id == response.id,
         );
-        if (completer != null) {
-          _messageCompleters.remove(completer);
-          completer.$3.complete(response);
+        if (pending != null) {
+          _messageCompleters.remove(pending);
+          pending.completer.complete(response);
         }
         // remove potentially timed out completers
         _messageCompleters.removeWhere(
-          (c) => (DateTime.now().difference(c.$2).inSeconds > 10),
+          (c) => (DateTime.now().difference(c.sentAt).inSeconds > 10),
         );
       }
       _resultHandler(response);
@@ -332,7 +350,7 @@ class HandyBle with EffectDispose {
       request: request,
     );
     final completer = Completer<Response>();
-    _messageCompleters.add((request.id, DateTime.now(), completer));
+    _messageCompleters.add(_PendingRequest(request.id, DateTime.now(), completer));
     _worker.sendToSerialize(message);
     return completer.future.timeout(Duration(seconds: 5));
   }
@@ -455,15 +473,14 @@ class HandyBle with EffectDispose {
   }
 
   void hspSetup({int? streamId}) {
-    const int maxInt32 = 2147483647;
     streamId ??= Random().nextInt(maxInt32);
     final request = RequestHspSetup(streamId: streamId);
     _sendRequest(Request(requestHspSetup: request));
   }
 
   void hspFlush() {
-    final requeust = RequestHspFlush();
-    _sendRequest(Request(requestHspFlush: requeust));
+    final request = RequestHspFlush();
+    _sendRequest(Request(requestHspFlush: request));
   }
 
   void hspAdd(
