@@ -8,6 +8,7 @@ import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/media_library/media_detail_page.dart';
 import 'package:syncopathy/media_library/media_thumbnail.dart';
 import 'package:syncopathy/model/player_model.dart';
+import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/persistence/entities/media_metadata.dart';
 
@@ -237,146 +238,182 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
                     badgeColor: Colors.blue,
                     label: "SCRIPT TOKEN",
                   ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Align(
-                    alignment: AlignmentGeometry.topRight,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            if (widget.showDuration)
-                              _buildStatisticItem(
-                                icon: Icons.timer,
-                                onSurface: onSurface,
-                                text: _formatDuration(metadata?.duration),
-                                tooltipMessage: "Duration",
-                              ),
-                            if (widget.showPlayCount)
-                              const SizedBox(height: 0.0, width: 2.0),
-
-                            // Play count indicator
-                            if (widget.showPlayCount)
-                              _buildStatisticItem(
-                                onSurface: onSurface,
-                                icon: widget.media.playCount > 0
-                                    ? Icons.play_arrow
-                                    : Icons.visibility_off,
-                                text: widget.media.playCount > 0
-                                    ? widget.media.playCount > _playCountCap
-                                          ? '$_playCountCap+'
-                                          : '${widget.media.playCount}'
-                                    : null,
-                                tooltipMessage: widget.media.playCount > 0
-                                    ? 'Watched ${widget.media.playCount} times'
-                                    : 'Not watched yet',
-                                color: Colors.black54,
-                              ),
-                          ],
-                        ),
-                        if (widget.showAverageSpeed)
-                          const SizedBox(height: 2.0),
-                        if (widget.showAverageSpeed && mainFunscript != null)
-                          _buildStatisticItem(
-                            onSurface: onSurface,
-                            icon: Icons.speed,
-                            text: '${mainFunscript.averageSpeed.round()}',
-                            tooltipMessage: "Average Speed",
-                          ),
-                        if (widget.showAverageMinMax)
-                          const SizedBox(height: 2.0, width: 0.0),
-                        if (widget.showAverageMinMax && mainFunscript != null)
-                          _buildStatisticItem(
-                            onSurface: onSurface,
-                            icon: Icons.stacked_line_chart,
-                            text:
-                                '${mainFunscript.averageMin.round()}-${mainFunscript.averageMax.round()}',
-                            tooltipMessage: "Average Min / Max",
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                AnimatedOpacity(
-                  opacity: widget.showTitle || isHovering ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Align(
-                    alignment: AlignmentGeometry.bottomCenter,
-                    child: Container(
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Colors.black],
-                        ),
-                      ),
-                      padding: const EdgeInsets.all(8.0),
-                      child: Tooltip(
-                        message: widget.media.name,
-                        child: Text(
-                          widget.media.name,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleSmall?.copyWith(color: onSurface),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                _buildStatisticsOverlay(metadata, mainFunscript, onSurface),
+                _buildTitleGradient(isHovering, onSurface),
               ],
             ),
           ),
-          Positioned(
-            top: 4,
-            left: 4,
-            child: AnimatedOpacity(
-              opacity: isHovering || hasRating ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 100),
-              child: Column(
-                children: [
-                  _buildActionButton(
-                    constraints: constraints,
-                    icon: Icons.more_vert,
-                    color: onSurface,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              MediaDetailPage(media: widget.media),
-                        ),
-                      );
-                    },
-                  ),
-                  if (!hasRating) const SizedBox(height: 4),
-                  if (isFavorite || !hasRating)
-                    _buildActionButton(
-                      constraints: constraints,
-                      icon: isFavorite ? Icons.star : Icons.star_border,
-                      color: isFavorite ? favoriteColor : onSurface,
-                      onTap: widget.toggleFavorite,
-                    ),
-                  if (!hasRating) const SizedBox(height: 4),
-                  if (isDislike || !hasRating)
-                    _buildActionButton(
-                      constraints: constraints,
-                      icon: isDislike
-                          ? Icons.thumb_down
-                          : Icons.thumb_down_outlined,
-                      color: isDislike ? dislikeColor : onSurface,
-                      onTap: widget.toggleDislike,
-                    ),
-                ],
-              ),
-            ),
+          _buildActionColumn(
+            context,
+            constraints,
+            isHovering: isHovering,
+            hasRating: hasRating,
+            isFavorite: isFavorite,
+            isDislike: isDislike,
+            onSurface: onSurface,
           ),
         ],
+      ),
+    );
+  }
+
+  /// Top-right column of stat badges (duration, play count, average speed,
+  /// average min/max), each gated by its corresponding `show*` flag.
+  Widget _buildStatisticsOverlay(
+    MediaMetadata? metadata,
+    FunscriptFile? mainFunscript,
+    Color onSurface,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Align(
+        alignment: AlignmentGeometry.topRight,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (widget.showDuration)
+                  _buildStatisticItem(
+                    icon: Icons.timer,
+                    onSurface: onSurface,
+                    text: _formatDuration(metadata?.duration),
+                    tooltipMessage: "Duration",
+                  ),
+                if (widget.showPlayCount)
+                  const SizedBox(height: 0.0, width: 2.0),
+
+                // Play count indicator
+                if (widget.showPlayCount)
+                  _buildStatisticItem(
+                    onSurface: onSurface,
+                    icon: widget.media.playCount > 0
+                        ? Icons.play_arrow
+                        : Icons.visibility_off,
+                    text: widget.media.playCount > 0
+                        ? widget.media.playCount > _playCountCap
+                              ? '$_playCountCap+'
+                              : '${widget.media.playCount}'
+                        : null,
+                    tooltipMessage: widget.media.playCount > 0
+                        ? 'Watched ${widget.media.playCount} times'
+                        : 'Not watched yet',
+                    color: Colors.black54,
+                  ),
+              ],
+            ),
+            if (widget.showAverageSpeed) const SizedBox(height: 2.0),
+            if (widget.showAverageSpeed && mainFunscript != null)
+              _buildStatisticItem(
+                onSurface: onSurface,
+                icon: Icons.speed,
+                text: '${mainFunscript.averageSpeed.round()}',
+                tooltipMessage: "Average Speed",
+              ),
+            if (widget.showAverageMinMax)
+              const SizedBox(height: 2.0, width: 0.0),
+            if (widget.showAverageMinMax && mainFunscript != null)
+              _buildStatisticItem(
+                onSurface: onSurface,
+                icon: Icons.stacked_line_chart,
+                text:
+                    '${mainFunscript.averageMin.round()}-${mainFunscript.averageMax.round()}',
+                tooltipMessage: "Average Min / Max",
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Bottom title bar over a transparent-to-black gradient; fades in on hover
+  /// or when titles are pinned on.
+  Widget _buildTitleGradient(bool isHovering, Color onSurface) {
+    return AnimatedOpacity(
+      opacity: widget.showTitle || isHovering ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 200),
+      child: Align(
+        alignment: AlignmentGeometry.bottomCenter,
+        child: Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.transparent, Colors.black],
+            ),
+          ),
+          padding: const EdgeInsets.all(8.0),
+          child: Tooltip(
+            message: widget.media.name,
+            child: Text(
+              widget.media.name,
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(color: onSurface),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Top-left column of hover actions: detail page, favorite, dislike. Fades in
+  /// on hover, or stays visible while the card carries a rating.
+  Widget _buildActionColumn(
+    BuildContext context,
+    BoxConstraints constraints, {
+    required bool isHovering,
+    required bool hasRating,
+    required bool isFavorite,
+    required bool isDislike,
+    required Color onSurface,
+  }) {
+    return Positioned(
+      top: 4,
+      left: 4,
+      child: AnimatedOpacity(
+        opacity: isHovering || hasRating ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 100),
+        child: Column(
+          children: [
+            _buildActionButton(
+              constraints: constraints,
+              icon: Icons.more_vert,
+              color: onSurface,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MediaDetailPage(media: widget.media),
+                  ),
+                );
+              },
+            ),
+            if (!hasRating) const SizedBox(height: 4),
+            if (isFavorite || !hasRating)
+              _buildActionButton(
+                constraints: constraints,
+                icon: isFavorite ? Icons.star : Icons.star_border,
+                color: isFavorite ? favoriteColor : onSurface,
+                onTap: widget.toggleFavorite,
+              ),
+            if (!hasRating) const SizedBox(height: 4),
+            if (isDislike || !hasRating)
+              _buildActionButton(
+                constraints: constraints,
+                icon: isDislike
+                    ? Icons.thumb_down
+                    : Icons.thumb_down_outlined,
+                color: isDislike ? dislikeColor : onSurface,
+                onTap: widget.toggleDislike,
+              ),
+          ],
+        ),
       ),
     );
   }
