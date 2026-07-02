@@ -51,6 +51,46 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
   final MediaThumbnailController _thumbnailController =
       MediaThumbnailController();
 
+  // Thumbnail scale on hover, and play-count display cap.
+  static const double _hoverScale = 1.10;
+  static const int _playCountCap = 999;
+  // Action-button icon/padding as a fraction of card width.
+  static const double _actionIconScale = 0.07;
+  static const double _actionPaddingScale = 0.03;
+
+  /// Border reflecting selection / currently-open / rating state, most
+  /// specific first.
+  BorderSide _borderSideFor(BuildContext context, bool isCurrentlyOpen) {
+    final scheme = Theme.of(context).colorScheme;
+    return switch ((widget.media.rating, widget.isSelected, isCurrentlyOpen)) {
+      (_, true, _) => BorderSide(
+        color: scheme.primary,
+        width: 3.0,
+        strokeAlign: 1,
+      ),
+      (_, _, true) => const BorderSide(
+        color: Colors.green,
+        width: 5.0,
+        strokeAlign: 1,
+      ),
+      (MediaRating.noRating, _, _) || (null, _, _) => BorderSide(
+        color: scheme.onSecondary,
+        width: 2.0,
+        strokeAlign: 1,
+      ),
+      (MediaRating.like, _, _) => BorderSide(
+        color: favoriteColor,
+        width: 3.0,
+        strokeAlign: 1,
+      ),
+      (MediaRating.dislike, _, _) => BorderSide(
+        color: dislikeColor,
+        width: 3.0,
+        strokeAlign: 1,
+      ),
+    };
+  }
+
   String _formatDuration(double? duration) {
     if (duration == null) return '--:--';
     final minutes = (duration ~/ 60).toString().padLeft(2, '0');
@@ -126,47 +166,7 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
 
     final onSurface = Theme.of(context).colorScheme.onSurface;
 
-    var borderSide = switch ((
-      widget.media.rating,
-      widget.isSelected,
-      isCurrentlyOpen,
-    )) {
-      // currently selected
-      (_, true, _) => BorderSide(
-        color: Theme.of(context).colorScheme.primary,
-        width: 3.0,
-        strokeAlign: 1,
-      ),
-      // currently open
-      (_, _, true) => BorderSide(
-        color: Colors.green,
-        width: 5.0,
-        strokeAlign: 1,
-      ),
-      // no rating
-      (MediaRating.noRating, _, _) => BorderSide(
-        color: Theme.of(context).colorScheme.onSecondary,
-        width: 2.0,
-        strokeAlign: 1,
-      ),
-      (null, _, _) => BorderSide(
-        color: Theme.of(context).colorScheme.onSecondary,
-        width: 2.0,
-        strokeAlign: 1,
-      ),
-      // favorite
-      (MediaRating.like, _, _) => BorderSide(
-        color: favoriteColor,
-        width: 3.0,
-        strokeAlign: 1,
-      ),
-      // dislike
-      (MediaRating.dislike, _, _) => BorderSide(
-        color: dislikeColor,
-        width: 3.0,
-        strokeAlign: 1,
-      ),
-    };
+    final borderSide = _borderSideFor(context, isCurrentlyOpen);
 
     return Card(
       clipBehavior: Clip.none,
@@ -195,7 +195,7 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
                   borderRadius: BorderRadiusGeometry.circular(4.0),
                   clipBehavior: Clip.hardEdge,
                   child: AnimatedScale(
-                    scale: isTapped ? 1.0 : (isHovering ? 1.10 : 1.00),
+                    scale: isTapped ? 1.0 : (isHovering ? _hoverScale : 1.00),
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOut,
                     child: MediaThumbnail(
@@ -259,8 +259,8 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
                                     ? Icons.play_arrow
                                     : Icons.visibility_off,
                                 text: widget.media.playCount > 0
-                                    ? widget.media.playCount > 999
-                                          ? '999+'
+                                    ? widget.media.playCount > _playCountCap
+                                          ? '$_playCountCap+'
                                           : '${widget.media.playCount}'
                                     : null,
                                 tooltipMessage: widget.media.playCount > 0
@@ -418,8 +418,8 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
     required BoxConstraints constraints,
   }) {
     // Calculate sizes based on the width of the card
-    final double iconSize = constraints.maxWidth * 0.07;
-    final double paddingSize = constraints.maxWidth * 0.03;
+    final double iconSize = constraints.maxWidth * _actionIconScale;
+    final double paddingSize = constraints.maxWidth * _actionPaddingScale;
 
     return IconButton(
       onPressed: onTap,
