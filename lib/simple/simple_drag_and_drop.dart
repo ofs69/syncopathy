@@ -74,8 +74,17 @@ class _SimpleModeDragAndDropState extends State<SimpleModeDragAndDrop>
     );
   }
 
+  // A drop is meant to be a single media file, optionally with its funscript.
+  static const int _maxDroppedFiles = 2;
+
   void _handleFiles(List<DropItem> files) async {
-    if (files.length > 2) return;
+    if (files.length > _maxDroppedFiles) {
+      AlertManager.showError(
+        'Please drop at most $_maxDroppedFiles files '
+        '(a media file and its funscript).',
+      );
+      return;
+    }
     final playerModel = context.read<PlayerModel>();
 
     try {

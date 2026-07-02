@@ -13,13 +13,18 @@ class HelpPage extends StatefulWidget {
 }
 
 class _HelpPageState extends State<HelpPage> {
-  String _getHelpFile(bool simple, bool isWeb) =>
+  static String _getHelpFile(bool simple, bool isWeb) =>
       "${isWeb ? "web" : "native"}_${simple ? "simple" : "media"}.md";
+
+  // Loaded once — the help file only depends on constant mode/platform flags,
+  // so there's no need to re-issue the bundle read on every rebuild.
+  late final Future<String> _helpMd = rootBundle.loadString(
+    'assets/wiki/${_getHelpFile(syncopathySimpleMode, kIsWeb)}',
+  );
 
   @override
   Widget build(BuildContext context) {
-    final helpFile = _getHelpFile(syncopathySimpleMode, kIsWeb);
-    final helpMd = rootBundle.loadString('assets/wiki/$helpFile');
+    final helpMd = _helpMd;
     final isPortrait =
         PlatformUtils.isPortrait(context) ||
         MediaQuery.of(context).size.width < 1200;

@@ -51,9 +51,24 @@ class GlobalShortcutManager extends ShortcutManager {
   }
 }
 
-class GlobalShortcuts extends StatelessWidget {
+class GlobalShortcuts extends StatefulWidget {
   final Widget child;
   const GlobalShortcuts({super.key, required this.child});
+
+  @override
+  State<GlobalShortcuts> createState() => _GlobalShortcutsState();
+}
+
+class _GlobalShortcutsState extends State<GlobalShortcuts> {
+  // Reused across rebuilds; only its `shortcuts` map is reassigned when the
+  // custom bindings change, instead of allocating a new manager each build.
+  final GlobalShortcutManager _shortcutManager = GlobalShortcutManager();
+
+  @override
+  void dispose() {
+    _shortcutManager.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +83,7 @@ class GlobalShortcuts extends StatelessWidget {
             .toActivator();
       }
 
-      final shortcuts = <ShortcutActivator, Intent>{
+      _shortcutManager.shortcuts = <ShortcutActivator, Intent>{
         getActivator(ShortcutDefinitions.togglePause):
             const TogglePauseIntent(),
         getActivator(ShortcutDefinitions.nextTrack): const NextTrackIntent(),
@@ -79,7 +94,7 @@ class GlobalShortcuts extends StatelessWidget {
       };
 
       return Shortcuts.manager(
-        manager: GlobalShortcutManager()..shortcuts = shortcuts,
+        manager: _shortcutManager,
         child: Actions(
           actions: <Type, Action<Intent>>{
             TogglePauseIntent: CallbackAction<TogglePauseIntent>(
@@ -96,7 +111,7 @@ class GlobalShortcuts extends StatelessWidget {
                   !settingsModel.homeDeviceEnabled.value,
             ),
           },
-          child: child,
+          child: widget.child,
         ),
       );
     });

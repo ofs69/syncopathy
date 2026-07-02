@@ -29,6 +29,9 @@ class VideoControls extends StatefulWidget {
 class _VideoControlsState extends State<VideoControls> {
   double _lastVolume = 100.0;
 
+  // At/below this volume the player is treated as muted.
+  static const double _muteThreshold = 0.1;
+
   @override
   Widget build(BuildContext context) {
     final player = context.read<VideoPlayer>();
@@ -113,11 +116,6 @@ class _VideoControlsState extends State<VideoControls> {
     );
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   String _formatResponsiveTimestamp(VideoPlayer player, bool isPortrait) {
     final current = Duration(seconds: player.currentPositionSeconds.value);
     final total = Duration(
@@ -172,9 +170,11 @@ class _VideoControlsState extends State<VideoControls> {
       builder: (context) {
         final volume = player.volume.value;
         return IconButton(
-          icon: Icon(volume <= 0.1 ? Icons.volume_off : Icons.volume_up),
+          icon: Icon(
+            volume <= _muteThreshold ? Icons.volume_off : Icons.volume_up,
+          ),
           onPressed: () {
-            if (volume <= 0.1) {
+            if (volume <= _muteThreshold) {
               player.setVolume(_lastVolume);
             } else {
               _lastVolume = volume;

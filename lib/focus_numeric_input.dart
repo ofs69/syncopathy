@@ -57,9 +57,10 @@ class _FocusNumericInputState extends State<FocusNumericInput> {
       }
       var parsedValue = double.tryParse(text);
       if (parsedValue != null) {
-        if (widget.min != null) {
-          parsedValue = parsedValue.clamp(widget.min!, widget.max!);
-        }
+        final min = widget.min;
+        final max = widget.max;
+        if (min != null && parsedValue < min) parsedValue = min;
+        if (max != null && parsedValue > max) parsedValue = max;
         widget.onChanged(parsedValue);
       }
     }
