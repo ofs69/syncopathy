@@ -11,55 +11,6 @@ import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/player_model.dart';
 
-// TODO: why is this two widgets?
-
-class InteractiveScrollingGraph extends StatefulWidget {
-  final ReadonlySignal<MediaFunscript?> currentlyOpen;
-  final ReadonlySignal<double> videoPosition;
-  final ReadonlySignal<double> playbackRate;
-  final ReadonlySignal<RangeValues> strokeRange;
-  final Signal<Duration> viewDuration;
-
-  const InteractiveScrollingGraph({
-    super.key,
-    required this.currentlyOpen,
-    required this.videoPosition,
-    required this.viewDuration,
-    required this.playbackRate,
-    required this.strokeRange,
-  });
-
-  @override
-  State<InteractiveScrollingGraph> createState() =>
-      _InteractiveScrollingGraphState();
-}
-
-class _InteractiveScrollingGraphState extends State<InteractiveScrollingGraph> {
-  @override
-  Widget build(BuildContext context) {
-    return Listener(
-      onPointerSignal: (event) {
-        if (event is PointerScrollEvent) {
-          final scrollValue = event.scrollDelta.dy > 0 ? 1.1 : 0.9;
-          widget.viewDuration.value = Duration(
-            milliseconds:
-                (widget.viewDuration.value.inMilliseconds * scrollValue)
-                    .round()
-                    .clamp(1000, 10000),
-          );
-        }
-      },
-      child: ScrollingGraph(
-        currentlyOpen: widget.currentlyOpen,
-        videoPosition: widget.videoPosition,
-        viewDuration: widget.viewDuration,
-        playbackRate: widget.playbackRate,
-        strokeRange: widget.strokeRange,
-      ),
-    );
-  }
-}
-
 class ScrollingGraph extends StatefulWidget {
   final ReadonlySignal<MediaFunscript?> currentlyOpen;
   final ReadonlySignal<double> videoPosition;
@@ -82,8 +33,12 @@ class ScrollingGraph extends StatefulWidget {
 
 class _ScrollingGraphState extends State<ScrollingGraph> {
   late final ReadonlySignal<List<double>> speeds;
-  // minor optimization to not have this buffer be allocated by the GraphPainter and GC'd
+  // minor optimization to not have this buffer be allocated by the _GraphPainter and GC'd
   final BufferList<Offset> pointBuffer = BufferList(initialValue: Offset(0, 0));
+  // Paints are reused across repaints; only their theme-derived colors are
+  // refreshed on build, so the painter no longer re-allocates five Paints per
+  // frame while the cursor scrolls.
+  final _GraphPaints _paints = _GraphPaints();
 
   @override
   void initState() {
@@ -119,79 +74,102 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
 
   @override
   Widget build(BuildContext context) {
-    return Watch.builder(
-      builder: (context) {
-        final position = widget.videoPosition.value;
-        final viewDuration = widget.viewDuration.value;
-        final funscript = widget.currentlyOpen.value?.funscript;
-        final actions = funscript?.processedActions.value;
-        return ClipRect(
-          child: CustomPaint(
-            painter: GraphPainter(
-              actions: actions ?? [],
-              videoPosition: Duration(milliseconds: (position * 1000).round()),
-              viewDuration: viewDuration,
-              theme: Theme.of(context),
-              speeds: speeds.watch(context),
-              pointBuffer: pointBuffer,
-            ),
-            size: Size.infinite,
-          ),
-        );
+    return Listener(
+      onPointerSignal: (event) {
+        if (event is PointerScrollEvent) {
+          final scrollValue = event.scrollDelta.dy > 0 ? 1.1 : 0.9;
+          widget.viewDuration.value = Duration(
+            milliseconds:
+                (widget.viewDuration.value.inMilliseconds * scrollValue)
+                    .round()
+                    .clamp(1000, 10000),
+          );
+        }
       },
+      child: Watch.builder(
+        builder: (context) {
+          final position = widget.videoPosition.value;
+          final viewDuration = widget.viewDuration.value;
+          final funscript = widget.currentlyOpen.value?.funscript;
+          final actions = funscript?.processedActions.value;
+          _paints.updateColors(Theme.of(context));
+          return ClipRect(
+            child: CustomPaint(
+              painter: _GraphPainter(
+                actions: actions ?? [],
+                videoPosition: Duration(
+                  milliseconds: (position * 1000).round(),
+                ),
+                viewDuration: viewDuration,
+                speeds: speeds.watch(context),
+                pointBuffer: pointBuffer,
+                paints: _paints,
+              ),
+              size: Size.infinite,
+            ),
+          );
+        },
+      ),
     );
   }
 }
 
-// The custom painter that handles the drawing logic.
-class GraphPainter extends CustomPainter {
-  final List<FunscriptAction> actions;
-  final Duration videoPosition;
-  final Duration viewDuration;
-  final ThemeData theme;
-  final List<double> speeds;
-  final BufferList<Offset> pointBuffer;
-
-  GraphPainter({
-    required this.actions,
-    required this.videoPosition,
-    required this.viewDuration,
-    required this.theme,
-    required this.speeds,
-    required this.pointBuffer,
-  });
-
-  // --- 1. Define Paints ---
-  late final linePaint = Paint()
-    ..color = theme.colorScheme.primary
+/// The five Paints the graph draws with. Their static properties are set once;
+/// only the theme-derived colors change (via [updateColors]) when the theme
+/// changes, so no Paint is allocated per frame.
+class _GraphPaints {
+  final Paint line = Paint()
     ..strokeWidth = 5.0
     ..style = PaintingStyle.stroke
     ..strokeCap = StrokeCap.square
     ..strokeJoin = StrokeJoin.bevel;
 
-  late final cursorPaint = Paint()
-    ..color = theme.colorScheme.secondary
+  final Paint cursor = Paint()
     ..strokeWidth = 4.0
     ..style = PaintingStyle.stroke
     ..strokeCap = StrokeCap.round;
 
-  late final pointPaint = Paint()
-    ..color = theme.colorScheme.tertiary
+  final Paint point = Paint()
     ..strokeWidth = 10.0
     ..style = PaintingStyle.fill
     ..strokeCap = StrokeCap.round;
 
-  late final currentPointPaint = Paint()
-    ..color = theme.colorScheme.onSecondary
+  final Paint currentPoint = Paint()
     ..strokeWidth = 6.0
     ..style = PaintingStyle.fill
     ..strokeCap = StrokeCap.round;
 
-  late final currentPointBackgroundPaint = Paint()
-    ..color = theme.colorScheme.secondary
+  final Paint currentPointBackground = Paint()
     ..strokeWidth = 10.0
     ..style = PaintingStyle.fill
     ..strokeCap = StrokeCap.round;
+
+  void updateColors(ThemeData theme) {
+    line.color = theme.colorScheme.primary;
+    cursor.color = theme.colorScheme.secondary;
+    point.color = theme.colorScheme.tertiary;
+    currentPoint.color = theme.colorScheme.onSecondary;
+    currentPointBackground.color = theme.colorScheme.secondary;
+  }
+}
+
+// The custom painter that handles the drawing logic.
+class _GraphPainter extends CustomPainter {
+  final List<FunscriptAction> actions;
+  final Duration videoPosition;
+  final Duration viewDuration;
+  final List<double> speeds;
+  final BufferList<Offset> pointBuffer;
+  final _GraphPaints paints;
+
+  _GraphPainter({
+    required this.actions,
+    required this.videoPosition,
+    required this.viewDuration,
+    required this.speeds,
+    required this.pointBuffer,
+    required this.paints,
+  });
 
   static const double customMargin = 8.0;
 
@@ -211,60 +189,72 @@ class GraphPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // --- 2. Calculate Visible Window ---
-    final halfViewMs = viewDuration.inMilliseconds / 2;
-    final viewStart =
-        videoPosition - Duration(milliseconds: halfViewMs.round());
-    final viewEnd = videoPosition + Duration(milliseconds: halfViewMs.round());
-
-    // --- 3. Calculate Speeds ---
     if (actions.length < 2) {
       // Not enough points to draw lines or calculate speed
       return;
     }
 
-    // --- 4. Filter, Transform, and Draw Points ---
-    // binary search for start and end indices
-    final testStart = FunscriptAction(at: viewStart.inMilliseconds, pos: 0);
-    final int start = max(lowerBound(actions, testStart) - 1, 0);
-    final testEnd = FunscriptAction(at: viewEnd.inMilliseconds, pos: 0);
-    final int end = min(lowerBound(actions, testEnd) + 1, actions.length);
+    // --- Calculate visible window (plain int ms; no Duration allocations) ---
+    final int viewDurationMs = viewDuration.inMilliseconds;
+    final int positionMs = videoPosition.inMilliseconds;
+    final int halfViewMs = (viewDurationMs / 2).round();
+    final int viewStartMs = positionMs - halfViewMs;
+    final int viewEndMs = positionMs + halfViewMs;
 
-    double currentY = 0.0;
-    {
-      final currentMs = videoPosition.inMilliseconds;
-      final int current = max(
-        lowerBound(actions, FunscriptAction(at: currentMs, pos: 0)) - 1,
-        0,
-      );
+    // Binary search for the first/last action pairs touching the window.
+    final int start = max(
+      lowerBound(actions, FunscriptAction(at: viewStartMs, pos: 0)) - 1,
+      0,
+    );
+    final int end = min(
+      lowerBound(actions, FunscriptAction(at: viewEndMs, pos: 0)) + 1,
+      actions.length,
+    );
 
-      if (current + 1 < actions.length) {
-        final a1 = actions[current];
-        final a2 = actions[current + 1];
+    final double currentY = _computeCurrentY(positionMs);
 
-        final inStrokeMs = currentMs - a1.at;
-        final inStrokeRel = inStrokeMs / (a2.at - a1.at).toDouble();
+    _drawSegments(canvas, size, start, end, viewStartMs, viewDurationMs);
+    _drawCursorAndPoints(canvas, size, currentY);
+  }
 
-        final a1Pos = (a1.pos / 100.0);
-        final a2Pos = (a2.pos / 100.0);
-        final depth = a2Pos - a1Pos;
+  /// Interpolated vertical position (0..1, inverted) of the cursor at [currentMs].
+  double _computeCurrentY(int currentMs) {
+    final int current = max(
+      lowerBound(actions, FunscriptAction(at: currentMs, pos: 0)) - 1,
+      0,
+    );
+    if (current + 1 >= actions.length) return 0.0;
 
-        currentY = 1.0 - (a1Pos + (depth * inStrokeRel));
-      }
-    }
+    final a1 = actions[current];
+    final a2 = actions[current + 1];
 
+    final inStrokeMs = currentMs - a1.at;
+    final inStrokeRel = inStrokeMs / (a2.at - a1.at).toDouble();
+
+    final a1Pos = a1.pos / 100.0;
+    final a2Pos = a2.pos / 100.0;
+    final depth = a2Pos - a1Pos;
+
+    return 1.0 - (a1Pos + (depth * inStrokeRel));
+  }
+
+  void _drawSegments(
+    Canvas canvas,
+    Size size,
+    int start,
+    int end,
+    int viewStartMs,
+    int viewDurationMs,
+  ) {
+    final linePaint = paints.line;
     pointBuffer.clear();
     for (int i = start; i < end - 1; i++) {
       final a1 = actions[i];
       final a2 = actions[i + 1];
 
-      double rx1 =
-          (Duration(milliseconds: a1.at) - viewStart).inMilliseconds /
-          viewDuration.inMilliseconds;
+      double rx1 = (a1.at - viewStartMs) / viewDurationMs;
       double ry1 = 1.0 - (a1.pos / 100.0);
-      double rx2 =
-          (Duration(milliseconds: a2.at) - viewStart).inMilliseconds /
-          viewDuration.inMilliseconds;
+      double rx2 = (a2.at - viewStartMs) / viewDurationMs;
       double ry2 = 1.0 - (a2.pos / 100.0);
 
       // 1. Skip if the entire segment is off-screen horizontally
@@ -315,19 +305,19 @@ class GraphPainter extends CustomPainter {
       final p2 = boundSize(size, linePaint.strokeWidth * 2, rx2, ry2);
 
       // round cap for the first and last line
-      if (i == start || i == end - 2) {
-        linePaint.strokeCap = StrokeCap.round;
-      } else {
-        linePaint.strokeCap = StrokeCap.square;
-      }
+      linePaint.strokeCap = (i == start || i == end - 2)
+          ? StrokeCap.round
+          : StrokeCap.square;
 
       canvas.drawLine(p1, p2, linePaint);
 
       if (!rx1Cliped) pointBuffer.add(p1);
       if (!rx2Cliped) pointBuffer.add(p2);
     }
+  }
 
-    // --- 5. Draw Cursor ---
+  void _drawCursorAndPoints(Canvas canvas, Size size, double currentY) {
+    final cursorPaint = paints.cursor;
     final cursorX = size.width / 2.0;
     canvas.drawLine(
       Offset(cursorX, cursorPaint.strokeWidth + (customMargin / 2.0)),
@@ -337,39 +327,28 @@ class GraphPainter extends CustomPainter {
       ),
       cursorPaint,
     );
-    canvas.drawPoints(PointMode.points, pointBuffer, pointPaint);
+    canvas.drawPoints(PointMode.points, pointBuffer, paints.point);
 
-    // current position point
+    // Current position point (a smaller dot over a larger background dot).
+    final bgStroke = paints.currentPointBackground.strokeWidth;
+    final centerY =
+        bgStroke +
+        (customMargin / 2.0) +
+        currentY * (size.height - (bgStroke * 2.0) - customMargin);
     canvas.drawCircle(
-      Offset(
-        cursorX,
-        (currentPointBackgroundPaint.strokeWidth) +
-            (customMargin / 2.0) +
-            currentY *
-                (size.height -
-                    (currentPointBackgroundPaint.strokeWidth * 2.0) -
-                    (customMargin)),
-      ),
-      currentPointBackgroundPaint.strokeWidth,
-      currentPointBackgroundPaint,
+      Offset(cursorX, centerY),
+      bgStroke,
+      paints.currentPointBackground,
     );
     canvas.drawCircle(
-      Offset(
-        cursorX,
-        (currentPointBackgroundPaint.strokeWidth) +
-            (customMargin / 2.0) +
-            currentY *
-                (size.height -
-                    (currentPointBackgroundPaint.strokeWidth * 2.0) -
-                    (customMargin)),
-      ),
-      currentPointPaint.strokeWidth,
-      currentPointPaint,
+      Offset(cursorX, centerY),
+      paints.currentPoint.strokeWidth,
+      paints.currentPoint,
     );
   }
 
   @override
-  bool shouldRepaint(covariant GraphPainter oldDelegate) {
+  bool shouldRepaint(covariant _GraphPainter oldDelegate) {
     // Repaint whenever the video position or points change.
     return oldDelegate.videoPosition != videoPosition ||
         oldDelegate.actions != actions ||

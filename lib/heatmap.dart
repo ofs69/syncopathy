@@ -35,6 +35,51 @@ class _HeatmapState extends State<Heatmap> {
   final Signal<double?> _hoverPosition = signal(null);
   final Throttler _throttler = Throttler(milliseconds: 150);
 
+  // Memoized per-action-pair effective speeds. This is the size-independent,
+  // O(n) part of the heatmap (a full strokeSegments/pivots pass), so it is
+  // cached and only recomputed when the actions, playback speed, or stroke
+  // range change — not on every repaint (e.g. per frame during a resize).
+  List<FunscriptAction>? _cachedActions;
+  double? _cachedSpeed;
+  RangeValues? _cachedRange;
+  List<double>? _cachedEffectiveSpeeds;
+
+  List<double> _effectiveSpeeds(
+    List<FunscriptAction> actions,
+    double playbackSpeed,
+    RangeValues strokeRange,
+  ) {
+    if (identical(actions, _cachedActions) &&
+        playbackSpeed == _cachedSpeed &&
+        strokeRange == _cachedRange &&
+        _cachedEffectiveSpeeds != null) {
+      return _cachedEffectiveSpeeds!;
+    }
+
+    final speeds = actions.length < 2
+        ? const <double>[]
+        : List<double>.filled(actions.length - 1, 0.0);
+    if (actions.length >= 2) {
+      // Same dwell-aware, jitter-merged strokes as
+      // FunscriptAlgorithms.averageSpeed, so the heatmap colouring and the
+      // aggregate score agree. Each coarse stroke's speed is assigned to every
+      // action pair it spans (remapped pos/ms; playbackSpeed scales linearly).
+      final remapScale = (strokeRange.end - strokeRange.start) / 100.0;
+      for (final s in FunscriptAlgorithms.strokeSegments(actions)) {
+        final speed = s.speed * playbackSpeed * remapScale / 1000.0;
+        for (int k = s.start; k < s.end; k++) {
+          speeds[k] = speed;
+        }
+      }
+    }
+
+    _cachedActions = actions;
+    _cachedSpeed = playbackSpeed;
+    _cachedRange = strokeRange;
+    _cachedEffectiveSpeeds = speeds;
+    return speeds;
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -99,12 +144,17 @@ class _HeatmapState extends State<Heatmap> {
                             final duration =
                                 ((widget.totalDuration.value ?? 0.0) * 1000.0)
                                     .round();
+                            final playbackSpeed = widget.playbackSpeed.value;
                             return CustomPaint(
                               painter: HeatmapPainter(
                                 actions: widget.actions,
                                 totalDuration: Duration(milliseconds: duration),
-                                playbackSpeed: widget.playbackSpeed.value,
-                                strokeRange: widget.strokeRange.value,
+                                playbackSpeed: playbackSpeed,
+                                effectiveSpeeds: _effectiveSpeeds(
+                                  widget.actions,
+                                  playbackSpeed,
+                                  widget.strokeRange.value,
+                                ),
                               ),
                             );
                           },
@@ -204,13 +254,16 @@ class HeatmapPainter extends CustomPainter {
   final List<FunscriptAction> actions;
   final Duration totalDuration;
   final double playbackSpeed;
-  final RangeValues strokeRange;
+
+  /// Precomputed (and memoized by the widget) effective speed per action pair;
+  /// see `_HeatmapState._effectiveSpeeds`.
+  final List<double> effectiveSpeeds;
 
   HeatmapPainter({
     required this.actions,
     required this.totalDuration,
     required this.playbackSpeed,
-    required this.strokeRange,
+    required this.effectiveSpeeds,
   });
 
   @override
@@ -227,21 +280,6 @@ class HeatmapPainter extends CustomPainter {
       numSegments,
       (_) => _SegmentData(),
     );
-
-    // Precompute effective speed per action pair from the same dwell-aware,
-    // jitter-merged strokes as FunscriptAlgorithms.averageSpeed, so the heatmap
-    // colouring and the aggregate score always agree. Each coarse stroke's
-    // speed is assigned to every action pair it spans. Output unit: remapped
-    // pos/ms (matching the previous raw speed unit); playbackSpeed scales it
-    // linearly, as faster playback drives proportionally faster motion.
-    final remapScale = (strokeRange.end - strokeRange.start) / 100.0;
-    final effectiveSpeeds = List<double>.filled(actions.length - 1, 0.0);
-    for (final s in FunscriptAlgorithms.strokeSegments(actions)) {
-      final speed = s.speed * playbackSpeed * remapScale / 1000.0;
-      for (int k = s.start; k < s.end; k++) {
-        effectiveSpeeds[k] = speed;
-      }
-    }
 
     int currentActionIndex = 0;
 
@@ -283,6 +321,7 @@ class HeatmapPainter extends CustomPainter {
     }
 
     // DRAWING PHASE
+    final paint = Paint();
     for (int i = 0; i < numSegments; i++) {
       final data = segments[i];
       if (data.posSampleCount == 0) continue;
@@ -292,7 +331,7 @@ class HeatmapPainter extends CustomPainter {
       // Calculate color based on speed
       final normalizedSpeed = (data.averageSpeed / speedNormalizationValue)
           .clamp(0.0, 1.0);
-      final paint = Paint()..color = _getHeatmapColor(normalizedSpeed);
+      paint.color = _getHeatmapColor(normalizedSpeed);
 
       // Calculate vertical bounds using averageMin and averageMax
       // Mapping: Funscript 100 is bottom (size.height), 0 is top (0)
@@ -335,7 +374,7 @@ class HeatmapPainter extends CustomPainter {
     return oldDelegate.actions != actions ||
         oldDelegate.totalDuration != totalDuration ||
         oldDelegate.playbackSpeed != playbackSpeed ||
-        oldDelegate.strokeRange != strokeRange;
+        !identical(oldDelegate.effectiveSpeeds, effectiveSpeeds);
   }
 }
 

@@ -235,7 +235,7 @@ class _VideoWidgetState extends State<VideoWidget>
     return Container(
       padding: const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 0.0),
       decoration: stdBoxShadow(),
-      child: InteractiveScrollingGraph(
+      child: ScrollingGraph(
         currentlyOpen: currentlyOpen,
         videoPosition: player.smoothPosition,
         viewDuration: settings.funscriptGraphViewDuration,
