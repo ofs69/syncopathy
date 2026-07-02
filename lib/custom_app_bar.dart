@@ -40,7 +40,7 @@ class CustomAppBarState extends State<CustomAppBar> {
     final playerModel = context.read<PlayerModel>();
 
     final hasBattery = batteryModel.hasBattery.watch(context);
-    final chargerConnected = batteryModel.chargerConntected.watch(context);
+    final chargerConnected = batteryModel.chargerConnected.watch(context);
     final currentPlaylist = player.currentPlaylist.watch(context);
     final currentlyOpen = playerModel.currentlyOpen.watch(context);
 
@@ -49,27 +49,7 @@ class CustomAppBarState extends State<CustomAppBar> {
       flexibleSpace: !kIsWeb
           ? DragToMoveArea(child: Container(color: Colors.transparent))
           : null,
-      title: IgnorePointer(
-        ignoring: true,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (Widget child, Animation<double> animation) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          child: Align(
-            key: ValueKey<String>(
-              currentlyOpen?.media.name ?? widget.widgetTitle,
-            ),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              currentlyOpen?.media.name ?? widget.widgetTitle,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              softWrap: false,
-            ),
-          ),
-        ),
-      ),
+      title: _buildTitle(currentlyOpen),
       actions: [
         HomeButton(),
         if (kIsWeb) SizedBox(width: 4),
@@ -111,72 +91,107 @@ class CustomAppBarState extends State<CustomAppBar> {
         const SizedBox(width: 4),
 
         if (hasBattery)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                child: Text(
-                  '${batteryModel.batteryLevel.watch(context).toString().padLeft(3, ' ')}%',
-                  textAlign: TextAlign.end, // Aligns text against the icon
-                  style: GoogleFonts.robotoMono(
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4), // Small gap between text and icon
-              Icon(
-                chargerConnected
-                    ? Icons.battery_charging_full
-                    : Icons.battery_full,
-                color: chargerConnected
-                    ? Colors.green
-                    : (batteryModel.batteryLevel.value < 20
-                          ? Colors.red
-                          : null),
-              ),
-            ],
-          ),
+          _buildBatteryIndicator(context, batteryModel, chargerConnected),
         const SizedBox(width: 4.0),
         ConnectionButton(),
         const SizedBox(width: 4.0),
 
-        Watch.builder(
-          builder: (context) {
-            final unreadCount = context.read<AlertManager>().unreadCount.value;
-            return Badge(
-              label: Text('$unreadCount'),
-              isLabelVisible: unreadCount > 0,
-              child: IconButton(
-                icon: const Icon(Icons.notifications_none),
-                onPressed: () {
-                  Scaffold.of(context).openEndDrawer();
-                },
-              ),
-            );
-          },
-        ),
+        _buildNotificationButton(),
         const SizedBox(width: 4),
 
-        // Window control buttons
-        if (!kIsWeb)
-          WindowCaptionButton.minimize(
-            brightness: Theme.of(context).brightness,
-            onPressed: () => windowManager.minimize(),
-          ),
-        if (!kIsWeb)
-          WindowCaptionButton.maximize(
-            brightness: Theme.of(context).brightness,
-            onPressed: () async => await windowManager.isMaximized()
-                ? windowManager.restore()
-                : windowManager.maximize(),
-          ),
-        if (!kIsWeb)
-          WindowCaptionButton.close(
-            brightness: Theme.of(context).brightness,
-            onPressed: () => windowManager.close(),
-          ),
+        ..._buildWindowButtons(context),
       ],
     );
+  }
+
+  Widget _buildTitle(MediaFunscript? currentlyOpen) {
+    final title = currentlyOpen?.media.name ?? widget.widgetTitle;
+    return IgnorePointer(
+      ignoring: true,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        child: Align(
+          key: ValueKey<String>(title),
+          alignment: Alignment.centerLeft,
+          child: Text(
+            title,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            softWrap: false,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBatteryIndicator(
+    BuildContext context,
+    BatteryModel batteryModel,
+    bool chargerConnected,
+  ) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          child: Text(
+            '${batteryModel.batteryLevel.watch(context).toString().padLeft(3, ' ')}%',
+            textAlign: TextAlign.end, // Aligns text against the icon
+            style: GoogleFonts.robotoMono(
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+        const SizedBox(width: 4), // Small gap between text and icon
+        Icon(
+          chargerConnected ? Icons.battery_charging_full : Icons.battery_full,
+          color: chargerConnected
+              ? Colors.green
+              : (batteryModel.batteryLevel.value < 20 ? Colors.red : null),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNotificationButton() {
+    return Watch.builder(
+      builder: (context) {
+        final unreadCount = context.read<AlertManager>().unreadCount.value;
+        return Badge(
+          label: Text('$unreadCount'),
+          isLabelVisible: unreadCount > 0,
+          child: IconButton(
+            icon: const Icon(Icons.notifications_none),
+            onPressed: () {
+              Scaffold.of(context).openEndDrawer();
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  List<Widget> _buildWindowButtons(BuildContext context) {
+    if (kIsWeb) return const [];
+    final brightness = Theme.of(context).brightness;
+    return [
+      WindowCaptionButton.minimize(
+        brightness: brightness,
+        onPressed: () => windowManager.minimize(),
+      ),
+      WindowCaptionButton.maximize(
+        brightness: brightness,
+        onPressed: () async => await windowManager.isMaximized()
+            ? windowManager.restore()
+            : windowManager.maximize(),
+      ),
+      WindowCaptionButton.close(
+        brightness: brightness,
+        onPressed: () => windowManager.close(),
+      ),
+    ];
   }
 
   Widget actionRow(
@@ -189,42 +204,26 @@ class CustomAppBarState extends State<CustomAppBar> {
     return Row(
       children: [
         if (mediaManager != null)
-          IconButton(
-            icon: Icon(
-              currentVideo.isFavorite ? Icons.star : Icons.star_border,
-              color: currentVideo.isFavorite ? favoriteColor : null,
-            ),
-            onPressed: () {
-              setState(() {
-                currentVideo.isFavorite
-                    ? currentVideo.rating = MediaRating.noRating
-                    : currentVideo.rating = MediaRating.like;
-              });
-              oBox.mediaService.save(currentVideo);
-            },
-            tooltip: currentVideo.isFavorite
-                ? 'Remove from Favorites'
-                : 'Add to Favorites',
+          _buildRatingButton(
+            video: currentVideo,
+            active: currentVideo.isFavorite,
+            activeIcon: Icons.star,
+            inactiveIcon: Icons.star_border,
+            activeColor: favoriteColor,
+            rating: MediaRating.like,
+            activeTooltip: 'Remove from Favorites',
+            inactiveTooltip: 'Add to Favorites',
           ),
         if (mediaManager != null)
-          IconButton(
-            icon: Icon(
-              currentVideo.isDislike
-                  ? Icons.thumb_down
-                  : Icons.thumb_down_off_alt,
-              color: currentVideo.isDislike ? dislikeColor : null,
-            ),
-            onPressed: () {
-              setState(() {
-                currentVideo.isDislike
-                    ? currentVideo.rating = MediaRating.noRating
-                    : currentVideo.rating = MediaRating.dislike;
-              });
-              oBox.mediaService.save(currentVideo);
-            },
-            tooltip: currentVideo.isDislike
-                ? 'Remove Dislike'
-                : 'Dislike Video',
+          _buildRatingButton(
+            video: currentVideo,
+            active: currentVideo.isDislike,
+            activeIcon: Icons.thumb_down,
+            inactiveIcon: Icons.thumb_down_off_alt,
+            activeColor: dislikeColor,
+            rating: MediaRating.dislike,
+            activeTooltip: 'Remove Dislike',
+            inactiveTooltip: 'Dislike Video',
           ),
         if (mediaManager != null) const SizedBox(width: 16),
         if (!syncopathySimpleMode)
@@ -234,6 +233,31 @@ class CustomAppBarState extends State<CustomAppBar> {
             tooltip: playlist ? 'Close Playlist' : 'Close Video',
           ),
       ],
+    );
+  }
+
+  /// A rating toggle: when [active] it shows [activeIcon]/[activeColor] and
+  /// clears the rating on tap; otherwise it applies [rating]. Shared by the
+  /// favorite and dislike buttons.
+  Widget _buildRatingButton({
+    required MediaFile video,
+    required bool active,
+    required IconData activeIcon,
+    required IconData inactiveIcon,
+    required Color activeColor,
+    required MediaRating rating,
+    required String activeTooltip,
+    required String inactiveTooltip,
+  }) {
+    return IconButton(
+      icon: Icon(active ? activeIcon : inactiveIcon, color: active ? activeColor : null),
+      onPressed: () {
+        setState(() {
+          video.rating = active ? MediaRating.noRating : rating;
+        });
+        oBox.mediaService.save(video);
+      },
+      tooltip: active ? activeTooltip : inactiveTooltip,
     );
   }
 }

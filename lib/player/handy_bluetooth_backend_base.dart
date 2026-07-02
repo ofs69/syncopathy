@@ -89,7 +89,7 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
         final battery = _handyBle.value?.batteryState.value;
         batteryModel.hasBattery.value = battery != null;
         if (battery != null) {
-          batteryModel.chargerConntected.value = battery.chargerConnected;
+          batteryModel.chargerConnected.value = battery.chargerConnected;
           batteryModel.batteryLevel.value = battery.level;
         }
       }),

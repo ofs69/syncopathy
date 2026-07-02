@@ -14,6 +14,7 @@ import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/timesource_model.dart';
+import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 import 'package:syncopathy/player/media_kit_player/media_kit_player.dart';
 
@@ -22,10 +23,7 @@ import 'package:syncopathy/syncopathy.dart';
 
 import 'package:syncopathy/platform/init/init.dart';
 
-Future<Widget> _initializeAppAndRun({
-  required bool simple,
-  required String? file,
-}) async {
+Future<Widget> _initializeAppAndRun({required bool simple}) async {
   syncopathySimpleMode = simple;
   await PlatformInit.initPlatform(simple);
 
@@ -61,12 +59,16 @@ Future<Widget> _initializeAppAndRun({
     batteryModel,
   );
 
+  final alertManager = AlertManager();
+  getIt.registerSingleton<AlertManager>(alertManager);
+
   return MultiProvider(
     providers: [
       Provider.value(value: settings),
       Provider.value(value: videoPlayer as VideoPlayer),
       Provider.value(value: playerModel),
       Provider.value(value: batteryModel),
+      ChangeNotifierProvider<AlertManager>.value(value: alertManager),
       if (mediaSettings != null) Provider.value(value: mediaSettings),
       if (mediaManager != null) Provider.value(value: mediaManager),
     ],
@@ -107,11 +109,11 @@ void main(List<String> args) async {
 
     openFile = results.rest.isNotEmpty ? results.rest.first : null;
     isSimple = (results['simple'] as bool) || (openFile != null);
-  } else if (kIsWeb) {
+  } else {
+    // Web always runs in simple mode.
     isSimple = true;
-    openFile = null;
   }
 
-  final mainApp = await _initializeAppAndRun(simple: isSimple, file: openFile);
+  final mainApp = await _initializeAppAndRun(simple: isSimple);
   runApp(mainApp);
 }

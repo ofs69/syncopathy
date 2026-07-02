@@ -26,30 +26,37 @@ class Syncopathy extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) {
-        final manager = AlertManager();
-        getIt.registerSingleton<AlertManager>(manager);
-        return manager;
-      },
-      child: MaterialApp(
-        title: 'Syncopathy',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          fontFamily: GoogleFonts.roboto().fontFamily,
-          textTheme: GoogleFonts.robotoTextTheme(
-            ThemeData(brightness: Brightness.dark).textTheme,
-          ),
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blueAccent,
-            brightness: Brightness.dark,
-          ),
+    // AlertManager is provided (and registered in getIt) from main.dart.
+    return MaterialApp(
+      title: 'Syncopathy',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        fontFamily: GoogleFonts.roboto().fontFamily,
+        textTheme: GoogleFonts.robotoTextTheme(
+          ThemeData(brightness: Brightness.dark).textTheme,
         ),
-        home: const SyncopathyHomePage(title: 'Syncopathy'),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blueAccent,
+          brightness: Brightness.dark,
+        ),
       ),
+      home: const SyncopathyHomePage(title: 'Syncopathy'),
     );
   }
+}
+
+class _NavItem {
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final bool mediaOnly;
+  const _NavItem({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.mediaOnly,
+  });
 }
 
 class SyncopathyHomePage extends StatefulWidget {
@@ -134,52 +141,74 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
     final settings = context.read<SettingsModel>();
 
     if (currentlyOpen != null && settings.autoSwitchToVideoPlayerTab.value) {
-      _selectedIndex = 1; // Navigate to Video Player tab
+      final videoTab = _videoPlayerTabIndex;
+      _selectedIndex = videoTab;
       _pageController.animateToPage(
-        1,
+        videoTab,
         duration: const Duration(milliseconds: 300),
         curve: Curves.ease,
       );
     }
   }
 
-  List<NavigationRailDestination> _destinations(bool withMedia) =>
-      <NavigationRailDestination>[
-        if (withMedia)
-          const NavigationRailDestination(
-            icon: Icon(Icons.video_library_outlined),
-            selectedIcon: Icon(Icons.video_library),
-            label: Text('Media'),
-          ),
-        const NavigationRailDestination(
-          icon: Icon(Icons.play_circle_outline),
-          selectedIcon: Icon(Icons.play_circle_filled),
-          label: Text("Video Player"),
-        ),
-        const NavigationRailDestination(
-          icon: Icon(Icons.settings_outlined),
-          selectedIcon: Icon(Icons.settings),
-          label: Text('Settings'),
-        ),
-        const NavigationRailDestination(
-          icon: Icon(Icons.help_outline),
-          selectedIcon: Icon(Icons.help),
-          label: Text('Help'),
-        ),
-      ];
+  // Single source of truth for the navigation entries; both the rail and the
+  // bottom bar are derived from this so labels stay plain strings (no Text
+  // down-casting) and tab indices stay tied to one ordering.
+  static const List<_NavItem> _navItems = [
+    _NavItem(
+      icon: Icons.video_library_outlined,
+      selectedIcon: Icons.video_library,
+      label: 'Media',
+      mediaOnly: true,
+    ),
+    _NavItem(
+      icon: Icons.play_circle_outline,
+      selectedIcon: Icons.play_circle_filled,
+      label: 'Video Player',
+      mediaOnly: false,
+    ),
+    _NavItem(
+      icon: Icons.settings_outlined,
+      selectedIcon: Icons.settings,
+      label: 'Settings',
+      mediaOnly: false,
+    ),
+    _NavItem(
+      icon: Icons.help_outline,
+      selectedIcon: Icons.help,
+      label: 'Help',
+      mediaOnly: false,
+    ),
+  ];
 
-  List<NavigationDestination> _bottomDestinations(bool withMedia) {
-    return _destinations(withMedia)
-        .map(
-          (d) => NavigationDestination(
-            icon: d.icon,
-            selectedIcon: d.selectedIcon,
-            label: (d.label as Text)
-                .data!, // Extracts the string from the Text widget
-          ),
-        )
-        .toList();
-  }
+  List<_NavItem> _visibleNavItems(bool withMedia) =>
+      _navItems.where((n) => withMedia || !n.mediaOnly).toList();
+
+  /// Index of the Video Player tab in the currently visible destinations.
+  int get _videoPlayerTabIndex =>
+      _visibleNavItems(!syncopathySimpleMode).indexWhere((n) => !n.mediaOnly);
+
+  List<NavigationRailDestination> _destinations(bool withMedia) =>
+      _visibleNavItems(withMedia)
+          .map(
+            (n) => NavigationRailDestination(
+              icon: Icon(n.icon),
+              selectedIcon: Icon(n.selectedIcon),
+              label: Text(n.label),
+            ),
+          )
+          .toList();
+
+  List<NavigationDestination> _bottomDestinations(bool withMedia) =>
+      _visibleNavItems(withMedia)
+          .map(
+            (n) => NavigationDestination(
+              icon: Icon(n.icon),
+              selectedIcon: Icon(n.selectedIcon),
+              label: n.label,
+            ),
+          )
+          .toList();
 
   @override
   Widget build(BuildContext context) {

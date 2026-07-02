@@ -99,24 +99,6 @@ class AlertManager extends ChangeNotifier {
       debugPrint('AlertManager not yet registered: $e');
     }
   }
-
-  static void showSuccessAlert(BuildContext context, String message) {
-    Provider.of<AlertManager>(
-      context,
-      listen: false,
-    ).addAlert(message, LogLevel.info);
-  }
-
-  static void showErrorAlert(
-    BuildContext context,
-    String message, [
-    StackTrace? trace,
-  ]) {
-    Provider.of<AlertManager>(
-      context,
-      listen: false,
-    ).addAlert(message, LogLevel.error, trace);
-  }
 }
 
 class AlertPanel extends StatelessWidget {
