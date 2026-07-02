@@ -2,10 +2,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
-import 'package:syncopathy/notification_feed.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pool/pool.dart';
 import 'package:syncopathy/helper/constants.dart';
+import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/helper/task_queue.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
@@ -148,10 +148,13 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
       if (result.exitCode == 0 && await thumbnailFile.exists()) {
         return thumbnailFile;
       } else {
-        AlertManager.showError('ffmpeg error: ${result.stderr}');
+        // A per-file failure is expected for unreadable/unsupported media; it is
+        // recorded via thumbnailGenerationFailed and shown as a fallback icon,
+        // so log it rather than alerting the user once per file during a scan.
+        Logger.error('ffmpeg thumbnail generation failed: ${result.stderr}');
       }
-    } catch (e) {
-      AlertManager.showError('Error generating thumbnail: $e');
+    } catch (e, st) {
+      Logger.error('Error generating thumbnail', e, st);
     }
     return null;
   }
