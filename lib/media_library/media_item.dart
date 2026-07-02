@@ -60,6 +60,12 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
     () => _playerModel.currentlyOpen.value?.media.id == widget.media.id,
   );
 
+  @override
+  void dispose() {
+    _thumbnailController.dispose();
+    super.dispose();
+  }
+
   // Thumbnail scale on hover, and play-count display cap.
   static const double _hoverScale = 1.10;
   static const int _playCountCap = 999;

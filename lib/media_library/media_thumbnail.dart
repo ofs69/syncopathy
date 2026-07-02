@@ -11,23 +11,23 @@ import 'package:syncopathy/media_library/thumbnail_generator.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/video_player.dart';
 
+/// A one-shot action sent from a [MediaThumbnailController] to the
+/// [MediaThumbnail] currently listening to it.
+enum ThumbnailCommand { regenerate, currentFrameAsThumbnail }
+
+/// Dispatches thumbnail actions to a [MediaThumbnail] over a broadcast stream,
+/// so the controller never holds a reference back into the widget's state. The
+/// owner (the media card) creates it and is responsible for [dispose].
 class MediaThumbnailController {
-  Function(double, bool)? _regenerateCallback;
-  Function(Future<Uint8List?>)? _setThumbnailCallback;
+  final _commands = StreamController<ThumbnailCommand>.broadcast();
+  Stream<ThumbnailCommand> get commands => _commands.stream;
 
-  void regenerateThumbnail() {
-    final seekFraction = 0.01 + Random().nextInt(94) * 0.01;
-    _regenerateCallback?.call(seekFraction, true);
-  }
+  void regenerateThumbnail() => _commands.add(ThumbnailCommand.regenerate);
 
-  void _dispose() {
-    _regenerateCallback = null;
-    _setThumbnailCallback = null;
-  }
+  void currentFrameAsThumbnail() =>
+      _commands.add(ThumbnailCommand.currentFrameAsThumbnail);
 
-  void currentFrameAsThumbnail() {
-    _setThumbnailCallback?.call(getIt.get<VideoPlayer>().screenshot());
-  }
+  void dispose() => _commands.close();
 }
 
 class MediaThumbnail extends StatefulWidget {
@@ -51,20 +51,30 @@ class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
   );
   late final Signal<Uint8List?> _thumbnail = createSignal(null);
   Timer? _loadingTimer;
+  StreamSubscription<ThumbnailCommand>? _commandSub;
 
   @override
   void initState() {
     super.initState();
-    widget.controller._regenerateCallback = _generateThumbnail;
-    widget.controller._setThumbnailCallback = _setThumbnail;
+    _commandSub = widget.controller.commands.listen(_handleCommand);
     _generateThumbnail(0.03, false);
   }
 
   @override
   void dispose() {
+    _commandSub?.cancel();
     _loadingTimer?.cancel();
     super.dispose();
-    widget.controller._dispose();
+  }
+
+  void _handleCommand(ThumbnailCommand command) {
+    switch (command) {
+      case ThumbnailCommand.regenerate:
+        final seekFraction = 0.01 + Random().nextInt(94) * 0.01;
+        _generateThumbnail(seekFraction, true);
+      case ThumbnailCommand.currentFrameAsThumbnail:
+        _setThumbnail(getIt.get<VideoPlayer>().screenshot());
+    }
   }
 
   Future<void> _setThumbnail(Future<Uint8List?> bytesFuture) async {
