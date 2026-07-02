@@ -112,10 +112,10 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
         seekTimeSeconds = metadata.duration * request.seekFraction;
       }
 
-      List<String> ffmpegArgs = [
+      List<String> buildFfmpegArgs({double? seek}) => [
         '-xerror',
         '-y',
-        if (seekTimeSeconds != null) ...['-ss', seekTimeSeconds.toString()],
+        if (seek != null) ...['-ss', seek.toString()],
         '-i',
         request.file.mediaPath,
         '-vf',
@@ -134,13 +134,14 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
 
       // Note: We are already inside a Pool resource from the base class,
       // so we just run the process directly.
-      var result = await Process.run('ffmpeg', ffmpegArgs);
+      var result = await Process.run(
+        'ffmpeg',
+        buildFfmpegArgs(seek: seekTimeSeconds),
+      );
 
       if (result.exitCode != 0 && seekTimeSeconds != null) {
-        // Retry logic: Remove -ss args (indices 2 and 3)
-        ffmpegArgs.removeAt(2);
-        ffmpegArgs.removeAt(2);
-        result = await Process.run('ffmpeg', ffmpegArgs);
+        // Retry without the seek in case the seek point is unreadable.
+        result = await Process.run('ffmpeg', buildFfmpegArgs());
       }
 
       if (result.exitCode == 0 && await thumbnailFile.exists()) {

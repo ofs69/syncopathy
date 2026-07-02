@@ -32,7 +32,6 @@ class MediaFilterLogic {
     required Set<VideoFilter> visibilityFilters,
     required bool separateFavorites,
     int? randomSeed,
-    dynamic playlistState,
   }) {
     // 0. Pre-calculate filter state
     final hideFavorite = visibilityFilters.contains(VideoFilter.hideFavorite);
@@ -71,13 +70,7 @@ class MediaFilterLogic {
         if (!a.media.isDislike && b.media.isDislike) return -1;
       }
 
-      int cmp = 0;
-      final keyA = a.sortKey;
-      final keyB = b.sortKey;
-
-      if (keyA is Comparable && keyB is Comparable) {
-        cmp = keyA.compareTo(keyB);
-      }
+      int cmp = a.sortKey.compareTo(b.sortKey);
 
       if (cmp == 0) {
         // Fallback to title
@@ -91,7 +84,7 @@ class MediaFilterLogic {
     return filtered;
   }
 
-  static dynamic _getSortKey(
+  static Comparable<dynamic> _getSortKey(
     MediaFile m,
     SortOption option, [
     int? randomSeed,

@@ -8,6 +8,34 @@ import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/persistence/entities/user_category.dart';
 import 'package:syncopathy/player/video_player.dart';
 
+/// Sentinel category id used by [CategoryFilter] to represent media that has no
+/// user categories assigned ("Uncategorized").
+const int kUncategorizedCategoryId = -2;
+
+/// Shared operator-selection menu used by the number/string/date filter rows.
+/// [values] are the selectable operators, [labelOf] renders each one.
+Widget _operatorMenu<T>({
+  required List<T> values,
+  required T current,
+  required String Function(T) labelOf,
+  required ValueChanged<T> onSelected,
+}) {
+  return PopupMenuButton<T>(
+    icon: const Icon(Icons.filter_list),
+    tooltip: labelOf(current),
+    onSelected: onSelected,
+    itemBuilder: (context) => values
+        .map(
+          (op) => CheckedPopupMenuItem<T>(
+            value: op,
+            checked: current == op,
+            child: Text(labelOf(op)),
+          ),
+        )
+        .toList(),
+  );
+}
+
 final Map<String, FilterBase Function()> availableFilters = {
   "Title": () => StringFilter(
     label: "Title",
@@ -30,7 +58,7 @@ final Map<String, FilterBase Function()> availableFilters = {
     category: FilterCategory.media,
     sortOrder: 2,
     retriever: (media) => media.categories.isEmpty
-        ? [-2]
+        ? [kUncategorizedCategoryId]
         : media.categories.map((c) => c.id).toList(),
     categories: oBox.userCategoryService.getAllUserCategories(),
   ),
@@ -244,21 +272,11 @@ class NumberFilter extends FilterBase<num> {
           ),
         ),
         const SizedBox(width: 4),
-        PopupMenuButton<FilterOperator>(
-          icon: const Icon(Icons.filter_list),
-          tooltip: currentOperator.label,
-          onSelected: (op) {
-            operator.value = op;
-          },
-          itemBuilder: (context) => FilterOperator.values
-              .map(
-                (op) => CheckedPopupMenuItem<FilterOperator>(
-                  value: op,
-                  checked: currentOperator == op,
-                  child: Text(op.label),
-                ),
-              )
-              .toList(),
+        _operatorMenu<FilterOperator>(
+          values: FilterOperator.values,
+          current: currentOperator,
+          labelOf: (op) => op.label,
+          onSelected: (op) => operator.value = op,
         ),
       ],
     );
@@ -317,21 +335,11 @@ class StringFilter extends FilterBase<String> {
           ),
         ),
         const SizedBox(width: 4),
-        PopupMenuButton<StringFilterOperator>(
-          icon: const Icon(Icons.filter_list),
-          tooltip: currentOperator.label,
-          onSelected: (op) {
-            operator.value = op;
-          },
-          itemBuilder: (context) => StringFilterOperator.values
-              .map(
-                (op) => CheckedPopupMenuItem<StringFilterOperator>(
-                  value: op,
-                  checked: currentOperator == op,
-                  child: Text(op.label),
-                ),
-              )
-              .toList(),
+        _operatorMenu<StringFilterOperator>(
+          values: StringFilterOperator.values,
+          current: currentOperator,
+          labelOf: (op) => op.label,
+          onSelected: (op) => operator.value = op,
         ),
       ],
     );
@@ -372,7 +380,6 @@ class DateFilter extends FilterBase<DateTime> {
     };
   }
 
-  final TextEditingController _dateController = TextEditingController();
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -380,48 +387,43 @@ class DateFilter extends FilterBase<DateTime> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-
-    value.value = picked;
-    _dateController.text = picked != null
-        ? "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}"
-        : "";
+    if (picked != null) value.value = picked;
   }
+
+  static String _formatDate(DateTime d) =>
+      "${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";
 
   @override
   Widget filterRowWidget(BuildContext context) {
     final currentOperator = operator.watch(context);
+    final currentValue = value.watch(context);
     return Row(
       children: [
+        // Reads the signal directly instead of mirroring into a
+        // TextEditingController (the filter has no dispose hook, so a
+        // controller here would leak).
         Expanded(
-          child: TextFormField(
-            controller: _dateController,
-            readOnly: true,
+          child: InkWell(
             onTap: () => _selectDate(context),
-            decoration: InputDecoration(
-              labelText: label,
-              hintText: label,
-              prefixIcon: Icon(icon),
-              suffixIcon: const Icon(Icons.calendar_today, size: 18),
-              border: const OutlineInputBorder(),
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: label,
+                prefixIcon: Icon(icon),
+                suffixIcon: const Icon(Icons.calendar_today, size: 18),
+                border: const OutlineInputBorder(),
+              ),
+              child: Text(
+                currentValue != null ? _formatDate(currentValue) : "",
+              ),
             ),
           ),
         ),
         const SizedBox(width: 4),
-        PopupMenuButton<FilterOperator>(
-          icon: const Icon(Icons.filter_list),
-          tooltip: currentOperator.label,
-          onSelected: (op) {
-            operator.value = op;
-          },
-          itemBuilder: (context) => FilterOperator.values
-              .map(
-                (op) => CheckedPopupMenuItem<FilterOperator>(
-                  value: op,
-                  checked: currentOperator == op,
-                  child: Text(op.label),
-                ),
-              )
-              .toList(),
+        _operatorMenu<FilterOperator>(
+          values: FilterOperator.values,
+          current: currentOperator,
+          labelOf: (op) => op.label,
+          onSelected: (op) => operator.value = op,
         ),
       ],
     );
@@ -496,7 +498,10 @@ class CategoryFilter extends FilterBase<int> {
 
     // Add "Uncategorized" option to the list for display
     final List<DropdownMenuEntry<int>> entries = [
-      const DropdownMenuEntry<int>(value: -2, label: "Uncategorized"),
+      const DropdownMenuEntry<int>(
+        value: kUncategorizedCategoryId,
+        label: "Uncategorized",
+      ),
       ...categories.map(
         (c) => DropdownMenuEntry<int>(value: c.id, label: c.name),
       ),

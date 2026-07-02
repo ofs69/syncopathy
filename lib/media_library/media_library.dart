@@ -112,8 +112,9 @@ class _MediaLibraryState extends State<MediaLibrary>
     // Re-trigger on any DB change
     final allMedia = oBox.mediaService.allMediaFiles.value;
 
-    // Re-trigger on playlist change
-    final playlist = getIt.get<VideoPlayer>().currentPlaylist.value;
+    // Re-trigger on playlist change (PlaylistFilter reads the live playlist via
+    // getIt during matching; we only watch it here to recompute on change).
+    getIt.get<VideoPlayer>().currentPlaylist.value.entries.value;
 
     final List<MediaFile> searchedMedia;
     if (query.isEmpty) {
@@ -130,7 +131,6 @@ class _MediaLibraryState extends State<MediaLibrary>
       visibilityFilters: visibilityFilters,
       separateFavorites: separateFavorites,
       randomSeed: seed,
-      playlistState: playlist.entries.value,
     );
     return _lastFiltered;
   }
