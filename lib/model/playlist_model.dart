@@ -35,26 +35,10 @@ class PlaylistModel {
     return _canonicalFilenamesToIndex.value[videoPath] ?? -1;
   }
 
+  // Parses mpv's `playlist` property (a JSON array of entries). We only use
+  // each entry's `id`, `filename`, and `current` flag; see the mpv manual's
+  // "playlist" property for the full sub-property list.
   static PlaylistModel fromJson(String jsonString) {
-    /*
-      Playlist, current entry marked. Currently, the raw property value is useless.
-      This has a number of sub-properties. Replace N with the 0-based playlist entry index.
-
-      playlist/count
-          Number of playlist entries (same as playlist-count).
-      playlist/N/filename
-          Filename of the Nth entry.
-      playlist/N/playing
-          yes/true if the playlist-playing-pos property points to this entry, no/false or unavailable otherwise.
-      playlist/N/current
-          yes/true if the playlist-current-pos property points to this entry, no/false or unavailable otherwise.
-      playlist/N/title
-          Name of the Nth entry. Available if the playlist file contains such fields and mpv's parser supports it for the given playlist format, or if the playlist entry has been opened before and a media-title other than filename has been acquired.
-      playlist/N/id
-          Unique ID for this entry. This is an automatically assigned integer ID that is unique for the entire life time of the current mpv core instance. Other commands, events, etc. use this as playlist_entry_id fields.
-      playlist/N/playlist-path
-          The original path of the playlist for this entry before mpv expanded it. Unavailable if the file was not originally associated with a playlist in some way. 
-    */
     try {
       final json = jsonDecode(jsonString);
       if (json is! List<dynamic>) {
@@ -67,13 +51,9 @@ class PlaylistModel {
         final id = item['id'] as int?;
         final filename = item['filename'] as String?;
         final current = item['current'] as bool?;
-        // ignore: unused_local_variable
-        final playing = item['playing'] as bool?;
 
         if (id != null && filename != null) {
-          items.add(
-            PlaylistItem(id, filename, current ?? false /*, playing ?? false*/),
-          );
+          items.add(PlaylistItem(id, filename, current ?? false));
         }
       }
       return PlaylistModel(items);

@@ -43,6 +43,64 @@ class SettingsModel {
 
   VoidCallback? _saveEffectDispose;
 
+  /// The single source of truth for which fields persist: each binding copies
+  /// one setting out of [_entity] on load and back into it on save. Adding a
+  /// persisted setting means declaring its signal and adding one line here —
+  /// there is no third copy site to keep in sync. Signals absent from this list
+  /// are intentionally not persisted.
+  late final List<_EntityBinding> _bindings = [
+    _EntityBinding(() => min.value = _entity.min, () => _entity.min = min.value),
+    _EntityBinding(() => max.value = _entity.max, () => _entity.max = max.value),
+    _EntityBinding(
+      () => offsetMs.value = _entity.offsetMs,
+      () => _entity.offsetMs = offsetMs.value,
+    ),
+    _EntityBinding(
+      () => mediaPaths.value = _entity.mediaPaths,
+      () => _entity.mediaPaths = mediaPaths.value,
+    ),
+    _EntityBinding(
+      () => slewMaxRateOfChange.value = _entity.slewMaxRateOfChange,
+      () => _entity.slewMaxRateOfChange = slewMaxRateOfChange.value,
+    ),
+    _EntityBinding(
+      () => rdpEpsilon.value = _entity.rdpEpsilon,
+      () => _entity.rdpEpsilon = rdpEpsilon.value,
+    ),
+    _EntityBinding(
+      () => remapFullRange.value = _entity.remapFullRange,
+      () => _entity.remapFullRange = remapFullRange.value,
+    ),
+    _EntityBinding(
+      () => skipToAction.value = _entity.skipToAction,
+      () => _entity.skipToAction = skipToAction.value,
+    ),
+    _EntityBinding(
+      () => embeddedVideoPlayer.value = _entity.embeddedVideoPlayer || kIsWeb,
+      () => _entity.embeddedVideoPlayer = embeddedVideoPlayer.value,
+    ),
+    _EntityBinding(
+      () => autoSwitchToVideoPlayerTab.value = _entity.autoSwitchToVideoPlayerTab,
+      () => _entity.autoSwitchToVideoPlayerTab = autoSwitchToVideoPlayerTab.value,
+    ),
+    _EntityBinding(
+      () => invert.value = _entity.invert,
+      () => _entity.invert = invert.value,
+    ),
+    _EntityBinding(
+      () => playerBackendType.value = _entity.playerBackendType,
+      () => _entity.playerBackendType = playerBackendType.value,
+    ),
+    _EntityBinding(
+      () => funscriptGraphEnabled.value = _entity.funscriptGraphEnabled,
+      () => _entity.funscriptGraphEnabled = funscriptGraphEnabled.value,
+    ),
+    _EntityBinding(
+      () => customShortcuts.value = _entity.customShortcuts,
+      () => _entity.customShortcuts = customShortcuts.value,
+    ),
+  ];
+
   SettingsModel();
 
   Future<void> dispose() async {
@@ -53,36 +111,15 @@ class SettingsModel {
     _saveEffectDispose?.call();
     final settings = await KVStore.get(Settings.key);
     _entity = settings != null ? Settings.fromJson(settings) : Settings();
-    min.value = _entity.min;
-    max.value = _entity.max;
-    offsetMs.value = _entity.offsetMs;
-    mediaPaths.value = _entity.mediaPaths;
-    slewMaxRateOfChange.value = _entity.slewMaxRateOfChange;
-    rdpEpsilon.value = _entity.rdpEpsilon;
-    remapFullRange.value = _entity.remapFullRange;
-    skipToAction.value = _entity.skipToAction;
-    embeddedVideoPlayer.value = _entity.embeddedVideoPlayer || kIsWeb;
-    autoSwitchToVideoPlayerTab.value = _entity.autoSwitchToVideoPlayerTab;
-    invert.value = _entity.invert;
-    playerBackendType.value = _entity.playerBackendType;
-    funscriptGraphEnabled.value = _entity.funscriptGraphEnabled;
-    customShortcuts.value = _entity.customShortcuts;
+
+    for (final binding in _bindings) {
+      binding.loadFromEntity();
+    }
 
     _saveEffectDispose = effect(() async {
-      _entity.min = min.value;
-      _entity.max = max.value;
-      _entity.offsetMs = offsetMs.value;
-      _entity.mediaPaths = mediaPaths.value;
-      _entity.slewMaxRateOfChange = slewMaxRateOfChange.value;
-      _entity.rdpEpsilon = rdpEpsilon.value;
-      _entity.remapFullRange = remapFullRange.value;
-      _entity.skipToAction = skipToAction.value;
-      _entity.embeddedVideoPlayer = embeddedVideoPlayer.value;
-      _entity.autoSwitchToVideoPlayerTab = autoSwitchToVideoPlayerTab.value;
-      _entity.invert = invert.value;
-      _entity.playerBackendType = playerBackendType.value;
-      _entity.funscriptGraphEnabled = funscriptGraphEnabled.value;
-      _entity.customShortcuts = customShortcuts.value;
+      for (final binding in _bindings) {
+        binding.saveToEntity();
+      }
       await _save();
     });
   }
@@ -94,4 +131,14 @@ class SettingsModel {
   Future<void> _saveInternal() async {
     KVStore.put(Settings.key, _entity.toJson());
   }
+}
+
+/// Two-way copy for a single persisted setting: [loadFromEntity] pulls the
+/// entity's value into its signal, [saveToEntity] pushes the signal's value
+/// back. Reading the signal inside [saveToEntity] is what registers it as a
+/// dependency of the auto-save effect.
+class _EntityBinding {
+  final void Function() loadFromEntity;
+  final void Function() saveToEntity;
+  const _EntityBinding(this.loadFromEntity, this.saveToEntity);
 }

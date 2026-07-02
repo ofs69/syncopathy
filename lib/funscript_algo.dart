@@ -34,6 +34,11 @@ class FunscriptAlgorithms {
   // Existing DB entries with a lower version will be re-parsed on the next scan.
   static const int algorithmVersion = 8;
 
+  // Most intermediate samples pchipSmooth may insert between two source points.
+  static const int _pchipMaxIntermediatePoints = 5;
+  // RDP tolerance (pos) used to thin the points smoothing inserts.
+  static const double _postSmoothRdpEpsilon = 1.0;
+
   static List<FunscriptAction> slew(
     List<FunscriptAction> actions,
     double maxRateOfChangePerSecond,
@@ -83,7 +88,6 @@ class FunscriptAlgorithms {
   ) {
     final int n = actions.length;
     if (n < 3) return actions;
-    // final stopwatch = Stopwatch()..start();
 
     // 1. Flatten coordinates
     final Float64List coords = Float64List(n * 2);
@@ -152,11 +156,6 @@ class FunscriptAlgorithms {
     for (int i = 0; i < n; i++) {
       if (keep[i] == 1) result.add(actions[i]);
     }
-
-    // stopwatch.stop();
-    // debugPrint(
-    //   'RDP processed $n points in ${stopwatch.elapsedMicroseconds}μs (${stopwatch.elapsedMilliseconds}ms). ',
-    // );
 
     return result;
   }
@@ -429,6 +428,9 @@ class FunscriptAlgorithms {
     bool wantMin,
   ) {
     final out = <({double value, double weight})>[];
+    // The prev/next lookups below reflect a pivot across its neighbours, which
+    // requires at least two pivots; a lone pivot has no stroke to weigh.
+    if (pv.length < 2) return out;
     for (int k = 0; k < pv.length; k++) {
       final p = pv[k].pos;
       final prev = k > 0 ? pv[k - 1].pos : pv[k + 1].pos;
@@ -444,34 +446,32 @@ class FunscriptAlgorithms {
     return out;
   }
 
-  static double averageMin(List<FunscriptAction> actions) {
+  static double averageMin(List<FunscriptAction> actions) =>
+      _averageExtreme(actions, wantMin: true);
+
+  static double averageMax(List<FunscriptAction> actions) =>
+      _averageExtreme(actions, wantMin: false);
+
+  /// Distance-weighted, winsorized average of the coarse motion's extremes —
+  /// valleys for [wantMin], peaks otherwise — so micro-reversals mid-stroke and
+  /// shallow mid-range filler don't pull the reported range in. Deep strokes
+  /// define the range; a lone stray extreme is clamped by the fence (mirrors
+  /// averageSpeed's robust weighting).
+  static double _averageExtreme(
+    List<FunscriptAction> actions, {
+    required bool wantMin,
+  }) {
     if (actions.isEmpty) return 0.0;
     final sorted = actions.where((a) => a.at >= 0).toList()..sort();
     if (sorted.isEmpty) return 0.0;
 
-    // Distance-weighted, winsorized average of the coarse motion's valleys, so
-    // micro-reversals mid-stroke and shallow mid-range filler don't pull the
-    // reported minimum up. Deep strokes define the range; a lone stray dip is
-    // clamped by the fence (mirrors averageSpeed's robust weighting).
-    final pv = pivots(sorted);
-    final mins = _extremes(pv, true);
-    if (mins.isEmpty) return sorted.map((a) => a.pos).reduce(min).toDouble();
-    return _robustWeightedMean(mins);
-  }
-
-  static double averageMax(List<FunscriptAction> actions) {
-    if (actions.isEmpty) return 0.0;
-    final sorted = actions.where((a) => a.at >= 0).toList()..sort();
-    if (sorted.isEmpty) return 0.0;
-
-    // Distance-weighted, winsorized average of the coarse motion's peaks, so
-    // micro-reversals mid-stroke and shallow mid-range filler don't pull the
-    // reported maximum down. Deep strokes define the range; a lone stray spike
-    // is clamped by the fence (mirrors averageSpeed's robust weighting).
-    final pv = pivots(sorted);
-    final maxes = _extremes(pv, false);
-    if (maxes.isEmpty) return sorted.map((a) => a.pos).reduce(max).toDouble();
-    return _robustWeightedMean(maxes);
+    final extremes = _extremes(pivots(sorted), wantMin);
+    if (extremes.isEmpty) {
+      final positions = sorted.map((a) => a.pos);
+      return (wantMin ? positions.reduce(min) : positions.reduce(max))
+          .toDouble();
+    }
+    return _robustWeightedMean(extremes);
   }
 
   static List<FunscriptAction> invert(List<FunscriptAction> actions) {
@@ -578,9 +578,13 @@ class FunscriptAlgorithms {
     }
 
     if (smoothIntervalMs != null) {
-      actions = FunscriptAlgorithms.pchipSmooth(actions, smoothIntervalMs, 5);
-      // apply rdp again with epsilon 1.0
-      actions = FunscriptAlgorithms.rdp(actions, 1.0);
+      actions = FunscriptAlgorithms.pchipSmooth(
+        actions,
+        smoothIntervalMs,
+        _pchipMaxIntermediatePoints,
+      );
+      // Thin out the points the smoothing just inserted.
+      actions = FunscriptAlgorithms.rdp(actions, _postSmoothRdpEpsilon);
     }
 
     if (invert) {

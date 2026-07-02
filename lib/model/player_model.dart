@@ -8,6 +8,7 @@ import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/json/buttplug_backend_settings.dart';
+import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/model/json/handy_native_web_backend_settings.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/timesource_model.dart';
@@ -28,13 +29,19 @@ class MediaFunscript {
 }
 
 class PlayerModel with EffectDispose {
+  // A video shorter than this (seconds) is treated as not yet loaded.
+  static const double _minValidDurationSeconds = 0.1;
+  // Debounce before (re)processing a funscript after settings/media change.
+  static const int _processingDebounceMs = 300;
+  // A video must play uninterrupted this long before it counts as viewed.
+  static const int _viewCountDebounceMs = 5000;
+
   final SettingsModel _settings;
   final BatteryModel _batteryModel;
   final TimesourceModel timeSource;
   late final Signal<PlayerBackend?> playerBackend;
 
-  ReadonlySignal<Funscript?> get _currentFunscript => __currentFunscript;
-  final Signal<Funscript?> __currentFunscript = signal(null);
+  final Signal<Funscript?> _currentFunscript = signal(null);
 
   late final ReadonlySignal<MediaFunscript?> currentlyOpen;
 
@@ -44,7 +51,12 @@ class PlayerModel with EffectDispose {
   bool _videoViewCounted = false;
   bool _skipToActionProcessed = false;
 
-  final Debouncer _processingDebouncer = Debouncer(milliseconds: 300);
+  final Debouncer _processingDebouncer = Debouncer(
+    milliseconds: _processingDebounceMs,
+  );
+  final Debouncer _viewCountDebouncer = Debouncer(
+    milliseconds: _viewCountDebounceMs,
+  );
 
   PlayerModel(
     this._settings,
@@ -75,7 +87,9 @@ class PlayerModel with EffectDispose {
         final duration = player.duration.value;
         final funscript = currentlyOpen.value?.funscript;
 
-        if (duration == null || duration < 0.1 || funscript == null) {
+        if (duration == null ||
+            duration < _minValidDurationSeconds ||
+            funscript == null) {
           return;
         }
 
@@ -110,53 +124,69 @@ class PlayerModel with EffectDispose {
     }, leading: true);
   }
 
+  /// Reads every processing-relevant setting (plus the current playback speed)
+  /// synchronously so the surrounding effect tracks them, and returns a builder
+  /// that turns a script's actions + duration into [FunscriptProcessParams].
+  /// Shared by the simple- and regular-mode effects, which differ only in where
+  /// the funscript comes from.
+  FunscriptProcessParams Function(List<FunscriptAction> actions, double duration)
+  _snapshotProcessParams(VideoPlayer player) {
+    final invert = _settings.invert.value;
+    final intensity = _settings.intensity.value;
+    final playbackSpeed = player.playbackSpeed.value;
+    final strokeRange = _settings.minMaxRange.value;
+    final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
+    final rdpEpsilon = _settings.rdpEpsilon.value;
+    final remapFullRange = _settings.remapFullRange.value;
+    final smoothIntervalMs = _settings.pchipSmoothInterval.value;
+
+    return (actions, duration) => FunscriptProcessParams(
+      actions: actions,
+      invert: invert,
+      intensity: intensity,
+      totalDuration: duration,
+      playbackSpeed: playbackSpeed,
+      strokeRange: strokeRange,
+      slewMaxRateOfChangePerSecond: slewMaxRateOfChange < 0
+          ? null
+          : slewMaxRateOfChange,
+      rdpEpsilon: rdpEpsilon < 0 ? null : rdpEpsilon,
+      remapRange: remapFullRange ? (0, 100) : null,
+      smoothIntervalMs: smoothIntervalMs,
+    );
+  }
+
   void simpleModeEffects(VideoPlayer player) {
     effectAdd([
       effect(() async {
         final media = player.currentMedia.value;
         final funscript = simpleModeFunscript.value;
         final totalDuration = player.duration.value;
-        final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
-        final rdpEpsilon = _settings.rdpEpsilon.value;
-        final remapFullRange = _settings.remapFullRange.value;
-        final invert = _settings.invert.value;
-        final intensity = _settings.intensity.value;
-        final playbackSpeed = player.playbackSpeed.value;
-        final strokeRange = _settings.minMaxRange.value;
-        final smoothIntervalMs = _settings.pchipSmoothInterval.value;
+        final buildParams = _snapshotProcessParams(player);
 
-        if (media == null || totalDuration == null || totalDuration < 0.1) {
-          __currentFunscript.value = null;
-          return null;
+        if (media == null ||
+            totalDuration == null ||
+            totalDuration < _minValidDurationSeconds) {
+          _currentFunscript.value = null;
+          return;
         }
         try {
           if (funscript?.likelyScriptToken ?? false) {
             Logger.warning("Script token playback is not supported.");
-            return null;
+            return;
           }
           if (funscript != null) {
             untracked(() {
               _processFunscript(
                 funscript,
-                FunscriptProcessParams(
-                  actions: funscript.originalActions,
-                  invert: invert,
-                  intensity: intensity,
-                  totalDuration: totalDuration,
-                  playbackSpeed: playbackSpeed,
-                  strokeRange: strokeRange,
-                  slewMaxRateOfChangePerSecond: slewMaxRateOfChange < 0
-                      ? null
-                      : slewMaxRateOfChange,
-                  rdpEpsilon: rdpEpsilon < 0 ? null : rdpEpsilon,
-                  remapRange: remapFullRange ? (0, 100) : null,
-                  smoothIntervalMs: smoothIntervalMs,
-                ),
+                buildParams(funscript.originalActions, totalDuration),
               );
             });
           }
-          __currentFunscript.value = funscript;
-        } catch (_) {}
+          _currentFunscript.value = funscript;
+        } catch (e, st) {
+          Logger.error("Failed to process funscript", e, st);
+        }
       }),
     ]);
   }
@@ -167,14 +197,7 @@ class PlayerModel with EffectDispose {
         final media = player.currentMedia.value;
         final index = selectedFunscriptIndex.value;
         final totalDuration = player.duration.value;
-        final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
-        final rdpEpsilon = _settings.rdpEpsilon.value;
-        final remapFullRange = _settings.remapFullRange.value;
-        final invert = _settings.invert.value;
-        final intensity = _settings.intensity.value;
-        final playbackSpeed = player.playbackSpeed.value;
-        final strokeRange = _settings.minMaxRange.value;
-        final smoothIntervalMs = _settings.pchipSmoothInterval.value;
+        final buildParams = _snapshotProcessParams(player);
 
         final funscriptFile = (media?.funscripts.length ?? 0) > index
             ? media?.funscripts[index]
@@ -183,9 +206,9 @@ class PlayerModel with EffectDispose {
         if (media == null ||
             funscriptFile == null ||
             totalDuration == null ||
-            totalDuration < 0.1) {
-          __currentFunscript.value = null;
-          return null;
+            totalDuration < _minValidDurationSeconds) {
+          _currentFunscript.value = null;
+          return;
         }
         try {
           Funscript? funscript;
@@ -199,31 +222,20 @@ class PlayerModel with EffectDispose {
 
           if (funscript?.likelyScriptToken ?? false) {
             Logger.warning("Script token playback is not supported.");
-            return null;
+            return;
           }
           untracked(() {
             if (funscript != null) {
               _processFunscript(
                 funscript,
-                FunscriptProcessParams(
-                  actions: funscript.originalActions,
-                  invert: invert,
-                  intensity: intensity,
-                  totalDuration: totalDuration,
-                  playbackSpeed: playbackSpeed,
-                  strokeRange: strokeRange,
-                  slewMaxRateOfChangePerSecond: slewMaxRateOfChange < 0
-                      ? null
-                      : slewMaxRateOfChange,
-                  rdpEpsilon: rdpEpsilon < 0 ? null : rdpEpsilon,
-                  remapRange: remapFullRange ? (0, 100) : null,
-                  smoothIntervalMs: smoothIntervalMs,
-                ),
+                buildParams(funscript.originalActions, totalDuration),
               );
             }
           });
-          __currentFunscript.value = funscript;
-        } catch (_) {}
+          _currentFunscript.value = funscript;
+        } catch (e, st) {
+          Logger.error("Failed to process funscript", e, st);
+        }
       }),
       // View counting logic
       effect(() {
@@ -246,8 +258,7 @@ class PlayerModel with EffectDispose {
         final playing = !player.paused.value;
         untracked(() {
           if (video != null && playing && !_videoViewCounted) {
-            final viewCounter = Debouncer(milliseconds: 5000);
-            viewCounter.run(() {
+            _viewCountDebouncer.run(() {
               final moreCurrentVideo = currentlyOpen.value?.media;
               if (!player.paused.value) {
                 if (moreCurrentVideo == video && !_videoViewCounted) {
@@ -265,66 +276,74 @@ class PlayerModel with EffectDispose {
     ]);
   }
 
+  bool _backendMatchesType(PlayerBackendType type) {
+    final backend = playerBackend.value;
+    return switch (type) {
+      PlayerBackendType.buttplugStrokerCommand =>
+        backend is ButtplugStrokerBackend,
+      PlayerBackendType.handyStrokerCommand =>
+        backend is HandyNativeCommandBackend,
+      PlayerBackendType.handyStrokerStreamingBluetooth =>
+        backend is HandyNativeHspBluetoothBackend,
+      PlayerBackendType.handyStrokerStreamingWeb =>
+        backend is HandyNativeHspWebBackend,
+    };
+  }
+
+  Future<PlayerBackend> _createBackend(
+    PlayerBackendType backendType,
+    BatteryModel batteryModel,
+  ) async {
+    switch (backendType) {
+      case PlayerBackendType.buttplugStrokerCommand:
+        final settings = await KVStore.get(ButtplugBackendSettings.key);
+        return ButtplugStrokerBackend(
+          timesource: timeSource,
+          currentlyOpen: currentlyOpen,
+          settingsModel: _settings,
+          settings: settings != null
+              ? ButtplugBackendSettings.fromJson(settings)
+              : ButtplugBackendSettings(),
+          batteryModel: batteryModel,
+        );
+      case PlayerBackendType.handyStrokerCommand:
+        return HandyNativeCommandBackend(
+          settingsModel: _settings,
+          batteryModel: batteryModel,
+          timesource: timeSource,
+          currentlyOpen: currentlyOpen,
+        );
+      case PlayerBackendType.handyStrokerStreamingBluetooth:
+        return HandyNativeHspBluetoothBackend(
+          currentlyOpen: currentlyOpen,
+          timesource: timeSource,
+          settingsModel: _settings,
+          batteryModel: batteryModel,
+        );
+      case PlayerBackendType.handyStrokerStreamingWeb:
+        final settings = await KVStore.get(HandyNativeWebBackendSettings.key);
+        return HandyNativeHspWebBackend(
+          webSettings: settings != null
+              ? HandyNativeWebBackendSettings.fromJson(settings)
+              : HandyNativeWebBackendSettings(),
+          currentlyOpen: currentlyOpen,
+          timesource: timeSource,
+          settingsModel: _settings,
+          batteryModel: batteryModel,
+        );
+    }
+  }
+
   Future<void> _updateBackend(
     PlayerBackendType backendType,
     BatteryModel batteryModel,
   ) async {
-    PlayerBackend? newBackend;
-    switch (backendType) {
-      case PlayerBackendType.buttplugStrokerCommand:
-        if (playerBackend.value is! ButtplugStrokerBackend) {
-          final settings = await KVStore.get(ButtplugBackendSettings.key);
+    // Already running the requested backend type — nothing to swap.
+    if (_backendMatchesType(backendType)) return;
 
-          newBackend = ButtplugStrokerBackend(
-            timesource: timeSource,
-            currentlyOpen: currentlyOpen,
-            settingsModel: _settings,
-            settings: settings != null
-                ? ButtplugBackendSettings.fromJson(settings)
-                : ButtplugBackendSettings(),
-            batteryModel: batteryModel,
-          );
-        }
-        break;
-      case PlayerBackendType.handyStrokerCommand:
-        if (playerBackend.value is! HandyNativeCommandBackend) {
-          newBackend = HandyNativeCommandBackend(
-            settingsModel: _settings,
-            batteryModel: batteryModel,
-            timesource: timeSource,
-            currentlyOpen: currentlyOpen,
-          );
-        }
-        break;
-      case PlayerBackendType.handyStrokerStreamingBluetooth:
-        if (playerBackend.value is! HandyNativeHspBluetoothBackend) {
-          newBackend = HandyNativeHspBluetoothBackend(
-            currentlyOpen: currentlyOpen,
-            timesource: timeSource,
-            settingsModel: _settings,
-            batteryModel: batteryModel,
-          );
-        }
-        break;
-      case PlayerBackendType.handyStrokerStreamingWeb:
-        if (playerBackend.value is! HandyNativeHspWebBackend) {
-          final settings = await KVStore.get(HandyNativeWebBackendSettings.key);
-          newBackend = HandyNativeHspWebBackend(
-            webSettings: settings != null
-                ? HandyNativeWebBackendSettings.fromJson(settings)
-                : HandyNativeWebBackendSettings(),
-            currentlyOpen: currentlyOpen,
-            timesource: timeSource,
-            settingsModel: _settings,
-            batteryModel: batteryModel,
-          );
-        }
-        break;
-    }
-    if (newBackend != null) {
-      await playerBackend.value?.dispose();
-      playerBackend.value = newBackend;
-    }
+    final newBackend = await _createBackend(backendType, batteryModel);
+    await playerBackend.value?.dispose();
+    playerBackend.value = newBackend;
   }
 
   void dispose() {
