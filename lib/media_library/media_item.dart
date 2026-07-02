@@ -51,6 +51,14 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
   final MediaThumbnailController _thumbnailController =
       MediaThumbnailController();
 
+  late final PlayerModel _playerModel = context.read<PlayerModel>();
+  // Whether this card's media is the one currently open. Watching this per-card
+  // computed instead of `currentlyOpen` directly means opening/closing a video
+  // only rebuilds the two affected cards, not every visible card.
+  late final ReadonlySignal<bool> _isCurrentlyOpen = createComputed(
+    () => _playerModel.currentlyOpen.value?.media.id == widget.media.id,
+  );
+
   // Thumbnail scale on hover, and play-count display cap.
   static const double _hoverScale = 1.10;
   static const int _playCountCap = 999;
@@ -156,12 +164,10 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
     bool isTapped,
     MediaMetadata? metadata,
   ) {
-    final playerModel = context.read<PlayerModel>();
     final hasRating = widget.media.rating != MediaRating.noRating;
     final isFavorite = widget.media.isFavorite;
     final isDislike = widget.media.isDislike;
-    final currentlyOpen = playerModel.currentlyOpen.watch(context);
-    final isCurrentlyOpen = widget.media.id == currentlyOpen?.media.id;
+    final isCurrentlyOpen = _isCurrentlyOpen.watch(context);
     final mainFunscript = widget.media.mainFunscript.target;
 
     final onSurface = Theme.of(context).colorScheme.onSurface;
