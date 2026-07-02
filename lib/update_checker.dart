@@ -11,7 +11,9 @@ class UpdateChecker {
       'syncopathy'; // Replace with your GitHub repository name
 
   static Future<void> openReleasePage() async {
-    final url = Uri.parse('https://github.com/ofs69/syncopathy/releases');
+    final url = Uri.parse(
+      'https://github.com/$_repoOwner/$_repoName/releases',
+    );
     if (!await launchUrl(url)) {
       AlertManager.showError('Could not open releases page.');
     }
@@ -50,59 +52,23 @@ class UpdateChecker {
 
   static bool _isNewVersion(String latest, String current) {
     try {
-      final latestVersionAndBuild = latest.split('+');
-      final currentVersionAndBuild = current.split('+');
+      final latestKey = _versionKey(latest);
+      final currentKey = _versionKey(current);
 
-      final latestVersion = latestVersionAndBuild[0];
-      final currentVersion = currentVersionAndBuild[0];
-
-      final latestVersionParts = latestVersion
-          .split('.')
-          .map(int.parse)
-          .toList();
-      final currentVersionParts = currentVersion
-          .split('.')
-          .map(int.parse)
-          .toList();
-
-      final minLength = latestVersionParts.length < currentVersionParts.length
-          ? latestVersionParts.length
-          : currentVersionParts.length;
-
-      for (int i = 0; i < minLength; i++) {
-        if (latestVersionParts[i] > currentVersionParts[i]) {
-          return true;
-        }
-        if (latestVersionParts[i] < currentVersionParts[i]) {
-          return false;
-        }
+      for (var i = 0; i < latestKey.length && i < currentKey.length; i++) {
+        if (latestKey[i] != currentKey[i]) return latestKey[i] > currentKey[i];
       }
-
-      if (latestVersionParts.length > currentVersionParts.length) {
-        return true;
-      }
-      if (latestVersionParts.length < currentVersionParts.length) {
-        return false;
-      }
-
-      // Versions are the same, compare build numbers
-      if (latestVersionAndBuild.length > 1 &&
-          currentVersionAndBuild.length > 1) {
-        final latestBuild = int.parse(latestVersionAndBuild[1]);
-        final currentBuild = int.parse(currentVersionAndBuild[1]);
-        return latestBuild > currentBuild;
-      }
-
-      // If latest has build number and current does not, it's newer
-      if (latestVersionAndBuild.length > 1 &&
-          currentVersionAndBuild.length == 1) {
-        return true;
-      }
-
-      return false;
+      // All shared components equal: the one with more components (e.g. an
+      // extra build number) is newer.
+      return latestKey.length > currentKey.length;
     } catch (e) {
       Logger.error('Error parsing version numbers: $e');
       return false; // Assume no new version if parsing fails
     }
   }
+
+  /// Splits a `major.minor.patch+build` string into its numeric components for
+  /// lexicographic comparison (e.g. `1.2.3+45` -> `[1, 2, 3, 45]`).
+  static List<int> _versionKey(String version) =>
+      version.split(RegExp(r'[.+]')).map(int.parse).toList();
 }

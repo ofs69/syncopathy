@@ -17,6 +17,7 @@ import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/notification_feed.dart';
+import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/model/shortcut_settings.dart';
 import 'package:syncopathy/widgets/shortcut_rebind_dialog.dart';
@@ -301,31 +302,16 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             trailing: const Icon(Icons.image_search),
             onTap: () async {
-              final shouldGenerate = await showDialog<bool>(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('Confirm Thumbnail Generation'),
-                    content: const Text(
-                      'This may take a long time depending on the number of videos. Are you sure you want to continue?',
-                    ),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text('Generate'),
-                      ),
-                    ],
-                  );
-                },
+              final shouldGenerate = await _confirmDialog(
+                title: 'Confirm Thumbnail Generation',
+                content:
+                    'This may take a long time depending on the number of videos. Are you sure you want to continue?',
+                confirmLabel: 'Generate',
               );
 
-              if (shouldGenerate == true) {
+              if (shouldGenerate) {
                 if (!mounted) return;
-                _callGenerateMissingThumbnails();
+                _generateMissingThumbnails();
               }
             },
           ),
@@ -337,27 +323,13 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             trailing: const Icon(Icons.history),
             onTap: () async {
-              final resetViewCount = await showDialog<bool>(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('Confirm Video Play Count Reset'),
-                    content: const Text('Are you sure you want to continue?'),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text('Reset'),
-                      ),
-                    ],
-                  );
-                },
+              final resetViewCount = await _confirmDialog(
+                title: 'Confirm Video Play Count Reset',
+                content: 'Are you sure you want to continue?',
+                confirmLabel: 'Reset',
               );
 
-              if (resetViewCount == true) {
+              if (resetViewCount) {
                 if (!mounted) return;
                 _resetAllVideoPlayCount();
               }
@@ -473,8 +445,33 @@ class _SettingsPageState extends State<SettingsPage> {
     });
   }
 
-  void _callGenerateMissingThumbnails() {
-    _generateMissingThumbnails(context);
+  /// Shows a Cancel/confirm dialog and resolves to `true` only when the user
+  /// taps the confirm button.
+  Future<bool> _confirmDialog({
+    required String title,
+    required String content,
+    required String confirmLabel,
+  }) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(confirmLabel),
+            ),
+          ],
+        );
+      },
+    );
+    return result ?? false;
   }
 
   Future<void> _resetAllVideoPlayCount() async {
@@ -486,67 +483,71 @@ class _SettingsPageState extends State<SettingsPage> {
     oBox.mediaService.resetAllVideosPlayCount();
   }
 
-  void _generateMissingThumbnails(BuildContext context) {
+  Future<void> _generateMissingThumbnails() async {
     final mediaManager = context.read<MediaManager?>();
     if (mediaManager == null) {
       return;
     }
     final videos = oBox.mediaService.getAll();
-    int generatedCount = 0;
-    bool generationStarted = false;
-    int successCount = 0;
+    final processed = signal(0);
+    bool started = false;
 
-    showDialog<int>(
+    final generated = await showDialog<int>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            if (!generationStarted) {
-              generationStarted = true;
-              Future(() async {
-                final futures = <Future>[];
-                for (final media in videos) {
-                  var future = ThumbnailGenerator()
-                      .addRequest(
-                        ThumbnailRequest(file: media, retryFailed: true),
-                      )
-                      .then((_) {
-                        setState(() {
-                          generatedCount += 1;
-                        });
-                      });
-                  futures.add(future);
-                }
-
-                await Future.wait(futures);
-
-                if (dialogContext.mounted) {
-                  Navigator.of(dialogContext).pop(successCount);
-                }
-              });
-            }
-
-            return AlertDialog(
-              title: const Text('Generating Thumbnails'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  LinearProgressIndicator(
-                    value: videos.isEmpty ? 0 : generatedCount / videos.length,
-                  ),
-                  const SizedBox(height: 16),
-                  Text('Processed $generatedCount of ${videos.length} videos.'),
-                ],
-              ),
-            );
-          },
-        );
+        return Watch((context) {
+          // Kick generation off once, when the dialog first builds, and close
+          // the dialog with the final count when it finishes.
+          if (!started) {
+            started = true;
+            _runThumbnailGeneration(videos, () => processed.value++).then((
+              total,
+            ) {
+              if (dialogContext.mounted) {
+                Navigator.of(dialogContext).pop(total);
+              }
+            });
+          }
+          return AlertDialog(
+            title: const Text('Generating Thumbnails'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LinearProgressIndicator(
+                  value: videos.isEmpty ? 0 : processed.value / videos.length,
+                ),
+                const SizedBox(height: 16),
+                Text('Processed ${processed.value} of ${videos.length} videos.'),
+              ],
+            ),
+          );
+        });
       },
-    ).then((count) {
-      if (context.mounted && count != null) {
-        Logger.info('Thumbnail generation complete. Generated: $count');
-      }
-    });
+    );
+
+    if (mounted && generated != null) {
+      Logger.info('Thumbnail generation complete. Generated: $generated');
+    }
+  }
+
+  /// Requests a thumbnail for every video, calling [onEach] as each completes.
+  /// Returns the number processed.
+  Future<int> _runThumbnailGeneration(
+    List<MediaFile> videos,
+    VoidCallback onEach,
+  ) async {
+    var done = 0;
+    await Future.wait(
+      videos.map(
+        (media) => ThumbnailGenerator()
+            .addRequest(ThumbnailRequest(file: media, retryFailed: true))
+            .then((_) {
+              done++;
+              onEach();
+            }),
+      ),
+    );
+    return done;
   }
 }
