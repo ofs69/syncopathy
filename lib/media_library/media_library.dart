@@ -141,442 +141,457 @@ class _MediaLibraryState extends State<MediaLibrary>
 
   @override
   Widget build(BuildContext context) {
-    final currentlyFiltering = isFiltering.watch(context);
+    return Column(
+      children: [
+        _buildToolbar(context),
+        Expanded(child: _buildBody(context)),
+      ],
+    );
+  }
+
+  Widget _buildToolbar(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: MediaSearchBar(
+                onFilterChanged: (query) => searchQuery.value = query,
+              ),
+            ),
+            const SizedBox(width: 8),
+            _buildSortMenu(context),
+            _buildSortDirectionButton(context),
+            const SizedBox(width: 8),
+            _buildFilterToggleButton(context),
+            const SizedBox(width: 8),
+            _buildViewOptionsMenu(context),
+            const SizedBox(width: 8),
+            IconButton(
+              tooltip: "Surprise Me!",
+              style: IconButton.styleFrom(
+                backgroundColor: colorScheme.onInverseSurface,
+              ),
+              icon: const Icon(Icons.attractions),
+              color: colorScheme.primary,
+              onPressed: _showRandomVideoPicker,
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              tooltip: "Start Playlist",
+              style: IconButton.styleFrom(
+                backgroundColor: colorScheme.onInverseSurface,
+              ),
+              color: colorScheme.primary,
+              icon: const Icon(Icons.playlist_play),
+              onPressed: _startPlaylist,
+            ),
+            const SizedBox(width: 8),
+            _buildStatusText(context),
+            Tooltip(
+              message: 'Long-press or right-click an item for more options.',
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            _buildRefreshButton(context),
+            const SizedBox(width: 4),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSortMenu(BuildContext context) {
+    final mediaSettings = context.read<MediaLibrarySettingsModel>();
+    final sortOption = mediaSettings.sortOption.watch(context);
+    return PopupMenuButton<SortOption>(
+      menuPadding: EdgeInsets.zero,
+      tooltip: "Sorting",
+      borderRadius: BorderRadius.circular(16.0),
+      onSelected: (option) {
+        if (option == SortOption.random &&
+            mediaSettings.sortOption.peek() == SortOption.random) {
+          randomSeed.value = Random().nextInt(_randomSeedRange);
+        }
+        mediaSettings.sortOption.value = option;
+      },
+      itemBuilder: (context) => SortOption.values.map((option) {
+        return PopupMenuItem<SortOption>(
+          value: option,
+          child: Row(
+            children: [
+              Icon(
+                Icons.check,
+                color: option == sortOption
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.transparent,
+              ),
+              const SizedBox(width: 8),
+              Text(option.label),
+            ],
+          ),
+        );
+      }).toList(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 70,
+              child: Text(
+                sortOption.label,
+                style: Theme.of(context).textTheme.labelLarge,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSortDirectionButton(BuildContext context) {
+    final mediaSettings = context.read<MediaLibrarySettingsModel>();
+    final sortOption = mediaSettings.sortOption.watch(context);
+    final isSortAscending = mediaSettings.isSortAscending.watch(context);
+    return IconButton(
+      icon: Icon(
+        sortOption == SortOption.random
+            ? Icons.shuffle
+            : isSortAscending
+            ? Icons.arrow_upward
+            : Icons.arrow_downward,
+      ),
+      onPressed: sortOption == SortOption.random
+          ? () => randomSeed.value = Random().nextInt(_randomSeedRange)
+          : () {
+              mediaSettings.isSortAscending.value =
+                  !mediaSettings.isSortAscending.value;
+            },
+      tooltip: sortOption == SortOption.random
+          ? 'Randomize'
+          : (isSortAscending ? 'Sort Descending' : 'Sort Ascending'),
+    );
+  }
+
+  Widget _buildFilterToggleButton(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final showFilterSettings = _showFilterSettings.watch(context);
+    final isCustomized = mediaFilter.isCustomized.watch(context);
+    return IconButton(
+      icon: const Icon(Icons.tune),
+      isSelected: showFilterSettings,
+      style: IconButton.styleFrom(
+        backgroundColor: showFilterSettings
+            ? colorScheme.secondaryContainer
+            : isCustomized
+            ? colorScheme.primaryContainer
+            : colorScheme.onInverseSurface,
+        foregroundColor: showFilterSettings
+            ? colorScheme.onSecondaryContainer
+            : isCustomized
+            ? colorScheme.onPrimaryContainer
+            : colorScheme.primary,
+        side: isCustomized
+            ? BorderSide(color: colorScheme.primary, width: 1.0)
+            : BorderSide.none,
+      ),
+      color: colorScheme.primary,
+      onPressed: () => _showFilterSettings.value = !showFilterSettings,
+    );
+  }
+
+  Widget _buildViewOptionsMenu(BuildContext context) {
     final mediaSettings = context.read<MediaLibrarySettingsModel>();
     final videosPerRow = mediaSettings.videosPerRow.watch(context);
+    final visibilityFilters = mediaSettings.visibilityFilters.watch(context);
+    final separateFavorites = mediaSettings.separateFavorites.watch(context);
+    final showTitle = mediaSettings.showVideoTitles.watch(context);
+    final showAverageSpeed = mediaSettings.showAverageSpeed.watch(context);
+    final showAverageMinMax = mediaSettings.showAverageMinMax.watch(context);
+    final showDuration = mediaSettings.showDuration.watch(context);
+    final showPlayCount = mediaSettings.showPlayCount.watch(context);
+    return MenuAnchor(
+      style: MenuStyle(padding: WidgetStatePropertyAll(EdgeInsets.zero)),
+      builder: (context, controller, child) {
+        return IconButton(
+          onPressed: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+          icon: const Icon(Icons.visibility),
+          tooltip: 'View Options',
+          style: IconButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.onInverseSurface,
+          ),
+          color: Theme.of(context).colorScheme.primary,
+        );
+      },
+      menuChildren: [
+        // videos per row
+        SubmenuButton(
+          menuStyle: MenuStyle(
+            padding: WidgetStatePropertyAll(EdgeInsets.zero),
+          ),
+          leadingIcon: const Icon(Icons.grid_view),
+          menuChildren: List.generate(9, (i) => i + 2).map((int value) {
+            final isSelected = videosPerRow == value;
+            return MenuItemButton(
+              onPressed: () => mediaSettings.videosPerRow.value = value,
+              closeOnActivate: false,
+              trailingIcon: isSelected
+                  ? const Icon(Icons.check, size: 16)
+                  : null,
+              child: Text('$value per row'),
+            );
+          }).toList(),
+          child: Text('Videos per row ($videosPerRow)'),
+        ),
+        const Divider(height: 1, thickness: 1),
+        // filters
+        ...VideoFilter.values.map((VideoFilter filter) {
+          return _buildToggleItem(
+            context: context,
+            label: filter.label,
+            value: visibilityFilters.contains(filter),
+            onTap: () {
+              final currentFilters = visibilityFilters.toSet();
+              if (currentFilters.contains(filter)) {
+                currentFilters.remove(filter);
+              } else {
+                currentFilters.add(filter);
+              }
+              mediaSettings.visibilityFilters.value = currentFilters;
+            },
+          );
+        }),
+        // display changes
+        const Divider(height: 1, thickness: 1),
+        _buildToggleItem(
+          context: context,
+          label: 'Separate Favorites/Dislikes',
+          value: separateFavorites,
+          onTap: () =>
+              mediaSettings.separateFavorites.value = !separateFavorites,
+        ),
+        const Divider(height: 1, thickness: 1),
+        _buildToggleItem(
+          context: context,
+          label: 'Show Titles',
+          value: showTitle,
+          onTap: () => mediaSettings.showVideoTitles.value = !showTitle,
+        ),
+        _buildToggleItem(
+          context: context,
+          label: 'Show Average Speed',
+          value: showAverageSpeed,
+          onTap: () =>
+              mediaSettings.showAverageSpeed.value = !showAverageSpeed,
+        ),
+        _buildToggleItem(
+          context: context,
+          label: 'Show Average Min/Max',
+          value: showAverageMinMax,
+          onTap: () =>
+              mediaSettings.showAverageMinMax.value = !showAverageMinMax,
+        ),
+        _buildToggleItem(
+          context: context,
+          label: 'Show Duration',
+          value: showDuration,
+          onTap: () => mediaSettings.showDuration.value = !showDuration,
+        ),
+        _buildToggleItem(
+          context: context,
+          label: 'Show Play Count',
+          value: showPlayCount,
+          onTap: () => mediaSettings.showPlayCount.value = !showPlayCount,
+        ),
+      ],
+    );
+  }
 
+  Widget _buildStatusText(BuildContext context) {
+    final currentlyFiltering = isFiltering.watch(context);
+    if (currentlyFiltering) return const SizedBox.shrink();
+
+    final mediaFiles = filteredMedia.watch(context);
+    final mediaManager = getIt.get<MediaManager>();
+    return Padding(
+      padding: EdgeInsets.zero,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Watch((context) {
+            if (mediaManager.isIndexing.value) {
+              return Text(
+                mediaManager.indexingStatus.value ?? "Indexing...",
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.merge(GoogleFonts.robotoMono()),
+              );
+            } else {
+              final total = oBox.mediaService.allMediaFiles.value.length;
+              return Text(
+                '${mediaFiles.length} / $total videos',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.merge(GoogleFonts.robotoMono()),
+              );
+            }
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRefreshButton(BuildContext context) {
+    final mediaManager = getIt.get<MediaManager>();
+    return Watch((context) {
+      final isIndexing = mediaManager.isIndexing.value;
+      final progress = mediaManager.indexingProgress.value;
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: isIndexing ? null : mediaManager.startIndexing,
+            tooltip: 'Refresh',
+            style: IconButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.onInverseSurface,
+            ),
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          if (isIndexing)
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(
+                value: progress,
+                strokeWidth: 3,
+              ),
+            ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildBody(BuildContext context) {
+    final currentlyFiltering = isFiltering.watch(context);
+    final showFilterSettings = _showFilterSettings.watch(context);
+    final isSelecting = _isSelecting.watch(context);
+    final mediaFiles = filteredMedia.watch(context);
+
+    return Stack(
+      children: [
+        if (!currentlyFiltering && mediaFiles.isEmpty)
+          Center(
+            child: Text(
+              'No videos found.',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          )
+        else
+          _fade(ExcludeFocus(child: _buildGrid(context, mediaFiles))),
+        if (isSelecting) _buildFloatingToolbar(),
+        SettingsOverlay(
+          showSettings: showFilterSettings,
+          child: MediaFilterOverlay(filter: mediaFilter),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGrid(BuildContext context, List<MediaFile> mediaFiles) {
+    final mediaSettings = context.read<MediaLibrarySettingsModel>();
+    final videosPerRow = mediaSettings.videosPerRow.watch(context);
     final showDuration = mediaSettings.showDuration.watch(context);
     final showPlayCount = mediaSettings.showPlayCount.watch(context);
     final showTitle = mediaSettings.showVideoTitles.watch(context);
     final showAverageSpeed = mediaSettings.showAverageSpeed.watch(context);
     final showAverageMinMax = mediaSettings.showAverageMinMax.watch(context);
-    final visibilityFilters = mediaSettings.visibilityFilters.watch(context);
-    final separateFavorites = mediaSettings.separateFavorites.watch(context);
-    final sortOption = mediaSettings.sortOption.watch(context);
-    final isSortAscending = mediaSettings.isSortAscending.watch(context);
     final isSelecting = _isSelecting.watch(context);
-    final showFilterSettings = _showFilterSettings.watch(context);
-    final mediaFiles = filteredMedia.watch(context);
 
-    final mediaManager = getIt.get<MediaManager>();
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: videosPerRow,
+        childAspectRatio: 16 / 9,
+      ),
+      itemCount: mediaFiles.length,
+      itemBuilder: (context, index) {
+        final media = mediaFiles[index];
+        final isSelected = selectedVideos.contains(media);
 
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainer,
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: MediaSearchBar(
-                    onFilterChanged: (query) => searchQuery.value = query,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                PopupMenuButton<SortOption>(
-                  menuPadding: EdgeInsets.zero,
-                  tooltip: "Sorting",
-                  borderRadius: BorderRadius.circular(16.0),
-                  onSelected: (option) {
-                    if (option == SortOption.random &&
-                        mediaSettings.sortOption.peek() == SortOption.random) {
-                      randomSeed.value = Random().nextInt(_randomSeedRange);
-                    }
-                    mediaSettings.sortOption.value = option;
-                  },
-                  itemBuilder: (context) => SortOption.values.map((option) {
-                    return PopupMenuItem<SortOption>(
-                      value: option,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.check,
-                            color: option == sortOption
-                                ? Theme.of(context).colorScheme.primary
-                                : Colors.transparent,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(option.label),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8.0,
-                      horizontal: 8.0,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: 70,
-                          child: Text(
-                            sortOption.label,
-                            style: Theme.of(context).textTheme.labelLarge,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ),
-                        const Icon(Icons.arrow_drop_down),
-                      ],
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    sortOption == SortOption.random
-                        ? Icons.shuffle
-                        : isSortAscending
-                        ? Icons.arrow_upward
-                        : Icons.arrow_downward,
-                  ),
-                  onPressed: sortOption == SortOption.random
-                      ? () => randomSeed.value = Random().nextInt(_randomSeedRange)
-                      : () {
-                          mediaSettings.isSortAscending.value =
-                              !mediaSettings.isSortAscending.value;
-                        },
-                  tooltip: sortOption == SortOption.random
-                      ? 'Randomize'
-                      : (isSortAscending
-                            ? 'Sort Descending'
-                            : 'Sort Ascending'),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.tune),
-                  isSelected: showFilterSettings,
-                  style: IconButton.styleFrom(
-                    backgroundColor: showFilterSettings
-                        ? Theme.of(context).colorScheme.secondaryContainer
-                        : mediaFilter.isCustomized.watch(context)
-                        ? Theme.of(context).colorScheme.primaryContainer
-                        : Theme.of(context).colorScheme.onInverseSurface,
-                    foregroundColor: showFilterSettings
-                        ? Theme.of(context).colorScheme.onSecondaryContainer
-                        : mediaFilter.isCustomized.watch(context)
-                        ? Theme.of(context).colorScheme.onPrimaryContainer
-                        : Theme.of(context).colorScheme.primary,
-                    side: mediaFilter.isCustomized.watch(context)
-                        ? BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
-                            width: 1.0,
-                          )
-                        : BorderSide.none,
-                  ),
-                  color: Theme.of(context).colorScheme.primary,
-                  onPressed: () =>
-                      _showFilterSettings.value = !showFilterSettings,
-                ),
-                const SizedBox(width: 8),
-                MenuAnchor(
-                  style: MenuStyle(
-                    padding: WidgetStatePropertyAll(EdgeInsets.zero),
-                  ),
-                  builder: (context, controller, child) {
-                    return IconButton(
-                      onPressed: () {
-                        if (controller.isOpen) {
-                          controller.close();
-                        } else {
-                          controller.open();
-                        }
-                      },
-                      icon: const Icon(Icons.visibility),
-                      tooltip: 'View Options',
-                      style: IconButton.styleFrom(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onInverseSurface,
-                      ),
-                      color: Theme.of(context).colorScheme.primary,
-                    );
-                  },
-                  menuChildren: [
-                    // videos per row
-                    SubmenuButton(
-                      menuStyle: MenuStyle(
-                        padding: WidgetStatePropertyAll(EdgeInsets.zero),
-                      ),
-                      leadingIcon: const Icon(Icons.grid_view),
-                      menuChildren: List.generate(9, (i) => i + 2).map((
-                        int value,
-                      ) {
-                        final isSelected =
-                            mediaSettings.videosPerRow.value == value;
-                        return MenuItemButton(
-                          onPressed: () =>
-                              mediaSettings.videosPerRow.value = value,
-                          closeOnActivate: false,
-                          trailingIcon: isSelected
-                              ? const Icon(Icons.check, size: 16)
-                              : null,
-                          child: Text('$value per row'),
-                        );
-                      }).toList(),
-                      child: Text(
-                        'Videos per row (${mediaSettings.videosPerRow.value})',
-                      ),
-                    ),
-                    const Divider(height: 1, thickness: 1),
-                    // filters
-                    ...VideoFilter.values.map((VideoFilter filter) {
-                      return _buildToggleItem(
-                        context: context,
-                        label: filter.label,
-                        value: visibilityFilters.contains(filter),
-                        onTap: () {
-                          final currentFilters = visibilityFilters.toSet();
-                          if (currentFilters.contains(filter)) {
-                            currentFilters.remove(filter);
-                          } else {
-                            currentFilters.add(filter);
-                          }
-                          mediaSettings.visibilityFilters.value =
-                              currentFilters;
-                        },
-                      );
-                    }),
-                    // display changes
-                    const Divider(height: 1, thickness: 1),
-                    _buildToggleItem(
-                      context: context,
-                      label: 'Separate Favorites/Dislikes',
-                      value: separateFavorites,
-                      onTap: () => mediaSettings.separateFavorites.value =
-                          !separateFavorites,
-                    ),
-                    const Divider(height: 1, thickness: 1),
-                    _buildToggleItem(
-                      context: context,
-                      label: 'Show Titles',
-                      value: showTitle,
-                      onTap: () =>
-                          mediaSettings.showVideoTitles.value = !showTitle,
-                    ),
-                    _buildToggleItem(
-                      context: context,
-                      label: 'Show Average Speed',
-                      value: showAverageSpeed,
-                      onTap: () => mediaSettings.showAverageSpeed.value =
-                          !showAverageSpeed,
-                    ),
-                    _buildToggleItem(
-                      context: context,
-                      label: 'Show Average Min/Max',
-                      value: showAverageMinMax,
-                      onTap: () => mediaSettings.showAverageMinMax.value =
-                          !showAverageMinMax,
-                    ),
-                    _buildToggleItem(
-                      context: context,
-                      label: 'Show Duration',
-                      value: showDuration,
-                      onTap: () =>
-                          mediaSettings.showDuration.value = !showDuration,
-                    ),
-                    _buildToggleItem(
-                      context: context,
-                      label: 'Show Play Count',
-                      value: showPlayCount,
-                      onTap: () =>
-                          mediaSettings.showPlayCount.value = !showPlayCount,
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  tooltip: "Surprise Me!",
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.onInverseSurface,
-                  ),
-                  icon: const Icon(Icons.attractions),
-                  color: Theme.of(context).colorScheme.primary,
-                  onPressed: _showRandomVideoPicker,
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  tooltip: "Start Playlist",
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.onInverseSurface,
-                  ),
-                  color: Theme.of(context).colorScheme.primary,
-                  icon: const Icon(Icons.playlist_play),
-                  onPressed: _startPlaylist,
-                ),
-                const SizedBox(width: 8),
-                if (!currentlyFiltering)
-                  Padding(
-                    padding: EdgeInsets.zero,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Watch((context) {
-                          if (mediaManager.isIndexing.value) {
-                            return Text(
-                              mediaManager.indexingStatus.value ??
-                                  "Indexing...",
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.merge(GoogleFonts.robotoMono()),
-                            );
-                          } else {
-                            final total =
-                                oBox.mediaService.allMediaFiles.value.length;
-                            return Text(
-                              '${mediaFiles.length} / $total videos',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.merge(GoogleFonts.robotoMono()),
-                            );
-                          }
-                        }),
-                      ],
-                    ),
-                  ),
-                Tooltip(
-                  message:
-                      'Long-press or right-click an item for more options.',
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Icon(
-                      Icons.info_outline,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // refresh index button
-                Watch((context) {
-                  final isIndexing = mediaManager.isIndexing.value;
-                  final progress = mediaManager.indexingProgress.value;
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.refresh),
-                        onPressed: isIndexing
-                            ? null
-                            : mediaManager.startIndexing,
-                        tooltip: 'Refresh',
-                        style: IconButton.styleFrom(
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.onInverseSurface,
-                        ),
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      if (isIndexing)
-                        SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: CircularProgressIndicator(
-                            value: progress,
-                            strokeWidth: 3,
-                          ),
-                        ),
-                    ],
-                  );
-                }),
-                const SizedBox(width: 4),
-              ],
-            ),
-          ),
-        ),
-        Expanded(
-          child: Stack(
-            children: [
-              if (!currentlyFiltering && mediaFiles.isEmpty)
-                Center(
-                  child: Text(
-                    'No videos found.',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                )
-              else
-                _fade(
-                  ExcludeFocus(
-                    child: GridView.builder(
-                      padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: videosPerRow,
-                        childAspectRatio: 16 / 9,
-                      ),
-                      itemCount: mediaFiles.length,
-                      itemBuilder: (context, index) {
-                        final media = mediaFiles[index];
-                        final isSelected = selectedVideos.contains(media);
-
-                        return MediaItem(
-                          key: Key(media.mediaPath),
-                          media: media,
-                          isSelected: isSelected,
-                          showAverageMinMax: showAverageMinMax,
-                          showAverageSpeed: showAverageSpeed,
-                          showDuration: showDuration,
-                          showPlayCount: showPlayCount,
-                          showTitle: showTitle,
-                          onLongPress: () {
-                            if (isSelected) {
-                              selectedVideos.remove(media);
-                            } else {
-                              selectedVideos.add(media);
-                            }
-                          },
-                          onTap: () {
-                            if (isSelecting) {
-                              if (isSelected) {
-                                selectedVideos.remove(media);
-                              } else {
-                                selectedVideos.add(media);
-                              }
-                            } else {
-                              // play media
-                              final reason = media.unplayableReason;
-                              if (reason != null) {
-                                AlertManager.showError(
-                                  '${media.name} cannot be played: $reason',
-                                );
-                                return;
-                              }
-                              getIt.get<VideoPlayer>().openSingleVideo(media);
-                            }
-                          },
-                          toggleDislike: () {
-                            media.rating = media.rating != MediaRating.dislike
-                                ? MediaRating.dislike
-                                : MediaRating.noRating;
-                            oBox.mediaService.save(media);
-                          },
-                          toggleFavorite: () {
-                            media.rating = media.rating != MediaRating.like
-                                ? MediaRating.like
-                                : MediaRating.noRating;
-                            oBox.mediaService.save(media);
-                          },
-                          onDelete: () => _deleteMedia(media),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              if (isSelecting) _buildFloatingToolbar(),
-              SettingsOverlay(
-                showSettings: showFilterSettings,
-                child: MediaFilterOverlay(filter: mediaFilter),
-              ),
-            ],
-          ),
-        ),
-      ],
+        return MediaItem(
+          key: Key(media.mediaPath),
+          media: media,
+          isSelected: isSelected,
+          showAverageMinMax: showAverageMinMax,
+          showAverageSpeed: showAverageSpeed,
+          showDuration: showDuration,
+          showPlayCount: showPlayCount,
+          showTitle: showTitle,
+          onLongPress: () {
+            if (isSelected) {
+              selectedVideos.remove(media);
+            } else {
+              selectedVideos.add(media);
+            }
+          },
+          onTap: () {
+            if (isSelecting) {
+              if (isSelected) {
+                selectedVideos.remove(media);
+              } else {
+                selectedVideos.add(media);
+              }
+            } else {
+              // play media
+              final reason = media.unplayableReason;
+              if (reason != null) {
+                AlertManager.showError(
+                  '${media.name} cannot be played: $reason',
+                );
+                return;
+              }
+              getIt.get<VideoPlayer>().openSingleVideo(media);
+            }
+          },
+          toggleDislike: () {
+            media.rating = media.rating != MediaRating.dislike
+                ? MediaRating.dislike
+                : MediaRating.noRating;
+            oBox.mediaService.save(media);
+          },
+          toggleFavorite: () {
+            media.rating = media.rating != MediaRating.like
+                ? MediaRating.like
+                : MediaRating.noRating;
+            oBox.mediaService.save(media);
+          },
+          onDelete: () => _deleteMedia(media),
+        );
+      },
     );
   }
 
