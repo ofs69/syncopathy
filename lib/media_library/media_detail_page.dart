@@ -269,54 +269,71 @@ class _MediaDetailPageState extends State<MediaDetailPage>
     final picked = await _pickAndHashFile();
     if (picked == null) return;
 
-    FunscriptFile? newFs = oBox.funscriptService.getByHash(picked.hash);
+    final existing = oBox.funscriptService.getByHash(picked.hash);
 
-    if (newFs != null && newFs.id != oldFs.id) {
-      // Found a different existing funscript with this hash.
-      // Use it and update its path/status just in case.
-      newFs.path = picked.path;
-      newFs.fileNotFound = false;
-      oBox.mediaRepository.saveFunscript(newFs);
-
-      final isMain = _mainFunscriptSignal.value?.id == oldFs.id;
-
-      widget.media.funscripts.remove(oldFs);
-      if (!widget.media.funscripts.any((f) => f.id == newFs.id)) {
-        widget.media.funscripts.add(newFs);
-      }
-
-      if (isMain) {
-        _mainFunscriptSignal.value = newFs;
-        widget.media.mainFunscript.target = newFs;
-      }
-
-      _funscriptsSignal.value = List.from(widget.media.funscripts);
+    if (existing != null && existing.id != oldFs.id) {
+      // The picked file already exists as a different funscript record; move
+      // this media's link over to it rather than duplicating.
+      _swapLinkedFunscript(oldFs, existing, picked.path);
     } else {
-      // Either newFs is null or it's the same funscript (by ID).
-      // Update the current instance (oldFs) to ensure UI correctly reflects changes.
-      final FunscriptFile source;
-      if (newFs == null) {
-        final loaded = await _loadFunscriptData(picked.path, picked.hash);
-        if (loaded == null) return;
-        source = loaded;
-      } else {
-        source = newFs;
-      }
+      // Same record (by id) or nothing on file: refresh oldFs in place so the
+      // UI reflects the relocated file. `existing` (when non-null) is oldFs's
+      // own record; otherwise load fresh metrics from the picked file.
+      final source =
+          existing ?? await _loadFunscriptData(picked.path, picked.hash);
+      if (source == null) return;
+      _refreshFunscriptInPlace(oldFs, source, picked);
+    }
+  }
 
-      oldFs.path = picked.path;
-      oldFs.funscriptHash = picked.hash;
-      oldFs.applyMetricsFrom(source);
-      oldFs.fileNotFound = false;
+  /// Re-points this media's link from [oldFs] to the already-existing [newFs]
+  /// (found by hash), refreshing [newFs]'s location and carrying the "main"
+  /// designation across if [oldFs] held it.
+  void _swapLinkedFunscript(
+    FunscriptFile oldFs,
+    FunscriptFile newFs,
+    String newPath,
+  ) {
+    newFs.path = newPath;
+    newFs.fileNotFound = false;
+    oBox.mediaRepository.saveFunscript(newFs);
 
-      oBox.mediaRepository.saveFunscript(oldFs);
-      // Trigger UI update by assigning a new list
-      _funscriptsSignal.value = List.from(_funscriptsSignal.value);
+    final isMain = _mainFunscriptSignal.value?.id == oldFs.id;
 
-      // oldFs was mutated in place, so the main-funscript signal holds the same
-      // instance; force a re-emit so dependents pick up the new metrics.
-      if (_mainFunscriptSignal.value?.id == oldFs.id) {
-        _mainFunscriptSignal.set(oldFs, force: true);
-      }
+    widget.media.funscripts.remove(oldFs);
+    if (!widget.media.funscripts.any((f) => f.id == newFs.id)) {
+      widget.media.funscripts.add(newFs);
+    }
+
+    if (isMain) {
+      _mainFunscriptSignal.value = newFs;
+      widget.media.mainFunscript.target = newFs;
+    }
+
+    _funscriptsSignal.value = List.from(widget.media.funscripts);
+  }
+
+  /// Updates [oldFs] in place to point at the relocated file, copying metrics
+  /// from [source] (freshly loaded data, or oldFs's own record when the hash is
+  /// unchanged).
+  void _refreshFunscriptInPlace(
+    FunscriptFile oldFs,
+    FunscriptFile source,
+    ({String path, String hash}) picked,
+  ) {
+    oldFs.path = picked.path;
+    oldFs.funscriptHash = picked.hash;
+    oldFs.applyMetricsFrom(source);
+    oldFs.fileNotFound = false;
+
+    oBox.mediaRepository.saveFunscript(oldFs);
+    // Trigger UI update by assigning a new list.
+    _funscriptsSignal.value = List.from(_funscriptsSignal.value);
+
+    // oldFs was mutated in place, so the main-funscript signal holds the same
+    // instance; force a re-emit so dependents pick up the new metrics.
+    if (_mainFunscriptSignal.value?.id == oldFs.id) {
+      _mainFunscriptSignal.set(oldFs, force: true);
     }
   }
 
