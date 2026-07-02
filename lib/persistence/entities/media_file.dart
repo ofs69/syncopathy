@@ -105,11 +105,17 @@ class MediaFile {
   bool get isFavorite => rating == MediaRating.like;
   bool get isDislike => rating == MediaRating.dislike;
 
-  bool get isPlayable {
+  bool get isPlayable => unplayableReason == null;
+
+  /// Human-readable explanation of why this media cannot be played, or `null`
+  /// when it is playable. Keeps the "why can't this play" cascade on the model
+  /// instead of duplicating it in widget callbacks.
+  String? get unplayableReason {
     final main = mainFunscript.target;
-    return !fileNotFound &&
-        main != null &&
-        !main.fileNotFound &&
-        !main.isScriptToken;
+    if (fileNotFound) return 'Media file not found.';
+    if (main == null) return 'No funscript assigned.';
+    if (main.fileNotFound) return 'Funscript file not found.';
+    if (main.isScriptToken) return 'Funscript is a script token.';
+    return null;
   }
 }

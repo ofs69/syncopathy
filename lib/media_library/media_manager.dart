@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/helper/trie.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/media_metadata_retriever.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
@@ -20,46 +21,6 @@ import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/persistence/entities/media_metadata.dart';
 import 'package:syncopathy/persistence/fast_file_hash.dart';
-
-class TrieNode {
-  Map<String, TrieNode> children = {};
-  bool isEndOfWord = false;
-  String? fullWord;
-}
-
-class Trie {
-  final TrieNode root = TrieNode();
-
-  void insert(String word) {
-    TrieNode current = root;
-    for (int i = 0; i < word.length; i++) {
-      current = current.children.putIfAbsent(word[i], () => TrieNode());
-    }
-    current.isEndOfWord = true;
-    current.fullWord = word;
-  }
-
-  // Finds the LONGEST prefix that exists in the trie
-  String? findLongestPrefix(String word) {
-    TrieNode current = root;
-    String? longestMatch;
-
-    for (int i = 0; i < word.length; i++) {
-      String char = word[i];
-      if (current.children.containsKey(char)) {
-        current = current.children[char]!;
-        // Update every time we hit a valid media file name
-        if (current.isEndOfWord) {
-          longestMatch = current.fullWord;
-        }
-      } else {
-        // No further path in Trie, return the best match found so far
-        break;
-      }
-    }
-    return longestMatch;
-  }
-}
 
 class _IndexingParams {
   final List<MediaFile> allMedias;
@@ -152,6 +113,50 @@ class MediaManager {
   final SettingsModel _settings;
 
   MediaManager(this._settings);
+
+  static const Set<String> _videoExtensions = {
+    '.mp4',
+    '.mkv',
+    '.avi',
+    '.mov',
+    '.wmv',
+    '.webm',
+  };
+  static const Set<String> _audioExtensions = {
+    '.mp3',
+    '.aac',
+    '.wav',
+    '.flac',
+    '.ogg',
+    '.m4a',
+    '.wma',
+    '.opus',
+  };
+
+  // Concurrency for the hashing / metadata pools.
+  static const int _hashPoolSize = 4;
+  // Emit a progress update every N processed items to avoid signal churn.
+  static const int _hashProgressInterval = 10;
+  static const int _metadataProgressInterval = 5;
+
+  /// Copies a retrieved metadata record into a persistable [MediaMetadata]
+  /// entity. Shared by the existing-media and new-media indexing paths.
+  static MediaMetadata _toMediaMetadata(MediaMetadataRetrieved m) {
+    return MediaMetadata(
+      duration: m.duration,
+      aspectRatio: m.aspectRatio,
+      audioChannels: m.audioChannels,
+      audioCodec: m.audioCodec,
+      bitRate: m.bitRate,
+      creationTime: m.creationTime,
+      frameRate: m.frameRate,
+      height: m.height,
+      width: m.width,
+      pixelFormat: m.pixelFormat,
+      rotation: m.rotation,
+      videoCodec: m.videoCodec,
+    );
+  }
 
   Future<void> startIndexing() async {
     if (_isIndexing.value) return;
@@ -259,20 +264,7 @@ class MediaManager {
             }
 
             if (media.metadata.target == null && found.metadata != null) {
-              media.metadata.target = MediaMetadata(
-                duration: found.metadata!.duration,
-                aspectRatio: found.metadata!.aspectRatio,
-                audioChannels: found.metadata!.audioChannels,
-                audioCodec: found.metadata!.audioCodec,
-                bitRate: found.metadata!.bitRate,
-                creationTime: found.metadata!.creationTime,
-                frameRate: found.metadata!.frameRate,
-                height: found.metadata!.height,
-                width: found.metadata!.width,
-                pixelFormat: found.metadata!.pixelFormat,
-                rotation: found.metadata!.rotation,
-                videoCodec: found.metadata!.videoCodec,
-              );
+              media.metadata.target = _toMediaMetadata(found.metadata!);
             }
           } else {
             media.fileNotFound = true;
@@ -295,20 +287,7 @@ class MediaManager {
             ],
           )..firstIndexedOn ??= DateTime.now();
           if (newFound.metadata != null) {
-            media.metadata.target = MediaMetadata(
-              duration: newFound.metadata!.duration,
-              aspectRatio: newFound.metadata!.aspectRatio,
-              audioChannels: newFound.metadata!.audioChannels,
-              audioCodec: newFound.metadata!.audioCodec,
-              bitRate: newFound.metadata!.bitRate,
-              creationTime: newFound.metadata!.creationTime,
-              frameRate: newFound.metadata!.frameRate,
-              height: newFound.metadata!.height,
-              width: newFound.metadata!.width,
-              pixelFormat: newFound.metadata!.pixelFormat,
-              rotation: newFound.metadata!.rotation,
-              videoCodec: newFound.metadata!.videoCodec,
-            );
+            media.metadata.target = _toMediaMetadata(newFound.metadata!);
           }
           mediaBox.put(media); // Put to get ID
           mediaMap[newFound.mediaHash] = media;
@@ -337,7 +316,6 @@ class MediaManager {
         mediaBox.putMany(mediaMap.values.toList());
         funscriptBox.putMany(funscriptMap.values.toList());
       });
-      Logger.debug("done");
     } finally {
       _isIndexing.value = false;
       _indexingProgress.value = null;
@@ -361,18 +339,20 @@ class MediaManager {
         );
       }
 
-      final videoExtensions = {'.mp4', '.mkv', '.avi', '.mov', '.wmv', '.webm'};
-      final audioExtensions = {
-        '.mp3',
-        '.aac',
-        '.wav',
-        '.flac',
-        '.ogg',
-        '.m4a',
-        '.wma',
-        '.opus',
-      };
-      final combinedExtension = {...videoExtensions, ...audioExtensions};
+      // Emit "$label ($processed/$total)" every [interval] items (and on the
+      // final item), keeping the counter/threshold boilerplate in one place.
+      void reportProgress(
+        String label,
+        int processed,
+        int total, {
+        int interval = _hashProgressInterval,
+      }) {
+        if (processed % interval == 0 || processed == total) {
+          updateStatus("$label ($processed/$total)", processed / total);
+        }
+      }
+
+      final combinedExtension = {..._videoExtensions, ..._audioExtensions};
 
       updateStatus("Listing files...");
 
@@ -403,7 +383,7 @@ class MediaManager {
       Trie mediaTrie = Trie();
       Map<String, List<_FoundMediaFile>> groups = {};
 
-      final pool = Pool(4);
+      final pool = Pool(_hashPoolSize);
 
       updateStatus("Hashing media files...", 0.0);
       int processedMedia = 0;
@@ -413,12 +393,7 @@ class MediaManager {
         return pool.withResource(() async {
           final hash = await fastFileHash(media, cacheService: cacheService);
           processedMedia++;
-          if (processedMedia % 10 == 0 || processedMedia == totalMedia) {
-            updateStatus(
-              "Hashing media files ($processedMedia/$totalMedia)",
-              processedMedia / totalMedia,
-            );
-          }
+          reportProgress("Hashing media files", processedMedia, totalMedia);
           return (media, hash);
         });
       }).toList();
@@ -428,7 +403,7 @@ class MediaManager {
         if (hash == null) continue;
 
         final extension = p.extension(file.path).toLowerCase();
-        final type = videoExtensions.contains(extension)
+        final type = _videoExtensions.contains(extension)
             ? MediaType.video
             : MediaType.audio;
 
@@ -460,13 +435,11 @@ class MediaManager {
 
             if (existing == null && bestMatch == null) {
               processedFunscripts++;
-              if (processedFunscripts % 10 == 0 ||
-                  processedFunscripts == totalFunscripts) {
-                updateStatus(
-                  "Hashing funscripts ($processedFunscripts/$totalFunscripts)",
-                  processedFunscripts / totalFunscripts,
-                );
-              }
+              reportProgress(
+                "Hashing funscripts",
+                processedFunscripts,
+                totalFunscripts,
+              );
               return (file, null);
             }
 
@@ -503,16 +476,16 @@ class MediaManager {
             }
 
             processedFunscripts++;
-            if (processedFunscripts % 10 == 0 ||
-                processedFunscripts == totalFunscripts) {
-              updateStatus(
-                "Hashing funscripts ($processedFunscripts/$totalFunscripts)",
-                processedFunscripts / totalFunscripts,
-              );
-            }
+            reportProgress(
+              "Hashing funscripts",
+              processedFunscripts,
+              totalFunscripts,
+            );
 
             return (file, found);
-          } catch (_) {}
+          } catch (e, st) {
+            Logger.error("Failed to hash/parse funscript", e, st);
+          }
           processedFunscripts++;
           return (file, null);
         });
@@ -560,13 +533,12 @@ class MediaManager {
             m.metadata = await MediaMetadataRetriever.runFFprobe(m.file.path);
           }
           processedMetadata++;
-          if (processedMetadata % 5 == 0 ||
-              processedMetadata == totalMetadata) {
-            updateStatus(
-              "Retrieving metadata ($processedMetadata/$totalMetadata)",
-              processedMetadata / totalMetadata,
-            );
-          }
+          reportProgress(
+            "Retrieving metadata",
+            processedMetadata,
+            totalMetadata,
+            interval: _metadataProgressInterval,
+          );
         });
       });
       await Future.wait(metadataFutures);

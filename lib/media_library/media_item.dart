@@ -214,109 +214,22 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
                   ),
                 if (widget.media.fileNotFound ||
                     (mainFunscript?.fileNotFound ?? false))
-                  Container(
-                    color: Colors.black45,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.file_open_outlined,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withAlphaF(0.8),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              "FILE NOT FOUND",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  _buildStatusOverlay(
+                    icon: Icons.file_open_outlined,
+                    badgeColor: Colors.red,
+                    label: "FILE NOT FOUND",
                   )
                 else if (mainFunscript == null)
-                  Container(
-                    color: Colors.black45,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.description_outlined,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withAlphaF(0.8),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              "NO SCRIPT",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  _buildStatusOverlay(
+                    icon: Icons.description_outlined,
+                    badgeColor: Colors.orange,
+                    label: "NO SCRIPT",
                   )
                 else if (mainFunscript.isScriptToken)
-                  Container(
-                    color: Colors.black45,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.generating_tokens,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.withAlphaF(0.8),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              "SCRIPT TOKEN",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  _buildStatusOverlay(
+                    icon: Icons.generating_tokens,
+                    badgeColor: Colors.blue,
+                    label: "SCRIPT TOKEN",
                   ),
                 Padding(
                   padding: const EdgeInsets.all(4.0),
@@ -458,6 +371,42 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Full-thumbnail dimmed overlay with a centered icon and a colored badge,
+  /// used for the "file not found" / "no script" / "script token" states.
+  Widget _buildStatusOverlay({
+    required IconData icon,
+    required Color badgeColor,
+    required String label,
+  }) {
+    return Container(
+      color: Colors.black45,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 32),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: badgeColor.withAlphaF(0.8),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

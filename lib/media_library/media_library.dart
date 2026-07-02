@@ -35,6 +35,10 @@ class MediaLibrary extends StatefulWidget {
 
 class _MediaLibraryState extends State<MediaLibrary>
     with SignalsMixin, EffectDispose {
+  // Upper bound for the shuffle seed; any large range works, this just keeps
+  // seeds human-readable.
+  static const int _randomSeedRange = 1000000;
+
   // filtered media
   late final ReadonlySignal<List<MediaFile>> filteredMedia = computed(
     _filterSignal,
@@ -66,7 +70,7 @@ class _MediaLibraryState extends State<MediaLibrary>
       final sortOption = mediaSettings.sortOption.value;
       if (sortOption == SortOption.random) {
         if (randomSeed.peek() == null) {
-          randomSeed.value = Random().nextInt(1000000);
+          randomSeed.value = Random().nextInt(_randomSeedRange);
         }
       } else {
         if (randomSeed.peek() != null) {
@@ -180,7 +184,7 @@ class _MediaLibraryState extends State<MediaLibrary>
                   onSelected: (option) {
                     if (option == SortOption.random &&
                         mediaSettings.sortOption.peek() == SortOption.random) {
-                      randomSeed.value = Random().nextInt(1000000);
+                      randomSeed.value = Random().nextInt(_randomSeedRange);
                     }
                     mediaSettings.sortOption.value = option;
                   },
@@ -232,7 +236,7 @@ class _MediaLibraryState extends State<MediaLibrary>
                         : Icons.arrow_downward,
                   ),
                   onPressed: sortOption == SortOption.random
-                      ? () => randomSeed.value = Random().nextInt(1000000)
+                      ? () => randomSeed.value = Random().nextInt(_randomSeedRange)
                       : () {
                           mediaSettings.isSortAscending.value =
                               !mediaSettings.isSortAscending.value;
@@ -440,11 +444,13 @@ class _MediaLibraryState extends State<MediaLibrary>
                 Tooltip(
                   message:
                       'Long-press or right-click an item for more options.',
-                  child: IconButton(
-                    icon: const Icon(Icons.info_outline, size: 16),
-                    onPressed: () {},
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -534,20 +540,8 @@ class _MediaLibraryState extends State<MediaLibrary>
                               }
                             } else {
                               // play media
-                              if (!media.isPlayable) {
-                                final main = media.mainFunscript.target;
-                                final String reason;
-                                if (media.fileNotFound) {
-                                  reason = 'Media file not found.';
-                                } else if (main == null) {
-                                  reason = 'No funscript assigned.';
-                                } else if (main.fileNotFound) {
-                                  reason = 'Funscript file not found.';
-                                } else if (main.isScriptToken) {
-                                  reason = 'Funscript is a script token.';
-                                } else {
-                                  reason = 'Unknown reason.';
-                                }
+                              final reason = media.unplayableReason;
+                              if (reason != null) {
                                 AlertManager.showError(
                                   '${media.name} cannot be played: $reason',
                                 );
@@ -590,7 +584,6 @@ class _MediaLibraryState extends State<MediaLibrary>
     final colorScheme = Theme.of(context).colorScheme;
     return Stack(
       children: [
-        // Your main content here
         Positioned(
           bottom: 24.0, // Floating distance from bottom
           left: 0,
@@ -622,21 +615,21 @@ class _MediaLibraryState extends State<MediaLibrary>
                   message: 'Like',
                   child: IconButton(
                     icon: Icon(Icons.star, color: favoriteColor),
-                    onPressed: _bulkLike,
+                    onPressed: () => _bulkSetRating(MediaRating.like),
                   ),
                 ),
                 Tooltip(
                   message: 'Dislike',
                   child: IconButton(
                     icon: Icon(Icons.thumb_down, color: dislikeColor),
-                    onPressed: _bulkDislike,
+                    onPressed: () => _bulkSetRating(MediaRating.dislike),
                   ),
                 ),
                 Tooltip(
                   message: 'Unrate',
                   child: IconButton(
                     icon: const Icon(Icons.star_outline),
-                    onPressed: _bulkUnrate,
+                    onPressed: () => _bulkSetRating(MediaRating.noRating),
                   ),
                 ),
                 const VerticalDivider(),
@@ -686,25 +679,9 @@ class _MediaLibraryState extends State<MediaLibrary>
     );
   }
 
-  void _bulkLike() {
+  void _bulkSetRating(MediaRating rating) {
     for (final video in selectedVideos.value) {
-      video.rating = MediaRating.like;
-      oBox.mediaService.save(video);
-    }
-    selectedVideos.clear();
-  }
-
-  void _bulkDislike() {
-    for (final video in selectedVideos.value) {
-      video.rating = MediaRating.dislike;
-      oBox.mediaService.save(video);
-    }
-    selectedVideos.clear();
-  }
-
-  void _bulkUnrate() {
-    for (final video in selectedVideos.value) {
-      video.rating = MediaRating.noRating;
+      video.rating = rating;
       oBox.mediaService.save(video);
     }
     selectedVideos.clear();
