@@ -22,6 +22,10 @@ import 'package:syncopathy/persistence/entities/user_category.dart';
 import 'package:syncopathy/persistence/fast_file_hash.dart';
 import 'package:syncopathy/helper/constants.dart';
 
+/// Auto-save feedback shown in the app bar, so the 500ms debounced save isn't
+/// completely silent.
+enum _SaveStatus { idle, saving, saved }
+
 class MediaDetailPage extends StatefulWidget {
   final MediaFile media;
   const MediaDetailPage({super.key, required this.media});
@@ -43,6 +47,13 @@ class _MediaDetailPageState extends State<MediaDetailPage>
   late final ListSignal<FunscriptFile> _funscriptsSignal;
   late final ListSignal<UserCategory> _categoriesSignal;
   late final Debouncer _saveDebouncer;
+  late final Signal<_SaveStatus> _saveStatus = createSignal(_SaveStatus.idle);
+  // The auto-save effect fires once at init (it reads every field signal). Skip
+  // that first run so opening the page doesn't write the unchanged entity or
+  // flash the save indicator.
+  bool _initialLoad = true;
+
+  static const double _infoLabelMinWidth = 120.0;
 
   /// The scalar fields mirrored between [widget.media] and their editing
   /// signals: each binding loads the entity's value into its signal on init and
@@ -111,7 +122,16 @@ class _MediaDetailPageState extends State<MediaDetailPage>
         _funscriptsSignal.value;
         _categoriesSignal.value;
 
-        _saveDebouncer.run(_save);
+        if (_initialLoad) {
+          _initialLoad = false;
+          return;
+        }
+
+        _saveStatus.value = _SaveStatus.saving;
+        _saveDebouncer.run(() {
+          _save();
+          if (mounted) _saveStatus.value = _SaveStatus.saved;
+        });
       }),
     ]);
   }
@@ -128,6 +148,37 @@ class _MediaDetailPageState extends State<MediaDetailPage>
   void _handleExit() {
     _save();
     Navigator.of(context).pop();
+  }
+
+  Widget _buildSaveIndicator() {
+    final scheme = Theme.of(context).colorScheme;
+    final (Widget icon, String text) = switch (_saveStatus.value) {
+      _SaveStatus.idle => (const SizedBox.shrink(), ''),
+      _SaveStatus.saving => (
+        const SizedBox(
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+        'Saving…',
+      ),
+      _SaveStatus.saved => (
+        Icon(Icons.check_circle_outline, size: 16, color: successColor),
+        'Saved',
+      ),
+    };
+    if (text.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          icon,
+          const SizedBox(width: 8),
+          Text(text, style: TextStyle(color: scheme.onSurfaceVariant)),
+        ],
+      ),
+    );
   }
 
   void _addAlias() {
@@ -363,6 +414,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
               tooltip: 'Back (Esc)',
             ),
             title: Watch((context) => Text('Editing ${_nameSignal.value}')),
+            actions: [Watch((context) => _buildSaveIndicator())],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
@@ -565,9 +617,11 @@ class _MediaDetailPageState extends State<MediaDetailPage>
               padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: Row(
                 children: [
-                  const SizedBox(
-                    width: 120,
-                    child: Text(
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: _infoLabelMinWidth,
+                    ),
+                    child: const Text(
                       'File Path',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
@@ -638,8 +692,8 @@ class _MediaDetailPageState extends State<MediaDetailPage>
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         children: [
-          SizedBox(
-            width: 120,
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: _infoLabelMinWidth),
             child: Text(
               label,
               style: const TextStyle(fontWeight: FontWeight.bold),
