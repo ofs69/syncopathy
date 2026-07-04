@@ -72,6 +72,10 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
   // Action-button icon/padding as a fraction of card width.
   static const double _actionIconScale = 0.07;
   static const double _actionPaddingScale = 0.03;
+  // Floor for the interactive hit area, so the action buttons stay clickable on
+  // small cards. Kept below 48 so three stacked buttons don't overflow short
+  // cards.
+  static const double _actionMinTapTarget = 32.0;
 
   /// Border reflecting selection / currently-open / rating state, most
   /// specific first.
@@ -230,19 +234,24 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
                   _buildStatusOverlay(
                     icon: Icons.file_open_outlined,
                     badgeColor: Colors.red,
-                    label: "FILE NOT FOUND",
+                    label: "File not found",
+                    tooltip:
+                        "The media or its script file is missing from disk.",
                   )
                 else if (mainFunscript == null)
                   _buildStatusOverlay(
                     icon: Icons.description_outlined,
                     badgeColor: Colors.orange,
-                    label: "NO SCRIPT",
+                    label: "No script",
+                    tooltip: "No funscript is linked to this media.",
                   )
                 else if (mainFunscript.isScriptToken)
                   _buildStatusOverlay(
                     icon: Icons.generating_tokens,
                     badgeColor: Colors.blue,
-                    label: "SCRIPT TOKEN",
+                    label: "Script token",
+                    tooltip:
+                        "This funscript is an encrypted token and can't be played.",
                   ),
                 _buildStatisticsOverlay(metadata, mainFunscript, onSurface),
                 _buildTitleGradient(isHovering, onSurface),
@@ -412,9 +421,7 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
             if (isDislike || !hasRating)
               _buildActionButton(
                 constraints: constraints,
-                icon: isDislike
-                    ? Icons.thumb_down
-                    : Icons.thumb_down_outlined,
+                icon: isDislike ? Icons.thumb_down : Icons.thumb_down_outlined,
                 color: isDislike ? dislikeColor : onSurface,
                 onTap: widget.toggleDislike,
               ),
@@ -430,31 +437,35 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
     required IconData icon,
     required Color badgeColor,
     required String label,
+    required String tooltip,
   }) {
-    return Container(
-      color: Colors.black45,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white, size: 32),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: badgeColor.withAlphaF(0.8),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10,
+    return Tooltip(
+      message: tooltip,
+      child: Container(
+        color: Colors.black45,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: Colors.white, size: 32),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: badgeColor.withAlphaF(0.8),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -473,10 +484,13 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
     return IconButton(
       onPressed: onTap,
       icon: Icon(icon),
-      iconSize: iconSize.clamp(12.0, 24.0),
+      iconSize: iconSize.clamp(14.0, 24.0),
       color: color,
-      constraints: const BoxConstraints(),
-      padding: EdgeInsets.all(paddingSize.clamp(2.0, 8.0)),
+      constraints: const BoxConstraints(
+        minWidth: _actionMinTapTarget,
+        minHeight: _actionMinTapTarget,
+      ),
+      padding: EdgeInsets.all(paddingSize.clamp(4.0, 8.0)),
       style: IconButton.styleFrom(
         backgroundColor: Colors.black45,
         shape: const CircleBorder(),
