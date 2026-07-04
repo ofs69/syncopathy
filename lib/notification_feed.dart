@@ -24,7 +24,7 @@ class AlertMessage {
 }
 
 class AlertManager extends ChangeNotifier {
-  static const int _maxAlerts = 50;
+  static const int maxAlerts = 50;
   final List<AlertMessage> _alerts = [];
   final Signal<int> unreadCount = signal(0);
 
@@ -48,7 +48,7 @@ class AlertManager extends ChangeNotifier {
       stackTrace: trace ?? StackTrace.empty,
     );
 
-    if (_alerts.length >= _maxAlerts) {
+    if (_alerts.length >= maxAlerts) {
       _alerts.removeLast();
     }
 
@@ -113,7 +113,11 @@ class AlertPanel extends StatelessWidget {
           child: Column(
             children: [
               AppBar(
-                title: const Text('Alerts'),
+                title: Text(
+                  manager.alerts.isEmpty
+                      ? 'Alerts'
+                      : 'Alerts (${manager.alerts.length})',
+                ),
                 automaticallyImplyLeading: false,
                 actions: [
                   if (manager.alerts.isNotEmpty)
@@ -138,6 +142,23 @@ class AlertPanel extends StatelessWidget {
                         },
                       ),
               ),
+              // The oldest alert is dropped once the list is full; say so rather
+              // than letting entries vanish silently.
+              if (manager.alerts.length >= AlertManager.maxAlerts)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Text(
+                    'Showing the latest ${AlertManager.maxAlerts} alerts; '
+                    'older ones are discarded.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
             ],
           ),
         );
