@@ -34,8 +34,29 @@ class MediaFilterOverlayState extends State<MediaFilterOverlay>
     );
   }
 
-  void _clearFilter() {
-    widget.filter.clearFilter();
+  Future<void> _clearFilter() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear all filters?'),
+        content: const Text(
+          'This removes every filter group and all of its filters.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Clear all'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      widget.filter.clearFilter();
+    }
   }
 
   Widget _buildFilterGroup(FilterGroup filterGroup) {
@@ -62,7 +83,7 @@ class MediaFilterOverlayState extends State<MediaFilterOverlay>
                         return DropdownMenuEntry<FilterGroupOperator>(
                           value: value,
                           label: value.label,
-                          leadingIcon: Icon(value.icon, size: 12),
+                          leadingIcon: Icon(value.icon),
                         );
                       })
                       .toList(),
@@ -219,15 +240,24 @@ class MediaFilterOverlayState extends State<MediaFilterOverlay>
           IconButton(
             icon: Icon(
               negated ? Icons.remove : Icons.add,
-              color: negated ? Colors.red : Colors.grey,
+              color: negated
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
+            tooltip: negated
+                ? 'Excluding matches — tap to include'
+                : 'Including matches — tap to exclude',
             onPressed: () {
               filter.negated.value = !filter.negated.value;
             },
           ),
           const SizedBox(width: 4),
           Expanded(child: filter.filterRowWidget(context)),
-          IconButton(icon: Icon(Icons.delete), onPressed: onDelete),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            tooltip: 'Remove filter',
+            onPressed: onDelete,
+          ),
         ],
       );
     });
