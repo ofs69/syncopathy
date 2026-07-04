@@ -13,14 +13,33 @@ class ShortcutRebindDialog extends StatefulWidget {
 }
 
 class _ShortcutRebindDialogState extends State<ShortcutRebindDialog> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.requestFocus();
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return KeyboardListener(
-      focusNode: FocusNode()..requestFocus(),
+      focusNode: _focusNode,
       autofocus: true,
       onKeyEvent: (event) {
         if (event is KeyDownEvent) {
           final key = event.logicalKey;
+          // Escape cancels the rebind instead of being captured as a binding.
+          if (key == LogicalKeyboardKey.escape) {
+            Navigator.of(context).pop();
+            return;
+          }
           // Ignore modifier keys as triggers
           if (key == LogicalKeyboardKey.controlLeft ||
               key == LogicalKeyboardKey.controlRight ||
