@@ -68,32 +68,47 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
     _handyBle.value = null;
 
     _isConnecting.value = true;
-    _handyBle.value = await HandyBle.startScanning(
-      settingsModel.min,
-      settingsModel.max,
-    );
-    if (_handyBle.value != null) {
-      await _handyBle.value?.init();
-    } else {
-      AlertManager.showError("Handy BLE device not found.");
+    try {
+      final ble = await HandyBle.startScanning(
+        settingsModel.min,
+        settingsModel.max,
+      );
+      _handyBle.value = ble;
+      if (ble == null) {
+        // scanForDevice already timed out (30s) or found nothing.
+        AlertManager.showError(
+          "No Handy found. Make sure it's powered on, nearby, and Bluetooth "
+          "is enabled.",
+        );
+        return;
+      }
+      await ble.init();
+
+      // TODO: this is jank
+      ble.hspThresholdReached = (starving) =>
+          hspThresholdReachedHandler?.call(starving);
+      ble.hspLooped = () => hspLoopHandler?.call();
+
+      effectAdd([
+        effect(() {
+          final battery = _handyBle.value?.batteryState.value;
+          batteryModel.hasBattery.value = battery != null;
+          if (battery != null) {
+            batteryModel.chargerConnected.value = battery.chargerConnected;
+            batteryModel.batteryLevel.value = battery.level;
+          }
+        }),
+      ]);
+    } catch (e) {
+      // A thrown scan/init (adapter off, permission denied, GATT failure)
+      // would otherwise strand the button on "Scanning…" and leak the
+      // half-open handle. Tear it down and surface a reason.
+      await _handyBle.value?.dispose();
+      _handyBle.value = null;
+      AlertManager.showError("Couldn't connect to the Handy: $e");
+    } finally {
+      _isConnecting.value = false;
     }
-    _isConnecting.value = false;
-
-    // TODO: this is jank
-    _handyBle.value?.hspThresholdReached = (starving) =>
-        hspThresholdReachedHandler?.call(starving);
-    _handyBle.value?.hspLooped = () => hspLoopHandler?.call();
-
-    effectAdd([
-      effect(() {
-        final battery = _handyBle.value?.batteryState.value;
-        batteryModel.hasBattery.value = battery != null;
-        if (battery != null) {
-          batteryModel.chargerConnected.value = battery.chargerConnected;
-          batteryModel.batteryLevel.value = battery.level;
-        }
-      }),
-    ]);
   }
 
   @override

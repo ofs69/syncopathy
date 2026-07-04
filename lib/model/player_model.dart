@@ -359,6 +359,12 @@ class PlayerModel with EffectDispose {
     await playerBackend.value?.dispose();
     playerBackend.value = null;
     await _updateBackend(_settings.playerBackendType.value, _batteryModel);
-    await playerBackend.value?.tryConnect();
+    // Backends surface their own connection failures; this guard is a
+    // backstop so a stray throw can't become an unhandled async error.
+    try {
+      await playerBackend.value?.tryConnect();
+    } catch (e, st) {
+      Logger.error("Backend connect failed", e, st);
+    }
   }
 }
