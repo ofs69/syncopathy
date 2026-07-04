@@ -32,14 +32,18 @@ class _HomeButtonState extends State<HomeButton> {
             ),
           ),
 
-        // The Button
+        // The Button. The house icon mirrors what the mode does — sends the
+        // device "home" — rather than the old plane metaphor.
         IconButton(
           isSelected: enabled,
-          icon: const Icon(Icons.flight_takeoff),
-          selectedIcon: Icon(Icons.flight_land, color: successColor),
-          onPressed: () =>
-              settings.homeDeviceEnabled.value = !enabled,
-          tooltip: enabled ? 'Home Mode is on — tap to turn off' : 'Home Mode — tap to turn on',
+          icon: const Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home, color: successColor),
+          onPressed: () => settings.homeDeviceEnabled.value = !enabled,
+          tooltip: enabled
+              ? 'Home Mode on — device parked at its rest position, script '
+                    'paused. Tap to resume playback.'
+              : 'Home Mode — park the device at its rest position and ignore '
+                    'the script. Tap to enable.',
         ),
       ],
     );
