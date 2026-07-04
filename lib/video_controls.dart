@@ -27,7 +27,10 @@ class VideoControls extends StatefulWidget {
 }
 
 class _VideoControlsState extends State<VideoControls> {
-  double _lastVolume = 100.0;
+  double _lastVolume = _maxVolume;
+
+  // The player's volume scale runs 0..100 rather than 0..1.
+  static const double _maxVolume = 100.0;
 
   // At/below this volume the player is treated as muted.
   static const double _muteThreshold = 0.1;
@@ -68,6 +71,7 @@ class _VideoControlsState extends State<VideoControls> {
                         icon: Icon(
                           player.paused.value ? Icons.play_arrow : Icons.pause,
                         ),
+                        tooltip: player.paused.value ? 'Play' : 'Pause',
                         onPressed: player.togglePause,
                       ),
                     ),
@@ -102,6 +106,7 @@ class _VideoControlsState extends State<VideoControls> {
                         _buildSettingsButton(),
                         IconButton(
                           icon: const Icon(Icons.fullscreen),
+                          tooltip: 'Toggle fullscreen',
                           onPressed: widget.onFullscreenToggle,
                         ),
                       ],
@@ -169,12 +174,12 @@ class _VideoControlsState extends State<VideoControls> {
     return Watch.builder(
       builder: (context) {
         final volume = player.volume.value;
+        final muted = volume <= _muteThreshold;
         return IconButton(
-          icon: Icon(
-            volume <= _muteThreshold ? Icons.volume_off : Icons.volume_up,
-          ),
+          icon: Icon(muted ? Icons.volume_off : Icons.volume_up),
+          tooltip: muted ? 'Unmute' : 'Mute',
           onPressed: () {
-            if (volume <= _muteThreshold) {
+            if (muted) {
               player.setVolume(_lastVolume);
             } else {
               _lastVolume = volume;
@@ -198,12 +203,11 @@ class _VideoControlsState extends State<VideoControls> {
   }
 
   Widget _buildGraphButton() {
+    final showing = widget.showFunscriptGraph.watch(context);
     return IconButton(
-      icon: Icon(
-        widget.showFunscriptGraph.watch(context)
-            ? Icons.timeline
-            : Icons.timeline_sharp,
-      ),
+      isSelected: showing,
+      icon: const Icon(Icons.show_chart),
+      tooltip: showing ? 'Hide funscript graph' : 'Show funscript graph',
       onPressed: () =>
           widget.showFunscriptGraph.value = !widget.showFunscriptGraph.value,
     );
@@ -257,12 +261,11 @@ class _VideoControlsState extends State<VideoControls> {
   }
 
   Widget _buildSettingsButton() {
+    final showing = widget.showSettings.watch(context);
     return IconButton(
-      icon: Icon(
-        widget.showSettings.watch(context)
-            ? Icons.settings
-            : Icons.settings_outlined,
-      ),
+      isSelected: showing,
+      icon: Icon(showing ? Icons.settings : Icons.settings_outlined),
+      tooltip: showing ? 'Hide settings' : 'Show settings',
       onPressed: () => widget.showSettings.value = !widget.showSettings.value,
     );
   }
@@ -279,6 +282,7 @@ class _VideoControlsState extends State<VideoControls> {
               height: 32,
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
+                  // YouTube-style red volume bar (intentional, not themed).
                   activeTrackColor: Colors.redAccent,
                   inactiveTrackColor: Theme.of(
                     context,
@@ -290,7 +294,7 @@ class _VideoControlsState extends State<VideoControls> {
                 ),
                 child: Slider(
                   value: player.volume.value,
-                  max: 100,
+                  max: _maxVolume,
                   onChanged: player.setVolume,
                 ),
               ),
