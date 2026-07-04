@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/model/player_model.dart';
 
@@ -47,13 +48,16 @@ class ConnectionButton extends StatelessWidget {
                 ? Icons.bluetooth_disabled
                 : Icons.wifi_off;
 
+            final colorScheme = Theme.of(context).colorScheme;
             return Tooltip(
-              message: connected ? "Connected" : "Disconnected",
+              message: connected
+                  ? "Connected — tap to disconnect"
+                  : "Disconnected — tap to connect",
               child: TextButton.icon(
                 label: Text(connected ? "Connected" : "Disconnected"),
                 icon: Icon(
                   connected ? connectedIcon : disconnectedIcon,
-                  color: connected ? Colors.green : Colors.red,
+                  color: connected ? successColor : colorScheme.error,
                 ),
                 onPressed: isConnecting
                     ? null
