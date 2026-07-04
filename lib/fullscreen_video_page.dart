@@ -59,16 +59,17 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
           backgroundColor: widget.isEmbeddedPlayerEnabled
               ? Colors.black
               : Colors.transparent,
+          // No Hero here: the video controls use OverlayPortal-backed
+          // Tooltips, and a Hero flight reparents that subtree into the
+          // Navigator overlay, tripping an overlay-theater assertion. A plain
+          // route transition avoids the crash.
           body: Center(
-            child: Hero(
-              tag: 'videoPlayer',
-              child: VideoWidget(
-                player: widget.player,
-                isFullscreen: true,
-                showControls: widget.showControls,
-                showFunscriptGraph: widget.showFunscriptGraph,
-                showSettings: widget.showSettings,
-              ),
+            child: VideoWidget(
+              player: widget.player,
+              isFullscreen: true,
+              showControls: widget.showControls,
+              showFunscriptGraph: widget.showFunscriptGraph,
+              showSettings: widget.showSettings,
             ),
           ),
         ),

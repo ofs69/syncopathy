@@ -62,15 +62,15 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
 
     return Stack(
       children: [
-        Hero(
-          tag: 'videoPlayer',
-          child: VideoWidget(
-            player: player,
-            isFullscreen: false,
-            showControls: _showControls,
-            showFunscriptGraph: settingsModel.funscriptGraphEnabled,
-            showSettings: _showSettings,
-          ),
+        // No Hero: the controls' OverlayPortal-backed Tooltips can't survive a
+        // Hero flight into the Navigator overlay (it asserts on the overlay
+        // theater size). Fullscreen uses a plain route transition instead.
+        VideoWidget(
+          player: player,
+          isFullscreen: false,
+          showControls: _showControls,
+          showFunscriptGraph: settingsModel.funscriptGraphEnabled,
+          showSettings: _showSettings,
         ),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 500),
