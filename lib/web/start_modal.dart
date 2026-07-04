@@ -14,6 +14,40 @@ class StartupModal extends StatefulWidget {
 class _StartupModalState extends State<StartupModal> with SignalsMixin {
   late final Signal<bool> _neverShowAgain = createSignal(false);
 
+  // Created once and disposed in dispose() — building them inline in build()
+  // leaks a recognizer on every rebuild.
+  late final TapGestureRecognizer _repoTap = TapGestureRecognizer()
+    ..onTap = () => _launch("https://github.com/ofs69/syncopathy");
+  late final TapGestureRecognizer _bluetoothTap = TapGestureRecognizer()
+    ..onTap = () => _launch("https://caniuse.com/web-bluetooth");
+
+  @override
+  void dispose() {
+    _repoTap.dispose();
+    _bluetoothTap.dispose();
+    super.dispose();
+  }
+
+  Future<void> _launch(String url) async {
+    try {
+      final ok = await launchUrl(Uri.parse(url));
+      if (!ok && mounted) _showLaunchError(url);
+    } catch (_) {
+      if (mounted) _showLaunchError(url);
+    }
+  }
+
+  void _showLaunchError(String url) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text("Couldn't open $url")));
+  }
+
+  TextStyle get _linkStyle => TextStyle(
+    color: Theme.of(context).colorScheme.primary,
+    decoration: TextDecoration.underline,
+  );
+
   @override
   Widget build(BuildContext context) {
     final neverShowAgain = _neverShowAgain.watch(context);
@@ -33,11 +67,8 @@ class _StartupModalState extends State<StartupModal> with SignalsMixin {
                   ),
                   TextSpan(
                     text: "syncopathy",
-                    style: const TextStyle(color: Colors.blue),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () => launchUrl(
-                        Uri.parse("https://github.com/ofs69/syncopathy"),
-                      ),
+                    style: _linkStyle,
+                    recognizer: _repoTap,
                   ),
                   const TextSpan(text: ".\n"),
                   TextSpan(
@@ -47,11 +78,8 @@ class _StartupModalState extends State<StartupModal> with SignalsMixin {
                   TextSpan(text: "You can check support here "),
                   TextSpan(
                     text: "web bluetooth",
-                    style: const TextStyle(color: Colors.blue),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () => launchUrl(
-                        Uri.parse("https://caniuse.com/web-bluetooth"),
-                      ),
+                    style: _linkStyle,
+                    recognizer: _bluetoothTap,
                   ),
                   TextSpan(text: ".\n"),
                 ],
@@ -73,14 +101,27 @@ class _StartupModalState extends State<StartupModal> with SignalsMixin {
       actions: [
         Row(
           children: [
-            // Checkbox and Label
-            Checkbox(
-              value: neverShowAgain,
-              onChanged: (bool? value) {
-                _neverShowAgain.value = value ?? false;
-              },
+            // Checkbox and label — the whole thing toggles, not just the box.
+            InkWell(
+              borderRadius: BorderRadius.circular(4),
+              onTap: () => _neverShowAgain.value = !neverShowAgain,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Checkbox(
+                    value: neverShowAgain,
+                    onChanged: (bool? value) {
+                      _neverShowAgain.value = value ?? false;
+                    },
+                  ),
+                  const Text(
+                    "Don't show again",
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(width: 4),
+                ],
+              ),
             ),
-            const Text("Don't show again", style: TextStyle(fontSize: 14)),
 
             const Spacer(),
             // Dismiss Button
