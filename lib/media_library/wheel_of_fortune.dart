@@ -29,6 +29,7 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog>
   @override
   void initState() {
     super.initState();
+    if (widget.mediaFiles.isEmpty) return;
     _selectedIndex.value = _random.nextInt(widget.mediaFiles.length);
     Future.delayed(const Duration(milliseconds: 200), () {
       if (mounted) {
@@ -53,6 +54,18 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog>
 
   @override
   Widget build(BuildContext context) {
+    if (widget.mediaFiles.isEmpty) {
+      return AlertDialog(
+        content: const Text('No videos available to pick from.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      );
+    }
+
     _selectedIndex.watch(context);
     final items = <FortuneItem>[
       for (var i = 0; i < widget.mediaFiles.length; i++)
@@ -74,10 +87,15 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog>
         ),
     ];
 
+    // Keep the wheel square but never larger than the available window, so it
+    // doesn't overflow on small windows (this is a resizable desktop/web app).
+    final screenSize = MediaQuery.of(context).size;
+    final side = min(600.0, min(screenSize.width, screenSize.height) * 0.8);
+
     return AlertDialog(
       content: SizedBox(
-        height: 600,
-        width: 600,
+        height: side,
+        width: side,
         child: RepaintBoundary(
           child: FortuneWheel(
             selected: _selected.stream,
