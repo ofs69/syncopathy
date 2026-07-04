@@ -72,18 +72,26 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
     });
   }
 
+  static const int _minViewMs = 1000;
+  static const int _maxViewMs = 10000;
+
+  /// Scale the visible time window by [factor] (>1 zooms out, <1 zooms in),
+  /// clamped. Shared by the scroll wheel and the on-screen zoom buttons so the
+  /// gesture-free path stays in lockstep with the wheel.
+  void _zoom(double factor) {
+    widget.viewDuration.value = Duration(
+      milliseconds: (widget.viewDuration.value.inMilliseconds * factor)
+          .round()
+          .clamp(_minViewMs, _maxViewMs),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Listener(
       onPointerSignal: (event) {
         if (event is PointerScrollEvent) {
-          final scrollValue = event.scrollDelta.dy > 0 ? 1.1 : 0.9;
-          widget.viewDuration.value = Duration(
-            milliseconds:
-                (widget.viewDuration.value.inMilliseconds * scrollValue)
-                    .round()
-                    .clamp(1000, 10000),
-          );
+          _zoom(event.scrollDelta.dy > 0 ? 1.1 : 0.9);
         }
       },
       child: Watch.builder(

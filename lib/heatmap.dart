@@ -95,140 +95,154 @@ class _HeatmapState extends State<Heatmap> {
     }
   }
 
+  /// Seek by [delta] of the total duration (e.g. 0.02 = 2%). Backs the
+  /// screen-reader / keyboard slider actions so the seek bar isn't
+  /// mouse-gesture-only.
+  void _seekByFraction(double delta) {
+    final durationMs = widget.totalDurationMs;
+    if (durationMs <= 0) return;
+    final current =
+        widget.videoPositionFixedStep.value / videoPlayerPositionFixedStepCount;
+    final target = (current + delta).clamp(0.0, 1.0);
+    widget.onClick(Duration(milliseconds: (target * durationMs).round()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return MouseRegion(
-          onHover: (event) {
-            if (widget.totalDurationMs > 0 && constraints.maxWidth > 0) {
-              _hoverPosition.value = event.localPosition.dx.clamp(
-                0,
-                constraints.maxWidth,
-              );
-            }
-          },
-          onExit: (event) {
-            _hoverPosition.value = null;
-          },
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onPanStart: (details) {
-              _hoverPosition.value = null;
-            },
-            onPanUpdate: (details) {
-              _throttler.run(() async {
-                _handleInteraction(details.localPosition, constraints);
-              });
-            },
-            onTapUp: (details) {
-              _handleInteraction(details.localPosition, constraints);
-            },
-            onTapDown: (details) {
-              _handleInteraction(details.localPosition, constraints);
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Expanded(
-                  flex: 6,
-                  child: Stack(
-                    // Allows the Slider thumb to overflow the stack bounds if needed
-                    clipBehavior: Clip.none,
-                    fit: StackFit.expand,
-                    children: [
-                      // 1. Heatmap painter (Background layer)
-                      RepaintBoundary(
-                        child: Watch.builder(
-                          builder: (context) {
-                            final duration =
-                                ((widget.totalDuration.value ?? 0.0) * 1000.0)
-                                    .round();
-                            final playbackSpeed = widget.playbackSpeed.value;
-                            return CustomPaint(
-                              painter: HeatmapPainter(
-                                actions: widget.actions,
-                                totalDuration: Duration(milliseconds: duration),
-                                playbackSpeed: playbackSpeed,
-                                effectiveSpeeds: _effectiveSpeeds(
-                                  widget.actions,
-                                  playbackSpeed,
-                                  widget.strokeRange.value,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+        // The real seek control is the gesture detector below; expose it to
+        // screen readers / keyboards as a slider (the old bottom Slider was a
+        // no-op decoration).
+        return Semantics(
+          slider: true,
+          label: 'Seek position',
+          onIncrease: () => _seekByFraction(0.02),
+          onDecrease: () => _seekByFraction(-0.02),
+          child: _buildHeatmap(context, constraints),
+        );
+      },
+    );
+  }
 
-                      // 2. Indicator painter (Vertical white line)
-                      Watch.builder(
-                        builder: (context) {
-                          final position = widget.videoPositionFixedStep.value;
-                          return CustomPaint(
-                            painter: IndicatorPainter(
-                              videoPositionStep: position,
-                            ),
-                          );
-                        },
-                      ),
-
-                      // 3. Hover indicator (Vertical line on mouse hover)
-                      Watch.builder(
-                        builder: (context) {
-                          final hoverX = _hoverPosition.value;
-                          if (hoverX == null) {
-                            return const SizedBox.shrink();
-                          }
-                          return CustomPaint(
-                            painter: HoverIndicatorPainter(hoverX: hoverX),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                // 4. Visual Slider Timeline (Aligned to bottom)
-                Expanded(
-                  flex: 1,
-                  child: IgnorePointer(
+  Widget _buildHeatmap(BuildContext context, BoxConstraints constraints) {
+    return MouseRegion(
+      onHover: (event) {
+        if (widget.totalDurationMs > 0 && constraints.maxWidth > 0) {
+          _hoverPosition.value = event.localPosition.dx.clamp(
+            0,
+            constraints.maxWidth,
+          );
+        }
+      },
+      onExit: (event) {
+        _hoverPosition.value = null;
+      },
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanStart: (details) {
+          _hoverPosition.value = null;
+        },
+        onPanUpdate: (details) {
+          _throttler.run(() async {
+            _handleInteraction(details.localPosition, constraints);
+          });
+        },
+        onTapUp: (details) {
+          _handleInteraction(details.localPosition, constraints);
+        },
+        onTapDown: (details) {
+          _handleInteraction(details.localPosition, constraints);
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              flex: 6,
+              child: Stack(
+                // Allows the Slider thumb to overflow the stack bounds if needed
+                clipBehavior: Clip.none,
+                fit: StackFit.expand,
+                children: [
+                  // 1. Heatmap painter (Background layer)
+                  RepaintBoundary(
                     child: Watch.builder(
                       builder: (context) {
-                        final positionStep =
-                            widget.videoPositionFixedStep.value;
-
-                        return SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            padding: EdgeInsets.all(0),
-                            trackShape: const RectangularSliderTrackShape(),
-                            trackHeight: 4.0,
-                            activeTrackColor: Colors.redAccent,
-                            inactiveTrackColor: Theme.of(
-                              context,
-                            ).colorScheme.onInverseSurface,
-                            thumbColor: Colors.red,
-                            overlayColor: Colors.transparent,
-                            thumbShape: const RoundSliderThumbShape(
-                              enabledThumbRadius: 8.0,
+                        final duration =
+                            ((widget.totalDuration.value ?? 0.0) * 1000.0)
+                                .round();
+                        final playbackSpeed = widget.playbackSpeed.value;
+                        return CustomPaint(
+                          painter: HeatmapPainter(
+                            actions: widget.actions,
+                            totalDuration: Duration(milliseconds: duration),
+                            playbackSpeed: playbackSpeed,
+                            effectiveSpeeds: _effectiveSpeeds(
+                              widget.actions,
+                              playbackSpeed,
+                              widget.strokeRange.value,
                             ),
-                          ),
-                          child: Slider(
-                            value: positionStep
-                                .clamp(0, videoPlayerPositionFixedStepCount)
-                                .toDouble(),
-                            max: videoPlayerPositionFixedStepCount.toDouble(),
-                            onChanged: (_) {},
                           ),
                         );
                       },
                     ),
                   ),
-                ),
-              ],
+
+                  // 2. Indicator painter (Vertical white line)
+                  Watch.builder(
+                    builder: (context) {
+                      final position = widget.videoPositionFixedStep.value;
+                      return CustomPaint(
+                        painter: IndicatorPainter(videoPositionStep: position),
+                      );
+                    },
+                  ),
+
+                  // 3. Hover indicator (Vertical line on mouse hover)
+                  Watch.builder(
+                    builder: (context) {
+                      final hoverX = _hoverPosition.value;
+                      if (hoverX == null) {
+                        return const SizedBox.shrink();
+                      }
+                      return CustomPaint(
+                        painter: HoverIndicatorPainter(hoverX: hoverX),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+            // 4. Passive progress timeline (aligned to bottom). Not a
+            // Slider — it only reflects position; seeking happens via the
+            // gesture detector above (exposed as the Semantics slider).
+            Expanded(
+              flex: 1,
+              child: Align(
+                alignment: Alignment.center,
+                child: ExcludeSemantics(
+                  child: Watch.builder(
+                    builder: (context) {
+                      final positionStep = widget.videoPositionFixedStep.value;
+                      final value =
+                          (positionStep / videoPlayerPositionFixedStepCount)
+                              .clamp(0.0, 1.0);
+                      return LinearProgressIndicator(
+                        value: value,
+                        minHeight: 4.0,
+                        color: Colors.redAccent,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onInverseSurface,
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
