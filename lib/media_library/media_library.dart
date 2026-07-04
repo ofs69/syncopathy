@@ -286,7 +286,7 @@ class _MediaLibraryState extends State<MediaLibrary>
             },
       tooltip: sortOption == SortOption.random
           ? 'Randomize'
-          : (isSortAscending ? 'Sort Descending' : 'Sort Ascending'),
+          : (isSortAscending ? 'Sorted Ascending' : 'Sorted Descending'),
     );
   }
 

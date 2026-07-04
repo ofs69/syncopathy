@@ -17,7 +17,7 @@ class MediaKitPlayerImpl extends VideoPlayer {
           'config': 'yes',
           'config-dir': '',
           'input-default-bindings': 'yes',
-          'hwdec': 'auto-safe',
+          'hwdec': 'auto-copy',
           'border': 'yes',
           'geometry': "1280x720",
           'idle': 'yes',
@@ -32,7 +32,7 @@ class MediaKitPlayerImpl extends VideoPlayer {
             player,
             configuration: VideoControllerConfiguration(
               vo: 'libmpv',
-              hwdec: 'auto-safe',
+              hwdec: 'auto-copy',
             ),
           )
         : null;
