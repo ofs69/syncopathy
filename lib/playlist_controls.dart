@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/player/video_player.dart';
 
 class PlaylistControls extends StatefulWidget {
@@ -37,7 +38,7 @@ class _PlaylistControlsState extends State<PlaylistControls> {
                   minWidth: 40.0,
                   minHeight: 40.0,
                 ),
-                selectedColor: Colors.green,
+                selectedColor: successColor,
                 children: [
                   Tooltip(message: 'Shuffle', child: Icon(Icons.shuffle)),
                 ],
@@ -56,13 +57,13 @@ class _PlaylistControlsState extends State<PlaylistControls> {
                       minWidth: 40.0,
                       minHeight: 40.0,
                     ),
-                    selectedColor: Colors.green,
+                    selectedColor: successColor,
                     children: <Widget>[
+                      // Selected state is conveyed by ToggleButtons' selectedColor;
+                      // a single consistent icon avoids the contradictory swap.
                       Tooltip(
                         message: 'Loop',
-                        child: Icon(
-                          isLooping ? Icons.repeat_outlined : Icons.repeat,
-                        ),
+                        child: Icon(Icons.repeat),
                       ),
                     ],
                   );
@@ -86,8 +87,11 @@ class _PlaylistControlsState extends State<PlaylistControls> {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              '${playlist.currentIndex.watch(context) + 1} / ${playlist.entries.length}',
+            Tooltip(
+              message: 'Playlist position',
+              child: Text(
+                '${playlist.currentIndex.watch(context) + 1} / ${playlist.entries.length}',
+              ),
             ),
           ],
         );

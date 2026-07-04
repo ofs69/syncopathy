@@ -83,9 +83,9 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
         width: 3.0,
         strokeAlign: 1,
       ),
-      (_, _, true) => const BorderSide(
-        color: Colors.green,
-        width: 5.0,
+      (_, _, true) => BorderSide(
+        color: successColor,
+        width: 3.0,
         strokeAlign: 1,
       ),
       (MediaRating.noRating, _, _) || (null, _, _) => BorderSide(
