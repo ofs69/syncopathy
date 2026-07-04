@@ -101,6 +101,7 @@ class _FunscriptMetadataFilterBottomSheetState
               if (index == 0) {
                 return ListTile(
                   title: const Text('All'),
+                  subtitle: const Text('No filter — matches everything'),
                   trailing: currentSelectedItems.isEmpty
                       ? const Icon(Icons.check)
                       : null,
@@ -126,11 +127,45 @@ class _FunscriptMetadataFilterBottomSheetState
     );
   }
 
+  Widget _buildTab(String label, int selectedCount) {
+    return Tab(
+      child: Badge(
+        isLabelVisible: selectedCount > 0,
+        label: Text('$selectedCount'),
+        offset: const Offset(16, -6),
+        child: Text(label),
+      ),
+    );
+  }
+
+  void _showInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Metadata filters'),
+        content: const Text(
+          'These filters apply to author, tag, and performer metadata embedded '
+          'within funscripts. Selecting none in a tab matches everything.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Got it'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     _authorSearchText.watch(context);
     _tagSearchText.watch(context);
     _performerSearchText.watch(context);
+
+    final authorCount = widget.selectedAuthors.watch(context).length;
+    final tagCount = widget.selectedTags.watch(context).length;
+    final performerCount = widget.selectedPerformers.watch(context).length;
 
     return DraggableScrollableSheet(
       expand: false,
@@ -139,10 +174,10 @@ class _FunscriptMetadataFilterBottomSheetState
           children: [
             TabBar(
               controller: _tabController,
-              tabs: const [
-                Tab(text: 'Author'),
-                Tab(text: 'Tag'),
-                Tab(text: 'Performer'),
+              tabs: [
+                _buildTab('Author', authorCount),
+                _buildTab('Tag', tagCount),
+                _buildTab('Performer', performerCount),
               ],
             ),
             Expanded(
@@ -214,6 +249,7 @@ class _FunscriptMetadataFilterBottomSheetState
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   TextButton.icon(
+                    icon: const Icon(Icons.restart_alt),
                     label: const Text("Reset"),
                     onPressed: () {
                       widget.selectedAuthors.clear();
@@ -221,13 +257,10 @@ class _FunscriptMetadataFilterBottomSheetState
                       widget.selectedTags.clear();
                     },
                   ),
-                  Tooltip(
-                    message:
-                        'These filters apply to metadata embedded within funscripts.',
-                    child: IconButton(
-                      icon: const Icon(Icons.info_outline),
-                      onPressed: () {},
-                    ),
+                  IconButton(
+                    icon: const Icon(Icons.info_outline),
+                    tooltip: 'About these filters',
+                    onPressed: _showInfoDialog,
                   ),
                 ],
               ),
