@@ -199,24 +199,24 @@ abstract class VideoPlayer with EffectDispose {
 
   void jumpPreviousPlaylistEntry() {
     final playlistModel = currentPlaylist.value;
-    final newIndex = (playlistModel.currentIndex.value - 1).clamp(
-      0,
-      playlistModel.entries.length - 1,
-    );
-
-    if (newIndex != playlistModel.currentIndex.value) {
+    final count = playlistModel.entries.length;
+    if (count <= 1) return;
+    // Wrap around: stepping back from the first entry lands on the last.
+    final current = playlistModel.currentIndex.value.clamp(0, count - 1);
+    final newIndex = (current - 1 + count) % count;
+    if (newIndex != current) {
       player.jump(newIndex);
     }
   }
 
   void jumpNextPlaylistEntry() {
     final playlistModel = currentPlaylist.value;
-    final newIndex = (playlistModel.currentIndex.value + 1).clamp(
-      0,
-      playlistModel.entries.length - 1,
-    );
-
-    if (newIndex != playlistModel.currentIndex.value) {
+    final count = playlistModel.entries.length;
+    if (count <= 1) return;
+    // Wrap around: stepping past the last entry lands on the first.
+    final current = playlistModel.currentIndex.value.clamp(0, count - 1);
+    final newIndex = (current + 1) % count;
+    if (newIndex != current) {
       player.jump(newIndex);
     }
   }

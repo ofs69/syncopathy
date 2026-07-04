@@ -25,6 +25,7 @@ class _PlaylistControlsState extends State<PlaylistControls> {
         }
 
         final isShuffled = player.playlistShuffled.watch(context);
+        final index = playlist.currentIndex.value;
         return Row(
           children: [
             Padding(
@@ -89,9 +90,7 @@ class _PlaylistControlsState extends State<PlaylistControls> {
             const SizedBox(width: 8),
             Tooltip(
               message: 'Playlist position',
-              child: Text(
-                '${playlist.currentIndex.watch(context) + 1} / ${playlist.entries.length}',
-              ),
+              child: Text('${index + 1} / ${playlist.entries.length}'),
             ),
           ],
         );
