@@ -42,6 +42,8 @@ class VideoWidget extends StatefulWidget {
 
 class _VideoWidgetState extends State<VideoWidget>
     with EffectDispose, SignalsMixin {
+  static const Duration _controlsHideDelay = Duration(seconds: 3);
+
   Timer? _hideControlsTimer;
   // Pointer move/hover fire rapidly; throttle restarting the (allocating) hide
   // timer instead of cancelling+recreating one per event. The 3s hide window
@@ -72,7 +74,7 @@ class _VideoWidgetState extends State<VideoWidget>
 
   void _startHideControlsTimer() {
     _hideControlsTimer?.cancel();
-    _hideControlsTimer = Timer(const Duration(seconds: 3), () {
+    _hideControlsTimer = Timer(_controlsHideDelay, () {
       if (mounted) {
         widget.showControls.value = false;
       }
@@ -105,40 +107,46 @@ class _VideoWidgetState extends State<VideoWidget>
                 videoHeight,
               );
 
-              return Listener(
-                onPointerMove: (_) => _onPointerActivity(),
-                child: MouseRegion(
-                  cursor: showControls
-                      ? MouseCursor.defer
-                      : SystemMouseCursors.none,
-                  onExit: (_) => widget.showControls.value = false,
-                  onHover: (_) => _onPointerActivity(),
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      Stack(
-                        children: [
-                          if (videoController != null)
-                            _videoContainer(
-                              videoController,
-                              videoWidth,
-                              videoHeight,
+              return GestureDetector(
+                // Touch has no hover/move to reveal controls, so a tap toggles
+                // them. Taps that land on an actual control lose the gesture
+                // arena to that control, so this only fires on the video area.
+                onTap: _onToggleControls,
+                child: Listener(
+                  onPointerMove: (_) => _onPointerActivity(),
+                  child: MouseRegion(
+                    cursor: showControls
+                        ? MouseCursor.defer
+                        : SystemMouseCursors.none,
+                    onExit: (_) => widget.showControls.value = false,
+                    onHover: (_) => _onPointerActivity(),
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        Stack(
+                          children: [
+                            if (videoController != null)
+                              _videoContainer(
+                                videoController,
+                                videoWidth,
+                                videoHeight,
+                              ),
+                            Align(
+                              alignment: AlignmentGeometry.bottomCenter,
+                              child: _buildOverlayColumn(
+                                context,
+                                player,
+                                playerModel,
+                                settings,
+                                showSettings: showSettings,
+                                showControls: showControls,
+                                displayWidth: displayWidth,
+                              ),
                             ),
-                          Align(
-                            alignment: AlignmentGeometry.bottomCenter,
-                            child: _buildOverlayColumn(
-                              context,
-                              player,
-                              playerModel,
-                              settings,
-                              showSettings: showSettings,
-                              showControls: showControls,
-                              displayWidth: displayWidth,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -153,6 +161,17 @@ class _VideoWidgetState extends State<VideoWidget>
   void _onPointerActivity() {
     widget.showControls.value = true;
     _controlsThrottle.run(_startHideControlsTimer);
+  }
+
+  /// Tap toggles the controls — the touch equivalent of hover, since a tap
+  /// produces no hover/move event to reveal them.
+  void _onToggleControls() {
+    if (widget.showControls.value) {
+      _hideControlsTimer?.cancel();
+      widget.showControls.value = false;
+    } else {
+      _onPointerActivity();
+    }
   }
 
   /// Width the video actually occupies, so the funscript graph can be bounded
@@ -195,13 +214,15 @@ class _VideoWidgetState extends State<VideoWidget>
         ),
         widget.showFunscriptGraph.watch(context)
             ? ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: 50.0,
-                  maxHeight: 150.0,
-                  maxWidth: displayWidth,
-                ),
+                // Height is a single clamped value rather than a fixed-fraction
+                // SizedBox fighting a min/max ConstrainedBox; width stays
+                // bounded to the (possibly pillarboxed) video.
+                constraints: BoxConstraints(maxWidth: displayWidth),
                 child: SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.15,
+                  height: (MediaQuery.sizeOf(context).height * 0.15).clamp(
+                    50.0,
+                    150.0,
+                  ),
                   child: _funscriptGraph(
                     playerModel.currentlyOpen,
                     player,
