@@ -158,19 +158,36 @@ class AlertItem extends StatefulWidget {
 class _AlertItemState extends State<AlertItem> {
   bool _isExpanded = false;
 
+  /// Shows just the time for today's alerts, and includes the date otherwise so
+  /// alerts spanning multiple days aren't ambiguous.
+  String _formatTimestamp(DateTime ts) {
+    final now = DateTime.now();
+    final hh = ts.hour.toString().padLeft(2, '0');
+    final mm = ts.minute.toString().padLeft(2, '0');
+    final isToday =
+        ts.year == now.year && ts.month == now.month && ts.day == now.day;
+    if (isToday) return '$hh:$mm';
+    final mo = ts.month.toString().padLeft(2, '0');
+    final da = ts.day.toString().padLeft(2, '0');
+    return '${ts.year}-$mo-$da $hh:$mm';
+  }
+
   @override
   Widget build(BuildContext context) {
     final manager = Provider.of<AlertManager>(context, listen: false);
+    final scheme = Theme.of(context).colorScheme;
+    // Error maps to the theme's error role; warning/info/debug keep conventional
+    // severity colors (Material has no theme role for these).
     final color = switch (widget.alert.level) {
       LogLevel.warning => Colors.orange,
-      LogLevel.error => Colors.red,
+      LogLevel.error => scheme.error,
       LogLevel.info => Colors.blue,
       LogLevel.debug => Colors.grey,
     };
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      color: widget.alert.isRead ? null : Colors.blueGrey.withAlpha(50),
+      color: widget.alert.isRead ? null : scheme.primaryContainer,
       child: Column(
         children: [
           ListTile(
@@ -185,9 +202,7 @@ class _AlertItemState extends State<AlertItem> {
               maxLines: _isExpanded ? null : 2,
               overflow: _isExpanded ? null : TextOverflow.ellipsis,
             ),
-            subtitle: Text(
-              '${widget.alert.timestamp.hour.toString().padLeft(2, '0')}:${widget.alert.timestamp.minute.toString().padLeft(2, '0')}',
-            ),
+            subtitle: Text(_formatTimestamp(widget.alert.timestamp)),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline, size: 20),
               onPressed: () => manager.removeAlert(widget.alert.id),

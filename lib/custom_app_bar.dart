@@ -148,8 +148,10 @@ class CustomAppBarState extends State<CustomAppBar> {
         Icon(
           chargerConnected ? Icons.battery_charging_full : Icons.battery_full,
           color: chargerConnected
-              ? Colors.green
-              : (batteryModel.batteryLevel.value < 20 ? Colors.red : null),
+              ? successColor
+              : (batteryModel.batteryLevel.value < lowBatteryThreshold
+                    ? Theme.of(context).colorScheme.error
+                    : null),
         ),
       ],
     );

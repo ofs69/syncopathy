@@ -3,6 +3,9 @@ import 'package:syncopathy/helper/extensions.dart';
 
 const int maxConcurrentProcess = 4;
 
+/// Battery percentage below which the indicator turns red.
+const int lowBatteryThreshold = 20;
+
 const double speedNormalizationValue = 0.4;
 Color get favoriteColor => Colors.amber.shade600;
 Color get dislikeColor => Colors.lightBlue.shade500;
