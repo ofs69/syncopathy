@@ -101,12 +101,14 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
     if (kIsWeb) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         // Show start modal
-        final dismiss = await showDialog(
+        final dismiss = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
           builder: (context) => const StartupModal(),
         );
-        if (dismiss) {
+        // The modal can close without returning true (e.g. a plain pop); only
+        // record dismissal on an explicit true so it reappears otherwise.
+        if (dismiss == true) {
           sharedPref.setInt(
             'dismissedStartModal',
             StartupModal.currentModalVersion,
@@ -130,9 +132,15 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
     _selectedIndex = index;
     final int currentPage = _pageController.page?.round() ?? _selectedIndex;
     final int pageDelta = (index - currentPage).abs();
+    // Scale the duration with the distance jumped, but clamp it so crossing
+    // several tabs at once can't produce a multi-second animation.
+    final int durationMs = (300 * (pageDelta == 0 ? 1 : pageDelta)).clamp(
+      300,
+      600,
+    );
     _pageController.animateToPage(
       index,
-      duration: Duration(milliseconds: 300 * (pageDelta == 0 ? 1 : pageDelta)),
+      duration: Duration(milliseconds: durationMs),
       curve: Curves.ease,
     );
   }
@@ -265,6 +273,17 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
                     onPageChanged: (index) => _selectedIndex = index,
                     pageController: _pageController,
                   ),
+                  // Portrait has no rail to host the trailing status, so float
+                  // the thumbnail-generation indicator over the page instead.
+                  if (isPortrait && withMedia)
+                    Positioned(
+                      right: 16,
+                      bottom: 16,
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: _buildStatus(context),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -278,23 +297,35 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
     final count = ThumbnailGenerator().queueLength.watch(context);
 
     if (count > 0) {
-      return Column(
+      final scheme = Theme.of(context).colorScheme;
+      return Tooltip(
         key: const ValueKey('busy'),
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Tooltip(
-            message: "Generating Thumbnails...",
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              child: Text("$count"),
-            ),
+        message: "Generating thumbnails…",
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: scheme.primaryContainer,
+            borderRadius: BorderRadius.circular(12.0),
           ),
-        ],
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: scheme.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                "$count",
+                style: TextStyle(color: scheme.onPrimaryContainer),
+              ),
+            ],
+          ),
+        ),
       );
     }
     return const SizedBox.shrink(key: ValueKey("not_busy"));
