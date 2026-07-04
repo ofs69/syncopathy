@@ -46,6 +46,7 @@ class SettingsOverlay extends StatelessWidget {
     required String title,
     required List<Widget> children,
     void Function()? onClose,
+    String closeTooltip = 'Remove',
   }) {
     return SizedBox(
       width: width,
@@ -76,6 +77,7 @@ class SettingsOverlay extends StatelessWidget {
                   if (onClose != null)
                     IconButton(
                       onPressed: onClose,
+                      tooltip: closeTooltip,
                       icon: const Icon(Icons.delete),
                     ),
                 ],

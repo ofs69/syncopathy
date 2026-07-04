@@ -268,6 +268,7 @@ class MediaFilterOverlayState extends State<MediaFilterOverlay>
                 return SettingsOverlay.settingsCard(
                   width: 600,
                   title: 'Group ${groupIndex + 1}',
+                  closeTooltip: 'Remove group',
                   onClose: groupIndex == 0
                       ? null
                       : () {
