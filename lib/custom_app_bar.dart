@@ -203,12 +203,53 @@ class CustomAppBarState extends State<CustomAppBar> {
   ) {
     final currentVideo = currentlyOpen?.media;
     if (currentVideo == null) return const SizedBox.shrink();
+    return _MediaActionButtons(
+      video: currentVideo,
+      mediaManager: mediaManager,
+      isPlaylist: playlist,
+    );
+  }
+}
+
+/// The favorite/dislike/close actions for the currently open media. Kept as its
+/// own StatefulWidget so toggling a rating rebuilds just these buttons — which
+/// also keeps the favorite and dislike icons consistent when a toggle flips both
+/// — instead of rebuilding the whole app bar via `setState`.
+class _MediaActionButtons extends StatefulWidget {
+  const _MediaActionButtons({
+    required this.video,
+    required this.mediaManager,
+    required this.isPlaylist,
+  });
+
+  final MediaFile video;
+  final MediaManager? mediaManager;
+  final bool isPlaylist;
+
+  @override
+  State<_MediaActionButtons> createState() => _MediaActionButtonsState();
+}
+
+class _MediaActionButtonsState extends State<_MediaActionButtons> {
+  void _toggleRating(MediaRating rating) {
+    try {
+      oBox.mediaRepository.toggleRating(widget.video, rating);
+    } catch (_) {
+      AlertManager.showError("Couldn't update the rating. Please try again.");
+      return;
+    }
+    // The icon flip (re-read from the entity below) is the confirmation.
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final video = widget.video;
     return Row(
       children: [
-        if (mediaManager != null)
+        if (widget.mediaManager != null)
           _buildRatingButton(
-            video: currentVideo,
-            active: currentVideo.isFavorite,
+            active: video.isFavorite,
             activeIcon: Icons.star,
             inactiveIcon: Icons.star_border,
             activeColor: favoriteColor,
@@ -216,10 +257,9 @@ class CustomAppBarState extends State<CustomAppBar> {
             activeTooltip: 'Remove from Favorites',
             inactiveTooltip: 'Add to Favorites',
           ),
-        if (mediaManager != null)
+        if (widget.mediaManager != null)
           _buildRatingButton(
-            video: currentVideo,
-            active: currentVideo.isDislike,
+            active: video.isDislike,
             activeIcon: Icons.thumb_down,
             inactiveIcon: Icons.thumb_down_off_alt,
             activeColor: dislikeColor,
@@ -227,12 +267,12 @@ class CustomAppBarState extends State<CustomAppBar> {
             activeTooltip: 'Remove Dislike',
             inactiveTooltip: 'Dislike Video',
           ),
-        if (mediaManager != null) const SizedBox(width: 16),
+        if (widget.mediaManager != null) const SizedBox(width: 16),
         if (!syncopathySimpleMode)
           IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => getIt.get<VideoPlayer>().closeMedia(),
-            tooltip: playlist ? 'Close Playlist' : 'Close Video',
+            tooltip: widget.isPlaylist ? 'Close Playlist' : 'Close Video',
           ),
       ],
     );
@@ -242,7 +282,6 @@ class CustomAppBarState extends State<CustomAppBar> {
   /// clears the rating on tap; otherwise it applies [rating]. Shared by the
   /// favorite and dislike buttons.
   Widget _buildRatingButton({
-    required MediaFile video,
     required bool active,
     required IconData activeIcon,
     required IconData inactiveIcon,
@@ -252,12 +291,11 @@ class CustomAppBarState extends State<CustomAppBar> {
     required String inactiveTooltip,
   }) {
     return IconButton(
-      icon: Icon(active ? activeIcon : inactiveIcon, color: active ? activeColor : null),
-      onPressed: () {
-        setState(() {
-          oBox.mediaRepository.toggleRating(video, rating);
-        });
-      },
+      icon: Icon(
+        active ? activeIcon : inactiveIcon,
+        color: active ? activeColor : null,
+      ),
+      onPressed: () => _toggleRating(rating),
       tooltip: active ? activeTooltip : inactiveTooltip,
     );
   }
