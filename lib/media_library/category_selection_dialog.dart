@@ -68,6 +68,27 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog>
     _isLoading.value = false;
   }
 
+  /// Shared by the text field's submit and the add button. Trims the name,
+  /// ignores empty/whitespace-only input, and rejects case-insensitive
+  /// duplicates so both entry points behave identically.
+  Future<void> _addCategory() async {
+    final name = _newCategoryController.text.trim();
+    if (name.isEmpty) return;
+
+    final duplicate = _userCategories.value.any(
+      (c) => c.name.toLowerCase() == name.toLowerCase(),
+    );
+    if (duplicate) {
+      AlertManager.showError('A category named "$name" already exists.');
+      return;
+    }
+
+    await oBox.userCategoryService.createCategory(name);
+    _newCategoryController.clear();
+    _searchController.clear();
+    await _loadCategories();
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -128,31 +149,14 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog>
                           labelText: 'New Category Name',
                           border: OutlineInputBorder(),
                         ),
-                        onSubmitted: (value) async {
-                          if (value.isNotEmpty) {
-                            await oBox.userCategoryService.createCategory(
-                              value,
-                            );
-                            _newCategoryController.clear();
-                            _searchController.clear();
-                            await _loadCategories();
-                          }
-                        },
+                        onSubmitted: (_) => _addCategory(),
                       ),
                     ),
                     const SizedBox(width: 8),
                     IconButton(
                       icon: const Icon(Icons.add),
-                      onPressed: () async {
-                        if (_newCategoryController.text.isNotEmpty) {
-                          await oBox.userCategoryService.createCategory(
-                            _newCategoryController.text,
-                          );
-                          _newCategoryController.clear();
-                          _searchController.clear();
-                          await _loadCategories();
-                        }
-                      },
+                      tooltip: 'Add category',
+                      onPressed: _addCategory,
                     ),
                   ],
                 ),
@@ -164,6 +168,14 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog>
   }
 
   Widget _buildSearchResults(List<UserCategory> filteredCategories) {
+    if (_metaCategories.isEmpty && filteredCategories.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Text('No categories match your search.'),
+        ),
+      );
+    }
     return ListView.builder(
       itemCount: _metaCategories.length + filteredCategories.length,
       itemBuilder: (context, index) {
@@ -212,88 +224,109 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog>
             );
           }
         }),
-        Expanded(
-          child: ReorderableListView.builder(
-            buildDefaultDragHandles: true,
-            itemCount: categories.length,
-            proxyDecorator: (child, index, animation) {
-              return AnimatedBuilder(
-                animation: animation,
-                builder: (BuildContext context, Widget? child) {
-                  return Material(
-                    elevation: 1.0,
-                    color: Colors.transparent,
-                    child: IgnorePointer(ignoring: true, child: child),
-                  );
-                },
-                child: child,
-              );
-            },
-            itemBuilder: (context, index) {
-              final item = categories[index];
-              return ListTile(
-                key: ValueKey(item.id),
-                title: Text(item.name),
-                onTap: () => Navigator.of(context).pop(item.id),
-                contentPadding: const EdgeInsets.fromLTRB(16.0, 0.0, 40.0, 0.0),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (widget.showAddCategory)
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        tooltip: "Delete Category",
-                        onPressed: () async {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (BuildContext dialogContext) {
-                              return AlertDialog(
-                                title: const Text('Confirm Delete'),
-                                content: Text(
-                                  'Are you sure you want to delete the category "${item.name}"? Videos in this category will become uncategorized.',
-                                ),
-                                actions: <Widget>[
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(dialogContext).pop(false),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(dialogContext).pop(true),
-                                    child: const Text('Delete'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-
-                          if (confirm == true) {
-                            oBox.userCategoryService.deleteCategory(item.id);
-                            if (!context.mounted) return;
-                            AlertManager.showSuccess(
-                              'Category "${item.name}" deleted',
-                            );
-                            await _loadCategories(); // Refresh the list
-                          }
-                        },
-                      ),
-                  ],
+        if (categories.isEmpty)
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  widget.showAddCategory
+                      ? 'No categories yet.\nAdd one below to get started.'
+                      : 'No categories yet.',
+                  textAlign: TextAlign.center,
                 ),
-              );
-            },
-            onReorderItem: (int oldIndex, int newIndex) async {
-              final UserCategory item = _userCategories.removeAt(oldIndex);
-              _userCategories.insert(newIndex, item);
-              setState(() {}); // without this the UI does ugly things
-              // TODO: do a bulk save here
-              for (var i = 0; i < _userCategories.length; i++) {
-                _userCategories[i].sortOrder = i;
-                oBox.userCategoryService.save(_userCategories[i]);
-              }
-            },
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: ReorderableListView.builder(
+              buildDefaultDragHandles: true,
+              itemCount: categories.length,
+              proxyDecorator: (child, index, animation) {
+                return AnimatedBuilder(
+                  animation: animation,
+                  builder: (BuildContext context, Widget? child) {
+                    return Material(
+                      elevation: 1.0,
+                      color: Colors.transparent,
+                      child: IgnorePointer(ignoring: true, child: child),
+                    );
+                  },
+                  child: child,
+                );
+              },
+              itemBuilder: (context, index) {
+                final item = categories[index];
+                return ListTile(
+                  key: ValueKey(item.id),
+                  title: Text(item.name),
+                  onTap: () => Navigator.of(context).pop(item.id),
+                  contentPadding: const EdgeInsets.fromLTRB(
+                    16.0,
+                    0.0,
+                    40.0,
+                    0.0,
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.showAddCategory)
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          tooltip: "Delete Category",
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (BuildContext dialogContext) {
+                                return AlertDialog(
+                                  title: const Text('Confirm Delete'),
+                                  content: Text(
+                                    'Are you sure you want to delete the category "${item.name}"? Videos in this category will become uncategorized.',
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () => Navigator.of(
+                                        dialogContext,
+                                      ).pop(false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(dialogContext).pop(true),
+                                      child: const Text('Delete'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+
+                            if (confirm == true) {
+                              oBox.userCategoryService.deleteCategory(item.id);
+                              if (!context.mounted) return;
+                              AlertManager.showSuccess(
+                                'Category "${item.name}" deleted',
+                              );
+                              await _loadCategories(); // Refresh the list
+                            }
+                          },
+                        ),
+                    ],
+                  ),
+                );
+              },
+              onReorderItem: (int oldIndex, int newIndex) async {
+                final UserCategory item = _userCategories.removeAt(oldIndex);
+                _userCategories.insert(newIndex, item);
+                setState(() {}); // without this the UI does ugly things
+                for (var i = 0; i < _userCategories.length; i++) {
+                  _userCategories[i].sortOrder = i;
+                }
+                // Single transaction instead of one write per category.
+                oBox.userCategoryService.saveAll(_userCategories.value);
+              },
+            ),
           ),
-        ),
       ],
     );
   }
