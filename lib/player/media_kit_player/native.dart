@@ -1,6 +1,7 @@
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/player/video_player.dart';
 
 class MediaKitPlayerImpl extends VideoPlayer {
@@ -15,7 +16,10 @@ class MediaKitPlayerImpl extends VideoPlayer {
         externalWindow: !embeddedPlayer,
         aditionalLibMpvOptions: {
           'config': 'yes',
-          'config-dir': '',
+          // Point mpv at our app-owned config dir (set during platform init)
+          // so it uses our mpv.conf/input.conf rather than the user's global
+          // mpv configuration. Empty string falls back to mpv's defaults.
+          'config-dir': mpvConfigDir ?? '',
           'input-default-bindings': 'yes',
           'hwdec': 'auto-copy',
           'border': 'yes',

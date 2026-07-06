@@ -19,6 +19,11 @@ final activePageIndex = signal<int>(mediaPageIndex);
 
 late ObjectBox oBox;
 
+/// Absolute path to the app-owned mpv config directory. Set during native
+/// platform init so the embedded player uses our own mpv.conf/input.conf
+/// instead of inheriting the user's global mpv configuration.
+String? mpvConfigDir;
+
 bool isDesktop() {
   return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 }
