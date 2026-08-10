@@ -412,8 +412,7 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
           context: context,
           label: 'Show Average Speed',
           value: showAverageSpeed,
-          onTap: () =>
-              mediaSettings.showAverageSpeed.value = !showAverageSpeed,
+          onTap: () => mediaSettings.showAverageSpeed.value = !showAverageSpeed,
         ),
         _buildToggleItem(
           context: context,
@@ -449,24 +448,26 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          SignalBuilder(builder: (context) {
-            if (mediaManager.isIndexing.value) {
-              return Text(
-                mediaManager.indexingStatus.value ?? "Indexing...",
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.merge(GoogleFonts.robotoMono()),
-              );
-            } else {
-              final total = oBox.mediaService.allMediaFiles.value.length;
-              return Text(
-                '${mediaFiles.length} / $total videos',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.merge(GoogleFonts.robotoMono()),
-              );
-            }
-          }),
+          SignalBuilder(
+            builder: (context) {
+              if (mediaManager.isIndexing.value) {
+                return Text(
+                  mediaManager.indexingStatus.value ?? "Indexing...",
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.merge(GoogleFonts.robotoMono()),
+                );
+              } else {
+                final total = oBox.mediaService.allMediaFiles.value.length;
+                return Text(
+                  '${mediaFiles.length} / $total videos',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.merge(GoogleFonts.robotoMono()),
+                );
+              }
+            },
+          ),
         ],
       ),
     );
@@ -474,33 +475,35 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
 
   Widget _buildRefreshButton(BuildContext context) {
     final mediaManager = getIt.get<MediaManager>();
-    return SignalBuilder(builder: (context) {
-      final isIndexing = mediaManager.isIndexing.value;
-      final progress = mediaManager.indexingProgress.value;
-      return Stack(
-        alignment: Alignment.center,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: isIndexing ? null : mediaManager.startIndexing,
-            tooltip: 'Refresh',
-            style: IconButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.onInverseSurface,
-            ),
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          if (isIndexing)
-            SizedBox(
-              width: 32,
-              height: 32,
-              child: CircularProgressIndicator(
-                value: progress,
-                strokeWidth: 3,
+    return SignalBuilder(
+      builder: (context) {
+        final isIndexing = mediaManager.isIndexing.value;
+        final progress = mediaManager.indexingProgress.value;
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: isIndexing ? null : mediaManager.startIndexing,
+              tooltip: 'Refresh',
+              style: IconButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.onInverseSurface,
               ),
+              color: Theme.of(context).colorScheme.primary,
             ),
-        ],
-      );
-    });
+            if (isIndexing)
+              SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  value: progress,
+                  strokeWidth: 3,
+                ),
+              ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildBody(BuildContext context) {

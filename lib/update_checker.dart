@@ -11,9 +11,7 @@ class UpdateChecker {
       'syncopathy'; // Replace with your GitHub repository name
 
   static Future<void> openReleasePage() async {
-    final url = Uri.parse(
-      'https://github.com/$_repoOwner/$_repoName/releases',
-    );
+    final url = Uri.parse('https://github.com/$_repoOwner/$_repoName/releases');
     if (!await launchUrl(url)) {
       AlertManager.showError('Could not open releases page.');
     }

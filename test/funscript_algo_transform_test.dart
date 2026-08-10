@@ -163,7 +163,9 @@ void main() {
         [0, 30],
       ]);
       expect(
-        dump(FunscriptAlgorithms.slew(input, 10.0, 1.0, const RangeValues(0, 100))),
+        dump(
+          FunscriptAlgorithms.slew(input, 10.0, 1.0, const RangeValues(0, 100)),
+        ),
         dump(input),
       );
     });
@@ -235,10 +237,12 @@ void main() {
 
     test('two or fewer actions -> 0', () {
       expect(
-        FunscriptAlgorithms.findFirstStroke(acts([
-          [0, 0],
-          [100, 100],
-        ])),
+        FunscriptAlgorithms.findFirstStroke(
+          acts([
+            [0, 0],
+            [100, 100],
+          ]),
+        ),
         0,
       );
     });
@@ -335,13 +339,16 @@ void main() {
   });
 
   group('kinematics helpers', () {
-    test('kinematicMinTime is zero for no movement and grows with distance', () {
-      expect(FunscriptAlgorithms.kinematicMinTime(0), 0.0);
-      final small = FunscriptAlgorithms.kinematicMinTime(10);
-      final large = FunscriptAlgorithms.kinematicMinTime(100);
-      expect(small, greaterThan(0));
-      expect(large, greaterThan(small));
-    });
+    test(
+      'kinematicMinTime is zero for no movement and grows with distance',
+      () {
+        expect(FunscriptAlgorithms.kinematicMinTime(0), 0.0);
+        final small = FunscriptAlgorithms.kinematicMinTime(10);
+        final large = FunscriptAlgorithms.kinematicMinTime(100);
+        expect(small, greaterThan(0));
+        expect(large, greaterThan(small));
+      },
+    );
 
     test('strokeSpeed never exceeds the device max and floors at min', () {
       // A large distance in a tiny time is capped at the physical maximum.

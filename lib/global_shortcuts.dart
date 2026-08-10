@@ -75,45 +75,47 @@ class _GlobalShortcutsState extends State<GlobalShortcuts> {
     final videoPlayer = context.read<VideoPlayer>();
     final settingsModel = context.read<SettingsModel>();
 
-    return SignalBuilder(builder: (context) {
-      final customShortcuts = settingsModel.customShortcuts.value;
+    return SignalBuilder(
+      builder: (context) {
+        final customShortcuts = settingsModel.customShortcuts.value;
 
-      ShortcutActivator getActivator(AppShortcut shortcut) {
-        return (customShortcuts[shortcut.id] ?? shortcut.defaultBinding)
-            .toActivator();
-      }
+        ShortcutActivator getActivator(AppShortcut shortcut) {
+          return (customShortcuts[shortcut.id] ?? shortcut.defaultBinding)
+              .toActivator();
+        }
 
-      _shortcutManager.shortcuts = <ShortcutActivator, Intent>{
-        getActivator(ShortcutDefinitions.togglePause):
-            const TogglePauseIntent(),
-        getActivator(ShortcutDefinitions.nextTrack): const NextTrackIntent(),
-        getActivator(ShortcutDefinitions.previousTrack):
-            const PreviousTrackIntent(),
-        getActivator(ShortcutDefinitions.toggleHomeMode):
-            const ToggleHomeModeIntent(),
-      };
+        _shortcutManager.shortcuts = <ShortcutActivator, Intent>{
+          getActivator(ShortcutDefinitions.togglePause):
+              const TogglePauseIntent(),
+          getActivator(ShortcutDefinitions.nextTrack): const NextTrackIntent(),
+          getActivator(ShortcutDefinitions.previousTrack):
+              const PreviousTrackIntent(),
+          getActivator(ShortcutDefinitions.toggleHomeMode):
+              const ToggleHomeModeIntent(),
+        };
 
-      return Shortcuts.manager(
-        manager: _shortcutManager,
-        child: Actions(
-          actions: <Type, Action<Intent>>{
-            TogglePauseIntent: CallbackAction<TogglePauseIntent>(
-              onInvoke: (intent) => videoPlayer.togglePause(),
-            ),
-            NextTrackIntent: CallbackAction<NextTrackIntent>(
-              onInvoke: (intent) => videoPlayer.jumpNextPlaylistEntry(),
-            ),
-            PreviousTrackIntent: CallbackAction<PreviousTrackIntent>(
-              onInvoke: (intent) => videoPlayer.jumpPreviousPlaylistEntry(),
-            ),
-            ToggleHomeModeIntent: CallbackAction<ToggleHomeModeIntent>(
-              onInvoke: (intent) => settingsModel.homeDeviceEnabled.value =
-                  !settingsModel.homeDeviceEnabled.value,
-            ),
-          },
-          child: widget.child,
-        ),
-      );
-    });
+        return Shortcuts.manager(
+          manager: _shortcutManager,
+          child: Actions(
+            actions: <Type, Action<Intent>>{
+              TogglePauseIntent: CallbackAction<TogglePauseIntent>(
+                onInvoke: (intent) => videoPlayer.togglePause(),
+              ),
+              NextTrackIntent: CallbackAction<NextTrackIntent>(
+                onInvoke: (intent) => videoPlayer.jumpNextPlaylistEntry(),
+              ),
+              PreviousTrackIntent: CallbackAction<PreviousTrackIntent>(
+                onInvoke: (intent) => videoPlayer.jumpPreviousPlaylistEntry(),
+              ),
+              ToggleHomeModeIntent: CallbackAction<ToggleHomeModeIntent>(
+                onInvoke: (intent) => settingsModel.homeDeviceEnabled.value =
+                    !settingsModel.homeDeviceEnabled.value,
+              ),
+            },
+            child: widget.child,
+          ),
+        );
+      },
+    );
   }
 }

@@ -114,105 +114,111 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
 
   Widget _buildRdpEpsilonSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return SignalBuilder(builder: (context) {
-      final rdpEpsilon = settings.rdpEpsilon.value;
-      return Column(
-        children: [
-          SwitchListTile(
-            title: const Text('Funscript Simplification (RDP Epsilon)'),
-            subtitle: const Text(
-              'Reduces the number of points in the funscript. Higher values mean more simplification.',
-            ),
-            value: rdpEpsilon >= 0,
-            onChanged: (value) {
-              settings.rdpEpsilon.value = value ? 7.0 : -1;
-            },
-            secondary: const Icon(Icons.timeline),
-            isThreeLine: true,
-          ),
-          if (rdpEpsilon >= 0)
-            _buildSliderWithNumericInput(
-              context,
-              value: rdpEpsilon,
-              min: 0,
-              max: 50,
-              divisions: 50,
+    return SignalBuilder(
+      builder: (context) {
+        final rdpEpsilon = settings.rdpEpsilon.value;
+        return Column(
+          children: [
+            SwitchListTile(
+              title: const Text('Funscript Simplification (RDP Epsilon)'),
+              subtitle: const Text(
+                'Reduces the number of points in the funscript. Higher values mean more simplification.',
+              ),
+              value: rdpEpsilon >= 0,
               onChanged: (value) {
-                settings.rdpEpsilon.value = value;
+                settings.rdpEpsilon.value = value ? 7.0 : -1;
               },
+              secondary: const Icon(Icons.timeline),
+              isThreeLine: true,
             ),
-        ],
-      );
-    });
+            if (rdpEpsilon >= 0)
+              _buildSliderWithNumericInput(
+                context,
+                value: rdpEpsilon,
+                min: 0,
+                max: 50,
+                divisions: 50,
+                onChanged: (value) {
+                  settings.rdpEpsilon.value = value;
+                },
+              ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildPchipSmoothSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return SignalBuilder(builder: (context) {
-      final smoothInterval = settings.pchipSmoothInterval.value;
-      return Column(
-        children: [
-          SwitchListTile(
-            title: const Text('Spline Smoothing'),
-            subtitle: const Text(
-              'Modify the funscript adding spline smoothing.',
-            ),
-            value: smoothInterval != null,
-            onChanged: (value) {
-              settings.pchipSmoothInterval.value = value ? 50 : null;
-            },
-            secondary: const Icon(Icons.route_rounded),
-            isThreeLine: true,
-          ),
-          if (smoothInterval != null) ...[
-            _buildSliderWithNumericInput(
-              context,
-              value: smoothInterval.toDouble(),
-              min: 50,
-              max: 100,
-              divisions: 5,
+    return SignalBuilder(
+      builder: (context) {
+        final smoothInterval = settings.pchipSmoothInterval.value;
+        return Column(
+          children: [
+            SwitchListTile(
+              title: const Text('Spline Smoothing'),
+              subtitle: const Text(
+                'Modify the funscript adding spline smoothing.',
+              ),
+              value: smoothInterval != null,
               onChanged: (value) {
-                settings.pchipSmoothInterval.value = value.toInt();
+                settings.pchipSmoothInterval.value = value ? 50 : null;
               },
+              secondary: const Icon(Icons.route_rounded),
+              isThreeLine: true,
             ),
+            if (smoothInterval != null) ...[
+              _buildSliderWithNumericInput(
+                context,
+                value: smoothInterval.toDouble(),
+                min: 50,
+                max: 100,
+                divisions: 5,
+                onChanged: (value) {
+                  settings.pchipSmoothInterval.value = value.toInt();
+                },
+              ),
+            ],
           ],
-        ],
-      );
-    });
+        );
+      },
+    );
   }
 
   Widget _buildSlewRateSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return SignalBuilder(builder: (context) {
-      final slewMaxRateOfChange = settings.slewMaxRateOfChange.value;
-      return Column(
-        children: [
-          SwitchListTile(
-            title: const Text('Slew Rate Limit'),
-            subtitle: const Text(
-              'Modify the funscript limiting the rate of change, preventing jerky movements. Measured in percent per second.',
-            ),
-            value: slewMaxRateOfChange >= 0,
-            onChanged: (value) {
-              settings.slewMaxRateOfChange.value = value ? 400 : -1;
-            },
-            secondary: const Icon(Icons.speed),
-            isThreeLine: true,
-          ),
-          if (slewMaxRateOfChange >= 0)
-            _buildSliderWithNumericInput(
-              context,
-              value: slewMaxRateOfChange,
-              min: 100,
-              max: 1000,
-              divisions: 90,
+    return SignalBuilder(
+      builder: (context) {
+        final slewMaxRateOfChange = settings.slewMaxRateOfChange.value;
+        return Column(
+          children: [
+            SwitchListTile(
+              title: const Text('Slew Rate Limit'),
+              subtitle: const Text(
+                'Modify the funscript limiting the rate of change, preventing jerky movements. Measured in percent per second.',
+              ),
+              value: slewMaxRateOfChange >= 0,
               onChanged: (value) {
-                settings.slewMaxRateOfChange.value = value;
+                settings.slewMaxRateOfChange.value = value ? 400 : -1;
               },
+              secondary: const Icon(Icons.speed),
+              isThreeLine: true,
             ),
-        ],
-      );
-    });
+            if (slewMaxRateOfChange >= 0)
+              _buildSliderWithNumericInput(
+                context,
+                value: slewMaxRateOfChange,
+                min: 100,
+                max: 1000,
+                divisions: 90,
+                onChanged: (value) {
+                  settings.slewMaxRateOfChange.value = value;
+                },
+              ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildInvertSettings(BuildContext context) {
@@ -251,124 +257,130 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
 
   Widget _buildFunscriptStats(BuildContext context) {
     final playerModel = context.read<PlayerModel>();
-    return SignalBuilder(builder: (context) {
-      final currentlyOpen = playerModel.currentlyOpen.value;
-      if (currentlyOpen == null) return const SizedBox.shrink();
-      final funscript = currentlyOpen.funscript;
+    return SignalBuilder(
+      builder: (context) {
+        final currentlyOpen = playerModel.currentlyOpen.value;
+        if (currentlyOpen == null) return const SizedBox.shrink();
+        final funscript = currentlyOpen.funscript;
 
-      final speed = funscript.averageSpeed.value;
-      final min = funscript.averageMin.value;
-      final max = funscript.averageMax.value;
+        final speed = funscript.averageSpeed.value;
+        final min = funscript.averageMin.value;
+        final max = funscript.averageMax.value;
 
-      return ListTile(
-        leading: const Icon(Icons.analytics_outlined),
-        title: const Text('Processed Script Stats'),
-        subtitle: Text(
-          'Avg Speed: ${speed.toStringAsFixed(1)} | Avg Min: ${min.round()} | Avg Max: ${max.round()}',
-        ),
-      );
-    });
+        return ListTile(
+          leading: const Icon(Icons.analytics_outlined),
+          title: const Text('Processed Script Stats'),
+          subtitle: Text(
+            'Avg Speed: ${speed.toStringAsFixed(1)} | Avg Min: ${min.round()} | Avg Max: ${max.round()}',
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildIntensitySettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return SignalBuilder(builder: (context) {
-      final intensity = settings.intensity.value;
-      return Column(
-        children: [
-          SwitchListTile(
-            title: const Text('Intensity'),
-            subtitle: const Text(
-              'Increases the stroke length of each stroke, resulting in higher speed.',
-            ),
-            value: intensity != null,
-            onChanged: (value) {
-              settings.intensity.value = value ? 1.0 : null;
-            },
-            secondary: const Icon(Icons.bolt),
-            isThreeLine: true,
-          ),
-          if (intensity != null)
-            _buildSliderWithNumericInput(
-              context,
-              value: intensity * 100.0,
-              min: 100,
-              max: 500,
-              divisions: 20,
-              label: intensity.toStringAsFixed(1),
-              showNumericInput: false,
+    return SignalBuilder(
+      builder: (context) {
+        final intensity = settings.intensity.value;
+        return Column(
+          children: [
+            SwitchListTile(
+              title: const Text('Intensity'),
+              subtitle: const Text(
+                'Increases the stroke length of each stroke, resulting in higher speed.',
+              ),
+              value: intensity != null,
               onChanged: (value) {
-                settings.intensity.value = value / 100.0;
+                settings.intensity.value = value ? 1.0 : null;
               },
+              secondary: const Icon(Icons.bolt),
+              isThreeLine: true,
             ),
-        ],
-      );
-    });
+            if (intensity != null)
+              _buildSliderWithNumericInput(
+                context,
+                value: intensity * 100.0,
+                min: 100,
+                max: 500,
+                divisions: 20,
+                label: intensity.toStringAsFixed(1),
+                showNumericInput: false,
+                onChanged: (value) {
+                  settings.intensity.value = value / 100.0;
+                },
+              ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildMinMaxSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
 
-    return SignalBuilder(builder: (context) {
-      final currentRange = settings.minMaxRange.value;
-      return Column(
-        children: [
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              valueIndicatorColor: Theme.of(context).colorScheme.primary,
-            ),
-            child: RangeSlider(
-              values: currentRange,
-              min: 0,
-              max: 100,
-              divisions: 100,
-              labels: RangeLabels(
-                settings.min.value.round().toString(),
-                settings.max.value.round().toString(),
+    return SignalBuilder(
+      builder: (context) {
+        final currentRange = settings.minMaxRange.value;
+        return Column(
+          children: [
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                valueIndicatorColor: Theme.of(context).colorScheme.primary,
               ),
-              onChanged: (values) {
-                settings.min.value = values.start.toInt();
-                settings.max.value = values.end.toInt();
-              },
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Expanded(
-                child: FocusNumericInput(
-                  label: 'Min',
-                  value: settings.min.value.toDouble(),
-                  min: 0,
-                  max: 100,
-                  onChanged: (value) {
-                    settings.min.value = value.toInt();
-                    if (settings.min.value > settings.max.value) {
-                      settings.max.value = settings.min.value;
-                    }
-                  },
+              child: RangeSlider(
+                values: currentRange,
+                min: 0,
+                max: 100,
+                divisions: 100,
+                labels: RangeLabels(
+                  settings.min.value.round().toString(),
+                  settings.max.value.round().toString(),
                 ),
+                onChanged: (values) {
+                  settings.min.value = values.start.toInt();
+                  settings.max.value = values.end.toInt();
+                },
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: FocusNumericInput(
-                  label: 'Max',
-                  value: settings.max.value.toDouble(),
-                  min: 0,
-                  max: 100,
-                  onChanged: (value) {
-                    settings.max.value = value.toInt();
-                    if (settings.max.value < settings.min.value) {
-                      settings.min.value = settings.max.value;
-                    }
-                  },
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Expanded(
+                  child: FocusNumericInput(
+                    label: 'Min',
+                    value: settings.min.value.toDouble(),
+                    min: 0,
+                    max: 100,
+                    onChanged: (value) {
+                      settings.min.value = value.toInt();
+                      if (settings.min.value > settings.max.value) {
+                        settings.max.value = settings.min.value;
+                      }
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
-      );
-    });
+                const SizedBox(width: 16),
+                Expanded(
+                  child: FocusNumericInput(
+                    label: 'Max',
+                    value: settings.max.value.toDouble(),
+                    min: 0,
+                    max: 100,
+                    onChanged: (value) {
+                      settings.max.value = value.toInt();
+                      if (settings.max.value < settings.min.value) {
+                        settings.min.value = settings.max.value;
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildTimingSettings(BuildContext context) {

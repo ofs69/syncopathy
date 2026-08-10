@@ -193,23 +193,25 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildShortcutSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return SignalBuilder(builder: (context) {
-      final customShortcuts = settings.customShortcuts.value;
-      return Column(
-        children: ShortcutDefinitions.all.map((shortcut) {
-          final binding =
-              customShortcuts[shortcut.id] ?? shortcut.defaultBinding;
-          return ListTile(
-            title: Text(shortcut.name),
-            subtitle: Text(shortcut.description),
-            trailing: OutlinedButton(
-              onPressed: () => _showRebindDialog(context, shortcut),
-              child: Text(binding.toString()),
-            ),
-          );
-        }).toList(),
-      );
-    });
+    return SignalBuilder(
+      builder: (context) {
+        final customShortcuts = settings.customShortcuts.value;
+        return Column(
+          children: ShortcutDefinitions.all.map((shortcut) {
+            final binding =
+                customShortcuts[shortcut.id] ?? shortcut.defaultBinding;
+            return ListTile(
+              title: Text(shortcut.name),
+              subtitle: Text(shortcut.description),
+              trailing: OutlinedButton(
+                onPressed: () => _showRebindDialog(context, shortcut),
+                child: Text(binding.toString()),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
   }
 
   Future<void> _showRebindDialog(
@@ -250,54 +252,57 @@ class _SettingsPageState extends State<SettingsPage> {
     final settings = context.read<SettingsModel>();
     final overridden = hwdecOverride != null;
 
-    return SignalBuilder(builder: (context) {
-      final mode = settings.hwdecMode.value;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.memory),
-            title: const Text('Hardware Decoding'),
-            subtitle: Text(
-              overridden
-                  // The command line wins, so say so rather than letting the
-                  // dropdown imply a change would take effect.
-                  ? 'Overridden by --hwdec=$hwdecOverride for this run.'
-                  : mode.description,
-            ),
-            isThreeLine: true,
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
-            child: DropdownMenu<HwdecMode>(
-              initialSelection: mode,
-              enabled: !overridden,
-              expandedInsets: EdgeInsets.zero,
-              requestFocusOnTap: false,
-              enableSearch: false,
-              helperText: 'Switch back if video turns black or fails to play.',
-              inputDecorationTheme: const InputDecorationTheme(
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 8.0,
-                  vertical: 8.0,
-                ),
+    return SignalBuilder(
+      builder: (context) {
+        final mode = settings.hwdecMode.value;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.memory),
+              title: const Text('Hardware Decoding'),
+              subtitle: Text(
+                overridden
+                    // The command line wins, so say so rather than letting the
+                    // dropdown imply a change would take effect.
+                    ? 'Overridden by --hwdec=$hwdecOverride for this run.'
+                    : mode.description,
               ),
-              dropdownMenuEntries: HwdecMode.values
-                  .map(
-                    (e) => DropdownMenuEntry<HwdecMode>(
-                      value: e,
-                      label: e.toDisplayString(),
-                    ),
-                  )
-                  .toList(),
-              onSelected: (selected) {
-                if (selected != null) settings.hwdecMode.value = selected;
-              },
+              isThreeLine: true,
             ),
-          ),
-        ],
-      );
-    });
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
+              child: DropdownMenu<HwdecMode>(
+                initialSelection: mode,
+                enabled: !overridden,
+                expandedInsets: EdgeInsets.zero,
+                requestFocusOnTap: false,
+                enableSearch: false,
+                helperText:
+                    'Switch back if video turns black or fails to play.',
+                inputDecorationTheme: const InputDecorationTheme(
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 8.0,
+                  ),
+                ),
+                dropdownMenuEntries: HwdecMode.values
+                    .map(
+                      (e) => DropdownMenuEntry<HwdecMode>(
+                        value: e,
+                        label: e.toDisplayString(),
+                      ),
+                    )
+                    .toList(),
+                onSelected: (selected) {
+                  if (selected != null) settings.hwdecMode.value = selected;
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildAutoSwitchToVideoPlayerTabSettings(BuildContext context) {
@@ -417,39 +422,41 @@ class _SettingsPageState extends State<SettingsPage> {
             );
           },
         ),
-        SignalBuilder(builder: (context) {
-          final isChecking = isUpdateCheckingSignal.value;
+        SignalBuilder(
+          builder: (context) {
+            final isChecking = isUpdateCheckingSignal.value;
 
-          return ListTile(
-            title: const Text('Check for updates'),
-            subtitle: const Text(
-              "Check the github repository for new releases.",
-            ),
-            trailing: isChecking
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.update),
-            onTap: isChecking
-                ? null
-                : () async {
-                    isUpdateCheckingSignal.value = true;
-                    statusUpdateMessageSignal.value = "Checking...";
+            return ListTile(
+              title: const Text('Check for updates'),
+              subtitle: const Text(
+                "Check the github repository for new releases.",
+              ),
+              trailing: isChecking
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.update),
+              onTap: isChecking
+                  ? null
+                  : () async {
+                      isUpdateCheckingSignal.value = true;
+                      statusUpdateMessageSignal.value = "Checking...";
 
-                    try {
-                      final latestVersion =
-                          await UpdateChecker.checkForUpdates();
-                      statusUpdateMessageSignal.value = latestVersion == null
-                          ? "Up to date!"
-                          : "New version: $latestVersion";
-                    } finally {
-                      isUpdateCheckingSignal.value = false;
-                    }
-                  },
-          );
-        }),
+                      try {
+                        final latestVersion =
+                            await UpdateChecker.checkForUpdates();
+                        statusUpdateMessageSignal.value = latestVersion == null
+                            ? "Up to date!"
+                            : "New version: $latestVersion";
+                      } finally {
+                        isUpdateCheckingSignal.value = false;
+                      }
+                    },
+            );
+          },
+        ),
       ],
     );
   }
@@ -458,47 +465,52 @@ class _SettingsPageState extends State<SettingsPage> {
     final settings = context.read<SettingsModel>();
     final playerModel = context.read<PlayerModel>();
 
-    return SignalBuilder(builder: (context) {
-      final backend = playerModel.playerBackend.value;
-      final backendType = settings.playerBackendType.value;
-      final isLoaded =
-          backend?.backendType != null && backend?.backendType == backendType;
+    return SignalBuilder(
+      builder: (context) {
+        final backend = playerModel.playerBackend.value;
+        final backendType = settings.playerBackendType.value;
+        final isLoaded =
+            backend?.backendType != null && backend?.backendType == backendType;
 
-      return Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
-            child: !isLoaded
-                ? Center(child: CircularProgressIndicator())
-                : DropdownMenu<PlayerBackendType>(
-                    initialSelection: backendType,
-                    expandedInsets: EdgeInsets.zero,
-                    requestFocusOnTap: false,
-                    enableSearch: false,
-                    inputDecorationTheme: const InputDecorationTheme(
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 8.0,
-                        vertical: 8.0,
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 0.0,
+              ),
+              child: !isLoaded
+                  ? Center(child: CircularProgressIndicator())
+                  : DropdownMenu<PlayerBackendType>(
+                      initialSelection: backendType,
+                      expandedInsets: EdgeInsets.zero,
+                      requestFocusOnTap: false,
+                      enableSearch: false,
+                      inputDecorationTheme: const InputDecorationTheme(
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 8.0,
+                        ),
                       ),
+                      dropdownMenuEntries: PlayerBackendType.values.map((e) {
+                        return DropdownMenuEntry<PlayerBackendType>(
+                          value: e,
+                          label: e.toDisplayString(),
+                        );
+                      }).toList(),
+                      onSelected: (selectedEnum) {
+                        if (selectedEnum != null) {
+                          settings.playerBackendType.value = selectedEnum;
+                        }
+                      },
                     ),
-                    dropdownMenuEntries: PlayerBackendType.values.map((e) {
-                      return DropdownMenuEntry<PlayerBackendType>(
-                        value: e,
-                        label: e.toDisplayString(),
-                      );
-                    }).toList(),
-                    onSelected: (selectedEnum) {
-                      if (selectedEnum != null) {
-                        settings.playerBackendType.value = selectedEnum;
-                      }
-                    },
-                  ),
-          ),
-          if (backend != null && isLoaded)
-            ListTile(title: backend.settingsWidget(context)),
-        ],
-      );
-    });
+            ),
+            if (backend != null && isLoaded)
+              ListTile(title: backend.settingsWidget(context)),
+          ],
+        );
+      },
+    );
   }
 
   /// Shows a Cancel/confirm dialog and resolves to `true` only when the user
@@ -552,33 +564,37 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
-        return SignalBuilder(builder: (context) {
-          // Kick generation off once, when the dialog first builds, and close
-          // the dialog with the final count when it finishes.
-          if (!started) {
-            started = true;
-            _runThumbnailGeneration(videos, () => processed.value++).then((
-              total,
-            ) {
-              if (dialogContext.mounted) {
-                Navigator.of(dialogContext).pop(total);
-              }
-            });
-          }
-          return AlertDialog(
-            title: const Text('Generating Thumbnails'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                LinearProgressIndicator(
-                  value: videos.isEmpty ? 0 : processed.value / videos.length,
-                ),
-                const SizedBox(height: 16),
-                Text('Processed ${processed.value} of ${videos.length} videos.'),
-              ],
-            ),
-          );
-        });
+        return SignalBuilder(
+          builder: (context) {
+            // Kick generation off once, when the dialog first builds, and close
+            // the dialog with the final count when it finishes.
+            if (!started) {
+              started = true;
+              _runThumbnailGeneration(videos, () => processed.value++).then((
+                total,
+              ) {
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop(total);
+                }
+              });
+            }
+            return AlertDialog(
+              title: const Text('Generating Thumbnails'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  LinearProgressIndicator(
+                    value: videos.isEmpty ? 0 : processed.value / videos.length,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Processed ${processed.value} of ${videos.length} videos.',
+                  ),
+                ],
+              ),
+            );
+          },
+        );
       },
     );
 

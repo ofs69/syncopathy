@@ -5,8 +5,10 @@ import 'package:syncopathy/model/json/funscript_json.dart';
 /// Covers the [Funscript] wrapper's construction-time behaviour: timestamp
 /// deduplication, script-token detection and the binary-search action lookup.
 void main() {
-  Funscript build(List<FunscriptAction> actions) =>
-      Funscript(json: FunscriptJson(actions: actions), filePath: 'test.funscript');
+  Funscript build(List<FunscriptAction> actions) => Funscript(
+    json: FunscriptJson(actions: actions),
+    filePath: 'test.funscript',
+  );
 
   group('deduplication', () {
     test('keeps the first action for each timestamp and drops later dupes', () {
@@ -17,14 +19,11 @@ void main() {
         FunscriptAction(at: 100, pos: 40),
         FunscriptAction(at: 200, pos: 20),
       ]);
-      expect(
-        fs.originalActions.map((a) => [a.at, a.pos]).toList(),
-        [
-          [0, 0],
-          [100, 100],
-          [200, 20],
-        ],
-      );
+      expect(fs.originalActions.map((a) => [a.at, a.pos]).toList(), [
+        [0, 0],
+        [100, 100],
+        [200, 20],
+      ]);
     });
 
     test('originalActions is unmodifiable', () {
@@ -48,10 +47,7 @@ void main() {
 
     test('token marker (pos 0 at magic % length) is detected', () {
       // length 1 -> magic % 1 == 0, so a single (at:0, pos:0) is the marker.
-      expect(
-        Funscript.isScriptToken([FunscriptAction(at: 0, pos: 0)]),
-        isTrue,
-      );
+      expect(Funscript.isScriptToken([FunscriptAction(at: 0, pos: 0)]), isTrue);
     });
 
     test('ordinary script without the marker is not a token', () {

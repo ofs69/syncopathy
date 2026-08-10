@@ -62,10 +62,7 @@ class _PlaylistControlsState extends State<PlaylistControls> {
                     children: <Widget>[
                       // Selected state is conveyed by ToggleButtons' selectedColor;
                       // a single consistent icon avoids the contradictory swap.
-                      Tooltip(
-                        message: 'Loop',
-                        child: Icon(Icons.repeat),
-                      ),
+                      Tooltip(message: 'Loop', child: Icon(Icons.repeat)),
                     ],
                   );
                 },

@@ -349,7 +349,9 @@ class HandyBle with EffectDispose implements IHspCommands {
       request: request,
     );
     final completer = Completer<Response>();
-    _messageCompleters.add(_PendingRequest(request.id, DateTime.now(), completer));
+    _messageCompleters.add(
+      _PendingRequest(request.id, DateTime.now(), completer),
+    );
     _worker.sendToSerialize(message);
     return completer.future.timeout(Duration(seconds: 5));
   }

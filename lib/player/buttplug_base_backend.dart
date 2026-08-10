@@ -139,7 +139,10 @@ class _ButtplugSettingsForm extends StatefulWidget {
   final ButtplugBackendSettings settings;
   final void Function(ButtplugBackendSettings settings) onChanged;
 
-  const _ButtplugSettingsForm({required this.settings, required this.onChanged});
+  const _ButtplugSettingsForm({
+    required this.settings,
+    required this.onChanged,
+  });
 
   @override
   State<_ButtplugSettingsForm> createState() => _ButtplugSettingsFormState();

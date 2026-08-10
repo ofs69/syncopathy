@@ -181,8 +181,9 @@ abstract class FilterBase<T> {
 
   List<T?> Function(MediaFile) retriever;
 
-  late final ReadonlySignal<dynamic> baseStateChange =
-      computed(() => (negated.value, enabled.value));
+  late final ReadonlySignal<dynamic> baseStateChange = computed(
+    () => (negated.value, enabled.value),
+  );
 
   ReadonlySignal<dynamic> get stateChange;
 
@@ -233,8 +234,9 @@ class NumberFilter extends FilterBase<num> {
   final Signal<String> value = signal("");
 
   @override
-  late final ReadonlySignal<dynamic> stateChange =
-      computed(() => (operator.value, value.value, baseStateChange.value));
+  late final ReadonlySignal<dynamic> stateChange = computed(
+    () => (operator.value, value.value, baseStateChange.value),
+  );
 
   NumberFilter({
     required super.label,
@@ -301,8 +303,9 @@ class DurationFilter extends FilterBase<num> {
   final Signal<String> value = signal("");
 
   @override
-  late final ReadonlySignal<dynamic> stateChange =
-      computed(() => (operator.value, value.value, baseStateChange.value));
+  late final ReadonlySignal<dynamic> stateChange = computed(
+    () => (operator.value, value.value, baseStateChange.value),
+  );
 
   DurationFilter({
     required super.label,
@@ -398,8 +401,9 @@ class StringFilter extends FilterBase<String> {
   final Signal<String> value = signal("");
 
   @override
-  late final ReadonlySignal<dynamic> stateChange =
-      computed(() => (operator.value, value.value, baseStateChange.value));
+  late final ReadonlySignal<dynamic> stateChange = computed(
+    () => (operator.value, value.value, baseStateChange.value),
+  );
 
   StringFilter({
     required super.label,
@@ -459,8 +463,9 @@ class DateFilter extends FilterBase<DateTime> {
   final Signal<DateTime?> value = signal(null);
 
   @override
-  late final ReadonlySignal<dynamic> stateChange =
-      computed(() => (operator.value, value.value, baseStateChange.value));
+  late final ReadonlySignal<dynamic> stateChange = computed(
+    () => (operator.value, value.value, baseStateChange.value),
+  );
 
   DateFilter({
     required super.label,
@@ -543,8 +548,9 @@ class EnumFilter<E extends Enum> extends FilterBase<int> {
   final Signal<E?> selectedValue = signal(null);
 
   @override
-  late final ReadonlySignal<dynamic> stateChange =
-      computed(() => (selectedValue.value, baseStateChange.value));
+  late final ReadonlySignal<dynamic> stateChange = computed(
+    () => (selectedValue.value, baseStateChange.value),
+  );
 
   EnumFilter({
     required super.label,
@@ -581,8 +587,9 @@ class CategoryFilter extends FilterBase<int> {
   final List<UserCategory> categories;
 
   @override
-  late final ReadonlySignal<dynamic> stateChange =
-      computed(() => (selectedCategoryId.value, baseStateChange.value));
+  late final ReadonlySignal<dynamic> stateChange = computed(
+    () => (selectedCategoryId.value, baseStateChange.value),
+  );
 
   CategoryFilter({
     required super.label,
@@ -749,8 +756,9 @@ class MediaFilter {
 
 class PlaylistFilter extends FilterBase<String> {
   @override
-  late final ReadonlySignal<dynamic> stateChange =
-      computed(() => (baseStateChange.value));
+  late final ReadonlySignal<dynamic> stateChange = computed(
+    () => (baseStateChange.value),
+  );
 
   PlaylistFilter({
     required super.label,
@@ -786,8 +794,9 @@ class PlaylistFilter extends FilterBase<String> {
 
 class BoolFilter extends FilterBase<bool> {
   @override
-  late final ReadonlySignal<dynamic> stateChange =
-      computed(() => (baseStateChange.value));
+  late final ReadonlySignal<dynamic> stateChange = computed(
+    () => (baseStateChange.value),
+  );
 
   BoolFilter({
     required super.label,

@@ -469,17 +469,17 @@ class HandyWeb with EffectDispose implements IHspCommands {
   void _putHspCommand(String path, {String? body}) {
     final url = baseApiUrl.resolve(path);
     _apiQueue.makeRequest(
-      (client) => client
-          .put(url, headers: _defaultHeaders, body: body)
-          .then((response) {
-            if (response.statusCode == 200) {
-              final state = HandyResponse<HandyHspState>.fromJson(
-                jsonDecode(response.body),
-                (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
-              );
-              _handleStateResponse(state);
-            }
-          }),
+      (client) => client.put(url, headers: _defaultHeaders, body: body).then((
+        response,
+      ) {
+        if (response.statusCode == 200) {
+          final state = HandyResponse<HandyHspState>.fromJson(
+            jsonDecode(response.body),
+            (json) => HandyHspState.fromJson(json as Map<String, dynamic>),
+          );
+          _handleStateResponse(state);
+        }
+      }),
     );
   }
 

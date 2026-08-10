@@ -34,8 +34,7 @@ class MediaDetailPage extends StatefulWidget {
   State<MediaDetailPage> createState() => _MediaDetailPageState();
 }
 
-class _MediaDetailPageState extends State<MediaDetailPage>
-    with EffectDispose {
+class _MediaDetailPageState extends State<MediaDetailPage> with EffectDispose {
   late final TextEditingController _nameController;
   late final TextEditingController _aliasController;
   late final ListSignal<String> _tempAliases;
@@ -424,8 +423,12 @@ class _MediaDetailPageState extends State<MediaDetailPage>
               onPressed: _handleExit,
               tooltip: 'Back (Esc)',
             ),
-            title: SignalBuilder(builder: (context) => Text('Editing ${_nameSignal.value}')),
-            actions: [SignalBuilder(builder: (context) => _buildSaveIndicator())],
+            title: SignalBuilder(
+              builder: (context) => Text('Editing ${_nameSignal.value}'),
+            ),
+            actions: [
+              SignalBuilder(builder: (context) => _buildSaveIndicator()),
+            ],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
@@ -449,68 +452,74 @@ class _MediaDetailPageState extends State<MediaDetailPage>
                           ),
                         ),
                         const SizedBox(width: 16),
-                        SignalBuilder(builder: (context) {
-                          return SegmentedButton<MediaType>(
-                            segments: const [
-                              ButtonSegment(
-                                value: MediaType.video,
-                                icon: Icon(Icons.movie_outlined),
-                                label: Text('Video'),
-                              ),
-                              ButtonSegment(
-                                value: MediaType.audio,
-                                icon: Icon(Icons.audiotrack_outlined),
-                                label: Text('Audio'),
-                              ),
-                            ],
-                            selected: {_typeSignal.value},
-                            onSelectionChanged: (val) {
-                              _typeSignal.value = val.first;
-                            },
-                          );
-                        }),
+                        SignalBuilder(
+                          builder: (context) {
+                            return SegmentedButton<MediaType>(
+                              segments: const [
+                                ButtonSegment(
+                                  value: MediaType.video,
+                                  icon: Icon(Icons.movie_outlined),
+                                  label: Text('Video'),
+                                ),
+                                ButtonSegment(
+                                  value: MediaType.audio,
+                                  icon: Icon(Icons.audiotrack_outlined),
+                                  label: Text('Audio'),
+                                ),
+                              ],
+                              selected: {_typeSignal.value},
+                              onSelectionChanged: (val) {
+                                _typeSignal.value = val.first;
+                              },
+                            );
+                          },
+                        ),
                         const SizedBox(width: 16),
-                        SignalBuilder(builder: (context) {
-                          return SegmentedButton<MediaRating>(
-                            segments: [
-                              ButtonSegment(
-                                value: MediaRating.like,
-                                icon: Icon(
-                                  _ratingSignal.value == MediaRating.like
-                                      ? Icons.star
-                                      : Icons.star_border,
-                                  color: _ratingSignal.value == MediaRating.like
-                                      ? favoriteColor
-                                      : null,
+                        SignalBuilder(
+                          builder: (context) {
+                            return SegmentedButton<MediaRating>(
+                              segments: [
+                                ButtonSegment(
+                                  value: MediaRating.like,
+                                  icon: Icon(
+                                    _ratingSignal.value == MediaRating.like
+                                        ? Icons.star
+                                        : Icons.star_border,
+                                    color:
+                                        _ratingSignal.value == MediaRating.like
+                                        ? favoriteColor
+                                        : null,
+                                  ),
+                                  label: const Text('Favorite'),
                                 ),
-                                label: const Text('Favorite'),
-                              ),
-                              ButtonSegment(
-                                value: MediaRating.dislike,
-                                icon: Icon(
-                                  _ratingSignal.value == MediaRating.dislike
-                                      ? Icons.thumb_down
-                                      : Icons.thumb_down_outlined,
-                                  color:
-                                      _ratingSignal.value == MediaRating.dislike
-                                      ? dislikeColor
-                                      : null,
+                                ButtonSegment(
+                                  value: MediaRating.dislike,
+                                  icon: Icon(
+                                    _ratingSignal.value == MediaRating.dislike
+                                        ? Icons.thumb_down
+                                        : Icons.thumb_down_outlined,
+                                    color:
+                                        _ratingSignal.value ==
+                                            MediaRating.dislike
+                                        ? dislikeColor
+                                        : null,
+                                  ),
+                                  label: const Text('Dislike'),
                                 ),
-                                label: const Text('Dislike'),
-                              ),
-                            ],
-                            selected: {_ratingSignal.value},
-                            onSelectionChanged: (val) {
-                              if (val.isEmpty) {
-                                _ratingSignal.value = MediaRating.noRating;
-                              } else {
-                                _ratingSignal.value = val.first;
-                              }
-                            },
-                            emptySelectionAllowed: true,
-                            showSelectedIcon: false,
-                          );
-                        }),
+                              ],
+                              selected: {_ratingSignal.value},
+                              onSelectionChanged: (val) {
+                                if (val.isEmpty) {
+                                  _ratingSignal.value = MediaRating.noRating;
+                                } else {
+                                  _ratingSignal.value = val.first;
+                                }
+                              },
+                              emptySelectionAllowed: true,
+                              showSelectedIcon: false,
+                            );
+                          },
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -540,23 +549,25 @@ class _MediaDetailPageState extends State<MediaDetailPage>
                       ],
                     ),
                     const SizedBox(height: 12),
-                    SignalBuilder(builder: (context) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _tempAliases.map((alias) {
-                          return GestureDetector(
-                            onTap: () {
-                              _aliasController.text = alias;
-                            },
-                            child: Chip(
-                              label: Text(alias),
-                              onDeleted: () => _tempAliases.remove(alias),
-                            ),
-                          );
-                        }).toList(),
-                      );
-                    }),
+                    SignalBuilder(
+                      builder: (context) {
+                        return Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _tempAliases.map((alias) {
+                            return GestureDetector(
+                              onTap: () {
+                                _aliasController.text = alias;
+                              },
+                              child: Chip(
+                                label: Text(alias),
+                                onDeleted: () => _tempAliases.remove(alias),
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
                     const Divider(height: 40),
 
                     _buildSectionTitle('Funscripts'),
@@ -587,20 +598,22 @@ class _MediaDetailPageState extends State<MediaDetailPage>
 
   Widget _buildCategoryChips() {
     final allCategories = oBox.userCategoryService.getAllUserCategories();
-    return SignalBuilder(builder: (context) {
-      return Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: allCategories.map((cat) {
-          final isSelected = _categoriesSignal.any((c) => c.id == cat.id);
-          return FilterChip(
-            label: Text(cat.name),
-            selected: isSelected,
-            onSelected: (_) => _toggleCategory(cat),
-          );
-        }).toList(),
-      );
-    });
+    return SignalBuilder(
+      builder: (context) {
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: allCategories.map((cat) {
+            final isSelected = _categoriesSignal.any((c) => c.id == cat.id);
+            return FilterChip(
+              label: Text(cat.name),
+              selected: isSelected,
+              onSelected: (_) => _toggleCategory(cat),
+            );
+          }).toList(),
+        );
+      },
+    );
   }
 
   static String _formatDateTime(DateTime d) {
@@ -737,112 +750,114 @@ class _MediaDetailPageState extends State<MediaDetailPage>
   }
 
   Widget _buildFunscriptList() {
-    return SignalBuilder(builder: (context) {
-      final allScripts = _funscriptsSignal.value;
-      if (allScripts.isEmpty) {
-        return const Text(
-          'No funscripts attached.',
-          style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
-        );
-      }
+    return SignalBuilder(
+      builder: (context) {
+        final allScripts = _funscriptsSignal.value;
+        if (allScripts.isEmpty) {
+          return const Text(
+            'No funscripts attached.',
+            style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+          );
+        }
 
-      return Card(
-        child: Column(
-          children: allScripts.map((fs) {
-            final isMain =
-                _mainFunscriptSignal.value?.id == fs.id && fs.id != 0;
-            return ListTile(
-              leading: Icon(
-                fs.fileNotFound
-                    ? Icons.error_outline
-                    : (isMain
-                          ? Icons.star_rounded
-                          : Icons.description_outlined),
-                color: fs.fileNotFound
-                    ? Colors.red
-                    : (isMain ? Colors.amber : null),
-              ),
-              title: Text(
-                fs.fileName,
-                style: TextStyle(
-                  color: fs.fileNotFound ? Colors.red : null,
-                  decoration: fs.fileNotFound
-                      ? TextDecoration.lineThrough
-                      : null,
+        return Card(
+          child: Column(
+            children: allScripts.map((fs) {
+              final isMain =
+                  _mainFunscriptSignal.value?.id == fs.id && fs.id != 0;
+              return ListTile(
+                leading: Icon(
+                  fs.fileNotFound
+                      ? Icons.error_outline
+                      : (isMain
+                            ? Icons.star_rounded
+                            : Icons.description_outlined),
+                  color: fs.fileNotFound
+                      ? Colors.red
+                      : (isMain ? Colors.amber : null),
                 ),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    fs.path,
-                    style: TextStyle(
-                      color: fs.fileNotFound
-                          ? Colors.red.withValues(alpha: 0.7)
-                          : null,
-                    ),
+                title: Text(
+                  fs.fileName,
+                  style: TextStyle(
+                    color: fs.fileNotFound ? Colors.red : null,
+                    decoration: fs.fileNotFound
+                        ? TextDecoration.lineThrough
+                        : null,
                   ),
-                  Text(
-                    'Hash: ${fs.funscriptHash}',
-                    style: GoogleFonts.robotoMono(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (fs.fileNotFound)
-                    const Padding(
-                      padding: EdgeInsets.only(right: 8.0),
-                      child: Tooltip(
-                        message: 'File not found',
-                        child: Icon(
-                          Icons.warning_amber_rounded,
-                          color: Colors.orange,
-                          size: 20,
-                        ),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      fs.path,
+                      style: TextStyle(
+                        color: fs.fileNotFound
+                            ? Colors.red.withValues(alpha: 0.7)
+                            : null,
                       ),
                     ),
-                  if (isMain)
-                    const Badge(label: Text('MAIN'))
-                  else
-                    TextButton(
-                      onPressed: () {
-                        _mainFunscriptSignal.value = fs;
-                      },
-                      child: const Text('Set Main'),
+                    Text(
+                      'Hash: ${fs.funscriptHash}',
+                      style: GoogleFonts.robotoMono(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  IconButton(
-                    icon: const Icon(Icons.open_in_new),
-                    onPressed: fs.fileNotFound
-                        ? null
-                        : () => PlatformUtils.openFileExplorer(fs.path),
-                    tooltip: 'Open in explorer',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.folder_open),
-                    onPressed: () => _relocateFunscript(fs),
-                    tooltip: 'Relocate',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () {
-                      widget.media.funscripts.remove(fs);
-                      _funscriptsSignal.remove(fs);
-                      if (isMain) {
-                        _mainFunscriptSignal.value = null;
-                      }
-                    },
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-      );
-    });
+                  ],
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (fs.fileNotFound)
+                      const Padding(
+                        padding: EdgeInsets.only(right: 8.0),
+                        child: Tooltip(
+                          message: 'File not found',
+                          child: Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.orange,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    if (isMain)
+                      const Badge(label: Text('MAIN'))
+                    else
+                      TextButton(
+                        onPressed: () {
+                          _mainFunscriptSignal.value = fs;
+                        },
+                        child: const Text('Set Main'),
+                      ),
+                    IconButton(
+                      icon: const Icon(Icons.open_in_new),
+                      onPressed: fs.fileNotFound
+                          ? null
+                          : () => PlatformUtils.openFileExplorer(fs.path),
+                      tooltip: 'Open in explorer',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.folder_open),
+                      onPressed: () => _relocateFunscript(fs),
+                      tooltip: 'Relocate',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () {
+                        widget.media.funscripts.remove(fs);
+                        _funscriptsSignal.remove(fs);
+                        if (isMain) {
+                          _mainFunscriptSignal.value = null;
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
   }
 }

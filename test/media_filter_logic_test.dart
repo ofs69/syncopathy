@@ -31,19 +31,16 @@ void main() {
     return m;
   }
 
-  FunscriptFile script({
-    double speed = 0,
-    double min = 0,
-    double max = 0,
-  }) => FunscriptFile(
-    path: 'x.funscript',
-    averageSpeed: speed,
-    averageMin: min,
-    averageMax: max,
-    isScriptToken: false,
-    fileNotFound: false,
-    funscriptHash: 'h$speed$min$max',
-  );
+  FunscriptFile script({double speed = 0, double min = 0, double max = 0}) =>
+      FunscriptFile(
+        path: 'x.funscript',
+        averageSpeed: speed,
+        averageMin: min,
+        averageMax: max,
+        isScriptToken: false,
+        fileNotFound: false,
+        funscriptHash: 'h$speed$min$max',
+      );
 
   StringFilter titleContains(String query) {
     final f = StringFilter(
@@ -122,10 +119,7 @@ void main() {
   group('visibility filters', () {
     test('hideFavorite drops liked media', () {
       final result = run(
-        [
-          media('liked', rating: MediaRating.like),
-          media('plain'),
-        ],
+        [media('liked', rating: MediaRating.like), media('plain')],
         visibility: {VideoFilter.hideFavorite},
       );
       expect(names(result), ['plain']);
@@ -133,10 +127,7 @@ void main() {
 
     test('hideDisliked drops disliked media', () {
       final result = run(
-        [
-          media('nope', rating: MediaRating.dislike),
-          media('plain'),
-        ],
+        [media('nope', rating: MediaRating.dislike), media('plain')],
         visibility: {VideoFilter.hideDisliked},
       );
       expect(names(result), ['plain']);
@@ -144,10 +135,7 @@ void main() {
 
     test('hideUnrated drops media with no rating', () {
       final result = run(
-        [
-          media('rated', rating: MediaRating.like),
-          media('unrated'),
-        ],
+        [media('rated', rating: MediaRating.like), media('unrated')],
         visibility: {VideoFilter.hideUnrated},
       );
       expect(names(result), ['rated']);
@@ -198,20 +186,20 @@ void main() {
     test('a disabled filter does not constrain results', () {
       final f = titleContains('holiday');
       f.enabled.value = false;
-      final result = run(
-        [media('holiday'), media('other')],
-        filter: filterWith(FilterGroupOperator.and, [f]),
-      );
+      final result = run([
+        media('holiday'),
+        media('other'),
+      ], filter: filterWith(FilterGroupOperator.and, [f]));
       expect(result.length, 2);
     });
 
     test('a negated filter inverts the match', () {
       final f = titleContains('holiday');
       f.negated.value = true;
-      final result = run(
-        [media('holiday'), media('other')],
-        filter: filterWith(FilterGroupOperator.and, [f]),
-      );
+      final result = run([
+        media('holiday'),
+        media('other'),
+      ], filter: filterWith(FilterGroupOperator.and, [f]));
       expect(names(result), ['other']);
     });
   });
@@ -255,14 +243,11 @@ void main() {
 
   group('separateFavorites', () {
     test('favorites float to the top and dislikes sink to the bottom', () {
-      final result = run(
-        [
-          media('plain'),
-          media('liked', rating: MediaRating.like),
-          media('nope', rating: MediaRating.dislike),
-        ],
-        separateFavorites: true,
-      );
+      final result = run([
+        media('plain'),
+        media('liked', rating: MediaRating.like),
+        media('nope', rating: MediaRating.dislike),
+      ], separateFavorites: true);
       expect(names(result), ['liked', 'plain', 'nope']);
     });
   });

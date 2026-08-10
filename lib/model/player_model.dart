@@ -129,7 +129,10 @@ class PlayerModel with EffectDispose {
   /// that turns a script's actions + duration into [FunscriptProcessParams].
   /// Shared by the simple- and regular-mode effects, which differ only in where
   /// the funscript comes from.
-  FunscriptProcessParams Function(List<FunscriptAction> actions, double duration)
+  FunscriptProcessParams Function(
+    List<FunscriptAction> actions,
+    double duration,
+  )
   _snapshotProcessParams(VideoPlayer player) {
     final invert = _settings.invert.value;
     final intensity = _settings.intensity.value;

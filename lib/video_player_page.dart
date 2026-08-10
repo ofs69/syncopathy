@@ -59,8 +59,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
     // Nothing open but a playlist is active → we're between entries (a brief
     // transition), which warrants a spinner rather than the idle empty state.
     final inPlaylistTransition =
-        noFunscriptLoaded &&
-        player.currentPlaylist.value.entries.isNotEmpty;
+        noFunscriptLoaded && player.currentPlaylist.value.entries.isNotEmpty;
 
     return Stack(
       children: [

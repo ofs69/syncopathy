@@ -59,59 +59,61 @@ class MediaFilterOverlayState extends State<MediaFilterOverlay> {
   }
 
   Widget _buildFilterGroup(FilterGroup filterGroup) {
-    return SignalBuilder(builder: (context) {
-      final operator = filterGroup.operator.value;
-      final filters = filterGroup.filters.value;
-      return Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: DropdownMenu<FilterGroupOperator>(
-                  initialSelection: operator,
-                  expandedInsets: EdgeInsets.zero,
-                  requestFocusOnTap: false,
-                  enableSearch: false,
-                  label: const Text('Operator'),
-                  onSelected: (newValue) {
-                    if (newValue == null) return;
-                    filterGroup.operator.value = newValue;
-                  },
-                  dropdownMenuEntries: FilterGroupOperator.values
-                      .map<DropdownMenuEntry<FilterGroupOperator>>((value) {
-                        return DropdownMenuEntry<FilterGroupOperator>(
-                          value: value,
-                          label: value.label,
-                          leadingIcon: Icon(value.icon),
-                        );
-                      })
-                      .toList(),
+    return SignalBuilder(
+      builder: (context) {
+        final operator = filterGroup.operator.value;
+        final filters = filterGroup.filters.value;
+        return Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownMenu<FilterGroupOperator>(
+                    initialSelection: operator,
+                    expandedInsets: EdgeInsets.zero,
+                    requestFocusOnTap: false,
+                    enableSearch: false,
+                    label: const Text('Operator'),
+                    onSelected: (newValue) {
+                      if (newValue == null) return;
+                      filterGroup.operator.value = newValue;
+                    },
+                    dropdownMenuEntries: FilterGroupOperator.values
+                        .map<DropdownMenuEntry<FilterGroupOperator>>((value) {
+                          return DropdownMenuEntry<FilterGroupOperator>(
+                            value: value,
+                            label: value.label,
+                            leadingIcon: Icon(value.icon),
+                          );
+                        })
+                        .toList(),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Icon(operator.icon),
-            ],
-          ),
-          ListView.builder(
-            shrinkWrap: true,
-            itemCount: filters.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: _buildFilterListItem(
-                  filters[index],
-                  onDelete: () {
-                    filterGroup.filters.remove(filters[index]);
-                  },
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 4),
-          _buildAddFilterItem(filterGroup),
-        ],
-      );
-    });
+                const SizedBox(width: 8),
+                Icon(operator.icon),
+              ],
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              itemCount: filters.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: _buildFilterListItem(
+                    filters[index],
+                    onDelete: () {
+                      filterGroup.filters.remove(filters[index]);
+                    },
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 4),
+            _buildAddFilterItem(filterGroup),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildAddFilterItem(FilterGroup filterGroup) {
@@ -225,41 +227,43 @@ class MediaFilterOverlayState extends State<MediaFilterOverlay> {
     FilterBase filter, {
     required void Function() onDelete,
   }) {
-    return SignalBuilder(builder: (context) {
-      final enabled = filter.enabled.value;
-      final negated = filter.negated.value;
-      return Row(
-        children: [
-          Checkbox(
-            value: enabled,
-            onChanged: (value) {
-              filter.enabled.value = value ?? true;
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              negated ? Icons.remove : Icons.add,
-              color: negated
-                  ? Theme.of(context).colorScheme.error
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
+    return SignalBuilder(
+      builder: (context) {
+        final enabled = filter.enabled.value;
+        final negated = filter.negated.value;
+        return Row(
+          children: [
+            Checkbox(
+              value: enabled,
+              onChanged: (value) {
+                filter.enabled.value = value ?? true;
+              },
             ),
-            tooltip: negated
-                ? 'Excluding matches — tap to include'
-                : 'Including matches — tap to exclude',
-            onPressed: () {
-              filter.negated.value = !filter.negated.value;
-            },
-          ),
-          const SizedBox(width: 4),
-          Expanded(child: filter.filterRowWidget(context)),
-          IconButton(
-            icon: const Icon(Icons.delete),
-            tooltip: 'Remove filter',
-            onPressed: onDelete,
-          ),
-        ],
-      );
-    });
+            IconButton(
+              icon: Icon(
+                negated ? Icons.remove : Icons.add,
+                color: negated
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              tooltip: negated
+                  ? 'Excluding matches — tap to include'
+                  : 'Including matches — tap to exclude',
+              onPressed: () {
+                filter.negated.value = !filter.negated.value;
+              },
+            ),
+            const SizedBox(width: 4),
+            Expanded(child: filter.filterRowWidget(context)),
+            IconButton(
+              icon: const Icon(Icons.delete),
+              tooltip: 'Remove filter',
+              onPressed: onDelete,
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

@@ -91,8 +91,10 @@ class SettingsModel {
       () => _entity.embeddedVideoPlayer = embeddedVideoPlayer.value,
     ),
     EntityBinding(
-      () => autoSwitchToVideoPlayerTab.value = _entity.autoSwitchToVideoPlayerTab,
-      () => _entity.autoSwitchToVideoPlayerTab = autoSwitchToVideoPlayerTab.value,
+      () =>
+          autoSwitchToVideoPlayerTab.value = _entity.autoSwitchToVideoPlayerTab,
+      () =>
+          _entity.autoSwitchToVideoPlayerTab = autoSwitchToVideoPlayerTab.value,
     ),
     EntityBinding(
       () => invert.value = _entity.invert,
