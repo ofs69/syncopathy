@@ -18,7 +18,7 @@ import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
 import 'package:syncopathy/player/hsp_clock_sync.dart';
 
-class RatelimitMiddleware extends InterceptorContract {
+class RatelimitMiddleware implements HttpInterceptor {
   @override
   FutureOr<BaseRequest> interceptRequest({required BaseRequest request}) {
     if (kDebugMode) {
@@ -67,6 +67,15 @@ class RatelimitMiddleware extends InterceptorContract {
 
     return response;
   }
+
+  // HttpInterceptor is an interface, so the opt-out hooks have to be spelled
+  // out here even though we want the default: intercept everything.
+  @override
+  FutureOr<bool> shouldInterceptRequest({required BaseRequest request}) => true;
+
+  @override
+  FutureOr<bool> shouldInterceptResponse({required BaseResponse response}) =>
+      true;
 }
 
 class ApiQueue {

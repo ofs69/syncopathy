@@ -79,7 +79,7 @@ dependencies:
   args: ^2.7.0
   image: ^4.8.0
   pool: ^1.5.2
-  http_interceptor: 2.0.0
+  http_interceptor: ^3.0.0
   shared_preferences: ^2.5.4
   desktop_drop: ^0.7.0
   web: ^1.1.1
