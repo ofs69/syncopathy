@@ -79,17 +79,47 @@ Future<Widget> _initializeAppAndRun({required bool simple}) async {
   );
 }
 
+/// Unwraps the error a signals effect actually threw.
+///
+/// When a subscriber throws — a Flutter element marked dirty mid-frame, say —
+/// the batch collects the error and rethrows it wrapped in a
+/// [SignalEffectException], which has no `toString` of its own, so the log ends
+/// up reading `Instance of 'SignalEffectException'` with a stack that stops at
+/// `endBatch`. The wrapper carries the real cause and the stack from inside the
+/// effect callback, which is the half worth reporting.
+@visibleForTesting
+(Object, StackTrace?) unwrapSignalError(Object error, StackTrace? stack) {
+  var cause = error;
+  var causeStack = stack;
+  // Nested batches can wrap more than once.
+  while (cause is SignalEffectException) {
+    final inner = cause.error;
+    if (inner == null) break;
+    causeStack = cause.stackTrace ?? causeStack;
+    cause = inner;
+  }
+  return (cause, causeStack);
+}
+
 void main(List<String> args) async {
   // comment this out if you want to use the signals devtools
   SignalsObserver.instance = null;
 
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
-    Logger.error(details.exceptionAsString(), details.exception, details.stack);
+    final (error, stack) = unwrapSignalError(details.exception, details.stack);
+    Logger.error(
+      identical(error, details.exception)
+          ? details.exceptionAsString()
+          : '$error',
+      error,
+      stack,
+    );
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
-    Logger.error('Uncaught platform error', error, stack);
+    final (cause, causeStack) = unwrapSignalError(error, stack);
+    Logger.error('Uncaught platform error', cause, causeStack);
     return true;
   };
 
