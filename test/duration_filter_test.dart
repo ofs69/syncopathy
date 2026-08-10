@@ -69,17 +69,6 @@ void main() {
     });
   });
 
-  group('formatSeconds', () {
-    test('omits the hour component below an hour', () {
-      expect(DurationFilter.formatSeconds(330), '5:30');
-      expect(DurationFilter.formatSeconds(9), '0:09');
-    });
-
-    test('includes and zero-pads the hour component above an hour', () {
-      expect(DurationFilter.formatSeconds(3930), '1:05:30');
-    });
-  });
-
   group('matching', () {
     test('an empty input constrains nothing', () {
       final f = filterFor('', FilterOperator.greaterEqual);
@@ -134,7 +123,7 @@ void main() {
   });
 
   group('filter row widget', () {
-    testWidgets('echoes back how the typed input was read', (tester) async {
+    testWidgets('mirrors typed input into the filter value', (tester) async {
       final f = filterFor('', FilterOperator.greaterEqual);
       await tester.pumpWidget(
         MaterialApp(
@@ -144,13 +133,10 @@ void main() {
         ),
       );
 
-      expect(find.text('e.g. 90, 5:30, 1:05:30'), findsOneWidget);
-
       await tester.enterText(find.byType(TextField), '90');
       await tester.pump();
 
       expect(f.value.value, '90');
-      expect(find.text('1:30:00'), findsOneWidget);
     });
   });
 }

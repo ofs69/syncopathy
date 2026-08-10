@@ -342,17 +342,6 @@ class DurationFilter extends FilterBase<num> {
     return (seconds: seconds, tolerance: 0.5);
   }
 
-  /// Renders seconds back as `m:ss` / `h:mm:ss`, to echo how the input was read.
-  static String formatSeconds(double seconds) {
-    final total = seconds.round();
-    final hours = total ~/ 3600;
-    final minutes = (total % 3600) ~/ 60;
-    final secs = total % 60;
-    final paddedSecs = secs.toString().padLeft(2, '0');
-    if (hours == 0) return '$minutes:$paddedSecs';
-    return '$hours:${minutes.toString().padLeft(2, '0')}:$paddedSecs';
-  }
-
   @override
   bool performMatch(num value) {
     final target = parseInput(this.value.value);
@@ -372,7 +361,6 @@ class DurationFilter extends FilterBase<num> {
   @override
   Widget filterRowWidget(BuildContext context) {
     final currentOperator = operator.watch(context);
-    final parsed = parseInput(value.watch(context));
     return Row(
       children: [
         Expanded(
@@ -386,11 +374,6 @@ class DurationFilter extends FilterBase<num> {
             decoration: InputDecoration(
               labelText: label,
               hintText: "minutes, or m:ss",
-              // A bare number meaning minutes is not self-evident from the
-              // field, so echo back how the input was actually read.
-              helperText: parsed == null
-                  ? "e.g. 90, 5:30, 1:05:30"
-                  : formatSeconds(parsed.seconds),
               prefixIcon: Icon(icon),
               border: const OutlineInputBorder(),
             ),
