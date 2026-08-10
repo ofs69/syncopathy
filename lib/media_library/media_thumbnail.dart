@@ -64,6 +64,9 @@ class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
   void dispose() {
     _commandSub?.cancel();
     _loadingTimer?.cancel();
+    // Scrolling past a card should not commit to generating its thumbnail. A
+    // no-op once the request has started or already resolved.
+    ThumbnailGenerator().cancelRequest(widget.media.id);
     super.dispose();
   }
 
