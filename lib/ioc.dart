@@ -24,6 +24,12 @@ late ObjectBox oBox;
 /// instead of inheriting the user's global mpv configuration.
 String? mpvConfigDir;
 
+/// Raw mpv `hwdec` value from a `--hwdec=` command line argument, overriding the
+/// stored setting for this run. Any value mpv accepts is allowed here (not just
+/// the curated [HwdecMode] set) so a specific decoder can be ruled in or out
+/// when diagnosing a GPU driver problem.
+String? hwdecOverride;
+
 bool isDesktop() {
   return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 }

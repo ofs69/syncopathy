@@ -31,6 +31,13 @@ Settings _$SettingsFromJson(Map<String, dynamic> json) => Settings(
       ) ??
       PlayerBackendType.handyStrokerStreamingBluetooth,
   funscriptGraphEnabled: json['funscriptGraphEnabled'] as bool? ?? true,
+  hwdecMode:
+      $enumDecodeNullable(
+        _$HwdecModeEnumMap,
+        json['hwdecMode'],
+        unknownValue: HwdecMode.autoCopy,
+      ) ??
+      HwdecMode.autoCopy,
   customShortcuts:
       (json['customShortcuts'] as Map<String, dynamic>?)?.map(
         (k, e) =>
@@ -53,6 +60,7 @@ Map<String, dynamic> _$SettingsToJson(Settings instance) => <String, dynamic>{
   'invert': instance.invert,
   'playerBackendType': _$PlayerBackendTypeEnumMap[instance.playerBackendType]!,
   'funscriptGraphEnabled': instance.funscriptGraphEnabled,
+  'hwdecMode': _$HwdecModeEnumMap[instance.hwdecMode]!,
   'customShortcuts': instance.customShortcuts,
 };
 
@@ -77,6 +85,7 @@ const _$SettingsJsonSchema = {
     'invert': {'type': 'boolean', 'default': false},
     'playerBackendType': {'type': 'object'},
     'funscriptGraphEnabled': {'type': 'boolean', 'default': true},
+    'hwdecMode': {'type': 'object'},
     'customShortcuts': {
       'type': 'object',
       'additionalProperties': {r'$ref': r'#/$defs/ShortcutBinding'},
@@ -104,4 +113,10 @@ const _$PlayerBackendTypeEnumMap = {
   PlayerBackendType.handyStrokerStreamingWeb: 'handyStrokerStreamingWeb',
   PlayerBackendType.handyStrokerCommand: 'handyStrokerCommand',
   PlayerBackendType.buttplugStrokerCommand: 'buttplugStrokerCommand',
+};
+
+const _$HwdecModeEnumMap = {
+  HwdecMode.autoCopy: 'autoCopy',
+  HwdecMode.autoSafe: 'autoSafe',
+  HwdecMode.none: 'none',
 };

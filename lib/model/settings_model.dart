@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/entity_binding.dart';
+import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
+import 'package:syncopathy/player/hwdec_mode.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/model/json/settings.dart';
 import 'package:syncopathy/model/shortcut_settings.dart';
@@ -32,7 +34,15 @@ class SettingsModel {
     PlayerBackendType.handyStrokerStreamingBluetooth,
   );
   final Signal<bool> funscriptGraphEnabled = signal(false);
+  final Signal<HwdecMode> hwdecMode = signal(HwdecMode.autoCopy);
   final MapSignal<String, ShortcutBinding> customShortcuts = mapSignal({});
+
+  /// The `hwdec` value actually handed to mpv. A `--hwdec=` command line
+  /// argument wins over the stored setting, so a user can diagnose a driver
+  /// problem without first having to reach a working video player.
+  late final ReadonlySignal<String> effectiveHwdec = computed(
+    () => hwdecOverride ?? hwdecMode.value.mpvValue,
+  );
 
   // Not persisted in the database
   final Signal<double?> intensity = signal(null);
@@ -95,6 +105,10 @@ class SettingsModel {
     EntityBinding(
       () => funscriptGraphEnabled.value = _entity.funscriptGraphEnabled,
       () => _entity.funscriptGraphEnabled = funscriptGraphEnabled.value,
+    ),
+    EntityBinding(
+      () => hwdecMode.value = _entity.hwdecMode,
+      () => _entity.hwdecMode = hwdecMode.value,
     ),
     EntityBinding(
       () => customShortcuts.value = _entity.customShortcuts,

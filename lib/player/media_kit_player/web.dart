@@ -8,7 +8,12 @@ class MediaKitPlayerImpl extends VideoPlayer {
   ReadonlySignal<bool> get paused => _paused;
   late final ReadonlySignal<bool> _paused;
 
-  MediaKitPlayerImpl({required super.embeddedPlayer}) {
+  /// Accepted for signature parity with the native implementation. The web
+  /// player decodes in the browser, which exposes no equivalent knob.
+  MediaKitPlayerImpl({
+    required super.embeddedPlayer,
+    ReadonlySignal<String>? hwdec,
+  }) {
     player = Player(configuration: PlayerConfiguration(title: "syncopathy"));
     controller = embeddedPlayer ? VideoController(player) : null;
     _paused = player.stream.playing

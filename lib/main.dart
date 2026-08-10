@@ -49,6 +49,7 @@ Future<Widget> _initializeAppAndRun({required bool simple}) async {
   var batteryModel = BatteryModel();
   var videoPlayer = MediaKitPlayerImpl(
     embeddedPlayer: settings.embeddedVideoPlayer.value,
+    hwdec: settings.effectiveHwdec,
   );
   getIt.registerSingleton<VideoPlayer>(videoPlayer);
 
@@ -104,11 +105,23 @@ void main(List<String> args) async {
         abbr: 's',
         negatable: false,
         help: 'Enable simple interface (automatic if [file] is provided).',
+      )
+      ..addOption(
+        'hwdec',
+        help:
+            'Override the video hardware decoding mode for this run, taking '
+            'precedence over the setting. Accepts any mpv --hwdec value '
+            '(e.g. no, auto, auto-copy, vaapi). Useful for diagnosing GPU '
+            'driver problems.',
+        valueHelp: 'mode',
       );
     final results = parser.parse(args);
 
     openFile = results.rest.isNotEmpty ? results.rest.first : null;
     isSimple = (results['simple'] as bool) || (openFile != null);
+    // Must land before any settings are read, since the effective hwdec value
+    // is derived from it.
+    hwdecOverride = results['hwdec'] as String?;
   } else {
     // Web always runs in simple mode.
     isSimple = true;

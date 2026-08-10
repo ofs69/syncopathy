@@ -9,7 +9,14 @@ class MediaKitPlayerImpl extends VideoPlayer {
   ReadonlySignal<bool> get paused => _paused;
   final Signal<bool> _paused = signal(false);
 
-  MediaKitPlayerImpl({required super.embeddedPlayer}) {
+  /// Last value written to mpv, so the reactive re-apply below can skip writes
+  /// that would change nothing.
+  String _appliedHwdec;
+
+  MediaKitPlayerImpl({
+    required super.embeddedPlayer,
+    required ReadonlySignal<String> hwdec,
+  }) : _appliedHwdec = hwdec.value {
     player = Player(
       configuration: PlayerConfiguration(
         osc: !embeddedPlayer,
@@ -21,7 +28,10 @@ class MediaKitPlayerImpl extends VideoPlayer {
           // mpv configuration. Empty string falls back to mpv's defaults.
           'config-dir': mpvConfigDir ?? '',
           'input-default-bindings': 'yes',
-          'hwdec': 'auto-copy',
+          // Only takes effect for the external window, where there is no
+          // VideoController; the embedded path is governed by the controller
+          // configuration below, which mpv applies later and thus wins.
+          'hwdec': _appliedHwdec,
           'border': 'yes',
           'geometry': "1280x720",
           'idle': 'yes',
@@ -36,7 +46,7 @@ class MediaKitPlayerImpl extends VideoPlayer {
             player,
             configuration: VideoControllerConfiguration(
               vo: 'libmpv',
-              hwdec: 'auto-copy',
+              hwdec: _appliedHwdec,
             ),
           )
         : null;
@@ -60,5 +70,25 @@ class MediaKitPlayerImpl extends VideoPlayer {
     nativePlayer?.setProperty('cache-on-disk', 'no');
     nativePlayer?.command(["keybind", "CLOSE_WIN", "ignore"]);
     nativePlayer?.command(["keybind", "q", "ignore"]);
+
+    // Apply later changes to the setting without a restart. `hwdec` is one of
+    // mpv's runtime-changeable options, and writing it as a property is the only
+    // reliable way to change it: VideoController issues its own hwdec property
+    // write once it attaches, after both the init options and mpv.conf have been
+    // read, so anything set earlier would be overwritten.
+    //
+    // The first run is a no-op because _appliedHwdec already holds the value
+    // baked into the configuration above.
+    final mpv = nativePlayer;
+    if (mpv != null) {
+      effectAdd([
+        effect(() {
+          final value = hwdec.value;
+          if (value == _appliedHwdec) return;
+          _appliedHwdec = value;
+          mpv.setProperty('hwdec', value);
+        }),
+      ]);
+    }
   }
 }

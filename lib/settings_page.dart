@@ -18,6 +18,7 @@ import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
+import 'package:syncopathy/player/hwdec_mode.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/model/shortcut_settings.dart';
 import 'package:syncopathy/widgets/shortcut_rebind_dialog.dart';
@@ -87,6 +88,7 @@ class _SettingsPageState extends State<SettingsPage> {
           if (!syncopathySimpleMode)
             _buildAutoSwitchToVideoPlayerTabSettings(context),
           _buildSkipToActionSettings(context),
+          if (!kIsWeb) _buildHwdecSettings(context),
         ],
       ),
       (context) => _buildSettingsCard(
@@ -242,6 +244,60 @@ class _SettingsPageState extends State<SettingsPage> {
         isThreeLine: true,
       ),
     );
+  }
+
+  Widget _buildHwdecSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
+    final overridden = hwdecOverride != null;
+
+    return Watch((context) {
+      final mode = settings.hwdecMode.value;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.memory),
+            title: const Text('Hardware Decoding'),
+            subtitle: Text(
+              overridden
+                  // The command line wins, so say so rather than letting the
+                  // dropdown imply a change would take effect.
+                  ? 'Overridden by --hwdec=$hwdecOverride for this run.'
+                  : mode.description,
+            ),
+            isThreeLine: true,
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
+            child: DropdownMenu<HwdecMode>(
+              initialSelection: mode,
+              enabled: !overridden,
+              expandedInsets: EdgeInsets.zero,
+              requestFocusOnTap: false,
+              enableSearch: false,
+              helperText: 'Switch back if video turns black or fails to play.',
+              inputDecorationTheme: const InputDecorationTheme(
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 8.0,
+                ),
+              ),
+              dropdownMenuEntries: HwdecMode.values
+                  .map(
+                    (e) => DropdownMenuEntry<HwdecMode>(
+                      value: e,
+                      label: e.toDisplayString(),
+                    ),
+                  )
+                  .toList(),
+              onSelected: (selected) {
+                if (selected != null) settings.hwdecMode.value = selected;
+              },
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildAutoSwitchToVideoPlayerTabSettings(BuildContext context) {
