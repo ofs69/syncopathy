@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:rxdart/rxdart.dart';
 import 'package:signals/signals_flutter.dart';
 
 abstract class BaseRequest {
@@ -42,25 +41,50 @@ class RequestTicket<O> {
   }
 }
 
+/// How long queue mutations are coalesced before [TaskQueue.queueLength]
+/// publishes a new depth.
+const Duration _queueLengthInterval = Duration(milliseconds: 300);
+
 abstract class TaskQueue<I extends BaseRequest, O> {
   final Map<int, _PendingTask<I, O>> _pending = {};
-  final ListSignal<int> _queue = listSignal([]);
-  late final ReadonlySignal<int> _queueLengthRaw = computed(() {
-    return _queue.length;
-  });
-  late final ReadonlySignal<int> queueLength = _queueLengthRaw
-      .toStream()
-      .throttleTime(
-        const Duration(milliseconds: 300),
-        leading: false,
-        trailing: true,
-      )
-      .toSyncSignal(_queueLengthRaw.value);
+
+  /// Deliberately a plain list, not a [ListSignal].
+  ///
+  /// Nothing renders the queue itself, only its depth, and a reactive queue put
+  /// a signal write on the enqueue path. Requests are added from
+  /// `MediaThumbnail.initState`, which a lazy grid runs during layout, and any
+  /// element subscribed downstream would then have `markNeedsBuild` called on it
+  /// mid-frame — which Flutter turns into an exception that surfaces from the
+  /// signal write as a `SignalEffectException`.
+  final List<int> _queue = [];
+
+  final Signal<int> _queueLength = signal(0);
+  Timer? _queueLengthTimer;
+
+  /// Queue depth for progress UI, republished at most once per
+  /// [_queueLengthInterval] and only ever written from a timer — never from
+  /// inside a caller's enqueue, and so never mid-frame.
+  ///
+  /// Exposed via a getter rather than a lazily initialised field: the first read
+  /// of a `late final` happens inside whichever widget build touched it, and
+  /// signal reads made during a build are attributed to that element. That is
+  /// how the throttle used to be bypassed entirely — `toStream` subscribes
+  /// eagerly, so the reading element ended up subscribed to the raw, unthrottled
+  /// depth.
+  ReadonlySignal<int> get queueLength => _queueLength;
 
   int _activeWorkers = 0;
   final int maxConcurrent;
 
   TaskQueue({required this.maxConcurrent});
+
+  void _scheduleQueueLengthPublish() {
+    if (_queueLengthTimer != null) return;
+    _queueLengthTimer = Timer(_queueLengthInterval, () {
+      _queueLengthTimer = null;
+      _queueLength.value = _queue.length;
+    });
+  }
 
   Future<O?> processRequest(I request);
 
@@ -70,6 +94,7 @@ abstract class TaskQueue<I extends BaseRequest, O> {
       existing.waiters++;
       _queue.remove(request.id);
       _queue.add(request.id);
+      _scheduleQueueLengthPublish();
       return RequestTicket._(
         existing.completer.future,
         () => _releaseClaim(existing),
@@ -79,6 +104,7 @@ abstract class TaskQueue<I extends BaseRequest, O> {
     final task = _PendingTask<I, O>(request);
     _pending[request.id] = task;
     _queue.add(request.id);
+    _scheduleQueueLengthPublish();
 
     _startWorkers();
     return RequestTicket._(task.completer.future, () => _releaseClaim(task));
@@ -100,6 +126,7 @@ abstract class TaskQueue<I extends BaseRequest, O> {
 
     _pending.remove(id);
     _queue.remove(id);
+    _scheduleQueueLengthPublish();
     if (!task.completer.isCompleted) task.completer.complete(null);
   }
 
@@ -113,6 +140,7 @@ abstract class TaskQueue<I extends BaseRequest, O> {
   Future<void> _workerLoop() async {
     while (_queue.isNotEmpty) {
       final id = _queue.removeLast();
+      _scheduleQueueLengthPublish();
       final task = _pending.remove(id);
       if (task == null) continue;
 

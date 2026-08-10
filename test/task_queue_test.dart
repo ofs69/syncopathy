@@ -122,6 +122,33 @@ void main() {
       expect(queue.processed, [1, 2, 2]);
     });
 
+    test('does not notify queueLength watchers during the enqueue', () async {
+      final queue = _TestQueue();
+      var notifications = 0;
+      queue.queueLength.subscribe((_) => notifications++);
+      // subscribe() delivers the current value immediately.
+      final baseline = notifications;
+
+      queue.addRequest(_TestRequest(1));
+      queue.addRequest(_TestRequest(2));
+      queue.addRequest(_TestRequest(3));
+
+      // Enqueuing must not write a signal in the caller's stack. Thumbnail
+      // cards enqueue from initState, which a lazy grid runs during layout, and
+      // a watcher marked dirty at that point makes Flutter throw.
+      expect(
+        notifications,
+        baseline,
+        reason: 'queueLength was written during addRequest',
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      expect(notifications, greaterThan(baseline));
+      expect(queue.queueLength.value, 2, reason: 'one job is in flight');
+
+      queue.gate.complete();
+    });
+
     test('keeps draining the remaining queue after a cancellation', () async {
       final queue = _TestQueue();
       final blocking = queue.addRequest(_TestRequest(1));
