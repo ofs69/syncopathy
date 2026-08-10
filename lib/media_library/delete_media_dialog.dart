@@ -17,7 +17,7 @@ class _FileEntry {
   String get fileName => p.basename(path);
 }
 
-class DeleteMediaDialog extends StatefulWidget {
+class DeleteMediaDialog extends SignalStatefulWidget {
   final Set<MediaFile> selectedMedia;
 
   const DeleteMediaDialog({super.key, required this.selectedMedia});
@@ -26,16 +26,22 @@ class DeleteMediaDialog extends StatefulWidget {
   State<DeleteMediaDialog> createState() => _DeleteMediaDialogState();
 }
 
-class _DeleteMediaDialogState extends State<DeleteMediaDialog>
-    with SignalsMixin {
+class _DeleteMediaDialogState extends State<DeleteMediaDialog> {
   late final List<_FileEntry> _entries;
-  late final Signal<bool> _deleteFromDisk = createSignal(false);
-  late final Signal<bool> _isDeleting = createSignal(false);
+  final Signal<bool> _deleteFromDisk = signal(false);
+  final Signal<bool> _isDeleting = signal(false);
 
   @override
   void initState() {
     super.initState();
     _entries = _buildEntries();
+  }
+
+  @override
+  void dispose() {
+    _deleteFromDisk.dispose();
+    _isDeleting.dispose();
+    super.dispose();
   }
 
   List<_FileEntry> _buildEntries() {
@@ -99,8 +105,8 @@ class _DeleteMediaDialogState extends State<DeleteMediaDialog>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final deleteFromDisk = _deleteFromDisk.watch(context);
-    final isDeleting = _isDeleting.watch(context);
+    final deleteFromDisk = _deleteFromDisk.value;
+    final isDeleting = _isDeleting.value;
     final count = widget.selectedMedia.length;
 
     final screenSize = MediaQuery.of(context).size;

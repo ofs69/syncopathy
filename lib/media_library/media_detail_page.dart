@@ -35,7 +35,7 @@ class MediaDetailPage extends StatefulWidget {
 }
 
 class _MediaDetailPageState extends State<MediaDetailPage>
-    with SignalsMixin, EffectDispose {
+    with EffectDispose {
   late final TextEditingController _nameController;
   late final TextEditingController _aliasController;
   late final ListSignal<String> _tempAliases;
@@ -47,7 +47,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
   late final ListSignal<FunscriptFile> _funscriptsSignal;
   late final ListSignal<UserCategory> _categoriesSignal;
   late final Debouncer _saveDebouncer;
-  late final Signal<_SaveStatus> _saveStatus = createSignal(_SaveStatus.idle);
+  final Signal<_SaveStatus> _saveStatus = signal(_SaveStatus.idle);
   // The auto-save effect fires once at init (it reads every field signal). Skip
   // that first run so opening the page doesn't write the unchanged entity or
   // flash the save indicator.
@@ -89,21 +89,21 @@ class _MediaDetailPageState extends State<MediaDetailPage>
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.media.name);
-    _nameSignal = createSignal(widget.media.name);
+    _nameSignal = signal(widget.media.name);
     _nameController.addListener(() {
       _nameSignal.value = _nameController.text;
     });
 
     _aliasController = TextEditingController();
     // Scalar mirror signals — populated from the entity by `_bindings` below.
-    _tempAliases = createListSignal<String>([]);
-    _mainFunscriptSignal = createSignal<FunscriptFile?>(null);
-    _ratingSignal = createSignal(MediaRating.noRating);
-    _typeSignal = createSignal(MediaType.unknown);
-    _pathSignal = createSignal('');
+    _tempAliases = listSignal<String>([]);
+    _mainFunscriptSignal = signal<FunscriptFile?>(null);
+    _ratingSignal = signal(MediaRating.noRating);
+    _typeSignal = signal(MediaType.unknown);
+    _pathSignal = signal('');
     // ToMany relations, kept in sync by their mutation handlers (see `_bindings`).
-    _funscriptsSignal = createListSignal(List.from(widget.media.funscripts));
-    _categoriesSignal = createListSignal(List.from(widget.media.categories));
+    _funscriptsSignal = listSignal(List.from(widget.media.funscripts));
+    _categoriesSignal = listSignal(List.from(widget.media.categories));
 
     for (final binding in _bindings) {
       binding.loadFromEntity();
@@ -142,6 +142,17 @@ class _MediaDetailPageState extends State<MediaDetailPage>
     _aliasController.dispose();
     _saveDebouncer.dispose();
     effectDispose();
+    // The mixin used to own these; the effects above are torn down first so
+    // nothing reads them after disposal.
+    _saveStatus.dispose();
+    _nameSignal.dispose();
+    _tempAliases.dispose();
+    _mainFunscriptSignal.dispose();
+    _ratingSignal.dispose();
+    _typeSignal.dispose();
+    _pathSignal.dispose();
+    _funscriptsSignal.dispose();
+    _categoriesSignal.dispose();
     super.dispose();
   }
 
@@ -413,8 +424,8 @@ class _MediaDetailPageState extends State<MediaDetailPage>
               onPressed: _handleExit,
               tooltip: 'Back (Esc)',
             ),
-            title: Watch((context) => Text('Editing ${_nameSignal.value}')),
-            actions: [Watch((context) => _buildSaveIndicator())],
+            title: SignalBuilder(builder: (context) => Text('Editing ${_nameSignal.value}')),
+            actions: [SignalBuilder(builder: (context) => _buildSaveIndicator())],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
@@ -438,7 +449,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
                           ),
                         ),
                         const SizedBox(width: 16),
-                        Watch((context) {
+                        SignalBuilder(builder: (context) {
                           return SegmentedButton<MediaType>(
                             segments: const [
                               ButtonSegment(
@@ -459,7 +470,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
                           );
                         }),
                         const SizedBox(width: 16),
-                        Watch((context) {
+                        SignalBuilder(builder: (context) {
                           return SegmentedButton<MediaRating>(
                             segments: [
                               ButtonSegment(
@@ -529,7 +540,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Watch((context) {
+                    SignalBuilder(builder: (context) {
                       return Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -563,7 +574,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
                     const Divider(height: 40),
 
                     _buildSectionTitle('Technical Information'),
-                    Watch((context) => _buildTechnicalInfo()),
+                    SignalBuilder(builder: (context) => _buildTechnicalInfo()),
                   ],
                 ),
               ),
@@ -576,7 +587,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
 
   Widget _buildCategoryChips() {
     final allCategories = oBox.userCategoryService.getAllUserCategories();
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       return Wrap(
         spacing: 8,
         runSpacing: 8,
@@ -726,7 +737,7 @@ class _MediaDetailPageState extends State<MediaDetailPage>
   }
 
   Widget _buildFunscriptList() {
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final allScripts = _funscriptsSignal.value;
       if (allScripts.isEmpty) {
         return const Text(

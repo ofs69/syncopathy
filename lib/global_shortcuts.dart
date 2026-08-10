@@ -75,7 +75,7 @@ class _GlobalShortcutsState extends State<GlobalShortcuts> {
     final videoPlayer = context.read<VideoPlayer>();
     final settingsModel = context.read<SettingsModel>();
 
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final customShortcuts = settingsModel.customShortcuts.value;
 
       ShortcutActivator getActivator(AppShortcut shortcut) {

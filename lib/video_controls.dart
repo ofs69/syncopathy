@@ -10,7 +10,7 @@ import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/video_player.dart';
 
-class VideoControls extends StatefulWidget {
+class VideoControls extends SignalStatefulWidget {
   final VoidCallback? onFullscreenToggle;
   final Signal<bool> showFunscriptGraph;
   final Signal<bool> showSettings;
@@ -66,7 +66,7 @@ class _VideoControlsState extends State<VideoControls> {
                 children: [
                   // Play/Pause
                   _wrapInContainer(
-                    Watch.builder(
+                    SignalBuilder(
                       builder: (context) => IconButton(
                         icon: Icon(
                           player.paused.value ? Icons.play_arrow : Icons.pause,
@@ -82,7 +82,7 @@ class _VideoControlsState extends State<VideoControls> {
 
                   // Time Display
                   _wrapInContainer(
-                    Watch.builder(
+                    SignalBuilder(
                       builder: (context) {
                         return Padding(
                           padding: const EdgeInsets.all(10.0),
@@ -150,7 +150,7 @@ class _VideoControlsState extends State<VideoControls> {
         Expanded(
           child: SizedBox(
             height: 24.0,
-            child: Watch.builder(
+            child: SignalBuilder(
               builder: (context) {
                 final funscript = playerModel.currentlyOpen.value?.funscript;
                 final actions = funscript?.processedActions.value ?? [];
@@ -171,7 +171,7 @@ class _VideoControlsState extends State<VideoControls> {
   }
 
   Widget _buildMuteButton(VideoPlayer player) {
-    return Watch.builder(
+    return SignalBuilder(
       builder: (context) {
         final volume = player.volume.value;
         final muted = volume <= _muteThreshold;
@@ -203,7 +203,7 @@ class _VideoControlsState extends State<VideoControls> {
   }
 
   Widget _buildGraphButton() {
-    final showing = widget.showFunscriptGraph.watch(context);
+    final showing = widget.showFunscriptGraph.value;
     return IconButton(
       isSelected: showing,
       icon: const Icon(Icons.show_chart),
@@ -214,7 +214,7 @@ class _VideoControlsState extends State<VideoControls> {
   }
 
   Widget _buildFunscriptDropdown(PlayerModel playerModel, VideoPlayer player) {
-    return Watch.builder(
+    return SignalBuilder(
       builder: (context) {
         final media = player.currentMedia.value;
         if (media == null || media.funscripts.isEmpty) {
@@ -261,7 +261,7 @@ class _VideoControlsState extends State<VideoControls> {
   }
 
   Widget _buildSettingsButton() {
-    final showing = widget.showSettings.watch(context);
+    final showing = widget.showSettings.value;
     return IconButton(
       isSelected: showing,
       icon: Icon(showing ? Icons.settings : Icons.settings_outlined),
@@ -271,7 +271,7 @@ class _VideoControlsState extends State<VideoControls> {
   }
 
   Widget _buildVolumeSlider(VideoPlayer player, bool isPortrait) {
-    return Watch.builder(
+    return SignalBuilder(
       builder: (context) {
         return Row(
           mainAxisSize: MainAxisSize.min,

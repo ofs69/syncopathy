@@ -27,7 +27,7 @@ class _FileEntry {
   String get fileName => p.basename(path);
 }
 
-class MoveMediaDialog extends StatefulWidget {
+class MoveMediaDialog extends SignalStatefulWidget {
   final Set<MediaFile> selectedMedia;
   final List<String> searchPaths;
 
@@ -41,15 +41,25 @@ class MoveMediaDialog extends StatefulWidget {
   State<MoveMediaDialog> createState() => _MoveMediaDialogState();
 }
 
-class _MoveMediaDialogState extends State<MoveMediaDialog> with SignalsMixin {
+class _MoveMediaDialogState extends State<MoveMediaDialog> {
   late final List<_FileEntry> _entries;
-  late final Signal<String?> _destinationDir = createSignal(null);
-  late final Signal<bool> _isMoving = createSignal(false);
+  final Signal<String?> _destinationDir = signal(null);
+  final Signal<bool> _isMoving = signal(false);
 
   @override
   void initState() {
     super.initState();
     _entries = _buildEntries();
+  }
+
+  @override
+  void dispose() {
+    _destinationDir.dispose();
+    _isMoving.dispose();
+    for (final entry in _entries) {
+      entry.selected.dispose();
+    }
+    super.dispose();
   }
 
   List<_FileEntry> _buildEntries() {
@@ -138,9 +148,15 @@ class _MoveMediaDialogState extends State<MoveMediaDialog> with SignalsMixin {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final dest = _destinationDir.watch(context);
-    final isMoving = _isMoving.watch(context);
-    final anySelected = _entries.any((e) => e.selected.watch(context));
+    final dest = _destinationDir.value;
+    final isMoving = _isMoving.value;
+    // Every entry is read before the test, rather than letting `any` short
+    // circuit: the reads are what subscribe this dialog to the checkboxes, and
+    // stopping at the first selected one would leave the rest untracked.
+    final anySelected = _entries
+        .map((e) => e.selected.value)
+        .toList()
+        .any((selected) => selected);
     final canMove = dest != null && anySelected && !isMoving;
 
     final screenSize = MediaQuery.of(context).size;
@@ -167,7 +183,7 @@ class _MoveMediaDialogState extends State<MoveMediaDialog> with SignalsMixin {
                     itemBuilder: (context, i) {
                       final entry = _entries[i];
                       return CheckboxListTile(
-                        value: entry.selected.watch(context),
+                        value: entry.selected.value,
                         onChanged: isMoving
                             ? null
                             : (v) => entry.selected.value = v ?? false,

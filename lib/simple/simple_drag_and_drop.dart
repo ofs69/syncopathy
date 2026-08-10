@@ -8,22 +8,27 @@ import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/simple/simple_mode/simple_mode.dart';
 
-class SimpleModeDragAndDrop extends StatefulWidget {
+class SimpleModeDragAndDrop extends SignalStatefulWidget {
   final Widget child;
   const SimpleModeDragAndDrop({super.key, required this.child});
   @override
   State<SimpleModeDragAndDrop> createState() => _SimpleModeDragAndDropState();
 }
 
-class _SimpleModeDragAndDropState extends State<SimpleModeDragAndDrop>
-    with SignalsMixin {
-  late final Signal<bool> _isDragging = createSignal(false);
+class _SimpleModeDragAndDropState extends State<SimpleModeDragAndDrop> {
+  final Signal<bool> _isDragging = signal(false);
+
+  @override
+  void dispose() {
+    _isDragging.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     if (!syncopathySimpleMode) return widget.child;
 
-    final isDragging = _isDragging.watch(context);
+    final isDragging = _isDragging.value;
 
     return DropTarget(
       onDragEntered: (details) => _isDragging.value = true,

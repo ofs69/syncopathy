@@ -4,7 +4,7 @@ import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/persistence/entities/user_category.dart';
 
-class CategorySelectionDialog extends StatefulWidget {
+class CategorySelectionDialog extends SignalStatefulWidget {
   final UserCategory? initialSelectedCategory;
   final bool showAddCategory;
   final bool showUncategorizedOption;
@@ -25,13 +25,12 @@ class CategorySelectionDialog extends StatefulWidget {
       _CategorySelectionDialogState();
 }
 
-class _CategorySelectionDialogState extends State<CategorySelectionDialog>
-    with SignalsMixin {
+class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
   final _searchController = TextEditingController();
   final _newCategoryController = TextEditingController();
-  late final ListSignal<UserCategory> _userCategories = createListSignal([]);
-  late final Signal<bool> _isLoading = createSignal(true);
-  late final Signal<String> _searchText = createSignal("");
+  final ListSignal<UserCategory> _userCategories = listSignal([]);
+  final Signal<bool> _isLoading = signal(true);
+  final Signal<String> _searchText = signal("");
 
   int allCategoriesCategoryId = -1;
   int uncategorizedCategoryId = -2;
@@ -93,14 +92,17 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog>
   void dispose() {
     _searchController.dispose();
     _newCategoryController.dispose();
+    _userCategories.dispose();
+    _isLoading.dispose();
+    _searchText.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final userCategories = _userCategories.watch(context);
-    final isLoading = _isLoading.watch(context);
-    final searchText = _searchText.watch(context);
+    final userCategories = _userCategories.value;
+    final isLoading = _isLoading.value;
+    final searchText = _searchText.value;
 
     final filteredUserCategories = userCategories
         .where(

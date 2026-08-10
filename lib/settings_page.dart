@@ -145,9 +145,9 @@ class _SettingsPageState extends State<SettingsPage> {
             border: Border.all(color: Theme.of(context).dividerColor),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Watch.builder(
+          child: SignalBuilder(
             builder: (context) => ListView.builder(
-              itemCount: settings.mediaPaths.watch(context).length,
+              itemCount: settings.mediaPaths.value.length,
               shrinkWrap: true,
               itemBuilder: (context, index) {
                 final path = settings.mediaPaths.value[index];
@@ -178,8 +178,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildSkipToActionSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return Watch(
-      (context) => SwitchListTile(
+    return SignalBuilder(
+      builder: (context) => SwitchListTile(
         title: const Text('Skip to action'),
         subtitle: const Text('Skips to the part where the funscript begins.'),
         value: settings.skipToAction.value,
@@ -193,7 +193,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildShortcutSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final customShortcuts = settings.customShortcuts.value;
       return Column(
         children: ShortcutDefinitions.all.map((shortcut) {
@@ -230,8 +230,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildEmbeddedVideoPlayerSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return Watch(
-      (context) => SwitchListTile(
+    return SignalBuilder(
+      builder: (context) => SwitchListTile(
         title: const Text('Use Embedded Video Player'),
         subtitle: const Text(
           'Enables an embedded video player (Requires Restart).',
@@ -250,7 +250,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final settings = context.read<SettingsModel>();
     final overridden = hwdecOverride != null;
 
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final mode = settings.hwdecMode.value;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,8 +302,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildAutoSwitchToVideoPlayerTabSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return Watch(
-      (context) => SwitchListTile(
+    return SignalBuilder(
+      builder: (context) => SwitchListTile(
         title: const Text('Auto Switch to Video Player Tab'),
         subtitle: const Text(
           'Automatically switches to the video player tab when a video is loaded.',
@@ -404,8 +404,8 @@ class _SettingsPageState extends State<SettingsPage> {
             if (!snapshot.hasData) return const SizedBox.shrink();
             final info = snapshot.data!;
 
-            return Watch(
-              (context) => ListTile(
+            return SignalBuilder(
+              builder: (context) => ListTile(
                 title: Text(
                   '${info.appName} v${info.version}+${info.buildNumber}',
                 ),
@@ -417,7 +417,7 @@ class _SettingsPageState extends State<SettingsPage> {
             );
           },
         ),
-        Watch((context) {
+        SignalBuilder(builder: (context) {
           final isChecking = isUpdateCheckingSignal.value;
 
           return ListTile(
@@ -458,7 +458,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final settings = context.read<SettingsModel>();
     final playerModel = context.read<PlayerModel>();
 
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final backend = playerModel.playerBackend.value;
       final backendType = settings.playerBackendType.value;
       final isLoaded =
@@ -552,7 +552,7 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
-        return Watch((context) {
+        return SignalBuilder(builder: (context) {
           // Kick generation off once, when the dialog first builds, and close
           // the dialog with the final count when it finishes.
           if (!started) {

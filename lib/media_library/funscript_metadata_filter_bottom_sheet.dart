@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 
-class FunscriptMetadataFilterBottomSheet extends StatefulWidget {
+class FunscriptMetadataFilterBottomSheet extends SignalStatefulWidget {
   final List<String> allAuthors;
   final List<String> allTags;
   final List<String> allPerformers;
@@ -26,15 +26,15 @@ class FunscriptMetadataFilterBottomSheet extends StatefulWidget {
 
 class _FunscriptMetadataFilterBottomSheetState
     extends State<FunscriptMetadataFilterBottomSheet>
-    with SignalsMixin, SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late TextEditingController _authorSearchController;
   late TextEditingController _tagSearchController;
   late TextEditingController _performerSearchController;
 
-  late final _authorSearchText = createSignal("");
-  late final _tagSearchText = createSignal("");
-  late final _performerSearchText = createSignal("");
+  final _authorSearchText = signal("");
+  final _tagSearchText = signal("");
+  final _performerSearchText = signal("");
 
   @override
   void initState() {
@@ -61,6 +61,9 @@ class _FunscriptMetadataFilterBottomSheetState
     _authorSearchController.dispose();
     _tagSearchController.dispose();
     _performerSearchController.dispose();
+    _authorSearchText.dispose();
+    _tagSearchText.dispose();
+    _performerSearchText.dispose();
     super.dispose();
   }
 
@@ -159,13 +162,16 @@ class _FunscriptMetadataFilterBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    _authorSearchText.watch(context);
-    _tagSearchText.watch(context);
-    _performerSearchText.watch(context);
+    // Read to subscribe. The search text is consumed further down inside the
+    // DraggableScrollableSheet builder, which runs outside this element's build
+    // and so cannot establish the subscription itself.
+    _authorSearchText.value;
+    _tagSearchText.value;
+    _performerSearchText.value;
 
-    final authorCount = widget.selectedAuthors.watch(context).length;
-    final tagCount = widget.selectedTags.watch(context).length;
-    final performerCount = widget.selectedPerformers.watch(context).length;
+    final authorCount = widget.selectedAuthors.value.length;
+    final tagCount = widget.selectedTags.value.length;
+    final performerCount = widget.selectedPerformers.value.length;
 
     return DraggableScrollableSheet(
       expand: false,
@@ -188,7 +194,7 @@ class _FunscriptMetadataFilterBottomSheetState
                     title: 'Author',
                     items: widget.allAuthors,
                     searchController: _authorSearchController,
-                    currentSelectedItems: widget.selectedAuthors.watch(context),
+                    currentSelectedItems: widget.selectedAuthors.value,
                     onItemToggled: (value) {
                       batch(() {
                         if (widget.selectedAuthors.contains(value)) {
@@ -206,7 +212,7 @@ class _FunscriptMetadataFilterBottomSheetState
                     title: 'Tag',
                     items: widget.allTags,
                     searchController: _tagSearchController,
-                    currentSelectedItems: widget.selectedTags.watch(context),
+                    currentSelectedItems: widget.selectedTags.value,
                     onItemToggled: (value) {
                       batch(() {
                         if (widget.selectedTags.contains(value)) {
@@ -224,9 +230,7 @@ class _FunscriptMetadataFilterBottomSheetState
                     title: 'Performer',
                     items: widget.allPerformers,
                     searchController: _performerSearchController,
-                    currentSelectedItems: widget.selectedPerformers.watch(
-                      context,
-                    ),
+                    currentSelectedItems: widget.selectedPerformers.value,
                     onItemToggled: (value) {
                       batch(() {
                         if (widget.selectedPerformers.contains(value)) {

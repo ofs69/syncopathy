@@ -59,7 +59,7 @@ class _NavItem {
   });
 }
 
-class SyncopathyHomePage extends StatefulWidget {
+class SyncopathyHomePage extends SignalStatefulWidget {
   const SyncopathyHomePage({super.key, required this.title});
 
   final String title;
@@ -222,7 +222,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
   Widget build(BuildContext context) {
     final isPortrait = PlatformUtils.isPortrait(context);
     final withMedia = !syncopathySimpleMode;
-    final selectedIndex = activePageIndex.watch(context);
+    final selectedIndex = activePageIndex.value;
 
     return Scaffold(
       endDrawer: const AlertPanel(),
@@ -294,7 +294,7 @@ class _SyncopathyHomePageState extends State<SyncopathyHomePage>
   }
 
   Widget _buildStatus(BuildContext context) {
-    final count = ThumbnailGenerator().queueLength.watch(context);
+    final count = ThumbnailGenerator().queueLength.value;
 
     if (count > 0) {
       final scheme = Theme.of(context).colorScheme;

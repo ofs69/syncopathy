@@ -40,7 +40,7 @@ class ConnectionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final playerModel = context.read<PlayerModel>();
 
-    return Watch.builder(
+    return SignalBuilder(
       builder: (context) {
         final backend = playerModel.playerBackend.value;
         final isConnecting = backend?.isConnecting.value ?? false;

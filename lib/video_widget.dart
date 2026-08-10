@@ -40,8 +40,7 @@ class VideoWidget extends StatefulWidget {
   State<VideoWidget> createState() => _VideoWidgetState();
 }
 
-class _VideoWidgetState extends State<VideoWidget>
-    with EffectDispose, SignalsMixin {
+class _VideoWidgetState extends State<VideoWidget> with EffectDispose {
   static const Duration _controlsHideDelay = Duration(seconds: 3);
 
   Timer? _hideControlsTimer;
@@ -88,7 +87,7 @@ class _VideoWidgetState extends State<VideoWidget>
     final playerModel = context.watch<PlayerModel>();
 
     return Material(
-      child: Watch.builder(
+      child: SignalBuilder(
         builder: (context) {
           final showControls =
               widget.showControls.value ||
@@ -212,25 +211,30 @@ class _VideoWidgetState extends State<VideoWidget>
             child: ScriptPlayerSettings(),
           ),
         ),
-        widget.showFunscriptGraph.watch(context)
-            ? ConstrainedBox(
-                // Height is a single clamped value rather than a fixed-fraction
-                // SizedBox fighting a min/max ConstrainedBox; width stays
-                // bounded to the (possibly pillarboxed) video.
-                constraints: BoxConstraints(maxWidth: displayWidth),
-                child: SizedBox(
-                  height: (MediaQuery.sizeOf(context).height * 0.15).clamp(
-                    50.0,
-                    150.0,
+        // A SignalBuilder rather than a plain read: this column is built from
+        // inside a LayoutBuilder callback, which runs during layout rather than
+        // during this element's build, so implicit tracking would not see it.
+        SignalBuilder(
+          builder: (context) => widget.showFunscriptGraph.value
+              ? ConstrainedBox(
+                  // Height is a single clamped value rather than a
+                  // fixed-fraction SizedBox fighting a min/max ConstrainedBox;
+                  // width stays bounded to the (possibly pillarboxed) video.
+                  constraints: BoxConstraints(maxWidth: displayWidth),
+                  child: SizedBox(
+                    height: (MediaQuery.sizeOf(context).height * 0.15).clamp(
+                      50.0,
+                      150.0,
+                    ),
+                    child: _funscriptGraph(
+                      playerModel.currentlyOpen,
+                      player,
+                      settings,
+                    ),
                   ),
-                  child: _funscriptGraph(
-                    playerModel.currentlyOpen,
-                    player,
-                    settings,
-                  ),
-                ),
-              )
-            : const SizedBox.shrink(),
+                )
+              : const SizedBox.shrink(),
+        ),
         AnimatedOpacity(
           opacity: showControls ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 200),

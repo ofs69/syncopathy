@@ -26,15 +26,14 @@ import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/settings_overlay.dart';
 
-class MediaLibrary extends StatefulWidget {
+class MediaLibrary extends SignalStatefulWidget {
   const MediaLibrary({super.key});
 
   @override
   State<MediaLibrary> createState() => _MediaLibraryState();
 }
 
-class _MediaLibraryState extends State<MediaLibrary>
-    with SignalsMixin, EffectDispose {
+class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
   // Upper bound for the shuffle seed; any large range works, this just keeps
   // seeds human-readable.
   static const int _randomSeedRange = 1000000;
@@ -46,20 +45,20 @@ class _MediaLibraryState extends State<MediaLibrary>
 
   // filters
   final MediaFilter mediaFilter = MediaFilter();
-  late final Signal<String> searchQuery = createSignal("");
-  late final Signal<bool> _showFilterSettings = createSignal(false);
+  final Signal<String> searchQuery = signal("");
+  final Signal<bool> _showFilterSettings = signal(false);
 
   // selection
-  late final SetSignal<MediaFile> selectedVideos = createSetSignal({});
+  final SetSignal<MediaFile> selectedVideos = setSignal({});
   late final ReadonlySignal<bool> _isSelecting = computed(() {
     return selectedVideos.isNotEmpty;
   });
 
   // media manager is busy indexing
-  late final Signal<bool> isFiltering = createSignal(false);
+  final Signal<bool> isFiltering = signal(false);
 
   // Random seed for shuffle
-  late final Signal<int?> randomSeed = createSignal(null);
+  final Signal<int?> randomSeed = signal(null);
 
   @override
   void initState() {
@@ -84,6 +83,15 @@ class _MediaLibraryState extends State<MediaLibrary>
   void dispose() {
     super.dispose();
     effectDispose();
+    // Previously owned by SignalsMixin. The computeds go first: they read the
+    // signals below and are dependents of long-lived model signals.
+    filteredMedia.dispose();
+    _isSelecting.dispose();
+    searchQuery.dispose();
+    _showFilterSettings.dispose();
+    selectedVideos.dispose();
+    isFiltering.dispose();
+    randomSeed.dispose();
   }
 
   List<MediaFile> _filterSignal() {
@@ -100,7 +108,7 @@ class _MediaLibraryState extends State<MediaLibrary>
 
     // Watch all relevant signals to trigger re-computation.
     // We use .value or .watch() to track dependencies in a computed signal.
-    // .watch(context) should only be used in build() methods.
+    // Reads here are tracked by the computed, not by any element.
     final query = searchQuery.value;
     mediaFilter.stateChange.value;
     final sortOption = mediaSettings.sortOption.value;
@@ -216,7 +224,7 @@ class _MediaLibraryState extends State<MediaLibrary>
 
   Widget _buildSortMenu(BuildContext context) {
     final mediaSettings = context.read<MediaLibrarySettingsModel>();
-    final sortOption = mediaSettings.sortOption.watch(context);
+    final sortOption = mediaSettings.sortOption.value;
     return PopupMenuButton<SortOption>(
       menuPadding: EdgeInsets.zero,
       tooltip: "Sorting",
@@ -268,8 +276,8 @@ class _MediaLibraryState extends State<MediaLibrary>
 
   Widget _buildSortDirectionButton(BuildContext context) {
     final mediaSettings = context.read<MediaLibrarySettingsModel>();
-    final sortOption = mediaSettings.sortOption.watch(context);
-    final isSortAscending = mediaSettings.isSortAscending.watch(context);
+    final sortOption = mediaSettings.sortOption.value;
+    final isSortAscending = mediaSettings.isSortAscending.value;
     return IconButton(
       icon: Icon(
         sortOption == SortOption.random
@@ -292,8 +300,8 @@ class _MediaLibraryState extends State<MediaLibrary>
 
   Widget _buildFilterToggleButton(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final showFilterSettings = _showFilterSettings.watch(context);
-    final isCustomized = mediaFilter.isCustomized.watch(context);
+    final showFilterSettings = _showFilterSettings.value;
+    final isCustomized = mediaFilter.isCustomized.value;
     return IconButton(
       icon: const Icon(Icons.tune),
       isSelected: showFilterSettings,
@@ -319,14 +327,14 @@ class _MediaLibraryState extends State<MediaLibrary>
 
   Widget _buildViewOptionsMenu(BuildContext context) {
     final mediaSettings = context.read<MediaLibrarySettingsModel>();
-    final videosPerRow = mediaSettings.videosPerRow.watch(context);
-    final visibilityFilters = mediaSettings.visibilityFilters.watch(context);
-    final separateFavorites = mediaSettings.separateFavorites.watch(context);
-    final showTitle = mediaSettings.showVideoTitles.watch(context);
-    final showAverageSpeed = mediaSettings.showAverageSpeed.watch(context);
-    final showAverageMinMax = mediaSettings.showAverageMinMax.watch(context);
-    final showDuration = mediaSettings.showDuration.watch(context);
-    final showPlayCount = mediaSettings.showPlayCount.watch(context);
+    final videosPerRow = mediaSettings.videosPerRow.value;
+    final visibilityFilters = mediaSettings.visibilityFilters.value;
+    final separateFavorites = mediaSettings.separateFavorites.value;
+    final showTitle = mediaSettings.showVideoTitles.value;
+    final showAverageSpeed = mediaSettings.showAverageSpeed.value;
+    final showAverageMinMax = mediaSettings.showAverageMinMax.value;
+    final showDuration = mediaSettings.showDuration.value;
+    final showPlayCount = mediaSettings.showPlayCount.value;
     return MenuAnchor(
       style: MenuStyle(padding: WidgetStatePropertyAll(EdgeInsets.zero)),
       builder: (context, controller, child) {
@@ -431,17 +439,17 @@ class _MediaLibraryState extends State<MediaLibrary>
   }
 
   Widget _buildStatusText(BuildContext context) {
-    final currentlyFiltering = isFiltering.watch(context);
+    final currentlyFiltering = isFiltering.value;
     if (currentlyFiltering) return const SizedBox.shrink();
 
-    final mediaFiles = filteredMedia.watch(context);
+    final mediaFiles = filteredMedia.value;
     final mediaManager = getIt.get<MediaManager>();
     return Padding(
       padding: EdgeInsets.zero,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Watch((context) {
+          SignalBuilder(builder: (context) {
             if (mediaManager.isIndexing.value) {
               return Text(
                 mediaManager.indexingStatus.value ?? "Indexing...",
@@ -466,7 +474,7 @@ class _MediaLibraryState extends State<MediaLibrary>
 
   Widget _buildRefreshButton(BuildContext context) {
     final mediaManager = getIt.get<MediaManager>();
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final isIndexing = mediaManager.isIndexing.value;
       final progress = mediaManager.indexingProgress.value;
       return Stack(
@@ -496,10 +504,10 @@ class _MediaLibraryState extends State<MediaLibrary>
   }
 
   Widget _buildBody(BuildContext context) {
-    final currentlyFiltering = isFiltering.watch(context);
-    final showFilterSettings = _showFilterSettings.watch(context);
-    final isSelecting = _isSelecting.watch(context);
-    final mediaFiles = filteredMedia.watch(context);
+    final currentlyFiltering = isFiltering.value;
+    final showFilterSettings = _showFilterSettings.value;
+    final isSelecting = _isSelecting.value;
+    final mediaFiles = filteredMedia.value;
 
     return Stack(
       children: [
@@ -523,13 +531,18 @@ class _MediaLibraryState extends State<MediaLibrary>
 
   Widget _buildGrid(BuildContext context, List<MediaFile> mediaFiles) {
     final mediaSettings = context.read<MediaLibrarySettingsModel>();
-    final videosPerRow = mediaSettings.videosPerRow.watch(context);
-    final showDuration = mediaSettings.showDuration.watch(context);
-    final showPlayCount = mediaSettings.showPlayCount.watch(context);
-    final showTitle = mediaSettings.showVideoTitles.watch(context);
-    final showAverageSpeed = mediaSettings.showAverageSpeed.watch(context);
-    final showAverageMinMax = mediaSettings.showAverageMinMax.watch(context);
-    final isSelecting = _isSelecting.watch(context);
+    final videosPerRow = mediaSettings.videosPerRow.value;
+    final showDuration = mediaSettings.showDuration.value;
+    final showPlayCount = mediaSettings.showPlayCount.value;
+    final showTitle = mediaSettings.showVideoTitles.value;
+    final showAverageSpeed = mediaSettings.showAverageSpeed.value;
+    final showAverageMinMax = mediaSettings.showAverageMinMax.value;
+    final isSelecting = _isSelecting.value;
+    // Read the selection here, not just inside itemBuilder: the itemBuilder
+    // runs during layout, where reads are outside this element's tracking. Via
+    // _isSelecting alone the grid would only repaint on the empty/non-empty
+    // flip, so selecting a second card would leave its checkmark unpainted.
+    final selected = selectedVideos.value;
 
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0),
@@ -540,7 +553,7 @@ class _MediaLibraryState extends State<MediaLibrary>
       itemCount: mediaFiles.length,
       itemBuilder: (context, index) {
         final media = mediaFiles[index];
-        final isSelected = selectedVideos.contains(media);
+        final isSelected = selected.contains(media);
 
         return MediaItem(
           key: Key(media.mediaPath),

@@ -6,7 +6,7 @@ import 'package:flutter_fortune_wheel/flutter_fortune_wheel.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 
-class WheelOfFortuneDialog extends StatefulWidget {
+class WheelOfFortuneDialog extends SignalStatefulWidget {
   final List<MediaFile> mediaFiles;
   final Function(MediaFile) onMediaSelected;
 
@@ -20,10 +20,9 @@ class WheelOfFortuneDialog extends StatefulWidget {
   State<WheelOfFortuneDialog> createState() => _WheelOfFortuneDialogState();
 }
 
-class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog>
-    with SignalsMixin {
+class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog> {
   final StreamController<int> _selected = StreamController<int>();
-  late final Signal<int> _selectedIndex = createSignal(0);
+  final Signal<int> _selectedIndex = signal(0);
   final _random = Random();
 
   @override
@@ -41,6 +40,7 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog>
   @override
   void dispose() {
     _selected.close();
+    _selectedIndex.dispose();
     super.dispose();
   }
 
@@ -66,7 +66,9 @@ class _WheelOfFortuneDialogState extends State<WheelOfFortuneDialog>
       );
     }
 
-    _selectedIndex.watch(context);
+    // Read to subscribe: the wheel is driven by _selected, but a new pick still
+    // has to rebuild this dialog.
+    _selectedIndex.value;
     final items = <FortuneItem>[
       for (var i = 0; i < widget.mediaFiles.length; i++)
         FortuneItem(

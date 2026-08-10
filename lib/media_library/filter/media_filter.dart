@@ -260,7 +260,7 @@ class NumberFilter extends FilterBase<num> {
 
   @override
   Widget filterRowWidget(BuildContext context) {
-    final currentOperator = operator.watch(context);
+    final currentOperator = operator.value;
     return Row(
       children: [
         Expanded(
@@ -360,7 +360,7 @@ class DurationFilter extends FilterBase<num> {
 
   @override
   Widget filterRowWidget(BuildContext context) {
-    final currentOperator = operator.watch(context);
+    final currentOperator = operator.value;
     return Row(
       children: [
         Expanded(
@@ -425,7 +425,7 @@ class StringFilter extends FilterBase<String> {
 
   @override
   Widget filterRowWidget(BuildContext context) {
-    final currentOperator = operator.watch(context);
+    final currentOperator = operator.value;
     return Row(
       children: [
         Expanded(
@@ -503,8 +503,8 @@ class DateFilter extends FilterBase<DateTime> {
 
   @override
   Widget filterRowWidget(BuildContext context) {
-    final currentOperator = operator.watch(context);
-    final currentValue = value.watch(context);
+    final currentOperator = operator.value;
+    final currentValue = value.value;
     return Row(
       children: [
         // Reads the signal directly instead of mirroring into a
@@ -602,7 +602,7 @@ class CategoryFilter extends FilterBase<int> {
 
   @override
   Widget filterRowWidget(BuildContext context) {
-    final currentSelected = selectedCategoryId.watch(context);
+    final currentSelected = selectedCategoryId.value;
 
     // Add "Uncategorized" option to the list for display
     final List<DropdownMenuEntry<int>> entries = [
@@ -664,9 +664,9 @@ class MetadataFilter extends FilterBase<String> {
 
   @override
   Widget filterRowWidget(BuildContext context) {
-    final authors = selectedAuthors.watch(context);
-    final tags = selectedTags.watch(context);
-    final performers = selectedPerformers.watch(context);
+    final authors = selectedAuthors.value;
+    final tags = selectedTags.value;
+    final performers = selectedPerformers.value;
 
     final totalCount = authors.length + tags.length + performers.length;
     final summary = totalCount == 0 ? "All Metadata" : "$totalCount selected";

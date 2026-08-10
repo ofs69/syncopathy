@@ -166,7 +166,7 @@ class _HeatmapState extends State<Heatmap> {
                 children: [
                   // 1. Heatmap painter (Background layer)
                   RepaintBoundary(
-                    child: Watch.builder(
+                    child: SignalBuilder(
                       builder: (context) {
                         final duration =
                             ((widget.totalDuration.value ?? 0.0) * 1000.0)
@@ -189,7 +189,7 @@ class _HeatmapState extends State<Heatmap> {
                   ),
 
                   // 2. Indicator painter (Vertical white line)
-                  Watch.builder(
+                  SignalBuilder(
                     builder: (context) {
                       final position = widget.videoPositionFixedStep.value;
                       return CustomPaint(
@@ -199,7 +199,7 @@ class _HeatmapState extends State<Heatmap> {
                   ),
 
                   // 3. Hover indicator (Vertical line on mouse hover)
-                  Watch.builder(
+                  SignalBuilder(
                     builder: (context) {
                       final hoverX = _hoverPosition.value;
                       if (hoverX == null) {
@@ -221,7 +221,7 @@ class _HeatmapState extends State<Heatmap> {
               child: Align(
                 alignment: Alignment.center,
                 child: ExcludeSemantics(
-                  child: Watch.builder(
+                  child: SignalBuilder(
                     builder: (context) {
                       final positionStep = widget.videoPositionFixedStep.value;
                       final value =

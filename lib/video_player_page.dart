@@ -9,7 +9,7 @@ import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/video_widget.dart';
 
-class VideoPlayerPage extends StatefulWidget {
+class VideoPlayerPage extends SignalStatefulWidget {
   const VideoPlayerPage({super.key});
 
   @override
@@ -17,16 +17,18 @@ class VideoPlayerPage extends StatefulWidget {
 }
 
 class _VideoPlayerPageState extends State<VideoPlayerPage>
-    with AutomaticKeepAliveClientMixin, EffectDispose, SignalsMixin {
+    with AutomaticKeepAliveClientMixin, EffectDispose {
   @override
   bool get wantKeepAlive => true;
 
-  late final Signal<bool> _showSettings = createSignal(false);
-  late final Signal<bool> _showControls = createSignal(true);
+  final Signal<bool> _showSettings = signal(false);
+  final Signal<bool> _showControls = signal(true);
 
   @override
   void dispose() {
     effectDispose();
+    _showSettings.dispose();
+    _showControls.dispose();
     // Fire-and-forget: dispose() must stay synchronous, and awaiting across the
     // teardown gap risks the chrome reset being dropped.
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -53,12 +55,12 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
     final player = context.read<VideoPlayer>();
     final playerModel = context.read<PlayerModel>();
     final settingsModel = context.read<SettingsModel>();
-    final noFunscriptLoaded = playerModel.currentlyOpen.watch(context) == null;
+    final noFunscriptLoaded = playerModel.currentlyOpen.value == null;
     // Nothing open but a playlist is active → we're between entries (a brief
     // transition), which warrants a spinner rather than the idle empty state.
     final inPlaylistTransition =
         noFunscriptLoaded &&
-        player.currentPlaylist.watch(context).entries.isNotEmpty;
+        player.currentPlaylist.value.entries.isNotEmpty;
 
     return Stack(
       children: [

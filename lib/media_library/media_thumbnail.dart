@@ -31,7 +31,7 @@ class MediaThumbnailController {
   void dispose() => _commands.close();
 }
 
-class MediaThumbnail extends StatefulWidget {
+class MediaThumbnail extends SignalStatefulWidget {
   final MediaThumbnailController controller;
   final MediaFile media;
   const MediaThumbnail({
@@ -46,11 +46,9 @@ class MediaThumbnail extends StatefulWidget {
 
 enum _LoadingState { idle, quiet, visible }
 
-class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
-  late final Signal<_LoadingState> _loadingState = createSignal(
-    _LoadingState.idle,
-  );
-  late final Signal<Uint8List?> _thumbnail = createSignal(null);
+class _MediaThumbnailState extends State<MediaThumbnail> {
+  final Signal<_LoadingState> _loadingState = signal(_LoadingState.idle);
+  final Signal<Uint8List?> _thumbnail = signal(null);
   Timer? _loadingTimer;
   StreamSubscription<ThumbnailCommand>? _commandSub;
   RequestTicket<Uint8List>? _request;
@@ -72,6 +70,8 @@ class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
     // what a re-sort produces: the replacement card is built before this one is
     // unmounted.
     _request?.cancel();
+    _loadingState.dispose();
+    _thumbnail.dispose();
     super.dispose();
   }
 
@@ -129,8 +129,8 @@ class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
         ? Icons.audiotrack
         : Icons.movie;
 
-    final loadingState = _loadingState.watch(context);
-    final thumbnail = _thumbnail.watch(context);
+    final loadingState = _loadingState.value;
+    final thumbnail = _thumbnail.value;
 
     final thumbnailWidget = switch ((loadingState, thumbnail)) {
       (_LoadingState.visible, _) => const Center(

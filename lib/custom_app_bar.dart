@@ -19,7 +19,7 @@ import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:window_manager/window_manager.dart';
 
-class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
+class CustomAppBar extends SignalStatefulWidget implements PreferredSizeWidget {
   const CustomAppBar({super.key, required this.widgetTitle});
 
   final String widgetTitle;
@@ -39,10 +39,10 @@ class CustomAppBarState extends State<CustomAppBar> {
     final batteryModel = context.read<BatteryModel>();
     final playerModel = context.read<PlayerModel>();
 
-    final hasBattery = batteryModel.hasBattery.watch(context);
-    final chargerConnected = batteryModel.chargerConnected.watch(context);
-    final currentPlaylist = player.currentPlaylist.watch(context);
-    final currentlyOpen = playerModel.currentlyOpen.watch(context);
+    final hasBattery = batteryModel.hasBattery.value;
+    final chargerConnected = batteryModel.chargerConnected.value;
+    final currentPlaylist = player.currentPlaylist.value;
+    final currentlyOpen = playerModel.currentlyOpen.value;
 
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -137,7 +137,7 @@ class CustomAppBarState extends State<CustomAppBar> {
       children: [
         SizedBox(
           child: Text(
-            '${batteryModel.batteryLevel.watch(context).toString().padLeft(3, ' ')}%',
+            '${batteryModel.batteryLevel.value.toString().padLeft(3, ' ')}%',
             textAlign: TextAlign.end, // Aligns text against the icon
             style: GoogleFonts.robotoMono(
               fontFeatures: [FontFeature.tabularFigures()],
@@ -158,7 +158,7 @@ class CustomAppBarState extends State<CustomAppBar> {
   }
 
   Widget _buildNotificationButton() {
-    return Watch.builder(
+    return SignalBuilder(
       builder: (context) {
         final unreadCount = context.read<AlertManager>().unreadCount.value;
         return Badge(

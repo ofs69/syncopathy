@@ -114,7 +114,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
 
   Widget _buildRdpEpsilonSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final rdpEpsilon = settings.rdpEpsilon.value;
       return Column(
         children: [
@@ -148,7 +148,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
 
   Widget _buildPchipSmoothSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final smoothInterval = settings.pchipSmoothInterval.value;
       return Column(
         children: [
@@ -183,7 +183,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
 
   Widget _buildSlewRateSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final slewMaxRateOfChange = settings.slewMaxRateOfChange.value;
       return Column(
         children: [
@@ -217,8 +217,8 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
 
   Widget _buildInvertSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return Watch(
-      (context) => SwitchListTile(
+    return SignalBuilder(
+      builder: (context) => SwitchListTile(
         title: const Text('Invert'),
         subtitle: const Text('Inverts the funscript actions.'),
         value: settings.invert.value,
@@ -233,8 +233,8 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
 
   Widget _buildRemapFullRangeSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return Watch(
-      (context) => SwitchListTile(
+    return SignalBuilder(
+      builder: (context) => SwitchListTile(
         title: const Text('Remap to Full Range'),
         subtitle: const Text(
           "Remaps the funscript actions to use the full 0-100 range. The Handy will still remap into the range specified by the stroke range setting.",
@@ -251,7 +251,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
 
   Widget _buildFunscriptStats(BuildContext context) {
     final playerModel = context.read<PlayerModel>();
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final currentlyOpen = playerModel.currentlyOpen.value;
       if (currentlyOpen == null) return const SizedBox.shrink();
       final funscript = currentlyOpen.funscript;
@@ -272,7 +272,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
 
   Widget _buildIntensitySettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final intensity = settings.intensity.value;
       return Column(
         children: [
@@ -309,7 +309,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
   Widget _buildMinMaxSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
 
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final currentRange = settings.minMaxRange.value;
       return Column(
         children: [
@@ -385,8 +385,8 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
           subtitle: Text('Adjust playback speed while the video is paused.'),
           isThreeLine: true,
         ),
-        Watch(
-          (context) => Slider(
+        SignalBuilder(
+          builder: (context) => Slider(
             value: player.playbackSpeed.value,
             min: 0.5,
             max: 2.0,
@@ -405,8 +405,8 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
           ),
           isThreeLine: true,
         ),
-        Watch(
-          (context) => _buildSliderWithNumericInput(
+        SignalBuilder(
+          builder: (context) => _buildSliderWithNumericInput(
             context,
             value: settings.offsetMs.value.toDouble(),
             min: -500,
@@ -417,7 +417,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
             },
           ),
         ),
-        Watch.builder(
+        SignalBuilder(
           builder: (context) {
             final currentDelta =
                 playerModel.playerBackend.value?.debugPlaybackDelta.value;
@@ -432,7 +432,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
             );
           },
         ),
-        Watch.builder(
+        SignalBuilder(
           builder: (context) {
             final backend = playerModel.playerBackend.value;
             if (backend case HandyNativeHspMixin hspMixin) {

@@ -5,7 +5,7 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/settings_model.dart';
 
-class HomeButton extends StatefulWidget {
+class HomeButton extends SignalStatefulWidget {
   const HomeButton({super.key});
 
   @override
@@ -16,7 +16,7 @@ class _HomeButtonState extends State<HomeButton> {
   @override
   Widget build(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    final enabled = settings.homeDeviceEnabled.watch(context);
+    final enabled = settings.homeDeviceEnabled.value;
     return Stack(
       alignment: Alignment.center,
       children: [

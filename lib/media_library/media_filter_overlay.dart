@@ -12,8 +12,7 @@ class MediaFilterOverlay extends StatefulWidget {
   State<MediaFilterOverlay> createState() => MediaFilterOverlayState();
 }
 
-class MediaFilterOverlayState extends State<MediaFilterOverlay>
-    with SignalsMixin {
+class MediaFilterOverlayState extends State<MediaFilterOverlay> {
   Widget _buildFilterStatus() {
     return ListTile(
       title: const Text("Clear All Filters"),
@@ -60,7 +59,7 @@ class MediaFilterOverlayState extends State<MediaFilterOverlay>
   }
 
   Widget _buildFilterGroup(FilterGroup filterGroup) {
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final operator = filterGroup.operator.value;
       final filters = filterGroup.filters.value;
       return Column(
@@ -226,7 +225,7 @@ class MediaFilterOverlayState extends State<MediaFilterOverlay>
     FilterBase filter, {
     required void Function() onDelete,
   }) {
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final enabled = filter.enabled.value;
       final negated = filter.negated.value;
       return Row(
@@ -271,9 +270,9 @@ class MediaFilterOverlayState extends State<MediaFilterOverlay>
         constraints: BoxConstraints(
           minWidth: MediaQuery.of(context).size.width,
         ),
-        child: Watch.builder(
+        child: SignalBuilder(
           builder: (context) {
-            final filterGroups = widget.filter.filterGroups.watch(context);
+            final filterGroups = widget.filter.filterGroups.value;
             final itemCount = 1 + filterGroups.length;
 
             return MasonryGridView.count(

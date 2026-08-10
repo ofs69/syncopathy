@@ -94,7 +94,7 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
           _zoom(event.scrollDelta.dy > 0 ? 1.1 : 0.9);
         }
       },
-      child: Watch.builder(
+      child: SignalBuilder(
         builder: (context) {
           final position = widget.videoPosition.value;
           final viewDuration = widget.viewDuration.value;
@@ -109,7 +109,7 @@ class _ScrollingGraphState extends State<ScrollingGraph> {
                   milliseconds: (position * 1000).round(),
                 ),
                 viewDuration: viewDuration,
-                speeds: speeds.watch(context),
+                speeds: speeds.value,
                 pointBuffer: pointBuffer,
                 paints: _paints,
               ),

@@ -12,7 +12,7 @@ import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/persistence/entities/media_metadata.dart';
 
-class MediaItem extends StatefulWidget {
+class MediaItem extends SignalStatefulWidget {
   final MediaFile media;
   final bool isSelected;
   final bool showAverageMinMax;
@@ -46,9 +46,9 @@ class MediaItem extends StatefulWidget {
   State<MediaItem> createState() => _MediaItemState();
 }
 
-class _MediaItemState extends State<MediaItem> with SignalsMixin {
-  late final Signal<bool> _isHovering = createSignal(false);
-  late final Signal<bool> _isTapped = createSignal(false);
+class _MediaItemState extends State<MediaItem> {
+  final Signal<bool> _isHovering = signal(false);
+  final Signal<bool> _isTapped = signal(false);
   final MediaThumbnailController _thumbnailController =
       MediaThumbnailController();
 
@@ -56,13 +56,16 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
   // Whether this card's media is the one currently open. Watching this per-card
   // computed instead of `currentlyOpen` directly means opening/closing a video
   // only rebuilds the two affected cards, not every visible card.
-  late final ReadonlySignal<bool> _isCurrentlyOpen = createComputed(
+  late final ReadonlySignal<bool> _isCurrentlyOpen = computed(
     () => _playerModel.currentlyOpen.value?.media.id == widget.media.id,
   );
 
   @override
   void dispose() {
     _thumbnailController.dispose();
+    _isCurrentlyOpen.dispose();
+    _isHovering.dispose();
+    _isTapped.dispose();
     super.dispose();
   }
 
@@ -156,14 +159,20 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
   @override
   Widget build(BuildContext context) {
     final metadata = widget.media.metadata.target;
-    final isTapped = _isTapped.watch(context);
-    final isHovering = _isHovering.watch(context);
+    final isTapped = _isTapped.value;
+    final isHovering = _isHovering.value;
     return MouseRegion(
       onEnter: (_) => _isHovering.value = true,
       onExit: (_) => _isHovering.value = false,
       child: LayoutBuilder(
-        builder: (context, constraints) =>
-            _buildCard(context, constraints, isHovering, isTapped, metadata),
+        // The card is built from a LayoutBuilder callback, which runs during
+        // layout rather than during this element's build, so a signal read in
+        // _buildCard would escape implicit tracking. The SignalBuilder gives
+        // those reads an element of their own — and keeps the rebuild per-card.
+        builder: (context, constraints) => SignalBuilder(
+          builder: (context) =>
+              _buildCard(context, constraints, isHovering, isTapped, metadata),
+        ),
       ),
     );
   }
@@ -178,7 +187,7 @@ class _MediaItemState extends State<MediaItem> with SignalsMixin {
     final hasRating = widget.media.rating != MediaRating.noRating;
     final isFavorite = widget.media.isFavorite;
     final isDislike = widget.media.isDislike;
-    final isCurrentlyOpen = _isCurrentlyOpen.watch(context);
+    final isCurrentlyOpen = _isCurrentlyOpen.value;
     final mainFunscript = widget.media.mainFunscript.target;
 
     final onSurface = Theme.of(context).colorScheme.onSurface;

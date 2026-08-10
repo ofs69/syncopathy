@@ -16,7 +16,7 @@ class _PlaylistControlsState extends State<PlaylistControls> {
   Widget build(BuildContext context) {
     final player = context.read<VideoPlayer>();
 
-    return Watch.builder(
+    return SignalBuilder(
       builder: (context) {
         final playlist = player.currentPlaylist.value;
 
@@ -24,7 +24,7 @@ class _PlaylistControlsState extends State<PlaylistControls> {
           return const SizedBox.shrink();
         }
 
-        final isShuffled = player.playlistShuffled.watch(context);
+        final isShuffled = player.playlistShuffled.value;
         final index = playlist.currentIndex.value;
         return Row(
           children: [
@@ -47,7 +47,7 @@ class _PlaylistControlsState extends State<PlaylistControls> {
             ),
             Padding(
               padding: const EdgeInsets.all(4.0),
-              child: Watch.builder(
+              child: SignalBuilder(
                 builder: (context) {
                   final isLooping = player.loopFile.value;
                   return ToggleButtons(

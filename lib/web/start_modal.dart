@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class StartupModal extends StatefulWidget {
+class StartupModal extends SignalStatefulWidget {
   const StartupModal({super.key});
   static const int currentModalVersion = 1;
 
@@ -11,8 +11,8 @@ class StartupModal extends StatefulWidget {
   State<StartupModal> createState() => _StartupModalState();
 }
 
-class _StartupModalState extends State<StartupModal> with SignalsMixin {
-  late final Signal<bool> _neverShowAgain = createSignal(false);
+class _StartupModalState extends State<StartupModal> {
+  final Signal<bool> _neverShowAgain = signal(false);
 
   // Created once and disposed in dispose() — building them inline in build()
   // leaks a recognizer on every rebuild.
@@ -25,6 +25,7 @@ class _StartupModalState extends State<StartupModal> with SignalsMixin {
   void dispose() {
     _repoTap.dispose();
     _bluetoothTap.dispose();
+    _neverShowAgain.dispose();
     super.dispose();
   }
 
@@ -50,7 +51,7 @@ class _StartupModalState extends State<StartupModal> with SignalsMixin {
 
   @override
   Widget build(BuildContext context) {
-    final neverShowAgain = _neverShowAgain.watch(context);
+    final neverShowAgain = _neverShowAgain.value;
 
     return AlertDialog(
       title: const Text("Welcome!"),
