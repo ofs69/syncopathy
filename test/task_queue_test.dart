@@ -30,17 +30,17 @@ class _TestQueue extends TaskQueue<_TestRequest, int> {
 }
 
 void main() {
-  group('TaskQueue.cancelRequest', () {
+  group('RequestTicket.cancel', () {
     test('drops a queued request and completes it with null', () async {
       final queue = _TestQueue();
       final blocking = queue.addRequest(_TestRequest(1));
       final queued = queue.addRequest(_TestRequest(2));
 
-      queue.cancelRequest(2);
-      expect(await queued, isNull);
+      queued.cancel();
+      expect(await queued.result, isNull);
 
       queue.gate.complete();
-      expect(await blocking, 1);
+      expect(await blocking.result, 1);
       expect(queue.processed, [1], reason: 'the cancelled job never ran');
     });
 
@@ -51,12 +51,12 @@ void main() {
       final second = queue.addRequest(_TestRequest(2));
 
       // Only one of the two callers goes away.
-      queue.cancelRequest(2);
+      first.cancel();
       queue.gate.complete();
 
-      expect(await first, 2);
-      expect(await second, 2);
-      expect(await blocking, 1);
+      expect(await first.result, 2);
+      expect(await second.result, 2);
+      expect(await blocking.result, 1);
       expect(queue.processed, [1, 2]);
     });
 
@@ -66,27 +66,60 @@ void main() {
       final first = queue.addRequest(_TestRequest(2));
       final second = queue.addRequest(_TestRequest(2));
 
-      queue.cancelRequest(2);
-      queue.cancelRequest(2);
+      first.cancel();
+      second.cancel();
 
-      expect(await first, isNull);
-      expect(await second, isNull);
+      expect(await first.result, isNull);
+      expect(await second.result, isNull);
 
       queue.gate.complete();
-      expect(await blocking, 1);
+      expect(await blocking.result, 1);
       expect(queue.processed, [1]);
     });
 
-    test('is a no-op for an in-flight or unknown request', () async {
+    test('is a no-op for an in-flight request', () async {
       final queue = _TestQueue();
       final blocking = queue.addRequest(_TestRequest(1));
 
-      queue.cancelRequest(1); // already handed to the worker
-      queue.cancelRequest(99); // never seen
+      blocking.cancel(); // already handed to the worker
 
       queue.gate.complete();
-      expect(await blocking, 1);
+      expect(await blocking.result, 1);
       expect(queue.processed, [1]);
+    });
+
+    test('is a no-op when cancelled twice', () async {
+      final queue = _TestQueue();
+      final blocking = queue.addRequest(_TestRequest(1));
+      final first = queue.addRequest(_TestRequest(2));
+      final second = queue.addRequest(_TestRequest(2));
+
+      first.cancel();
+      first.cancel(); // must not consume the second caller's claim
+
+      queue.gate.complete();
+      expect(await second.result, 2);
+      expect(await blocking.result, 1);
+      expect(queue.processed, [1, 2]);
+    });
+
+    test('does not drop a later request that reuses the id', () async {
+      final queue = _TestQueue();
+      final blocking = queue.addRequest(_TestRequest(1));
+      final finished = queue.addRequest(_TestRequest(2));
+
+      queue.gate.complete();
+      expect(await finished.result, 2);
+
+      // Somebody else asks for the same id, then the first caller goes away —
+      // the media grid does exactly this when a re-sort replaces a card that
+      // stays on screen.
+      final resubmitted = queue.addRequest(_TestRequest(2));
+      finished.cancel();
+
+      expect(await resubmitted.result, 2);
+      expect(await blocking.result, 1);
+      expect(queue.processed, [1, 2, 2]);
     });
 
     test('keeps draining the remaining queue after a cancellation', () async {
@@ -95,12 +128,12 @@ void main() {
       final cancelled = queue.addRequest(_TestRequest(2));
       final survivor = queue.addRequest(_TestRequest(3));
 
-      queue.cancelRequest(2);
+      cancelled.cancel();
       queue.gate.complete();
 
-      expect(await cancelled, isNull);
-      expect(await survivor, 3);
-      expect(await blocking, 1);
+      expect(await cancelled.result, isNull);
+      expect(await survivor.result, 3);
+      expect(await blocking.result, 1);
       expect(queue.processed, [1, 3]);
     });
   });

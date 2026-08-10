@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/extensions.dart';
+import 'package:syncopathy/helper/task_queue.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_library/thumbnail_generator.dart';
@@ -52,6 +53,7 @@ class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
   late final Signal<Uint8List?> _thumbnail = createSignal(null);
   Timer? _loadingTimer;
   StreamSubscription<ThumbnailCommand>? _commandSub;
+  RequestTicket<Uint8List>? _request;
 
   @override
   void initState() {
@@ -65,8 +67,11 @@ class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
     _commandSub?.cancel();
     _loadingTimer?.cancel();
     // Scrolling past a card should not commit to generating its thumbnail. A
-    // no-op once the request has started or already resolved.
-    ThumbnailGenerator().cancelRequest(widget.media.id);
+    // no-op once the request has started or already resolved — in particular it
+    // must not touch a request another card made for the same media, which is
+    // what a re-sort produces: the replacement card is built before this one is
+    // unmounted.
+    _request?.cancel();
     super.dispose();
   }
 
@@ -103,15 +108,19 @@ class _MediaThumbnailState extends State<MediaThumbnail> with SignalsMixin {
 
   Future<void> _generateThumbnail(double seekFraction, bool regenerate) async {
     if (_thumbnail.value != null && !regenerate) return;
-    await _setThumbnail(
-      ThumbnailGenerator().addRequest(
-        ThumbnailRequest(
-          file: widget.media,
-          seekFraction: seekFraction,
-          regenerate: regenerate,
-        ),
+    final previous = _request;
+    final ticket = ThumbnailGenerator().addRequest(
+      ThumbnailRequest(
+        file: widget.media,
+        seekFraction: seekFraction,
+        regenerate: regenerate,
       ),
     );
+    _request = ticket;
+    // Released after the new claim is taken, so a still-queued task isn't
+    // dropped and immediately re-queued in between.
+    previous?.cancel();
+    await _setThumbnail(ticket.result);
   }
 
   @override

@@ -598,6 +598,7 @@ class _SettingsPageState extends State<SettingsPage> {
       videos.map(
         (media) => ThumbnailGenerator()
             .addRequest(ThumbnailRequest(file: media, retryFailed: true))
+            .result
             .then((_) {
               done++;
               onEach();

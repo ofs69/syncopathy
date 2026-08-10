@@ -19,6 +19,29 @@ class _PendingTask<I, O> {
   _PendingTask(this.request);
 }
 
+/// One caller's claim on a queued request, handed out by [TaskQueue.addRequest].
+///
+/// [cancel] withdraws only this claim; the task is dropped once every claim on
+/// it is gone. A ticket is bound to the task it was issued for, so cancelling
+/// one whose task has already run is a no-op and can never drop a later request
+/// that happens to reuse the same id.
+class RequestTicket<O> {
+  /// The task's result, or null if every claim was withdrawn before a worker
+  /// picked it up.
+  final Future<O?> result;
+
+  final void Function() _release;
+  bool _cancelled = false;
+
+  RequestTicket._(this.result, this._release);
+
+  void cancel() {
+    if (_cancelled) return;
+    _cancelled = true;
+    _release();
+  }
+}
+
 abstract class TaskQueue<I extends BaseRequest, O> {
   final Map<int, _PendingTask<I, O>> _pending = {};
   final ListSignal<int> _queue = listSignal([]);
@@ -41,13 +64,16 @@ abstract class TaskQueue<I extends BaseRequest, O> {
 
   Future<O?> processRequest(I request);
 
-  Future<O?> addRequest(I request) {
+  RequestTicket<O> addRequest(I request) {
     final existing = _pending[request.id];
     if (existing != null) {
       existing.waiters++;
       _queue.remove(request.id);
       _queue.add(request.id);
-      return existing.completer.future;
+      return RequestTicket._(
+        existing.completer.future,
+        () => _releaseClaim(existing),
+      );
     }
 
     final task = _PendingTask<I, O>(request);
@@ -55,18 +81,22 @@ abstract class TaskQueue<I extends BaseRequest, O> {
     _queue.add(request.id);
 
     _startWorkers();
-    return task.completer.future;
+    return RequestTicket._(task.completer.future, () => _releaseClaim(task));
   }
 
-  /// Drops a still-queued request, completing its future with null.
+  /// Withdraws one claim on [task], dropping it and completing its future with
+  /// null once no claim is left.
   ///
   /// Requests a worker has already picked up run to completion: the backlog is
   /// where the wasted work is (a fast scroll can queue hundreds of items), and
-  /// aborting mid-flight would leave a partially written output behind.
-  void cancelRequest(int id) {
-    final task = _pending[id];
-    if (task == null) return;
+  /// aborting mid-flight would leave a partially written output behind. The
+  /// identity check covers that case as well as an already-finished task, whose
+  /// id may since have been re-queued by somebody else.
+  void _releaseClaim(_PendingTask<I, O> task) {
     if (--task.waiters > 0) return;
+
+    final id = task.request.id;
+    if (!identical(_pending[id], task)) return;
 
     _pending.remove(id);
     _queue.remove(id);
