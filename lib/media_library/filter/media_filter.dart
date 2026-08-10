@@ -70,18 +70,25 @@ final Map<String, FilterBase Function()> availableFilters = {
     retriever: (media) => [(media.rating ?? MediaRating.noRating).id],
     enumValues: MediaRating.values,
   ),
+  "Duration": () => DurationFilter(
+    label: "Duration",
+    icon: Icons.timer,
+    category: FilterCategory.media,
+    sortOrder: 4,
+    retriever: (media) => [media.metadata.target?.duration],
+  ),
   "Date Added": () => DateFilter(
     label: "Date Added",
     icon: Icons.calendar_today,
     category: FilterCategory.media,
-    sortOrder: 4,
+    sortOrder: 5,
     retriever: (media) => [media.firstIndexedOn],
   ),
   "Path": () => StringFilter(
     label: "Path",
     icon: Icons.folder,
     category: FilterCategory.media,
-    sortOrder: 5,
+    sortOrder: 6,
     retriever: (media) => [media.mediaPath],
   ),
   "Funscript Count": () => NumberFilter(
@@ -268,6 +275,124 @@ class NumberFilter extends FilterBase<num> {
               hintText: label,
               prefixIcon: Icon(icon),
               border: OutlineInputBorder(),
+            ),
+          ),
+        ),
+        const SizedBox(width: 4),
+        _operatorMenu<FilterOperator>(
+          values: FilterOperator.values,
+          current: currentOperator,
+          labelOf: (op) => op.label,
+          onSelected: (op) => operator.value = op,
+        ),
+      ],
+    );
+  }
+}
+
+/// Filters on media duration, which `MediaMetadata` stores in seconds.
+///
+/// Typing raw seconds would be miserable for a library of hour-long videos, so
+/// the input is minute-first: a bare number is minutes ("90"), and colon
+/// notation reads right-to-left from seconds ("5:30" is 5m30s, "1:05:30" is
+/// 1h5m30s) the way every media player writes it.
+class DurationFilter extends FilterBase<num> {
+  final Signal<FilterOperator> operator = signal(FilterOperator.greaterEqual);
+  final Signal<String> value = signal("");
+
+  @override
+  late final ReadonlySignal<dynamic> stateChange =
+      computed(() => (operator.value, value.value, baseStateChange.value));
+
+  DurationFilter({
+    required super.label,
+    required super.icon,
+    required super.category,
+    required super.sortOrder,
+    required super.retriever,
+  });
+
+  /// Parses a duration input into a target in [seconds], plus the [tolerance]
+  /// an `==` comparison should allow.
+  ///
+  /// The tolerance tracks how precisely the input was expressed — bare minutes
+  /// match to the half-minute, colon notation to the half-second — so `== 90`
+  /// finds everything that rounds to 90 minutes rather than only what is
+  /// exactly 5400.0 seconds long. Returns null for anything unparseable, which
+  /// callers treat as "no constraint".
+  static ({double seconds, double tolerance})? parseInput(String input) {
+    final text = input.trim();
+    if (text.isEmpty) return null;
+
+    if (!text.contains(':')) {
+      final minutes = double.tryParse(text);
+      if (minutes == null || minutes.isNegative) return null;
+      return (seconds: minutes * 60, tolerance: 30);
+    }
+
+    final parts = text.split(':');
+    if (parts.length > 3) return null;
+
+    var seconds = 0.0;
+    for (final part in parts) {
+      final component = double.tryParse(part.trim());
+      if (component == null || component.isNegative) return null;
+      seconds = seconds * 60 + component;
+    }
+    return (seconds: seconds, tolerance: 0.5);
+  }
+
+  /// Renders seconds back as `m:ss` / `h:mm:ss`, to echo how the input was read.
+  static String formatSeconds(double seconds) {
+    final total = seconds.round();
+    final hours = total ~/ 3600;
+    final minutes = (total % 3600) ~/ 60;
+    final secs = total % 60;
+    final paddedSecs = secs.toString().padLeft(2, '0');
+    if (hours == 0) return '$minutes:$paddedSecs';
+    return '$hours:${minutes.toString().padLeft(2, '0')}:$paddedSecs';
+  }
+
+  @override
+  bool performMatch(num value) {
+    final target = parseInput(this.value.value);
+    if (target == null) return true;
+
+    final seconds = value.toDouble();
+    return switch (operator.value) {
+      FilterOperator.equals =>
+        (seconds - target.seconds).abs() <= target.tolerance,
+      FilterOperator.greater => seconds > target.seconds,
+      FilterOperator.lesser => seconds < target.seconds,
+      FilterOperator.greaterEqual => seconds >= target.seconds,
+      FilterOperator.lesserEqual => seconds <= target.seconds,
+    };
+  }
+
+  @override
+  Widget filterRowWidget(BuildContext context) {
+    final currentOperator = operator.watch(context);
+    final parsed = parseInput(value.watch(context));
+    return Row(
+      children: [
+        Expanded(
+          // No TextEditingController: filters have no dispose hook, so the
+          // field owns its own text and the signal only mirrors it.
+          child: TextField(
+            onChanged: (v) => value.value = v,
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9.:]')),
+            ],
+            decoration: InputDecoration(
+              labelText: label,
+              hintText: "minutes, or m:ss",
+              // A bare number meaning minutes is not self-evident from the
+              // field, so echo back how the input was actually read.
+              helperText: parsed == null
+                  ? "e.g. 90, 5:30, 1:05:30"
+                  : formatSeconds(parsed.seconds),
+              prefixIcon: Icon(icon),
+              border: const OutlineInputBorder(),
             ),
           ),
         ),
