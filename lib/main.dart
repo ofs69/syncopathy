@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:args/args.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +22,7 @@ import 'package:syncopathy/player/media_kit_player/media_kit_player.dart';
 
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/syncopathy.dart';
+import 'package:syncopathy/update_checker.dart';
 
 import 'package:syncopathy/platform/init/init.dart';
 
@@ -62,6 +65,7 @@ Future<Widget> _initializeAppAndRun({required bool simple}) async {
 
   final alertManager = AlertManager();
   getIt.registerSingleton<AlertManager>(alertManager);
+  unawaited(UpdateChecker.notifyIfUpdateAvailable());
 
   return MultiProvider(
     providers: [

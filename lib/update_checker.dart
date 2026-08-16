@@ -48,6 +48,22 @@ class UpdateChecker {
     return null; // No update available or an error occurred
   }
 
+  /// Checks for an update and adds it to the notification feed when available.
+  ///
+  /// A failed check and an up-to-date installation are intentionally silent so
+  /// launch-time network issues do not distract the user.
+  static Future<void> notifyIfUpdateAvailable({
+    Future<String?> Function()? check,
+    void Function(String)? notify,
+  }) async {
+    final latestVersion = await (check ?? checkForUpdates)();
+    if (latestVersion == null) return;
+
+    (notify ?? AlertManager.showSuccess)(
+      'A new Syncopathy version is available: $latestVersion',
+    );
+  }
+
   static bool _isNewVersion(String latest, String current) {
     try {
       final latestKey = _versionKey(latest);
