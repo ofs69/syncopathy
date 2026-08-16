@@ -132,9 +132,9 @@ jobs:
 
           # Force deployment target in Podfile
           if ! grep -q "platform :osx" Podfile; then
-            echo "platform :osx, '11.0'" | cat - Podfile > temp && mv temp Podfile
+            echo "platform :osx, '12.0'" | cat - Podfile > temp && mv temp Podfile
           else
-            sed -i '' 's/^#* *platform :osx, .*/platform :osx, "11.0"/' Podfile
+            sed -i '' 's/^#* *platform :osx, .*/platform :osx, "12.0"/' Podfile
           fi
 
           pod repo update
