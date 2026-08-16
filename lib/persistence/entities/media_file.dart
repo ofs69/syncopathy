@@ -105,17 +105,32 @@ class MediaFile {
   bool get isFavorite => rating == MediaRating.like;
   bool get isDislike => rating == MediaRating.dislike;
 
-  bool get isPlayable => unplayableReason == null;
+  bool get isPlayable => unplayable == null;
 
-  /// Human-readable explanation of why this media cannot be played, or `null`
-  /// when it is playable. Keeps the "why can't this play" cascade on the model
-  /// instead of duplicating it in widget callbacks.
-  String? get unplayableReason {
+  /// Why this media cannot be played, or `null` when it is playable. Keeps the
+  /// "why can't this play" cascade on the model instead of duplicating it in
+  /// widget callbacks.
+  UnplayableReason? get unplayable {
     final main = mainFunscript.target;
-    if (fileNotFound) return 'Media file not found.';
-    if (main == null) return 'No funscript assigned.';
-    if (main.fileNotFound) return 'Funscript file not found.';
-    if (main.isScriptToken) return 'Funscript is a script token.';
+    if (fileNotFound) return UnplayableReason.mediaMissing;
+    if (main == null) return UnplayableReason.noFunscript;
+    if (main.fileNotFound) return UnplayableReason.funscriptMissing;
+    if (main.isScriptToken) return UnplayableReason.scriptToken;
     return null;
   }
+
+  String? get unplayableReason => unplayable?.description;
+}
+
+enum UnplayableReason {
+  mediaMissing('Media file not found.'),
+  noFunscript('No funscript assigned.'),
+  funscriptMissing('Funscript file not found.'),
+
+  /// A deliberate state rather than a broken entry: the script is present but
+  /// encrypted, so library cleanup leaves these alone.
+  scriptToken('Funscript is a script token.');
+
+  final String description;
+  const UnplayableReason(this.description);
 }

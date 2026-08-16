@@ -4,8 +4,11 @@ import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 
 class FunscriptService {
+  final Store _store;
   final Box<FunscriptFile> _box;
-  FunscriptService(Store store) : _box = store.box<FunscriptFile>();
+  FunscriptService(Store store)
+    : _store = store,
+      _box = store.box<FunscriptFile>();
 
   int save(FunscriptFile mediaList) {
     return _box.put(mediaList);
@@ -60,6 +63,53 @@ class FunscriptService {
   List<FunscriptFile> getAll() => _box.getAll();
 
   Future<List<FunscriptFile>> getAllAsync() async => _box.getAllAsync();
+
+  /// Removes [funscripts] from the database, detaching them from every media
+  /// that still links them (both as a linked script and as the main script) so
+  /// no dangling relations are left behind. Files on disk are never touched.
+  ///
+  /// A media that loses its main script inherits the first of its remaining
+  /// ones, the same rule indexing applies to a media without a main script; it
+  /// only ends up with none when every script it had is being removed.
+  void removeMany(List<FunscriptFile> funscripts) {
+    if (funscripts.isEmpty) return;
+
+    final removedIds = funscripts.map((f) => f.id).toSet();
+
+    _store.runInTransaction(TxMode.write, () {
+      final mediaBox = _store.box<MediaFile>();
+
+      for (final funscript in funscripts) {
+        // Collect the affected media by id so both relation edges are applied
+        // to one instance per media instead of overwriting each other.
+        final touched = <int, MediaFile>{};
+
+        final mainQuery = mediaBox
+            .query(MediaFile_.mainFunscript.equals(funscript.id))
+            .build();
+        for (final media in mainQuery.find()) {
+          touched[media.id] = media;
+        }
+        mainQuery.close();
+
+        for (final media in funscript.media) {
+          touched.putIfAbsent(media.id, () => media);
+        }
+
+        for (final media in touched.values) {
+          media.funscripts.removeWhere((f) => f.id == funscript.id);
+          if (media.mainFunscript.targetId == funscript.id) {
+            media.mainFunscript.target = media.funscripts.firstWhereOrNull(
+              (f) => !removedIds.contains(f.id),
+            );
+          }
+        }
+
+        mediaBox.putMany(touched.values.toList());
+        _box.remove(funscript.id);
+      }
+    });
+  }
 
   void removeDuplicates(Store store) {
     final all = _box.getAll();

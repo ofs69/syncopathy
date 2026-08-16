@@ -5,6 +5,7 @@ import 'package:syncopathy/persistence/repository/media_repository.dart';
 import 'package:syncopathy/persistence/service/fast_hash_cache_service.dart';
 import 'package:syncopathy/persistence/service/funscript_service.dart';
 import 'package:syncopathy/persistence/service/key_value_service.dart';
+import 'package:syncopathy/persistence/service/library_cleanup_service.dart';
 import 'package:syncopathy/persistence/service/user_category_service.dart';
 import 'package:syncopathy/persistence/service/media_service.dart';
 
@@ -15,6 +16,7 @@ class ObjectBox {
   late final MediaService mediaService;
   late final FunscriptService funscriptService;
   late final FastHashCacheService fastHashCacheService;
+  late final LibraryCleanupService libraryCleanupService;
 
   /// Intent-named command layer over [mediaService]/[funscriptService]; the UI
   /// routes entity mutations through this instead of saving inline.
@@ -26,6 +28,7 @@ class ObjectBox {
     mediaService = MediaService(store);
     funscriptService = FunscriptService(store);
     fastHashCacheService = FastHashCacheService(store);
+    libraryCleanupService = LibraryCleanupService(store, funscriptService);
     mediaRepository = MediaRepository(mediaService, funscriptService);
 
     // Remove this at some point in the future

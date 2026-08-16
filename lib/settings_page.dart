@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/ioc.dart';
+import 'package:syncopathy/media_library/delete_media_dialog.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
@@ -378,6 +379,15 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         if (withMedia)
           ListTile(
+            title: const Text('Clean Up Library'),
+            subtitle: const Text(
+              'Removes entries that can no longer be played — missing files, missing or unlinked funscripts, and orphaned records. Script tokens are kept. Nothing is deleted from disk.',
+            ),
+            trailing: const Icon(Icons.cleaning_services_outlined),
+            onTap: _cleanUpMissingFiles,
+          ),
+        if (withMedia)
+          ListTile(
             title: const Text('Reset Video Play Count'),
             subtitle: const Text(
               'Resets the video play count to zero for all videos.',
@@ -541,6 +551,54 @@ class _SettingsPageState extends State<SettingsPage> {
     );
     return result ?? false;
   }
+
+  /// Clears out entries the library can no longer use: media whose file is
+  /// gone or that has no usable funscript, funscripts whose file is gone or
+  /// that nothing links, and the records left orphaned behind them. Media held
+  /// back only by a script token are kept — that is a known state, not a
+  /// broken entry. Purely a database cleanup; no file is deleted from disk.
+  Future<void> _cleanUpMissingFiles() async {
+    final cleanup = oBox.libraryCleanupService;
+
+    // Repair first, so an entry that only needs its main script re-pointed at
+    // a script it already has is fixed instead of removed.
+    final repaired = cleanup.repairMainFunscriptLinks();
+    final plan = cleanup.buildPlan();
+
+    if (plan.isEmpty) {
+      AlertManager.showSuccess(
+        repaired > 0
+            ? 'Repaired $repaired ${repaired == 1 ? 'entry' : 'entries'}. '
+                  'Nothing left to remove.'
+            : 'Nothing to clean up. Refresh the library first if files changed '
+                  'on disk since the last scan.',
+      );
+      return;
+    }
+
+    final notes = [
+      if (repaired > 0)
+        'Repaired the main funscript of ${_itemCount(repaired)}.',
+      if (plan.orphanRecordCount > 0)
+        'Also clears ${_itemCount(plan.orphanRecordCount)} of orphaned data '
+            '(metadata and cached hashes).',
+    ];
+
+    await showDialog<bool>(
+      context: context,
+      builder: (context) => DeleteMediaDialog(
+        selectedMedia: plan.media.toSet(),
+        selectedFunscripts: plan.funscripts.toSet(),
+        databaseOnly: true,
+        title: 'Clean Up '
+            '${_itemCount(plan.media.length + plan.funscripts.length)}?',
+        summary: notes.isEmpty ? null : notes.join(' '),
+        onConfirmed: () async => cleanup.apply(plan),
+      ),
+    );
+  }
+
+  String _itemCount(int count) => count == 1 ? '1 entry' : '$count entries';
 
   Future<void> _resetAllVideoPlayCount() async {
     final mediaSettings = context.read<MediaLibrarySettingsModel?>();
