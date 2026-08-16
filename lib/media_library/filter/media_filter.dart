@@ -20,21 +20,53 @@ Widget _operatorMenu<T>({
   required String Function(T) labelOf,
   required ValueChanged<T> onSelected,
 }) {
-  return PopupMenuButton<T>(
-    icon: const Icon(Icons.filter_list),
-    tooltip: labelOf(current),
-    onSelected: onSelected,
-    itemBuilder: (context) => values
-        .map(
-          (op) => CheckedPopupMenuItem<T>(
-            value: op,
-            checked: current == op,
-            child: Text(labelOf(op)),
+  final currentLabel = labelOf(current);
+  return Builder(
+    builder: (context) => PopupMenuButton<T>(
+      tooltip: 'Filter operator: $currentLabel',
+      onSelected: onSelected,
+      itemBuilder: (context) => values
+          .map(
+            (op) => CheckedPopupMenuItem<T>(
+              value: op,
+              checked: current == op,
+              child: Text(labelOf(op)),
+            ),
+          )
+          .toList(),
+      child: Semantics(
+        button: true,
+        label: 'Filter operator',
+        value: currentLabel,
+        child: Container(
+          height: 48,
+          constraints: const BoxConstraints(minWidth: 56),
+          padding: const EdgeInsets.only(left: 12, right: 8),
+          decoration: BoxDecoration(
+            border: Border.all(color: Theme.of(context).colorScheme.outline),
+            borderRadius: BorderRadius.circular(4),
           ),
-        )
-        .toList(),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(currentLabel),
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_drop_down),
+            ],
+          ),
+        ),
+      ),
+    ),
   );
 }
+
+String _dateOperatorLabel(FilterOperator operator) => switch (operator) {
+  FilterOperator.equals => 'On',
+  FilterOperator.greater => 'After',
+  FilterOperator.lesser => 'Before',
+  FilterOperator.greaterEqual => 'On or after',
+  FilterOperator.lesserEqual => 'On or before',
+};
 
 final Map<String, FilterBase Function()> availableFilters = {
   "Title": () => StringFilter(
@@ -209,11 +241,11 @@ abstract class FilterBase<T> {
 }
 
 enum FilterOperator {
-  equals('=='),
+  equals('='),
   greater('>'),
   lesser('<'),
-  greaterEqual('>='),
-  lesserEqual('<=');
+  greaterEqual('≥'),
+  lesserEqual('≤');
 
   final String label;
   const FilterOperator(this.label);
@@ -535,7 +567,7 @@ class DateFilter extends FilterBase<DateTime> {
         _operatorMenu<FilterOperator>(
           values: FilterOperator.values,
           current: currentOperator,
-          labelOf: (op) => op.label,
+          labelOf: _dateOperatorLabel,
           onSelected: (op) => operator.value = op,
         ),
       ],
