@@ -143,6 +143,11 @@ class MediaFilterEntrySnapshot {
         DateFilter f => {
           'operator': f.operator.value.name,
           'value': f.value.value?.toIso8601String(),
+          // Stored by name, never as a resolved date, so the preset keeps
+          // meaning "this month" instead of the month it was saved in. Omitted
+          // when unset so presets saved before relative windows existed still
+          // capture identically and do not read as modified.
+          if (f.period.value != null) 'period': f.period.value!.name,
         },
         EnumFilter f => {'value': f.selectedValue.value?.name},
         CategoryFilter f => {'value': f.selectedCategoryId.value},
@@ -201,9 +206,14 @@ class MediaFilterEntrySnapshot {
             : '';
       } else if (filter is DateFilter) {
         if (operator != null) filter.operator.value = operator;
-        filter.value.value = value['value'] is String
-            ? DateTime.tryParse(value['value'] as String)
-            : null;
+        final period = _enumByName(DateFilterPeriod.values, value['period']);
+        if (period != null) {
+          filter.period.value = period;
+        } else {
+          filter.value.value = value['value'] is String
+              ? DateTime.tryParse(value['value'] as String)
+              : null;
+        }
       }
     } else if (filter is StringFilter) {
       final operator = StringFilterOperator.values

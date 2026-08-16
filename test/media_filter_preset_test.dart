@@ -68,6 +68,41 @@ void main() {
       expect(restoredType.selectedValue.value, MediaType.video);
     });
 
+    test('stores a relative date window by name, not as a resolved date', () {
+      final date = availableFilters['Date Added']!() as DateFilter;
+      date.selectPeriod(DateFilterPeriod.thisMonth);
+
+      final json = MediaFilterSnapshot.capture(
+        MediaFilter()
+          ..replaceGroups([
+            FilterGroup(FilterGroupOperator.and, [date]),
+          ]),
+      ).toJson();
+      final restored = MediaFilter();
+      MediaFilterSnapshot.fromJson(json).applyTo(restored);
+
+      final restoredDate = restored.defaultGroup.filters.single as DateFilter;
+      expect(restoredDate.period.value, DateFilterPeriod.thisMonth);
+      expect(restoredDate.value.value, isNull);
+      expect(restoredDate.operator.value, FilterOperator.greaterEqual);
+    });
+
+    test('a preset without a window captures as it did before', () {
+      // Presets saved before relative windows existed carry no 'period' key.
+      // Emitting one for them would make every old preset read as modified.
+      final date = availableFilters['Date Added']!() as DateFilter
+        ..selectDate(DateTime(2024, 5, 6));
+      final captured = MediaFilterSnapshot.capture(
+        MediaFilter()
+          ..replaceGroups([
+            FilterGroup(FilterGroupOperator.and, [date]),
+          ]),
+      ).toJson();
+
+      final filters = (captured['groups'] as List).single['filters'] as List;
+      expect((filters.single['value'] as Map).containsKey('period'), isFalse);
+    });
+
     test('drops unknown filters while preserving valid ones', () {
       final snapshot = MediaFilterSnapshot.fromJson({
         'groups': [

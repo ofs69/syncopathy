@@ -60,6 +60,49 @@ Widget _operatorMenu<T>({
   );
 }
 
+/// Relative windows for [DateFilter], resolved against the current date every
+/// time the filter runs.
+///
+/// Each entry is the *start* of its window, so it composes with the existing
+/// operators: "on or after · This Month" is everything added since the 1st,
+/// "before · Last 30 Days" is everything older than that.
+enum DateFilterPeriod {
+  today('Today'),
+  thisWeek('This Week'),
+  thisMonth('This Month'),
+  thisYear('This Year'),
+  last7Days('Last 7 Days'),
+  last30Days('Last 30 Days'),
+  last90Days('Last 90 Days');
+
+  final String label;
+  const DateFilterPeriod(this.label);
+
+  /// The first day of this window relative to [now].
+  ///
+  /// Built from calendar fields rather than [Duration] arithmetic: subtracting
+  /// days as a duration lands on 23:00 of the previous day across a DST
+  /// boundary, which would shift the window by a day. Weeks start on Monday.
+  DateTime startFrom(DateTime now) => switch (this) {
+    DateFilterPeriod.today => DateTime(now.year, now.month, now.day),
+    DateFilterPeriod.thisWeek => DateTime(
+      now.year,
+      now.month,
+      now.day - (now.weekday - 1),
+    ),
+    DateFilterPeriod.thisMonth => DateTime(now.year, now.month),
+    DateFilterPeriod.thisYear => DateTime(now.year),
+    DateFilterPeriod.last7Days => DateTime(now.year, now.month, now.day - 6),
+    DateFilterPeriod.last30Days => DateTime(now.year, now.month, now.day - 29),
+    DateFilterPeriod.last90Days => DateTime(now.year, now.month, now.day - 89),
+  };
+}
+
+/// The "pick an exact date" entry of the date menu. It sits alongside the
+/// [DateFilterPeriod] entries, so it needs a value of its own — `null` is not
+/// usable there, `PopupMenuButton` reads it as a cancelled menu.
+enum _CustomDateChoice { pick }
+
 String _dateOperatorLabel(FilterOperator operator) => switch (operator) {
   FilterOperator.equals => 'On',
   FilterOperator.greater => 'After',
@@ -497,9 +540,14 @@ class DateFilter extends FilterBase<DateTime> {
   final Signal<FilterOperator> operator = signal(FilterOperator.equals);
   final Signal<DateTime?> value = signal(null);
 
+  /// The relative window to compare against, or null when [value] holds a
+  /// fixed date. The two are mutually exclusive — see [selectPeriod] and
+  /// [selectDate].
+  final Signal<DateFilterPeriod?> period = signal(null);
+
   @override
   late final ReadonlySignal<dynamic> stateChange = computed(
-    () => (operator.value, value.value, baseStateChange.value),
+    () => (operator.value, value.value, period.value, baseStateChange.value),
   );
 
   DateFilter({
@@ -510,9 +558,29 @@ class DateFilter extends FilterBase<DateTime> {
     required super.retriever,
   });
 
+  /// The date this filter currently compares against, with a relative window
+  /// resolved against today.
+  DateTime? get comparisonDate =>
+      period.value?.startFrom(DateTime.now()) ?? value.value;
+
+  void selectPeriod(DateFilterPeriod selected) {
+    period.value = selected;
+    value.value = null;
+    // "On" would pin a multi-day window to its first day, which is never what
+    // picking a window means.
+    if (operator.value == FilterOperator.equals) {
+      operator.value = FilterOperator.greaterEqual;
+    }
+  }
+
+  void selectDate(DateTime date) {
+    value.value = date;
+    period.value = null;
+  }
+
   @override
   bool performMatch(DateTime value) {
-    final filterValue = this.value.value;
+    final filterValue = comparisonDate;
     if (filterValue == null) return true;
 
     // Compare only dates (ignoring time)
@@ -528,14 +596,14 @@ class DateFilter extends FilterBase<DateTime> {
     };
   }
 
-  Future<void> _selectDate(BuildContext context) async {
+  Future<void> _pickDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: value.value ?? DateTime.now(),
+      initialDate: comparisonDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (picked != null) value.value = picked;
+    if (picked != null) selectDate(picked);
   }
 
   static String _formatDate(DateTime d) =>
@@ -545,30 +613,58 @@ class DateFilter extends FilterBase<DateTime> {
   Widget filterRowWidget(BuildContext context) {
     final currentOperator = operator.value;
     final currentValue = value.value;
+    final currentPeriod = period.value;
+    final resolved = comparisonDate;
     return Row(
       children: [
-        // Reads the signal directly instead of mirroring into a
+        // Reads the signals directly instead of mirroring into a
         // TextEditingController (the filter has no dispose hook, so a
         // controller here would leak).
         Expanded(
-          child: InkWell(
-            onTap: () => _selectDate(context),
+          child: PopupMenuButton<Object>(
+            tooltip: currentPeriod == null
+                ? 'Pick the date to compare against'
+                : '${currentPeriod.label} — since ${_formatDate(resolved!)}',
+            onSelected: (choice) => choice is DateFilterPeriod
+                ? selectPeriod(choice)
+                : _pickDate(context),
+            itemBuilder: (context) => [
+              for (final option in DateFilterPeriod.values)
+                CheckedPopupMenuItem<Object>(
+                  value: option,
+                  checked: currentPeriod == option,
+                  child: Text(option.label),
+                ),
+              const PopupMenuDivider(),
+              CheckedPopupMenuItem<Object>(
+                value: _CustomDateChoice.pick,
+                checked: currentValue != null,
+                child: const Text('Pick a date…'),
+              ),
+            ],
             child: InputDecorator(
               decoration: InputDecoration(
                 labelText: label,
                 prefixIcon: Icon(icon),
-                suffixIcon: const Icon(Icons.calendar_today, size: 18),
+                suffixIcon: const Icon(Icons.arrow_drop_down),
                 border: const OutlineInputBorder(),
               ),
               child: Text(
-                currentValue != null ? _formatDate(currentValue) : "",
+                currentPeriod?.label ??
+                    (currentValue != null ? _formatDate(currentValue) : ""),
               ),
             ),
           ),
         ),
         const SizedBox(width: 4),
         _operatorMenu<FilterOperator>(
-          values: FilterOperator.values,
+          // A window spans several days, so "on" drops out while one is
+          // selected — [selectPeriod] keeps the current operator off it too.
+          values: currentPeriod == null
+              ? FilterOperator.values
+              : FilterOperator.values
+                    .where((op) => op != FilterOperator.equals)
+                    .toList(),
           current: currentOperator,
           labelOf: _dateOperatorLabel,
           onSelected: (op) => operator.value = op,
