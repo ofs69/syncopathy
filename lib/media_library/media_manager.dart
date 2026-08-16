@@ -417,7 +417,7 @@ class MediaManager {
       await _retrieveMetadata(params, groups, pool, progress);
 
       progress.status("Finalizing...");
-      return _importGroups(params, groups, allFoundFunscripts);
+      return await _importGroups(params, groups, allFoundFunscripts);
     } finally {
       store.close();
     }
