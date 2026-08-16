@@ -13,6 +13,7 @@ import 'package:syncopathy/media_library/media_manager.dart';
 
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
+import 'package:syncopathy/model/media_filter_presets_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/timesource_model.dart';
@@ -45,6 +46,10 @@ Future<Widget> _initializeAppAndRun({required bool simple}) async {
     await mediaSettings.load();
     getIt.registerSingleton<MediaLibrarySettingsModel>(mediaSettings);
 
+    final filterPresets = MediaFilterPresetsModel();
+    await filterPresets.load();
+    getIt.registerSingleton<MediaFilterPresetsModel>(filterPresets);
+
     mediaManager = MediaManager(settings);
     getIt.registerSingleton<MediaManager>(mediaManager);
   }
@@ -75,6 +80,7 @@ Future<Widget> _initializeAppAndRun({required bool simple}) async {
       Provider.value(value: batteryModel),
       ChangeNotifierProvider<AlertManager>.value(value: alertManager),
       if (mediaSettings != null) Provider.value(value: mediaSettings),
+      if (!simple) Provider.value(value: getIt.get<MediaFilterPresetsModel>()),
       if (mediaManager != null) Provider.value(value: mediaManager),
     ],
     // HACK: I added this ExcludeSemantics because it spams some accessibility error 🤷‍♂️

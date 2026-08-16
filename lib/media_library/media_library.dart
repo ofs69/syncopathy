@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import 'package:syncopathy/ioc.dart'
 import 'package:syncopathy/media_library/category_selection_dialog.dart';
 import 'package:syncopathy/media_library/filter/media_filter.dart';
 import 'package:syncopathy/media_library/filter/media_filter_logic.dart';
+import 'package:syncopathy/media_library/filter/media_filter_preset.dart';
 import 'package:syncopathy/media_library/media_filter_overlay.dart';
 import 'package:syncopathy/media_library/media_item.dart';
 import 'package:syncopathy/media_library/delete_media_dialog.dart';
@@ -21,6 +23,7 @@ import 'package:syncopathy/media_library/search_bar.dart';
 import 'package:syncopathy/media_library/wheel_of_fortune.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
+import 'package:syncopathy/model/media_filter_presets_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/video_player.dart';
@@ -47,6 +50,8 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
   final MediaFilter mediaFilter = MediaFilter();
   final Signal<String> searchQuery = signal("");
   final Signal<bool> _showFilterSettings = signal(false);
+  late final MediaFilterPresetsModel filterPresets;
+  late final ReadonlySignal<bool> isPresetDirty;
 
   // selection
   final SetSignal<MediaFile> selectedVideos = setSignal({});
@@ -65,6 +70,17 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
     super.initState();
 
     final mediaSettings = context.read<MediaLibrarySettingsModel>();
+    filterPresets = context.read<MediaFilterPresetsModel>();
+    filterPresets.activePreset.value?.snapshot.applyTo(mediaFilter);
+    isPresetDirty = computed(() {
+      mediaFilter.stateChange.value;
+      final active = filterPresets.activePreset.value;
+      return active != null &&
+          !filterPresets.matches(
+            MediaFilterSnapshot.capture(mediaFilter),
+            active,
+          );
+    });
     effect(() {
       final sortOption = mediaSettings.sortOption.value;
       if (sortOption == SortOption.random) {
@@ -87,6 +103,7 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
     // signals below and are dependents of long-lived model signals.
     filteredMedia.dispose();
     _isSelecting.dispose();
+    isPresetDirty.dispose();
     searchQuery.dispose();
     _showFilterSettings.dispose();
     selectedVideos.dispose();
@@ -325,6 +342,13 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
     );
   }
 
+  void _loadPreset(String id) {
+    final preset = filterPresets.presetById(id);
+    if (preset == null) return;
+    preset.snapshot.applyTo(mediaFilter);
+    unawaited(filterPresets.activate(id));
+  }
+
   Widget _buildViewOptionsMenu(BuildContext context) {
     final mediaSettings = context.read<MediaLibrarySettingsModel>();
     final videosPerRow = mediaSettings.videosPerRow.value;
@@ -526,7 +550,12 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
         if (isSelecting) _buildFloatingToolbar(),
         SettingsOverlay(
           showSettings: showFilterSettings,
-          child: MediaFilterOverlay(filter: mediaFilter),
+          child: MediaFilterOverlay(
+            filter: mediaFilter,
+            presets: filterPresets,
+            isPresetDirty: isPresetDirty,
+            onLoadPreset: _loadPreset,
+          ),
         ),
       ],
     );

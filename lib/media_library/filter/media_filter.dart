@@ -298,7 +298,8 @@ class NumberFilter extends FilterBase<num> {
     return Row(
       children: [
         Expanded(
-          child: TextField(
+          child: TextFormField(
+            initialValue: value.value,
             onChanged: (v) => value.value = v,
             keyboardType: TextInputType.number,
             inputFormatters: <TextInputFormatter>[
@@ -401,7 +402,8 @@ class DurationFilter extends FilterBase<num> {
         Expanded(
           // No TextEditingController: filters have no dispose hook, so the
           // field owns its own text and the signal only mirrors it.
-          child: TextField(
+          child: TextFormField(
+            initialValue: value.value,
             onChanged: (v) => value.value = v,
             inputFormatters: <TextInputFormatter>[
               FilteringTextInputFormatter.allow(RegExp(r'[0-9.:]')),
@@ -467,7 +469,8 @@ class StringFilter extends FilterBase<String> {
         Expanded(
           child: Tooltip(
             message: label,
-            child: TextField(
+            child: TextFormField(
+              initialValue: value.value,
               onChanged: (v) => value.value = v,
               decoration: InputDecoration(
                 labelText: label,
@@ -603,6 +606,7 @@ class EnumFilter<E extends Enum> extends FilterBase<int> {
   @override
   Widget filterRowWidget(BuildContext context) {
     return DropdownMenu<E>(
+      initialSelection: selectedValue.value,
       onSelected: (v) => selectedValue.value = v,
       expandedInsets: EdgeInsets.zero,
       label: Text(label),
@@ -781,8 +785,11 @@ class MediaFilter {
   MediaFilter();
 
   void clearFilter() {
-    filterGroups.clear();
-    filterGroups.add(FilterGroup(FilterGroupOperator.and, []));
+    replaceGroups([FilterGroup(FilterGroupOperator.and, [])]);
+  }
+
+  void replaceGroups(List<FilterGroup> groups) {
+    filterGroups.value = groups;
   }
 }
 
