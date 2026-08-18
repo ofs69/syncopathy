@@ -44,8 +44,7 @@ class SimpleMode {
       type: FileType.custom,
       allowedExtensions: allowedExtensions,
     );
-    if (files == null) return;
-    for (final file in files.files) {
+    for (final file in files) {
       final path = file.path;
       if (path == null) continue;
       await openFile(
