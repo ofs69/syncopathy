@@ -1,8 +1,12 @@
-// Auto-generated on 2026-06-05 10:33:20
+// Auto-generated on 2026-07-10 13:00:28
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
 //******* NOTIFICATIONS *********/
+//300 - NB! Not used by FW - internal server notification
+message NotificationConnectedChanged{
+    bool connected = 1;
+}
 //601 - wifi
 message NotificationWifiStatusChanged{
     WifiState state = 2;

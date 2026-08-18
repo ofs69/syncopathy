@@ -15,6 +15,49 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
+@$core.Deprecated('Use requestServerTimeGetDescriptor instead')
+const RequestServerTimeGet$json = {
+  '1': 'RequestServerTimeGet',
+};
+
+/// Descriptor for `RequestServerTimeGet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestServerTimeGetDescriptor =
+    $convert.base64Decode('ChRSZXF1ZXN0U2VydmVyVGltZUdldA==');
+
+@$core.Deprecated('Use responseServerTimeGetDescriptor instead')
+const ResponseServerTimeGet$json = {
+  '1': 'ResponseServerTimeGet',
+  '2': [
+    {'1': 'time', '3': 1, '4': 1, '5': 4, '10': 'time'},
+  ],
+};
+
+/// Descriptor for `ResponseServerTimeGet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseServerTimeGetDescriptor =
+    $convert.base64Decode(
+        'ChVSZXNwb25zZVNlcnZlclRpbWVHZXQSEgoEdGltZRgBIAEoBFIEdGltZQ==');
+
+@$core.Deprecated('Use requestConnectedGetDescriptor instead')
+const RequestConnectedGet$json = {
+  '1': 'RequestConnectedGet',
+};
+
+/// Descriptor for `RequestConnectedGet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestConnectedGetDescriptor =
+    $convert.base64Decode('ChNSZXF1ZXN0Q29ubmVjdGVkR2V0');
+
+@$core.Deprecated('Use responseConnectedGetDescriptor instead')
+const ResponseConnectedGet$json = {
+  '1': 'ResponseConnectedGet',
+  '2': [
+    {'1': 'connected', '3': 1, '4': 1, '5': 8, '10': 'connected'},
+  ],
+};
+
+/// Descriptor for `ResponseConnectedGet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseConnectedGetDescriptor = $convert.base64Decode(
+    'ChRSZXNwb25zZUNvbm5lY3RlZEdldBIcCgljb25uZWN0ZWQYASABKAhSCWNvbm5lY3RlZA==');
+
 @$core.Deprecated('Use requestConnectionKeyGetDescriptor instead')
 const RequestConnectionKeyGet$json = {
   '1': 'RequestConnectionKeyGet',

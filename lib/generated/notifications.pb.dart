@@ -19,6 +19,64 @@ import 'constants.pb.dart' as $0;
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 /// ******* NOTIFICATIONS *********/
+/// 300 - NB! Not used by FW - internal server notification
+class NotificationConnectedChanged extends $pb.GeneratedMessage {
+  factory NotificationConnectedChanged({
+    $core.bool? connected,
+  }) {
+    final result = create();
+    if (connected != null) result.connected = connected;
+    return result;
+  }
+
+  NotificationConnectedChanged._();
+
+  factory NotificationConnectedChanged.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory NotificationConnectedChanged.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'NotificationConnectedChanged',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'connected')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationConnectedChanged clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationConnectedChanged copyWith(
+          void Function(NotificationConnectedChanged) updates) =>
+      super.copyWith(
+              (message) => updates(message as NotificationConnectedChanged))
+          as NotificationConnectedChanged;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static NotificationConnectedChanged create() =>
+      NotificationConnectedChanged._();
+  @$core.override
+  NotificationConnectedChanged createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static NotificationConnectedChanged getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<NotificationConnectedChanged>(create);
+  static NotificationConnectedChanged? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get connected => $_getBF(0);
+  @$pb.TagNumber(1)
+  set connected($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasConnected() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearConnected() => $_clearField(1);
+}
+
 /// 601 - wifi
 class NotificationWifiStatusChanged extends $pb.GeneratedMessage {
   factory NotificationWifiStatusChanged({

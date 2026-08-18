@@ -1,4 +1,4 @@
-// Auto-generated on 2026-06-05 10:33:20
+// Auto-generated on 2026-07-10 13:00:28
 syntax = "proto3";
 package hdy_rpc;
 //NB! The codes are not in order, but in groups
@@ -36,6 +36,8 @@ enum HandyErrorCodes{
     ERROR_OVERCLOCKING_NOT_SUPPORTED = 100027; //Added in 4.0.15 - Overclocking is not supported on this device
     ERROR_OVERCLOCKING_IS_NOT_ENABLED = 100028; //Added in 4.0.15 - Trying to overclock, but overclocking is not enabled in the FW
     ERROR_MODE_CHANGE_NOT_ALLOWED_WHEN_DISABLED = 100032; //When in mode DISABLED, mode change is not allowed. - Added in FW 4.0.16
+    ERROR_SERVER_DEVICE_NOT_CONNECTED_TO_SERVER = 100033; //Server Only
+    ERROR_SERVER_NOT_ALLOWED = 100034; //Server Only - this command is not allowed in the public RPC
     //Power OTA errors
     ERROR_OTA_ERR_NO_OTA_PARTITION = 200001;
     ERROR_OTA_ERR_INVALID_BIN = 20000;

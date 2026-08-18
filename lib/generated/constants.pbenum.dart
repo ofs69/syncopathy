@@ -96,6 +96,11 @@ class HandyErrorCodes extends $pb.ProtobufEnum {
   static const HandyErrorCodes ERROR_MODE_CHANGE_NOT_ALLOWED_WHEN_DISABLED =
       HandyErrorCodes._(100032,
           _omitEnumNames ? '' : 'ERROR_MODE_CHANGE_NOT_ALLOWED_WHEN_DISABLED');
+  static const HandyErrorCodes ERROR_SERVER_DEVICE_NOT_CONNECTED_TO_SERVER =
+      HandyErrorCodes._(100033,
+          _omitEnumNames ? '' : 'ERROR_SERVER_DEVICE_NOT_CONNECTED_TO_SERVER');
+  static const HandyErrorCodes ERROR_SERVER_NOT_ALLOWED = HandyErrorCodes._(
+      100034, _omitEnumNames ? '' : 'ERROR_SERVER_NOT_ALLOWED');
 
   /// Power OTA errors
   static const HandyErrorCodes ERROR_OTA_ERR_NO_OTA_PARTITION =
@@ -146,6 +151,8 @@ class HandyErrorCodes extends $pb.ProtobufEnum {
     ERROR_OVERCLOCKING_NOT_SUPPORTED,
     ERROR_OVERCLOCKING_IS_NOT_ENABLED,
     ERROR_MODE_CHANGE_NOT_ALLOWED_WHEN_DISABLED,
+    ERROR_SERVER_DEVICE_NOT_CONNECTED_TO_SERVER,
+    ERROR_SERVER_NOT_ALLOWED,
     ERROR_OTA_ERR_NO_OTA_PARTITION,
     ERROR_OTA_ERR_INVALID_BIN,
     ERROR_OTA_ERR_INVALID_PARAM,

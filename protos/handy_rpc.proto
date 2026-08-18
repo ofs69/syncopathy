@@ -1,4 +1,4 @@
-// Auto-generated on 2026-06-05 10:33:20
+// Auto-generated on 2026-07-10 13:00:28
 syntax = "proto3";
 package hdy_rpc;
 import "notifications.proto";
@@ -19,6 +19,8 @@ import "constants.proto";
 */
 message Notification{
     oneof notification {
+        //Server Notification that are public starts with 300
+        NotificationConnectedChanged notification_connected_changed = 300;
         //BLE specific notifications starts with 600
         NotificationWifiScanComplete notification_wifi_scan_complete = 600;
         NotificationWifiStatusChanged notification_wifi_status_changed = 601;
@@ -56,6 +58,9 @@ message Notification{
 }
 message Request {
     oneof params {
+        //Server methods that are public starts with 300
+        RequestServerTimeGet request_server_time_get = 300;
+        RequestConnectedGet request_connected_get = 301;
         RequestConnectionKeyGet request_connection_key_get = 606;
         RequestWifiStatusGet request_wifi_status_get = 620;
         RequestWifiSet request_wifi_set = 621;
@@ -136,6 +141,9 @@ message Requests{
 message Response {
     uint32 id = 1;
     oneof result {
+        //Server Response that are public starts with 300
+        ResponseServerTimeGet response_server_time_get = 300;
+        ResponseConnectedGet response_connected_get = 301;
         ResponseConnectionKeyGet response_connection_key_get = 606;
         ResponseWifiStatusGet response_wifi_status_get = 620;
         ResponseWifiScanResultsGet response_wifi_scan_results_get = 624;

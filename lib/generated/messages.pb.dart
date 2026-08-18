@@ -19,6 +19,195 @@ import 'constants.pb.dart' as $0;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
+/// NB! Server messages, never touched by the FW
+/// 300
+class RequestServerTimeGet extends $pb.GeneratedMessage {
+  factory RequestServerTimeGet() => create();
+
+  RequestServerTimeGet._();
+
+  factory RequestServerTimeGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestServerTimeGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestServerTimeGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestServerTimeGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestServerTimeGet copyWith(void Function(RequestServerTimeGet) updates) =>
+      super.copyWith((message) => updates(message as RequestServerTimeGet))
+          as RequestServerTimeGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestServerTimeGet create() => RequestServerTimeGet._();
+  @$core.override
+  RequestServerTimeGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestServerTimeGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestServerTimeGet>(create);
+  static RequestServerTimeGet? _defaultInstance;
+}
+
+class ResponseServerTimeGet extends $pb.GeneratedMessage {
+  factory ResponseServerTimeGet({
+    $fixnum.Int64? time,
+  }) {
+    final result = create();
+    if (time != null) result.time = time;
+    return result;
+  }
+
+  ResponseServerTimeGet._();
+
+  factory ResponseServerTimeGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseServerTimeGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseServerTimeGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'time', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseServerTimeGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseServerTimeGet copyWith(
+          void Function(ResponseServerTimeGet) updates) =>
+      super.copyWith((message) => updates(message as ResponseServerTimeGet))
+          as ResponseServerTimeGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseServerTimeGet create() => ResponseServerTimeGet._();
+  @$core.override
+  ResponseServerTimeGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseServerTimeGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseServerTimeGet>(create);
+  static ResponseServerTimeGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get time => $_getI64(0);
+  @$pb.TagNumber(1)
+  set time($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTime() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTime() => $_clearField(1);
+}
+
+/// 301
+class RequestConnectedGet extends $pb.GeneratedMessage {
+  factory RequestConnectedGet() => create();
+
+  RequestConnectedGet._();
+
+  factory RequestConnectedGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestConnectedGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestConnectedGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestConnectedGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestConnectedGet copyWith(void Function(RequestConnectedGet) updates) =>
+      super.copyWith((message) => updates(message as RequestConnectedGet))
+          as RequestConnectedGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestConnectedGet create() => RequestConnectedGet._();
+  @$core.override
+  RequestConnectedGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestConnectedGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestConnectedGet>(create);
+  static RequestConnectedGet? _defaultInstance;
+}
+
+class ResponseConnectedGet extends $pb.GeneratedMessage {
+  factory ResponseConnectedGet({
+    $core.bool? connected,
+  }) {
+    final result = create();
+    if (connected != null) result.connected = connected;
+    return result;
+  }
+
+  ResponseConnectedGet._();
+
+  factory ResponseConnectedGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseConnectedGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseConnectedGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'connected')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseConnectedGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseConnectedGet copyWith(void Function(ResponseConnectedGet) updates) =>
+      super.copyWith((message) => updates(message as ResponseConnectedGet))
+          as ResponseConnectedGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseConnectedGet create() => ResponseConnectedGet._();
+  @$core.override
+  ResponseConnectedGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseConnectedGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseConnectedGet>(create);
+  static ResponseConnectedGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get connected => $_getBF(0);
+  @$pb.TagNumber(1)
+  set connected($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasConnected() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearConnected() => $_clearField(1);
+}
+
 /// 606
 class RequestConnectionKeyGet extends $pb.GeneratedMessage {
   factory RequestConnectionKeyGet() => create();
