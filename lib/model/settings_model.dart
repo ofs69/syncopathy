@@ -9,6 +9,7 @@ import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 import 'package:syncopathy/player/hwdec_mode.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
+import 'package:syncopathy/model/home_target.dart';
 import 'package:syncopathy/model/json/settings.dart';
 import 'package:syncopathy/model/shortcut_settings.dart';
 
@@ -51,6 +52,10 @@ class SettingsModel {
     Duration(seconds: 5),
   );
   final Signal<bool> homeDeviceEnabled = signal(false);
+
+  /// Which end of the stroke Home Mode parks at. Session-only, like
+  /// [homeDeviceEnabled] itself — a fresh start comes up at [HomeTarget.low].
+  final Signal<HomeTarget> homeTarget = signal(HomeTarget.low);
 
   VoidCallback? _saveEffectDispose;
 

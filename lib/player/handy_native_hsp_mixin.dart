@@ -6,6 +6,7 @@ import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
+import 'package:syncopathy/model/home_target.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/model/json/handyV3/handy_response.dart';
 import 'package:syncopathy/player/player_backend.dart';
@@ -363,11 +364,17 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
       effect(() {
         final isConnected = connected.value;
         final homeMode = settingsModel.homeDeviceEnabled.value;
+        // Tracked so switching the target while Home Mode is on re-parks the
+        // device instead of leaving it at the previous end.
+        final homeTarget = settingsModel.homeTarget.value;
         if (!isConnected) return;
         untracked(() {
           if (homeMode) {
             hspStop(); // stop
-            positionWithDuration(settingsModel.invert.value ? 1.0 : 0.0, 500);
+            positionWithDuration(
+              homeTarget.normalized(settingsModel.invert.value),
+              HomeTarget.moveDurationMs,
+            );
           } else {
             _resetPlayback(currentActions.value);
           }
