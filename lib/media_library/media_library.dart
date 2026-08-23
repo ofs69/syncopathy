@@ -15,11 +15,13 @@ import 'package:syncopathy/media_library/filter/media_filter.dart';
 import 'package:syncopathy/media_library/filter/media_filter_logic.dart';
 import 'package:syncopathy/media_library/filter/media_filter_preset.dart';
 import 'package:syncopathy/media_library/media_filter_overlay.dart';
+import 'package:syncopathy/media_library/media_badge.dart';
 import 'package:syncopathy/media_library/media_item.dart';
 import 'package:syncopathy/media_library/delete_media_dialog.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/media_library/move_media_dialog.dart';
 import 'package:syncopathy/media_library/search_bar.dart';
+import 'package:syncopathy/media_library/view_options_panel.dart';
 import 'package:syncopathy/media_library/wheel_of_fortune.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
@@ -350,17 +352,11 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
   }
 
   Widget _buildViewOptionsMenu(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final mediaSettings = context.read<MediaLibrarySettingsModel>();
-    final videosPerRow = mediaSettings.videosPerRow.value;
-    final visibilityFilters = mediaSettings.visibilityFilters.value;
-    final separateFavorites = mediaSettings.separateFavorites.value;
-    final showTitle = mediaSettings.showVideoTitles.value;
-    final showAverageSpeed = mediaSettings.showAverageSpeed.value;
-    final showAverageMinMax = mediaSettings.showAverageMinMax.value;
-    final showDuration = mediaSettings.showDuration.value;
-    final showPlayCount = mediaSettings.showPlayCount.value;
+    final isCustomized = mediaSettings.isViewCustomized.value;
     return MenuAnchor(
-      style: MenuStyle(padding: WidgetStatePropertyAll(EdgeInsets.zero)),
+      style: const MenuStyle(padding: WidgetStatePropertyAll(EdgeInsets.zero)),
       builder: (context, controller, child) {
         return IconButton(
           onPressed: () {
@@ -370,94 +366,25 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
               controller.open();
             }
           },
-          icon: const Icon(Icons.visibility),
+          icon: const Icon(Icons.grid_view),
           tooltip: 'View Options',
+          // Mirrors the filter button: a customized view says so from the
+          // toolbar, instead of hiding the fact behind a closed menu.
           style: IconButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.onInverseSurface,
+            backgroundColor: isCustomized
+                ? colorScheme.primaryContainer
+                : colorScheme.onInverseSurface,
+            foregroundColor: isCustomized
+                ? colorScheme.onPrimaryContainer
+                : colorScheme.primary,
+            side: isCustomized
+                ? BorderSide(color: colorScheme.primary, width: 1.0)
+                : BorderSide.none,
           ),
-          color: Theme.of(context).colorScheme.primary,
+          color: colorScheme.primary,
         );
       },
-      menuChildren: [
-        // videos per row
-        SubmenuButton(
-          menuStyle: MenuStyle(
-            padding: WidgetStatePropertyAll(EdgeInsets.zero),
-          ),
-          leadingIcon: const Icon(Icons.grid_view),
-          menuChildren: List.generate(9, (i) => i + 2).map((int value) {
-            final isSelected = videosPerRow == value;
-            return MenuItemButton(
-              onPressed: () => mediaSettings.videosPerRow.value = value,
-              closeOnActivate: false,
-              trailingIcon: isSelected
-                  ? const Icon(Icons.check, size: 16)
-                  : null,
-              child: Text('$value per row'),
-            );
-          }).toList(),
-          child: Text('Videos per row ($videosPerRow)'),
-        ),
-        const Divider(height: 1, thickness: 1),
-        // filters
-        ...VideoFilter.values.map((VideoFilter filter) {
-          return _buildToggleItem(
-            context: context,
-            label: filter.label,
-            value: visibilityFilters.contains(filter),
-            onTap: () {
-              final currentFilters = visibilityFilters.toSet();
-              if (currentFilters.contains(filter)) {
-                currentFilters.remove(filter);
-              } else {
-                currentFilters.add(filter);
-              }
-              mediaSettings.visibilityFilters.value = currentFilters;
-            },
-          );
-        }),
-        // display changes
-        const Divider(height: 1, thickness: 1),
-        _buildToggleItem(
-          context: context,
-          label: 'Separate Favorites/Dislikes',
-          value: separateFavorites,
-          onTap: () =>
-              mediaSettings.separateFavorites.value = !separateFavorites,
-        ),
-        const Divider(height: 1, thickness: 1),
-        _buildToggleItem(
-          context: context,
-          label: 'Show Titles',
-          value: showTitle,
-          onTap: () => mediaSettings.showVideoTitles.value = !showTitle,
-        ),
-        _buildToggleItem(
-          context: context,
-          label: 'Show Average Speed',
-          value: showAverageSpeed,
-          onTap: () => mediaSettings.showAverageSpeed.value = !showAverageSpeed,
-        ),
-        _buildToggleItem(
-          context: context,
-          label: 'Show Average Min/Max',
-          value: showAverageMinMax,
-          onTap: () =>
-              mediaSettings.showAverageMinMax.value = !showAverageMinMax,
-        ),
-        _buildToggleItem(
-          context: context,
-          label: 'Show Duration',
-          value: showDuration,
-          onTap: () => mediaSettings.showDuration.value = !showDuration,
-        ),
-        _buildToggleItem(
-          context: context,
-          label: 'Show Play Count',
-          value: showPlayCount,
-          onTap: () => mediaSettings.showPlayCount.value = !showPlayCount,
-        ),
-      ],
+      menuChildren: const [ViewOptionsPanel()],
     );
   }
 
@@ -564,11 +491,8 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
   Widget _buildGrid(BuildContext context, List<MediaFile> mediaFiles) {
     final mediaSettings = context.read<MediaLibrarySettingsModel>();
     final videosPerRow = mediaSettings.videosPerRow.value;
-    final showDuration = mediaSettings.showDuration.value;
-    final showPlayCount = mediaSettings.showPlayCount.value;
     final showTitle = mediaSettings.showVideoTitles.value;
-    final showAverageSpeed = mediaSettings.showAverageSpeed.value;
-    final showAverageMinMax = mediaSettings.showAverageMinMax.value;
+    final badges = resolveBadges(mediaSettings.enabledBadges.value);
     final isSelecting = _isSelecting.value;
     // Read the selection here, not just inside itemBuilder: the itemBuilder
     // runs during layout, where reads are outside this element's tracking. Via
@@ -591,10 +515,7 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
           key: Key(media.mediaPath),
           media: media,
           isSelected: isSelected,
-          showAverageMinMax: showAverageMinMax,
-          showAverageSpeed: showAverageSpeed,
-          showDuration: showDuration,
-          showPlayCount: showPlayCount,
+          badges: badges,
           showTitle: showTitle,
           onLongPress: () {
             if (isSelected) {
@@ -852,25 +773,6 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
       },
       blendMode: BlendMode.dstIn,
       child: child,
-    );
-  }
-
-  Widget _buildToggleItem({
-    required BuildContext context,
-    required String label,
-    required bool value,
-    required VoidCallback onTap,
-  }) {
-    return MenuItemButton(
-      onPressed: onTap,
-      closeOnActivate: false,
-      leadingIcon: Icon(
-        value ? Icons.check_box : Icons.check_box_outline_blank,
-        color: value
-            ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-      child: Text(label),
     );
   }
 

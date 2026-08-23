@@ -1,9 +1,10 @@
 import 'dart:async';
-import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/entity_binding.dart';
 import 'package:syncopathy/media_library/filter/media_filter_logic.dart';
+import 'package:syncopathy/media_library/media_badge.dart';
 import 'package:syncopathy/model/json/media_library_settings.dart';
 import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 
@@ -15,14 +16,36 @@ class MediaLibrarySettingsModel {
   final Signal<bool> isSortAscending = signal(true);
   final Signal<int> videosPerRow = signal(4);
   final Signal<bool> showVideoTitles = signal(false);
-  final Signal<bool> showAverageSpeed = signal(true);
-  final Signal<bool> showAverageMinMax = signal(true);
-  final Signal<bool> showDuration = signal(true);
-  final Signal<bool> showPlayCount = signal(true);
+  final ListSignal<String> enabledBadges = listSignal(defaultBadgeIds);
   final Signal<bool> separateFavorites = signal(true);
   final SetSignal<VideoFilter> visibilityFilters = setSignal({});
 
   VoidCallback? _saveEffectDispose;
+
+  /// Whether any view option differs from its default, so the toolbar button
+  /// can show that the grid is not in its default presentation. Sort order is
+  /// deliberately excluded: it has its own always-visible control.
+  late final ReadonlySignal<bool> isViewCustomized = computed(() {
+    final defaults = MediaLibrarySettings();
+    return videosPerRow.value != defaults.videosPerRow ||
+        showVideoTitles.value != defaults.showVideoTitles ||
+        separateFavorites.value != defaults.separateFavorites ||
+        visibilityFilters.value.isNotEmpty ||
+        !setEquals(enabledBadges.value.toSet(), defaults.enabledBadges.toSet());
+  });
+
+  /// Restores every view option to its default. The defaults come from a fresh
+  /// entity rather than being repeated here, so there is still one source.
+  void resetViewOptions() {
+    final defaults = MediaLibrarySettings();
+    batch(() {
+      videosPerRow.value = defaults.videosPerRow;
+      showVideoTitles.value = defaults.showVideoTitles;
+      separateFavorites.value = defaults.separateFavorites;
+      visibilityFilters.value = defaults.visibilityFilters.toSet();
+      enabledBadges.value = List.from(defaults.enabledBadges);
+    });
+  }
 
   /// The single source of truth for which fields persist: each binding copies
   /// one setting out of [_entity] on load and back into it on save, so declaring
@@ -46,20 +69,8 @@ class MediaLibrarySettingsModel {
       () => _entity.showVideoTitles = showVideoTitles.value,
     ),
     EntityBinding(
-      () => showAverageSpeed.value = _entity.showAverageSpeed,
-      () => _entity.showAverageSpeed = showAverageSpeed.value,
-    ),
-    EntityBinding(
-      () => showAverageMinMax.value = _entity.showAverageMinMax,
-      () => _entity.showAverageMinMax = showAverageMinMax.value,
-    ),
-    EntityBinding(
-      () => showDuration.value = _entity.showDuration,
-      () => _entity.showDuration = showDuration.value,
-    ),
-    EntityBinding(
-      () => showPlayCount.value = _entity.showPlayCount,
-      () => _entity.showPlayCount = showPlayCount.value,
+      () => enabledBadges.value = List.from(_entity.enabledBadges),
+      () => _entity.enabledBadges = enabledBadges.value.toList(),
     ),
     EntityBinding(
       () => separateFavorites.value = _entity.separateFavorites,
@@ -75,6 +86,7 @@ class MediaLibrarySettingsModel {
 
   Future<void> dispose() async {
     _saveEffectDispose?.call();
+    isViewCustomized.dispose();
   }
 
   Future<void> load() async {

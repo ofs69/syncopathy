@@ -13,6 +13,7 @@ const _filterLabelsById = <String, String>{
   'averageSpeed': 'Average Speed',
   'metadata': 'Metadata',
   'scriptTokens': 'Script Tokens',
+  'aiGenerated': 'AI Generated',
   'playCount': 'Play Count',
   'playlist': 'Playlist',
   'playable': 'Playable',

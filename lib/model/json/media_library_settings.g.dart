@@ -19,10 +19,7 @@ MediaLibrarySettings _$MediaLibrarySettingsFromJson(
   isSortAscending: json['isSortAscending'] as bool? ?? true,
   videosPerRow: (json['videosPerRow'] as num?)?.toInt() ?? 4,
   showVideoTitles: json['showVideoTitles'] as bool? ?? false,
-  showAverageSpeed: json['showAverageSpeed'] as bool? ?? true,
-  showAverageMinMax: json['showAverageMinMax'] as bool? ?? true,
-  showDuration: json['showDuration'] as bool? ?? true,
-  showPlayCount: json['showPlayCount'] as bool? ?? true,
+  enabledBadges: _enabledBadgesFromJson(json['enabledBadges'] as List?),
   separateFavorites: json['separateFavorites'] as bool? ?? true,
   visibilityFilters: json['visibilityFilters'] == null
       ? const []
@@ -36,10 +33,7 @@ Map<String, dynamic> _$MediaLibrarySettingsToJson(
   'isSortAscending': instance.isSortAscending,
   'videosPerRow': instance.videosPerRow,
   'showVideoTitles': instance.showVideoTitles,
-  'showAverageSpeed': instance.showAverageSpeed,
-  'showAverageMinMax': instance.showAverageMinMax,
-  'showDuration': instance.showDuration,
-  'showPlayCount': instance.showPlayCount,
+  'enabledBadges': instance.enabledBadges,
   'separateFavorites': instance.separateFavorites,
   'visibilityFilters': instance.visibilityFilters
       .map((e) => _$VideoFilterEnumMap[e]!)
@@ -54,10 +48,12 @@ const _$MediaLibrarySettingsJsonSchema = {
     'isSortAscending': {'type': 'boolean', 'default': true},
     'videosPerRow': {'type': 'integer', 'default': 4},
     'showVideoTitles': {'type': 'boolean', 'default': false},
-    'showAverageSpeed': {'type': 'boolean', 'default': true},
-    'showAverageMinMax': {'type': 'boolean', 'default': true},
-    'showDuration': {'type': 'boolean', 'default': true},
-    'showPlayCount': {'type': 'boolean', 'default': true},
+    'enabledBadges': {
+      'type': 'array',
+      'items': {'type': 'string'},
+      'description':
+          'Ids of the enabled card badges, from [availableBadges]. Replaces the old\nper-badge `show*` booleans — see [_badgesFromLegacyToggles].',
+    },
     'separateFavorites': {'type': 'boolean', 'default': true},
     'visibilityFilters': {
       'type': 'array',

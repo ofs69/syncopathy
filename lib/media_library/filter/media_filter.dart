@@ -203,6 +203,13 @@ final Map<String, FilterBase Function()> availableFilters = {
     sortOrder: 3,
     retriever: (media) => [media.mainFunscript.target?.isScriptToken ?? false],
   ),
+  "AI Generated": () => BoolFilter(
+    label: "AI Generated",
+    icon: Icons.auto_awesome,
+    category: FilterCategory.funscript,
+    sortOrder: 4,
+    retriever: (media) => [media.mainFunscript.target?.isAiGenerated ?? false],
+  ),
   "Play Count": () => NumberFilter(
     label: "Play Count",
     icon: Icons.analytics,

@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
+import 'package:syncopathy/media_library/media_badge.dart';
 import 'package:syncopathy/media_library/media_detail_page.dart';
 import 'package:syncopathy/media_library/media_thumbnail.dart';
 import 'package:syncopathy/model/player_model.dart';
-import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
-import 'package:syncopathy/persistence/entities/media_metadata.dart';
 
 class MediaItem extends SignalStatefulWidget {
   final MediaFile media;
   final bool isSelected;
-  final bool showAverageMinMax;
-  final bool showAverageSpeed;
-  final bool showDuration;
-  final bool showPlayCount;
+
+  /// The badges to show, already resolved from settings, in render order.
+  final List<BadgeSpec> badges;
   final bool showTitle;
   final Function() onLongPress;
   final Function() onTap;
@@ -30,10 +27,7 @@ class MediaItem extends SignalStatefulWidget {
     super.key,
     required this.isSelected,
     required this.media,
-    required this.showAverageMinMax,
-    required this.showAverageSpeed,
-    required this.showDuration,
-    required this.showPlayCount,
+    required this.badges,
     required this.showTitle,
     required this.onLongPress,
     required this.onTap,
@@ -69,9 +63,8 @@ class _MediaItemState extends State<MediaItem> {
     super.dispose();
   }
 
-  // Thumbnail scale on hover, and play-count display cap.
+  // Thumbnail scale on hover.
   static const double _hoverScale = 1.10;
-  static const int _playCountCap = 999;
   // Action-button icon/padding as a fraction of card width.
   static const double _actionIconScale = 0.07;
   static const double _actionPaddingScale = 0.03;
@@ -113,52 +106,8 @@ class _MediaItemState extends State<MediaItem> {
     };
   }
 
-  String _formatDuration(double? duration) {
-    if (duration == null) return '--:--';
-    final minutes = (duration ~/ 60).toString().padLeft(2, '0');
-    final seconds = (duration % 60).toInt().toString().padLeft(2, '0');
-    return '$minutes:$seconds';
-  }
-
-  Widget _buildStatisticItem({
-    required IconData icon,
-    required String? text,
-    required String tooltipMessage,
-    required Color onSurface,
-    Color color = Colors.black54, // Default to black54 for consistency
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(4.0),
-      ),
-      child: Tooltip(
-        message: tooltipMessage,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(icon, color: onSurface, size: 12),
-            if (text != null) const SizedBox(width: 4.0),
-            if (text != null)
-              Text(
-                text,
-                style: GoogleFonts.robotoMono(
-                  color: onSurface,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final metadata = widget.media.metadata.target;
     final isTapped = _isTapped.value;
     final isHovering = _isHovering.value;
     return MouseRegion(
@@ -171,7 +120,7 @@ class _MediaItemState extends State<MediaItem> {
         // those reads an element of their own — and keeps the rebuild per-card.
         builder: (context, constraints) => SignalBuilder(
           builder: (context) =>
-              _buildCard(context, constraints, isHovering, isTapped, metadata),
+              _buildCard(context, constraints, isHovering, isTapped),
         ),
       ),
     );
@@ -182,7 +131,6 @@ class _MediaItemState extends State<MediaItem> {
     BoxConstraints constraints,
     bool isHovering,
     bool isTapped,
-    MediaMetadata? metadata,
   ) {
     final hasRating = widget.media.rating != MediaRating.noRating;
     final isFavorite = widget.media.isFavorite;
@@ -262,7 +210,11 @@ class _MediaItemState extends State<MediaItem> {
                     tooltip:
                         "This funscript is an encrypted token and can't be played.",
                   ),
-                _buildStatisticsOverlay(metadata, mainFunscript, onSurface),
+                MediaBadgeOverlay(
+                  badges: widget.badges,
+                  media: widget.media,
+                  foreground: onSurface,
+                ),
                 _buildTitleGradient(isHovering, onSurface),
               ],
             ),
@@ -277,76 +229,6 @@ class _MediaItemState extends State<MediaItem> {
             onSurface: onSurface,
           ),
         ],
-      ),
-    );
-  }
-
-  /// Top-right column of stat badges (duration, play count, average speed,
-  /// average min/max), each gated by its corresponding `show*` flag.
-  Widget _buildStatisticsOverlay(
-    MediaMetadata? metadata,
-    FunscriptFile? mainFunscript,
-    Color onSurface,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Align(
-        alignment: AlignmentGeometry.topRight,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (widget.showDuration)
-                  _buildStatisticItem(
-                    icon: Icons.timer,
-                    onSurface: onSurface,
-                    text: _formatDuration(metadata?.duration),
-                    tooltipMessage: "Duration",
-                  ),
-                if (widget.showPlayCount)
-                  const SizedBox(height: 0.0, width: 2.0),
-
-                // Play count indicator
-                if (widget.showPlayCount)
-                  _buildStatisticItem(
-                    onSurface: onSurface,
-                    icon: widget.media.playCount > 0
-                        ? Icons.play_arrow
-                        : Icons.visibility_off,
-                    text: widget.media.playCount > 0
-                        ? widget.media.playCount > _playCountCap
-                              ? '$_playCountCap+'
-                              : '${widget.media.playCount}'
-                        : null,
-                    tooltipMessage: widget.media.playCount > 0
-                        ? 'Watched ${widget.media.playCount} times'
-                        : 'Not watched yet',
-                    color: Colors.black54,
-                  ),
-              ],
-            ),
-            if (widget.showAverageSpeed) const SizedBox(height: 2.0),
-            if (widget.showAverageSpeed && mainFunscript != null)
-              _buildStatisticItem(
-                onSurface: onSurface,
-                icon: Icons.speed,
-                text: '${mainFunscript.averageSpeed.round()}',
-                tooltipMessage: "Average Speed",
-              ),
-            if (widget.showAverageMinMax)
-              const SizedBox(height: 2.0, width: 0.0),
-            if (widget.showAverageMinMax && mainFunscript != null)
-              _buildStatisticItem(
-                onSurface: onSurface,
-                icon: Icons.stacked_line_chart,
-                text:
-                    '${mainFunscript.averageMin.round()}-${mainFunscript.averageMax.round()}',
-                tooltipMessage: "Average Min / Max",
-              ),
-          ],
-        ),
       ),
     );
   }
