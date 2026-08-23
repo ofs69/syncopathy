@@ -67,6 +67,21 @@ class _FunscriptMetadataFilterBottomSheetState
     super.dispose();
   }
 
+  /// Toggles [value] in [selection] by writing a *new* set.
+  ///
+  /// The mutating helpers on a collection signal — `Signal<Set<T>>` here, but
+  /// `ListSignal`/`SetSignal`/`MapSignal` behave the same — edit the collection
+  /// in place and re-emit the same instance. A batch reconciles every write
+  /// against a snapshot taken when it opened, and an in-place edit still
+  /// compares equal to that snapshot, so the signal's version is rolled back
+  /// and the queued listeners never run: the selection changes but nothing
+  /// repaints or re-filters. Writing a fresh set keeps the change visible.
+  void _toggle(Signal<Set<String>> selection, String value) {
+    final next = {...selection.value};
+    if (!next.add(value)) next.remove(value);
+    selection.value = next;
+  }
+
   Widget _buildSearchableList({
     required String title,
     required List<String> items,
@@ -148,7 +163,10 @@ class _FunscriptMetadataFilterBottomSheetState
         title: const Text('Metadata filters'),
         content: const Text(
           'These filters apply to author, tag, and performer metadata embedded '
-          'within funscripts. Selecting none in a tab matches everything.',
+          'within funscripts. Selecting none in a tab matches everything. A '
+          'script has to satisfy every tab you do select in — to match on any '
+          'one of them instead, add a metadata filter per field and join them '
+          'in an OR group.',
         ),
         actions: [
           TextButton(
@@ -195,15 +213,8 @@ class _FunscriptMetadataFilterBottomSheetState
                     items: widget.allAuthors,
                     searchController: _authorSearchController,
                     currentSelectedItems: widget.selectedAuthors.value,
-                    onItemToggled: (value) {
-                      batch(() {
-                        if (widget.selectedAuthors.contains(value)) {
-                          widget.selectedAuthors.remove(value);
-                        } else {
-                          widget.selectedAuthors.add(value);
-                        }
-                      });
-                    },
+                    onItemToggled: (value) =>
+                        _toggle(widget.selectedAuthors, value),
                     onAllSelected: () {
                       widget.selectedAuthors.clear();
                     },
@@ -213,15 +224,8 @@ class _FunscriptMetadataFilterBottomSheetState
                     items: widget.allTags,
                     searchController: _tagSearchController,
                     currentSelectedItems: widget.selectedTags.value,
-                    onItemToggled: (value) {
-                      batch(() {
-                        if (widget.selectedTags.contains(value)) {
-                          widget.selectedTags.remove(value);
-                        } else {
-                          widget.selectedTags.add(value);
-                        }
-                      });
-                    },
+                    onItemToggled: (value) =>
+                        _toggle(widget.selectedTags, value),
                     onAllSelected: () {
                       widget.selectedTags.clear();
                     },
@@ -231,15 +235,8 @@ class _FunscriptMetadataFilterBottomSheetState
                     items: widget.allPerformers,
                     searchController: _performerSearchController,
                     currentSelectedItems: widget.selectedPerformers.value,
-                    onItemToggled: (value) {
-                      batch(() {
-                        if (widget.selectedPerformers.contains(value)) {
-                          widget.selectedPerformers.remove(value);
-                        } else {
-                          widget.selectedPerformers.add(value);
-                        }
-                      });
-                    },
+                    onItemToggled: (value) =>
+                        _toggle(widget.selectedPerformers, value),
                     onAllSelected: () {
                       widget.selectedPerformers.clear();
                     },

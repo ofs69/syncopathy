@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/funscript_metadata_filter_bottom_sheet.dart';
+import 'package:syncopathy/model/json/funscript_metadata.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/persistence/entities/user_category.dart';
 import 'package:syncopathy/player/video_player.dart';
@@ -185,16 +186,7 @@ final Map<String, FilterBase Function()> availableFilters = {
     icon: Icons.tag,
     category: FilterCategory.funscript,
     sortOrder: 2,
-    retriever: (media) {
-      final fs = media.mainFunscript.target;
-      if (fs == null || fs.metadata == null) return [];
-      final meta = fs.metadata!;
-      return [
-        if (meta.creator != null) meta.creator!,
-        ...meta.tags,
-        ...meta.performers,
-      ];
-    },
+    retriever: (media) => [media.mainFunscript.target?.metadata],
   ),
   "Script Tokens": () => BoolFilter(
     label: "Script Tokens",
@@ -772,7 +764,23 @@ class CategoryFilter extends FilterBase<int> {
   }
 }
 
-class MetadataFilter extends FilterBase<String> {
+/// Folds a selection set into a value that compares structurally.
+///
+/// Dart compares collections by identity, so a `stateChange` record holding
+/// the live sets (or lists) compares equal to the previous one whenever the
+/// contents were edited in place: the computed never bumps its version and the
+/// media grid never learns that it has to re-filter. Sorting keeps a selection
+/// that is cleared and re-picked in another order from reading as a change.
+String _selectionKey(Set<String> values) =>
+    (values.toList()..sort()).join('\u0000');
+
+/// Matches funscript metadata field by field: author, tag and performer are
+/// separate constraints that all have to hold, and an empty selection drops its
+/// constraint. Two authors within the same tab still widen the match — it is
+/// only across tabs that the selections narrow it. Anyone after a genuine OR
+/// ("by this author *or* carrying this tag") adds one metadata filter per field
+/// and joins them in an OR [FilterGroup].
+class MetadataFilter extends FilterBase<FunscriptMetadata> {
   final Signal<Set<String>> selectedAuthors = signal({});
   final Signal<Set<String>> selectedTags = signal({});
   final Signal<Set<String>> selectedPerformers = signal({});
@@ -780,9 +788,9 @@ class MetadataFilter extends FilterBase<String> {
   @override
   late final ReadonlySignal<dynamic> stateChange = computed(
     () => (
-      selectedAuthors.value,
-      selectedTags.value,
-      selectedPerformers.value,
+      _selectionKey(selectedAuthors.value),
+      _selectionKey(selectedTags.value),
+      _selectionKey(selectedPerformers.value),
       baseStateChange.value,
     ),
   );
@@ -796,17 +804,16 @@ class MetadataFilter extends FilterBase<String> {
   });
 
   @override
-  bool performMatch(String value) {
-    if (selectedAuthors.value.isEmpty &&
-        selectedTags.value.isEmpty &&
-        selectedPerformers.value.isEmpty) {
-      return true;
-    }
-
-    return selectedAuthors.value.contains(value) ||
-        selectedTags.value.contains(value) ||
-        selectedPerformers.value.contains(value);
+  bool performMatch(FunscriptMetadata value) {
+    return _matchesField(selectedAuthors.value, [?value.creator]) &&
+        _matchesField(selectedTags.value, value.tags) &&
+        _matchesField(selectedPerformers.value, value.performers);
   }
+
+  /// One tab's constraint: nothing selected matches everything, otherwise the
+  /// script has to carry at least one of the selected values in that field.
+  bool _matchesField(Set<String> selected, List<String> values) =>
+      selected.isEmpty || values.any(selected.contains);
 
   @override
   Widget filterRowWidget(BuildContext context) {
