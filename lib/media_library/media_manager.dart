@@ -354,7 +354,9 @@ class MediaManager {
   }
 
   /// Attaches each media's discovered funscripts and picks a main funscript
-  /// when one isn't already set.
+  /// when one isn't already set. Multi-axis companions (`.twist`, `.roll`, …)
+  /// are matched to the same media as the stroke script, so the pick has to
+  /// prefer a regular script rather than take whatever landed first.
   static void _linkMediaToFunscripts(
     _IndexingResult result,
     Map<String, MediaFile> mediaMap,
@@ -372,7 +374,7 @@ class MediaManager {
       }
 
       if (media.mainFunscript.target == null && media.funscripts.isNotEmpty) {
-        media.mainFunscript.target = media.funscripts.first;
+        media.mainFunscript.target = pickMainFunscript(media.funscripts);
       }
     }
   }

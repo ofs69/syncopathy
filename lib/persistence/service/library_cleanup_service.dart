@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:syncopathy/objectbox.g.dart';
 import 'package:syncopathy/persistence/entities/fast_hash_cache.dart';
 import 'package:syncopathy/persistence/entities/funscript_file.dart';
@@ -66,10 +65,9 @@ class LibraryCleanupService {
       final main = media.mainFunscript.target;
       if (main != null && !main.fileNotFound) continue;
 
-      final usable = media.funscripts.where((f) => !f.fileNotFound);
-      final replacement =
-          usable.firstWhereOrNull((f) => !f.isScriptToken) ??
-          usable.firstOrNull;
+      final replacement = pickMainFunscript(
+        media.funscripts.where((f) => !f.fileNotFound),
+      );
 
       if (replacement != null) {
         if (replacement.id == targetId) continue;

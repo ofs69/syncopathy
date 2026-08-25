@@ -103,3 +103,93 @@ const Set<String> _aiTags = {
 /// Tools that generate scripts, matched against the metadata `creator` field.
 /// Many generated scripts carry no tag at all and only name the tool here.
 const Set<String> _aiCreators = {'fungen', 'scriptaxis', 'funscriptio', 'mtfg'};
+
+/// Multi-axis funscripts sit next to the stroke script and share its basename,
+/// distinguished only by a suffix naming the axis they drive
+/// (`scene.twist.funscript`, `scene_R1.funscript`). They are useless on their
+/// own — a twist track played as a stroke track is noise — so they must never
+/// be picked as a media's main script while a stroke script is available.
+///
+/// Returns a rank for [path]: lower is a better main-script candidate.
+/// 0 = no axis suffix at all (the plain `scene.funscript`), 1 = explicitly
+/// named as the stroke axis (`L0`/`stroke`), 2 = a secondary axis. An
+/// unrecognized suffix ranks 0: names like `scene.part2.funscript` are ordinary
+/// scripts, and only known axis tokens are demoted.
+int funscriptAxisRank(String path) {
+  final name = path.split('/').last.split(r'\').last;
+  final base = name.toLowerCase().endsWith('.funscript')
+      ? name.substring(0, name.length - '.funscript'.length)
+      : name;
+
+  final match = RegExp(r'[._\- ]([a-zA-Z]\d|[a-zA-Z]+)$').firstMatch(base);
+  if (match == null) return 0;
+
+  final token = match.group(1)!.toLowerCase();
+  if (_strokeAxisTokens.contains(token)) return 1;
+  if (_secondaryAxisTokens.contains(token)) return 2;
+  return 0;
+}
+
+/// Suffixes that name the stroke axis itself. Such a script is a perfectly good
+/// main script — it just loses to an unsuffixed one when both exist.
+const Set<String> _strokeAxisTokens = {'l0', 'stroke'};
+
+/// Suffixes naming an axis other than stroke, in both the T-code channel form
+/// used by MultiFunPlayer (`L1`, `R0`, `V0`, …) and the descriptive form
+/// written by scripters.
+const Set<String> _secondaryAxisTokens = {
+  'l1',
+  'surge',
+  'l2',
+  'sway',
+  'l3',
+  'r0',
+  'twist',
+  'r1',
+  'roll',
+  'r2',
+  'pitch',
+  'v0',
+  'vib',
+  'vibrate',
+  'v1',
+  'pump',
+  'v2',
+  'a0',
+  'valve',
+  'a1',
+  'suck',
+  'suction',
+  'a2',
+  'lube',
+};
+
+/// Picks the best main-script candidate from [candidates], or `null` when it is
+/// empty. Preference order: a script whose file is present, then a stroke
+/// script over a secondary-axis one, then real actions over a script token.
+/// Ties keep the order [candidates] came in.
+FunscriptFile? pickMainFunscript(Iterable<FunscriptFile> candidates) {
+  FunscriptFile? best;
+  List<int>? bestKey;
+
+  for (final candidate in candidates) {
+    final key = [
+      candidate.fileNotFound ? 1 : 0,
+      funscriptAxisRank(candidate.path),
+      candidate.isScriptToken ? 1 : 0,
+    ];
+    if (bestKey == null || _isBetter(key, bestKey)) {
+      best = candidate;
+      bestKey = key;
+    }
+  }
+
+  return best;
+}
+
+bool _isBetter(List<int> a, List<int> b) {
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return a[i] < b[i];
+  }
+  return false;
+}

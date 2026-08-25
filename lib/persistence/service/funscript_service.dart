@@ -68,7 +68,7 @@ class FunscriptService {
   /// that still links them (both as a linked script and as the main script) so
   /// no dangling relations are left behind. Files on disk are never touched.
   ///
-  /// A media that loses its main script inherits the first of its remaining
+  /// A media that loses its main script inherits the best of its remaining
   /// ones, the same rule indexing applies to a media without a main script; it
   /// only ends up with none when every script it had is being removed.
   void removeMany(List<FunscriptFile> funscripts) {
@@ -99,8 +99,8 @@ class FunscriptService {
         for (final media in touched.values) {
           media.funscripts.removeWhere((f) => f.id == funscript.id);
           if (media.mainFunscript.targetId == funscript.id) {
-            media.mainFunscript.target = media.funscripts.firstWhereOrNull(
-              (f) => !removedIds.contains(f.id),
+            media.mainFunscript.target = pickMainFunscript(
+              media.funscripts.where((f) => !removedIds.contains(f.id)),
             );
           }
         }
