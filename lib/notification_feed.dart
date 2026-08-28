@@ -91,6 +91,15 @@ class AlertManager extends ChangeNotifier {
     }
   }
 
+  static void showWarning(String message) {
+    try {
+      final manager = getIt<AlertManager>();
+      manager.addAlert(message, LogLevel.warning);
+    } catch (e) {
+      debugPrint('AlertManager not yet registered: $e');
+    }
+  }
+
   static void showError(String message, [StackTrace? trace]) {
     try {
       final manager = getIt<AlertManager>();
