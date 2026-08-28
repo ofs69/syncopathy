@@ -35,6 +35,11 @@ class SettingsModel {
     PlayerBackendType.handyStrokerStreamingBluetooth,
   );
   final Signal<bool> funscriptGraphEnabled = signal(false);
+
+  /// Whether a lost Bluetooth connection is re-established without asking.
+  /// Off by default: reconnecting means scanning again, which takes the device
+  /// over without the user having asked for it.
+  final Signal<bool> autoReconnect = signal(false);
   final Signal<HwdecMode> hwdecMode = signal(HwdecMode.autoCopy);
   final MapSignal<String, ShortcutBinding> customShortcuts = mapSignal({});
 
@@ -108,6 +113,10 @@ class SettingsModel {
     EntityBinding(
       () => playerBackendType.value = _entity.playerBackendType,
       () => _entity.playerBackendType = playerBackendType.value,
+    ),
+    EntityBinding(
+      () => autoReconnect.value = _entity.autoReconnect,
+      () => _entity.autoReconnect = autoReconnect.value,
     ),
     EntityBinding(
       () => funscriptGraphEnabled.value = _entity.funscriptGraphEnabled,

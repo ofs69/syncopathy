@@ -19,6 +19,7 @@ import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
+import 'package:syncopathy/player/handy_bluetooth_backend_base.dart';
 import 'package:syncopathy/player/hwdec_mode.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/model/shortcut_settings.dart';
@@ -517,9 +518,31 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             if (backend != null && isLoaded)
               ListTile(title: backend.settingsWidget(context)),
+            // Only the Bluetooth backends can lose a connection on their own.
+            if (backend != null && isLoaded && backend.isBluetooth)
+              _buildAutoReconnectSettings(context),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildAutoReconnectSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
+    return SignalBuilder(
+      builder: (context) => SwitchListTile(
+        title: const Text('Reconnect automatically'),
+        subtitle: const Text(
+          'If the Bluetooth connection drops, scan for the device again and '
+          'reconnect. Gives up after '
+          '${HandyBluetoothBackendBase.maxReconnectAttempts} attempts.',
+        ),
+        value: settings.autoReconnect.value,
+        onChanged: (value) {
+          settings.autoReconnect.value = value;
+        },
+        secondary: const Icon(Icons.bluetooth_searching),
+      ),
     );
   }
 

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/generated/constants.pb.dart';
+import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/player/handy_ble.dart';
 import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
 import 'package:syncopathy/player/player_backend.dart';
+import 'package:syncopathy/player/reconnect.dart';
 
 abstract class HandyBluetoothBackendBase extends PlayerBackend
     with HandyHspCommandDelegation
@@ -30,6 +32,20 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
   Function(bool)? hspThresholdReachedHandler;
   Function()? hspLoopHandler;
 
+  /// How often a connection that dropped on its own is retried, when
+  /// [SettingsModel.autoReconnect] is on.
+  static const int maxReconnectAttempts = 2;
+
+  /// Breathing room for the BLE stack to finish tearing the old link down and
+  /// for the device to start advertising again before the next scan.
+  static const Duration reconnectDelay = Duration(seconds: 2);
+
+  /// Only a connection that was established and then lost is worth retrying: a
+  /// scan that never found anything has already told the user so.
+  bool _wasConnected = false;
+  bool _reconnecting = false;
+  bool _disposed = false;
+
   @override
   ReadonlySignal<HspStateAdapter?> get hspStateAdapter => _hspStateAdapter;
   late final ReadonlySignal<HspStateAdapter?> _hspStateAdapter;
@@ -48,13 +64,58 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
     });
     effectAdd([
       effect(() {
-        if (!connected.value) {
-          _handyBle.value?.dispose();
-          _handyBle.value = null;
-          batteryModel.hasBattery.value = false;
+        if (connected.value) {
+          _wasConnected = true;
+          return;
         }
+
+        _handyBle.value?.dispose();
+        _handyBle.value = null;
+        batteryModel.hasBattery.value = false;
+
+        // untracked: the retry reads settings and drives tryConnect, none of
+        // which should become a dependency of this effect.
+        if (_wasConnected) untracked(_reconnectAfterLoss);
       }),
     ]);
+  }
+
+  /// Re-establishes a connection that dropped on its own, up to
+  /// [maxReconnectAttempts] times. A user-initiated disconnect disposes the
+  /// backend, so it never reaches this. Each loss gets its own budget: a
+  /// reconnect that worked and then dropped again is retried afresh.
+  Future<void> _reconnectAfterLoss() async {
+    if (_reconnecting || _disposed) return;
+    if (!settingsModel.autoReconnect.value) return;
+
+    _reconnecting = true;
+    try {
+      AlertManager.showWarning(
+        "Lost the connection to the Handy. Reconnecting…",
+      );
+
+      final reconnected = await retryUntilConnected(
+        connect: tryConnect,
+        isConnected: () => connected.value,
+        isCancelled: () => _disposed,
+        maxAttempts: maxReconnectAttempts,
+        delay: reconnectDelay,
+        onAttempt: (attempt) => Logger.info(
+          "Reconnect attempt $attempt of $maxReconnectAttempts",
+        ),
+      );
+
+      if (reconnected) {
+        AlertManager.showSuccess("Reconnected to the Handy.");
+      } else if (!_disposed) {
+        AlertManager.showError(
+          "Couldn't reconnect to the Handy after $maxReconnectAttempts "
+          "attempts. Connect again when it's ready.",
+        );
+      }
+    } finally {
+      _reconnecting = false;
+    }
   }
 
   @override
@@ -76,7 +137,7 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
       _handyBle.value = ble;
       if (ble == null) {
         // scanForDevice already timed out (30s) or found nothing.
-        AlertManager.showError(
+        _reportConnectFailure(
           "No Handy found. Make sure it's powered on, nearby, and Bluetooth "
           "is enabled.",
         );
@@ -105,14 +166,26 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
       // half-open handle. Tear it down and surface a reason.
       await _handyBle.value?.dispose();
       _handyBle.value = null;
-      AlertManager.showError("Couldn't connect to the Handy: $e");
+      _reportConnectFailure("Couldn't connect to the Handy: $e");
     } finally {
       _isConnecting.value = false;
     }
   }
 
+  /// A failed attempt is only worth an alert when the user asked for this
+  /// connection; while reconnecting, [_reconnectAfterLoss] reports the outcome
+  /// once instead of once per attempt.
+  void _reportConnectFailure(String message) {
+    if (_reconnecting) {
+      Logger.warning(message);
+    } else {
+      AlertManager.showError(message);
+    }
+  }
+
   @override
   Future<void> dispose() async {
+    _disposed = true;
     await super.dispose();
     await _handyBle.value?.dispose();
     _handyBle.value = null;

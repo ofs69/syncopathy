@@ -20,6 +20,7 @@ class Settings {
   bool invert;
   @JsonKey(unknownEnumValue: PlayerBackendType.handyStrokerStreamingBluetooth)
   PlayerBackendType playerBackendType;
+  bool autoReconnect;
   bool funscriptGraphEnabled;
   @JsonKey(unknownEnumValue: HwdecMode.autoCopy)
   HwdecMode hwdecMode;
@@ -40,6 +41,7 @@ class Settings {
     this.autoSwitchToVideoPlayerTab = false,
     this.invert = false,
     this.playerBackendType = PlayerBackendType.handyStrokerStreamingBluetooth,
+    this.autoReconnect = false,
     this.funscriptGraphEnabled = true,
     this.hwdecMode = HwdecMode.autoCopy,
     Map<String, ShortcutBinding> customShortcuts = const {},

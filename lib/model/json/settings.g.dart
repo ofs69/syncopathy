@@ -30,6 +30,7 @@ Settings _$SettingsFromJson(Map<String, dynamic> json) => Settings(
         unknownValue: PlayerBackendType.handyStrokerStreamingBluetooth,
       ) ??
       PlayerBackendType.handyStrokerStreamingBluetooth,
+  autoReconnect: json['autoReconnect'] as bool? ?? false,
   funscriptGraphEnabled: json['funscriptGraphEnabled'] as bool? ?? true,
   hwdecMode:
       $enumDecodeNullable(
@@ -59,6 +60,7 @@ Map<String, dynamic> _$SettingsToJson(Settings instance) => <String, dynamic>{
   'autoSwitchToVideoPlayerTab': instance.autoSwitchToVideoPlayerTab,
   'invert': instance.invert,
   'playerBackendType': _$PlayerBackendTypeEnumMap[instance.playerBackendType]!,
+  'autoReconnect': instance.autoReconnect,
   'funscriptGraphEnabled': instance.funscriptGraphEnabled,
   'hwdecMode': _$HwdecModeEnumMap[instance.hwdecMode]!,
   'customShortcuts': instance.customShortcuts,
@@ -84,6 +86,7 @@ const _$SettingsJsonSchema = {
     'autoSwitchToVideoPlayerTab': {'type': 'boolean', 'default': false},
     'invert': {'type': 'boolean', 'default': false},
     'playerBackendType': {'type': 'object'},
+    'autoReconnect': {'type': 'boolean', 'default': false},
     'funscriptGraphEnabled': {'type': 'boolean', 'default': true},
     'hwdecMode': {'type': 'object'},
     'customShortcuts': {
