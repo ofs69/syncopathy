@@ -6,7 +6,6 @@ import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/generated/constants.pb.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
-import 'package:syncopathy/model/home_target.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/model/json/handyV3/handy_response.dart';
 import 'package:syncopathy/player/player_backend.dart';
@@ -373,7 +372,7 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
             hspStop(); // stop
             positionWithDuration(
               homeTarget.normalized(settingsModel.invert.value),
-              HomeTarget.moveDurationMs,
+              settingsModel.homeMoveDurationMs.value,
             );
           } else {
             _resetPlayback(currentActions.value);

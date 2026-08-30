@@ -18,10 +18,16 @@ enum HomeTarget {
 
   const HomeTarget(this.position, this.label);
 
-  /// How long the device takes to travel to the parked position. Shared
-  /// by both backend families so they cannot drift into parking at
-  /// different speeds.
-  static const int moveDurationMs = 600;
+  /// How long the device takes to travel to the parked position when the
+  /// user has not chosen otherwise. Both backend families read the configured
+  /// value from `SettingsModel.homeMoveDurationMs` so they cannot drift into
+  /// parking at different speeds.
+  static const int defaultMoveDurationMs = 600;
+
+  /// Bounds for the configured travel time. The lower end is a brisk snap the
+  /// motor can still honour; the upper end is a slow, deliberate glide.
+  static const int minMoveDurationMs = 100;
+  static const int maxMoveDurationMs = 3000;
 
   /// Raw 0-100 position handed to command backends.
   final int position;

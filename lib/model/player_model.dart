@@ -5,6 +5,7 @@ import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:syncopathy/model/auto_home.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/json/buttplug_backend_settings.dart';
@@ -50,6 +51,12 @@ class PlayerModel with EffectDispose {
 
   bool _videoViewCounted = false;
   bool _skipToActionProcessed = false;
+
+  final AutoHomeController _autoHome = AutoHomeController();
+
+  /// Whether Home Mode is on because playback paused rather than because the
+  /// user switched it on. The home button shows the two apart.
+  ReadonlySignal<bool> get autoHomeEngaged => _autoHome.engaged;
 
   final Debouncer _processingDebouncer = Debouncer(
     milliseconds: _processingDebounceMs,
@@ -111,7 +118,33 @@ class PlayerModel with EffectDispose {
         final backendType = _settings.playerBackendType.value;
         untracked(() async => await _updateBackend(backendType, _batteryModel));
       }),
+      _autoHomeOnPauseEffect(),
     ]);
+  }
+
+  /// Parks the device while playback is paused and releases it on resume, as
+  /// long as [SettingsModel.autoHomeOnPause] is on. [AutoHomeController] holds
+  /// the rules; this only feeds it the current state.
+  ///
+  /// Home Mode is tracked as well as written, so a toggle by the user's own
+  /// hand is noticed and hands ownership of the park back to them. Writing it
+  /// re-runs the effect once more, which the controller then sees as a state
+  /// it already knows and leaves alone.
+  VoidCallback _autoHomeOnPauseEffect() {
+    return effect(() {
+      final autoHomeOnPause = _settings.autoHomeOnPause.value;
+      final paused = timeSource.paused.value;
+      final homeEnabled = _settings.homeDeviceEnabled.value;
+
+      untracked(() {
+        final next = _autoHome.nextHomeState(
+          autoHomeOnPause: autoHomeOnPause,
+          paused: paused,
+          homeEnabled: homeEnabled,
+        );
+        if (next != null) _settings.homeDeviceEnabled.value = next;
+      });
+    });
   }
 
   void _processFunscript(Funscript funscript, FunscriptProcessParams params) {

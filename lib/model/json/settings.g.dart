@@ -31,6 +31,10 @@ Settings _$SettingsFromJson(Map<String, dynamic> json) => Settings(
       ) ??
       PlayerBackendType.handyStrokerStreamingBluetooth,
   autoReconnect: json['autoReconnect'] as bool? ?? false,
+  autoHomeOnPause: json['autoHomeOnPause'] as bool? ?? false,
+  homeMoveDurationMs:
+      (json['homeMoveDurationMs'] as num?)?.toInt() ??
+      HomeTarget.defaultMoveDurationMs,
   funscriptGraphEnabled: json['funscriptGraphEnabled'] as bool? ?? true,
   hwdecMode:
       $enumDecodeNullable(
@@ -61,6 +65,8 @@ Map<String, dynamic> _$SettingsToJson(Settings instance) => <String, dynamic>{
   'invert': instance.invert,
   'playerBackendType': _$PlayerBackendTypeEnumMap[instance.playerBackendType]!,
   'autoReconnect': instance.autoReconnect,
+  'autoHomeOnPause': instance.autoHomeOnPause,
+  'homeMoveDurationMs': instance.homeMoveDurationMs,
   'funscriptGraphEnabled': instance.funscriptGraphEnabled,
   'hwdecMode': _$HwdecModeEnumMap[instance.hwdecMode]!,
   'customShortcuts': instance.customShortcuts,
@@ -87,6 +93,8 @@ const _$SettingsJsonSchema = {
     'invert': {'type': 'boolean', 'default': false},
     'playerBackendType': {'type': 'object'},
     'autoReconnect': {'type': 'boolean', 'default': false},
+    'autoHomeOnPause': {'type': 'boolean', 'default': false},
+    'homeMoveDurationMs': {'type': 'integer', 'default': 600},
     'funscriptGraphEnabled': {'type': 'boolean', 'default': true},
     'hwdecMode': {'type': 'object'},
     'customShortcuts': {

@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:syncopathy/model/home_target.dart';
 import 'package:syncopathy/player/hwdec_mode.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
 import 'package:syncopathy/model/shortcut_settings.dart';
@@ -21,6 +22,8 @@ class Settings {
   @JsonKey(unknownEnumValue: PlayerBackendType.handyStrokerStreamingBluetooth)
   PlayerBackendType playerBackendType;
   bool autoReconnect;
+  bool autoHomeOnPause;
+  int homeMoveDurationMs;
   bool funscriptGraphEnabled;
   @JsonKey(unknownEnumValue: HwdecMode.autoCopy)
   HwdecMode hwdecMode;
@@ -42,6 +45,8 @@ class Settings {
     this.invert = false,
     this.playerBackendType = PlayerBackendType.handyStrokerStreamingBluetooth,
     this.autoReconnect = false,
+    this.autoHomeOnPause = false,
+    this.homeMoveDurationMs = HomeTarget.defaultMoveDurationMs,
     this.funscriptGraphEnabled = true,
     this.hwdecMode = HwdecMode.autoCopy,
     Map<String, ShortcutBinding> customShortcuts = const {},

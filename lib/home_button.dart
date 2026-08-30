@@ -4,6 +4,7 @@ import 'package:signals/signals_flutter.dart';
 
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/model/home_target.dart';
+import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 
 class HomeButton extends SignalStatefulWidget {
@@ -54,6 +55,11 @@ class _HomeButtonState extends State<HomeButton> {
     final settings = context.read<SettingsModel>();
     final enabled = settings.homeDeviceEnabled.value;
     final target = settings.homeTarget.value;
+    // Parked by "Home on pause" rather than by the user. Tapping still works
+    // and takes the park over, which is why the button stays a plain toggle.
+    final automatic =
+        enabled && context.read<PlayerModel>().autoHomeEngaged.value;
+    final activeColor = automatic ? autoHomeColor : successColor;
 
     return GestureDetector(
       // Both gestures open the same menu: long-press carries over from touch,
@@ -71,7 +77,23 @@ class _HomeButtonState extends State<HomeButton> {
               height: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: successColor, width: 2),
+                border: Border.all(color: activeColor, width: 2),
+              ),
+            ),
+
+          // Badge marking an automatic park, so the ring's colour is not the
+          // only thing telling the two apart.
+          if (automatic)
+            Positioned(
+              right: 2,
+              bottom: 2,
+              child: Container(
+                padding: const EdgeInsets.all(1),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Theme.of(context).colorScheme.surface,
+                ),
+                child: Icon(Icons.pause, size: 11, color: activeColor),
               ),
             ),
 
@@ -80,15 +102,22 @@ class _HomeButtonState extends State<HomeButton> {
           IconButton(
             isSelected: enabled,
             icon: const Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: successColor),
+            selectedIcon: Icon(Icons.home, color: activeColor),
             onPressed: () => settings.homeDeviceEnabled.value = !enabled,
-            tooltip: enabled
-                ? 'Home Mode on — device parked at ${target.position}, script '
-                      'paused. Tap to resume playback, long-press or '
-                      'right-click to park at ${target.opposite.position}.'
-                : 'Home Mode — park the device at ${target.position} and '
-                      'ignore the script. Tap to enable, long-press or '
-                      'right-click to choose the other end.',
+            tooltip: switch ((enabled, automatic)) {
+              (true, true) =>
+                'Home Mode on automatically — playback is paused, so the '
+                    'device is parked at ${target.position}. It is released '
+                    'again when playback resumes. Tap to release it now.',
+              (true, false) =>
+                'Home Mode on — device parked at ${target.position}, script '
+                    'paused. Tap to resume playback, long-press or '
+                    'right-click to park at ${target.opposite.position}.',
+              _ =>
+                'Home Mode — park the device at ${target.position} and '
+                    'ignore the script. Tap to enable, long-press or '
+                    'right-click to choose the other end.',
+            },
           ),
         ],
       ),

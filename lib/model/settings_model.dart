@@ -40,6 +40,18 @@ class SettingsModel {
   /// Off by default: reconnecting means scanning again, which takes the device
   /// over without the user having asked for it.
   final Signal<bool> autoReconnect = signal(false);
+
+  /// Whether pausing playback parks the device and resuming releases it.
+  /// Off by default: it takes the device over on every pause, which is a
+  /// surprise unless the user asked for it.
+  final Signal<bool> autoHomeOnPause = signal(false);
+
+  /// How long the device takes to travel to the parked position, in
+  /// milliseconds. Persisted, unlike the rest of Home Mode's state, because it
+  /// describes the device rather than the current session.
+  final Signal<int> homeMoveDurationMs = signal(
+    HomeTarget.defaultMoveDurationMs,
+  );
   final Signal<HwdecMode> hwdecMode = signal(HwdecMode.autoCopy);
   final MapSignal<String, ShortcutBinding> customShortcuts = mapSignal({});
 
@@ -117,6 +129,17 @@ class SettingsModel {
     EntityBinding(
       () => autoReconnect.value = _entity.autoReconnect,
       () => _entity.autoReconnect = autoReconnect.value,
+    ),
+    EntityBinding(
+      () => autoHomeOnPause.value = _entity.autoHomeOnPause,
+      () => _entity.autoHomeOnPause = autoHomeOnPause.value,
+    ),
+    EntityBinding(
+      () => homeMoveDurationMs.value = _entity.homeMoveDurationMs.clamp(
+        HomeTarget.minMoveDurationMs,
+        HomeTarget.maxMoveDurationMs,
+      ),
+      () => _entity.homeMoveDurationMs = homeMoveDurationMs.value,
     ),
     EntityBinding(
       () => funscriptGraphEnabled.value = _entity.funscriptGraphEnabled,

@@ -11,6 +11,10 @@ Color get favoriteColor => Colors.amber.shade600;
 Color get dislikeColor => Colors.lightBlue.shade500;
 Color get successColor => Colors.green.shade500;
 
+/// Home Mode parked the device on its own, because playback paused. A cool
+/// tone so it never reads as the deliberate green of a park the user chose.
+Color get autoHomeColor => Colors.lightBlue.shade400;
+
 BoxDecoration stdBoxShadow() => BoxDecoration(
   color: Colors.transparent,
   boxShadow: [
