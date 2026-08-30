@@ -186,13 +186,45 @@ Exit criterion: a small harness can identify a streamed media item and maintain 
 
 ### Phase 1: Playback-session refactor
 
-- [ ] Define `PlaybackSession` and capability flags.
-- [ ] Adapt the existing media-kit player without changing current behavior.
-- [ ] Change `TimesourceModel` and `PlayerModel` to depend on the session boundary.
-- [ ] Make skip-to-first-stroke conditional on remote-seek capability.
-- [ ] Add unit tests proving the media-kit adapter preserves current signals and commands.
+- [x] Define `PlaybackSession` and capability flags.
+- [x] Adapt the existing media-kit player without changing current behavior.
+- [x] Change `TimesourceModel` and `PlayerModel` to depend on the session boundary.
+- [x] Make skip-to-first-stroke conditional on remote-seek capability.
+- [x] Add unit tests covering the session boundary.
 
 Exit criterion: all existing tests pass and local playback behavior is unchanged.
+
+Three things landed differently than written above:
+
+- **Capabilities are a signal, not a fixed set.** An external session gains and
+  loses the right to be commanded as its connection comes and goes, so
+  `capabilities` is a `ReadonlySignal<Set<PlaybackCapability>>` and UI can
+  disable a control reactively.
+- **Sessions are reached through `ActivePlaybackSession`.** Had `TimesourceModel`
+  captured one player's signal instances, handing the clock to HereSphere would
+  mean rebuilding the timesource and, through it, every `PlayerBackend` — which
+  drops a live Handy connection on every handover. Instead the timesource is
+  built from `computed`s over `ActivePlaybackSession.session`, so a handover is a
+  single assignment that the backends never see. `TimesourceModel.paused` also
+  folds in `connected`, so a session that loses its heartbeat reads as paused
+  rather than letting an uncorrected extrapolated clock keep driving the device.
+- **`TimesourceModel.volume` is gone.** No backend read it, and audio volume is a
+  local-player control an externally owned session has no answer for. It stays on
+  `VideoPlayer`.
+
+The abstraction is two layers, not one. `PlaybackSession` is the clock, the media
+identity, and the capability-gated transport — all the funscript/device pipeline
+needs. `VideoPlayer extends PlaybackSession` adds the local-playback surface
+(volume, playlist, shuffle, screenshot, and a `buildVideoSurface()` that keeps
+the `media_kit_video` widget private to the implementation). The video UI still
+talks to `VideoPlayer`; making it session-agnostic belongs with the ownership
+indicators in Phase 4.
+
+Unit tests cover the boundary itself — capability gating, the derived position
+signals, handover, and the connection-loss fail-safe — driven by a
+`FakePlaybackSession` in `test/playback_session_test.dart`. The media-kit adapter
+is not unit tested: it needs a live libmpv, so it stays covered by the manual
+test matrix below.
 
 ### Phase 2: Single-video streaming server
 

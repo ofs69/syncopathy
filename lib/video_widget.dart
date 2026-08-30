@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/fullscreen_video_page.dart';
@@ -94,7 +93,7 @@ class _VideoWidgetState extends State<VideoWidget> with EffectDispose {
               widget.showSettings.value ||
               !settings.embeddedVideoPlayer.value;
           final showSettings = widget.showSettings.value;
-          final videoController = widget.player.controller;
+          final videoSurface = widget.player.buildVideoSurface();
 
           return LayoutBuilder(
             builder: (context, constraints) {
@@ -124,9 +123,9 @@ class _VideoWidgetState extends State<VideoWidget> with EffectDispose {
                       children: [
                         Stack(
                           children: [
-                            if (videoController != null)
+                            if (videoSurface != null)
                               _videoContainer(
-                                videoController,
+                                videoSurface,
                                 videoWidth,
                                 videoHeight,
                               ),
@@ -297,11 +296,7 @@ class _VideoWidgetState extends State<VideoWidget> with EffectDispose {
     );
   }
 
-  Widget _videoContainer(
-    VideoController controller,
-    int? videoWidth,
-    int? videoHeight,
-  ) {
+  Widget _videoContainer(Widget surface, int? videoWidth, int? videoHeight) {
     return Stack(
       children: [
         Center(
@@ -320,9 +315,9 @@ class _VideoWidgetState extends State<VideoWidget> with EffectDispose {
             child: videoWidth != null && videoHeight != null
                 ? AspectRatio(
                     aspectRatio: videoWidth / videoHeight,
-                    child: Video(controller: controller, controls: null),
+                    child: surface,
                   )
-                : Video(controller: controller, controls: null),
+                : surface,
           ),
         ),
       ],

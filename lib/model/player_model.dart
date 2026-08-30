@@ -18,9 +18,9 @@ import 'package:syncopathy/player/buttplug_stroker_backend.dart';
 import 'package:syncopathy/player/handy_native_command_backend.dart';
 import 'package:syncopathy/player/handy_native_hsp_bt_backend.dart';
 import 'package:syncopathy/player/handy_native_hsp_web_backend.dart';
+import 'package:syncopathy/player/playback_session.dart';
 import 'package:syncopathy/player/player_backend.dart';
 import 'package:syncopathy/player/player_backend_type.dart';
-import 'package:syncopathy/player/video_player.dart';
 
 class MediaFunscript {
   final MediaFile media;
@@ -39,6 +39,12 @@ class PlayerModel with EffectDispose {
   final SettingsModel _settings;
   final BatteryModel _batteryModel;
   final TimesourceModel timeSource;
+
+  /// The player that currently owns the clock. Read through the signal on every
+  /// access — never cached — so an external player taking over is picked up by
+  /// the effects below without rebuilding them.
+  final ReadonlySignal<PlaybackSession> _session;
+
   late final Signal<PlayerBackend?> playerBackend;
 
   final Signal<Funscript?> _currentFunscript = signal(null);
@@ -61,13 +67,13 @@ class PlayerModel with EffectDispose {
   PlayerModel(
     this._settings,
     this.timeSource,
-    VideoPlayer player,
+    this._session,
     this._batteryModel,
   ) {
     playerBackend = signal(null);
 
     currentlyOpen = computed(() {
-      final media = untracked(() => player.currentMedia.value);
+      final media = untracked(() => _session.value.currentMedia.value);
       final funscript = _currentFunscript.value;
 
       if (media != null && funscript != null) {
@@ -77,14 +83,15 @@ class PlayerModel with EffectDispose {
     });
 
     if (syncopathySimpleMode) {
-      simpleModeEffects(player);
+      simpleModeEffects();
     } else {
-      regularEffects(player);
+      regularEffects();
     }
 
     effectAdd([
       effect(() {
-        final duration = player.duration.value;
+        final session = _session.value;
+        final duration = session.duration.value;
         final funscript = currentlyOpen.value?.funscript;
 
         if (duration == null ||
@@ -97,12 +104,15 @@ class PlayerModel with EffectDispose {
 
         // Skip to first stroke if enabled
         untracked(() {
-          if (_settings.skipToAction.value) {
+          // A session that does not accept seeks — an external player we only
+          // observe — silently keeps its own start position.
+          if (_settings.skipToAction.value &&
+              session.supports(PlaybackCapability.seek)) {
             _skipToActionProcessed = true;
             final actions = funscript.originalActions;
             if (actions.isNotEmpty) {
               final startTime = FunscriptAlgorithms.findFirstStroke(actions);
-              player.seekTo(Duration(milliseconds: startTime));
+              session.seekTo(Duration(milliseconds: startTime));
             }
           }
         });
@@ -133,10 +143,10 @@ class PlayerModel with EffectDispose {
     List<FunscriptAction> actions,
     double duration,
   )
-  _snapshotProcessParams(VideoPlayer player) {
+  _snapshotProcessParams(PlaybackSession session) {
     final invert = _settings.invert.value;
     final intensity = _settings.intensity.value;
-    final playbackSpeed = player.playbackSpeed.value;
+    final playbackSpeed = session.playbackSpeed.value;
     final strokeRange = _settings.minMaxRange.value;
     final slewMaxRateOfChange = _settings.slewMaxRateOfChange.value;
     final rdpEpsilon = _settings.rdpEpsilon.value;
@@ -159,13 +169,14 @@ class PlayerModel with EffectDispose {
     );
   }
 
-  void simpleModeEffects(VideoPlayer player) {
+  void simpleModeEffects() {
     effectAdd([
       effect(() async {
-        final media = player.currentMedia.value;
+        final session = _session.value;
+        final media = session.currentMedia.value;
         final funscript = simpleModeFunscript.value;
-        final totalDuration = player.duration.value;
-        final buildParams = _snapshotProcessParams(player);
+        final totalDuration = session.duration.value;
+        final buildParams = _snapshotProcessParams(session);
 
         if (media == null ||
             totalDuration == null ||
@@ -194,13 +205,14 @@ class PlayerModel with EffectDispose {
     ]);
   }
 
-  void regularEffects(VideoPlayer player) {
+  void regularEffects() {
     effectAdd([
       effect(() async {
-        final media = player.currentMedia.value;
+        final session = _session.value;
+        final media = session.currentMedia.value;
         final index = selectedFunscriptIndex.value;
-        final totalDuration = player.duration.value;
-        final buildParams = _snapshotProcessParams(player);
+        final totalDuration = session.duration.value;
+        final buildParams = _snapshotProcessParams(session);
 
         final funscriptFile = (media?.funscripts.length ?? 0) > index
             ? media?.funscripts[index]
@@ -242,7 +254,7 @@ class PlayerModel with EffectDispose {
       }),
       // View counting logic
       effect(() {
-        final media = player.currentMedia.value;
+        final media = _session.value.currentMedia.value;
         _videoViewCounted = false;
 
         // Initialize the index with the mainFunscript
@@ -258,12 +270,12 @@ class PlayerModel with EffectDispose {
       }),
       effect(() {
         final video = currentlyOpen.value?.media;
-        final playing = !player.paused.value;
+        final playing = !_session.value.paused.value;
         untracked(() {
           if (video != null && playing && !_videoViewCounted) {
             _viewCountDebouncer.run(() {
               final moreCurrentVideo = currentlyOpen.value?.media;
-              if (!player.paused.value) {
+              if (!_session.value.paused.value) {
                 if (moreCurrentVideo == video && !_videoViewCounted) {
                   // Count the view
                   _videoViewCounted = true;

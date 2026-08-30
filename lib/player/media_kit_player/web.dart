@@ -1,9 +1,12 @@
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/player/video_player.dart';
+import 'package:syncopathy/player/media_kit_player/media_kit_video_player.dart';
 
-class MediaKitPlayerImpl extends VideoPlayer {
+/// One-time initialization of the playback engine, before any player is built.
+void initPlaybackEngine() => MediaKit.ensureInitialized();
+
+class MediaKitPlayerImpl extends MediaKitVideoPlayer {
   @override
   ReadonlySignal<bool> get paused => _paused;
   late final ReadonlySignal<bool> _paused;

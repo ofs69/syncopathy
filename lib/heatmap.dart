@@ -6,7 +6,7 @@ import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/helper/constants.dart';
-import 'package:syncopathy/player/video_player.dart';
+import 'package:syncopathy/player/playback_session.dart';
 
 class Heatmap extends StatefulWidget {
   final List<FunscriptAction> actions;

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:args/args.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/global_shortcuts.dart';
@@ -20,6 +19,7 @@ import 'package:syncopathy/model/timesource_model.dart';
 import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 import 'package:syncopathy/player/media_kit_player/media_kit_player.dart';
+import 'package:syncopathy/player/playback_session.dart';
 
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/syncopathy.dart';
@@ -61,10 +61,16 @@ Future<Widget> _initializeAppAndRun({required bool simple}) async {
   );
   getIt.registerSingleton<VideoPlayer>(videoPlayer);
 
+  // The seam an external player (HereSphere) plugs into: everything downstream
+  // reads the clock through this, so handing playback over is one assignment
+  // rather than a rebuild of the funscript pipeline and the device backends.
+  final activeSession = ActivePlaybackSession(videoPlayer);
+  getIt.registerSingleton<ActivePlaybackSession>(activeSession);
+
   var playerModel = PlayerModel(
     settings,
-    TimesourceModel.fromPlayer(videoPlayer),
-    videoPlayer,
+    TimesourceModel.fromSession(activeSession.session),
+    activeSession.session,
     batteryModel,
   );
 
@@ -76,6 +82,7 @@ Future<Widget> _initializeAppAndRun({required bool simple}) async {
     providers: [
       Provider.value(value: settings),
       Provider.value(value: videoPlayer as VideoPlayer),
+      Provider.value(value: activeSession),
       Provider.value(value: playerModel),
       Provider.value(value: batteryModel),
       ChangeNotifierProvider<AlertManager>.value(value: alertManager),
@@ -134,7 +141,7 @@ void main(List<String> args) async {
   };
 
   WidgetsFlutterBinding.ensureInitialized();
-  MediaKit.ensureInitialized();
+  initPlaybackEngine();
 
   String? openFile;
   bool isSimple = false;
