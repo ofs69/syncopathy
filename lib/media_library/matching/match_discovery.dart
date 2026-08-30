@@ -236,7 +236,15 @@ class MatchDiscovery {
 
     try {
       report('Listing files…');
-      final listing = await MediaFileScanner.list(params.searchPaths);
+      final listing = await MediaFileScanner.list(
+        params.searchPaths,
+        // A walk over a large or remote tree takes long enough that a status
+        // line which never changes reads as a hang.
+        onProgress: (directories, media, funscripts) => report(
+          'Listing files ($directories folders, '
+          '$media media, $funscripts funscripts)',
+        ),
+      );
 
       // The library as it stands: which hashes exist, and which of those have
       // anything linked. A row with an empty relation counts as unmatched just
