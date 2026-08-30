@@ -5,7 +5,6 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/model/battery_model.dart';
 import 'package:syncopathy/model/funscript.dart';
-import 'package:syncopathy/model/home_target.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
@@ -146,7 +145,7 @@ mixin CommandPacketBackend on ICommandBackendBase {
           updateCommand(
             CommandPacket(
               homeTarget.position,
-              HomeTarget.moveDurationMs,
+              settingsModel.homeMoveDurationMs.value,
               settingsModel.max.value,
               settingsModel.min.value,
             ),

@@ -15,6 +15,7 @@ import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncopathy/media_library/thumbnail_generator.dart';
+import 'package:syncopathy/model/home_target.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
@@ -92,6 +93,17 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildAutoSwitchToVideoPlayerTabSettings(context),
           _buildSkipToActionSettings(context),
           if (!kIsWeb) _buildHwdecSettings(context),
+        ],
+      ),
+      (context) => _buildSettingsCard(
+        context,
+        title: 'Home Mode',
+        subtitle:
+            'Parks the device at one end of the stroke and stops the '
+            'script from driving it.',
+        children: [
+          _buildAutoHomeOnPauseSettings(context),
+          _buildHomeMoveDurationSettings(context),
         ],
       ),
       (context) => _buildSettingsCard(
@@ -202,6 +214,65 @@ class _SettingsPageState extends State<SettingsPage> {
         },
         secondary: const Icon(Icons.skip_next),
       ),
+    );
+  }
+
+  Widget _buildAutoHomeOnPauseSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
+    return SignalBuilder(
+      builder: (context) => SwitchListTile(
+        title: const Text('Home on pause'),
+        subtitle: const Text(
+          'Turn Home Mode on when playback pauses and off again when it '
+          'resumes. Home Mode you switched on yourself is left alone.',
+        ),
+        value: settings.autoHomeOnPause.value,
+        onChanged: (value) {
+          settings.autoHomeOnPause.value = value;
+        },
+        secondary: const Icon(Icons.pause_circle_outline),
+        isThreeLine: true,
+      ),
+    );
+  }
+
+  Widget _buildHomeMoveDurationSettings(BuildContext context) {
+    final settings = context.read<SettingsModel>();
+    return SignalBuilder(
+      builder: (context) {
+        final durationMs = settings.homeMoveDurationMs.value;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.speed),
+              title: const Text('Home speed'),
+              subtitle: Text(
+                'How long the device takes to travel to the parked position: '
+                '${(durationMs / 1000.0).toStringAsFixed(2)} s.',
+              ),
+              isThreeLine: true,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
+              child: Slider(
+                value: durationMs.toDouble(),
+                min: HomeTarget.minMoveDurationMs.toDouble(),
+                max: HomeTarget.maxMoveDurationMs.toDouble(),
+                // 100 ms steps: finer than the motor can meaningfully honour.
+                divisions:
+                    (HomeTarget.maxMoveDurationMs -
+                        HomeTarget.minMoveDurationMs) ~/
+                    100,
+                label: '$durationMs ms',
+                onChanged: (value) {
+                  settings.homeMoveDurationMs.value = value.round();
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
