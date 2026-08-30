@@ -360,12 +360,17 @@ void main() {
   });
 
   group('what a strong false positive looks like', () {
-    /// A library that names everything the same way. These shared words are
-    /// what a naive overlap counts, and what says nothing about which entry a
-    /// script belongs to.
+    /// A library where a large minority of the files are named the same way.
+    /// These shared words are what a naive overlap counts, and what says very
+    /// little about which entry a script belongs to.
+    ///
+    /// Deliberately a minority: a word in *most* of a library is house style
+    /// and the matcher discounts it to nothing, which is a different case with
+    /// its own test below. This fixture is the harder middle — common enough
+    /// to be poor evidence, not common enough to throw away.
     List<MediaSnapshot> boilerplate() => [
-      for (var i = 1; i <= 20; i++)
-        _media('Studio Productions 2023 Chapter$i'),
+      for (var i = 1; i <= 8; i++) _media('Studio Productions 2023 Chapter$i'),
+      for (var i = 1; i <= 12; i++) _media('Unrelated Recording $i'),
     ];
 
     double tokenScore(ScoredCandidate candidate) => candidate.features
@@ -412,6 +417,57 @@ void main() {
       expect(best, isNotNull);
       expect(best!.distinctiveTokens, isEmpty);
       expect(best.cautions, contains(MatchCaution.commonWordsOnly));
+    });
+
+    test('a word in most of the library stops being evidence at all', () {
+      // The whole library is one house style, so "studio productions 2023"
+      // describes the collection rather than any entry in it. Agreeing on it
+      // is not a weak match, it is no match, and the honest answer is silence
+      // rather than the best of twenty indistinguishable guesses.
+      final proposal = FuzzyMatcher([
+        for (var i = 1; i <= 20; i++)
+          _media('Studio Productions 2023 Chapter$i'),
+      ]).proposeFor(_script('Studio Productions 2023 Rooftop Interview'));
+
+      expect(proposal.candidates, isEmpty);
+    });
+
+    test('house style does not drown the one word that identifies a file', () {
+      // Every name shares three words and differs in one. That one word is
+      // the entire signal, and it has to survive being outnumbered.
+      final best = FuzzyMatcher([
+        for (var i = 1; i <= 20; i++)
+          _media('Studio Productions 2023 Chapter$i'),
+      ]).proposeFor(_script('Studio Productions 2023 Chapter7')).best!;
+
+      expect(best.media.basename, 'Studio Productions 2023 Chapter7');
+      expect(best.score, greaterThan(_separationThreshold));
+    });
+
+    test('a release tag shared by two VR files is not a rare agreement', () {
+      // Resolutions and headset names look rare to a matcher that has never
+      // seen them before, and rarity is what it trusts most. Nothing about
+      // this pair beyond the tags matches, so nothing should come back.
+      final proposal =
+          FuzzyMatcher([
+            _media('Zebracorn Waltzing 5400x2700 oculusrift 180 LR'),
+            ..._library(const []),
+          ]).proposeFor(
+            _script('Quartzite Fandango 5400x2700 oculusrift 180 LR'),
+          );
+
+      expect(proposal.candidates, isEmpty);
+    });
+
+    test('release tags do not stop a real title from matching', () {
+      final best = FuzzyMatcher([
+        _media('Zebracorn Waltzing 5400x2700 oculusrift 180 LR'),
+        ..._library(const []),
+      ]).proposeFor(_script('Zebracorn Waltzing 7680x3840 oculusquest2 MKX200'))
+          .best!;
+
+      expect(best.media.basename, 'Zebracorn Waltzing 5400x2700 oculusrift 180 LR');
+      expect(best.score, greaterThan(_separationThreshold));
     });
 
     test('a match resting on script metadata alone is flagged', () {

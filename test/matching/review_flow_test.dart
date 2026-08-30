@@ -221,8 +221,9 @@ void main() {
     test('leaves a flagged candidate alone', () {
       final session = _sessionWith(
         FuzzyMatcher([
-          for (var i = 1; i <= 20; i++)
+          for (var i = 1; i <= 8; i++)
             _media('Studio Productions 2023 Chapter$i'),
+          for (var i = 1; i <= 12; i++) _media('Unrelated Recording $i'),
         ]).proposeAll([_script('Studio Productions 2023 Rooftop Interview')]),
       );
 

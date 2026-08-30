@@ -83,6 +83,20 @@ class _MatchingSettingsDialogState extends State<MatchingSettingsDialog> {
                     _markDirty();
                   },
                 ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  title: const Text('Require a distinctive word'),
+                  subtitle: const Text(
+                    'Hide suggestions whose only agreement is words much of '
+                    'the library uses. Fewer rows, and none of them guesses.',
+                  ),
+                  value: _options.requireDistinctiveEvidence.value,
+                  onChanged: (value) {
+                    _options.requireDistinctiveEvidence.value = value;
+                    _markDirty();
+                  },
+                ),
                 const Divider(height: 24),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
@@ -100,12 +114,15 @@ class _MatchingSettingsDialogState extends State<MatchingSettingsDialog> {
           ),
         ),
       ),
+      // Destructive on the left, done on the right. Set through the dialog's
+      // own alignment rather than a Spacer: these go into an OverflowBar, not
+      // a Row, and a Spacer there is a flex child with nowhere to flex.
+      actionsAlignment: MainAxisAlignment.spaceBetween,
       actions: [
         TextButton(
           onPressed: _confirmForgetRejections,
           child: const Text('Forget rejections'),
         ),
-        const Spacer(),
         FilledButton(
           onPressed: () {
             if (_rankingDirty) widget.session.rerank();

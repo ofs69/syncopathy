@@ -93,7 +93,7 @@ NormalizedName normalizeName(String basename, {bool stripAxis = false}) {
       continue;
     }
 
-    if (_noiseTokens.contains(token)) {
+    if (isNoiseToken(token)) {
       noiseTokens.add(token);
       continue;
     }
@@ -369,6 +369,9 @@ const Set<String> _noiseTokens = {
   'stereo', 'fisheye', 'mkx200', 'mkx220', 'vrca220', 'rf52', 'f180', 'i180',
   'lr180', 'sbs180', 'ts180', '180x180', '360x180', '3dh', '3dv', 'oculus',
   'quest', 'smartphone', 'gearvr', 'psvr',
+  '2d', '3d', 'sidebyside', 'overunder', 'topbottom', 'halfsbs', 'fullsbs',
+  'equirect', 'equirectangular', 'cubemap', 'passthrough', 'fov',
+  'binaural', 'ambisonic', 'ambix', 'spatial',
   // Frame rate
   'fps', '24fps', '25fps', '30fps', '50fps', '59fps', '60fps', '90fps',
   '120fps',
@@ -382,6 +385,49 @@ const Set<String> _noiseTokens = {
   'funscript', 'script', 'scripted',
 };
 
+/// Noise that no word list can keep up with.
+///
+/// Every season brings a new resolution, a new headset revision and a new
+/// projection tag, and each one arrives looking like a rare, highly
+/// distinctive word — which is the worst possible thing for scoring, because
+/// rarity is what the matcher trusts most. A `5400x2700` shared by two files
+/// says only that both were shot for a headset; scored as a rare agreement it
+/// says they are the same scene.
+///
+/// Families survive where members do not: matching the *shape* of a resolution
+/// covers the ones nobody has published yet.
+final List<RegExp> _noisePatterns = [
+  // Pixel dimensions: 5400x2700, 7680x3840, 3840x1920.
+  RegExp(r'^\d{3,5}x\d{3,5}$'),
+  // Vertical resolution and its shorthand: 1080p, 2160p, 4k, 8k.
+  RegExp(r'^\d{3,4}p$'),
+  RegExp(r'^\d{1,2}k$'),
+  // Frame rate, bit rate, bit depth, file size.
+  RegExp(r'^\d{2,3}fps$'),
+  RegExp(r'^fps\d{2,3}$'),
+  RegExp(r'^\d{2,6}(?:kbps|mbps|kbit|mbit)$'),
+  RegExp(r'^\d{1,4}(?:mb|gb)$'),
+  RegExp(r'^\d{1,2}bits?$'),
+  // The Oculus family, every model and revision of it. No title uses this
+  // word, so the whole prefix can go.
+  RegExp(r'^oculus[a-z0-9]{0,8}$'),
+  RegExp(
+    r'^(?:gearvr|psvr|daydream|cardboard|pimax|varjo|bigscreen|deovr'
+    r'|smartphone)[a-z0-9]{0,8}$',
+  ),
+  // Headsets whose bare names are ordinary words. A model number or a trim
+  // level is required so `quest` in a title survives — and so `question`,
+  // which starts the same way, is never mistaken for one.
+  RegExp(r'^(?:quest|pico|vive|psvr)\d?(?:pro|plus|xr|elite)?$'),
+  // Projection tags carrying a field of view: mkx200, vrca220, rf52,
+  // fisheye190, dome180, sbs360.
+  RegExp(r'^(?:mkx|vrca|rf|fisheye|dome|eac|cmp|ts|lr|sbs|ou|tb)\d{2,3}$'),
+];
+
 /// Whether [token] would be dropped as release noise. Exposed so the review UI
 /// and tests can explain a reduction without reaching into the private set.
-bool isNoiseToken(String token) => _noiseTokens.contains(token.toLowerCase());
+bool isNoiseToken(String token) {
+  final lowered = token.toLowerCase();
+  if (_noiseTokens.contains(lowered)) return true;
+  return _noisePatterns.any((pattern) => pattern.hasMatch(lowered));
+}

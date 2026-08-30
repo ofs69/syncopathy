@@ -19,6 +19,9 @@ class FunscriptMatchingSettings {
   );
   final Signal<bool> useDirectoryLabels = signal(true);
   final Signal<bool> useScriptMetadata = signal(true);
+  final Signal<bool> requireDistinctiveEvidence = signal(
+    const MatchingOptions().requireDistinctiveEvidence,
+  );
 
 
   final _debouncer = Debouncer(milliseconds: 500);
@@ -29,6 +32,7 @@ class FunscriptMatchingSettings {
     minimumScore: minimumScore.value,
     useDirectoryLabels: useDirectoryLabels.value,
     useScriptMetadata: useScriptMetadata.value,
+    requireDistinctiveEvidence: requireDistinctiveEvidence.value,
   );
 
 
@@ -49,6 +53,9 @@ class FunscriptMatchingSettings {
               stored['useDirectoryLabels'] as bool? ?? useDirectoryLabels.value;
           useScriptMetadata.value =
               stored['useScriptMetadata'] as bool? ?? useScriptMetadata.value;
+          requireDistinctiveEvidence.value =
+              stored['requireDistinctiveEvidence'] as bool? ??
+              requireDistinctiveEvidence.value;
         });
       }
     } catch (e, st) {
@@ -63,6 +70,7 @@ class FunscriptMatchingSettings {
         'minimumScore': minimumScore.value,
         'useDirectoryLabels': useDirectoryLabels.value,
         'useScriptMetadata': useScriptMetadata.value,
+        'requireDistinctiveEvidence': requireDistinctiveEvidence.value,
       };
       _debouncer.run(() => KVStore.put(_key, snapshot));
     });
