@@ -6,9 +6,9 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:syncopathy/helper/long_path.dart';
 import 'package:syncopathy/helper/trie.dart';
 import 'package:syncopathy/ioc.dart';
+import 'package:syncopathy/media_library/media_file_scanner.dart';
 import 'package:syncopathy/media_library/media_metadata_retriever.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/funscript_algo.dart';
@@ -21,7 +21,6 @@ import 'package:syncopathy/objectbox.g.dart';
 import 'package:syncopathy/persistence/service/fast_hash_cache_service.dart';
 import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
-import 'package:syncopathy/persistence/entities/media_metadata.dart';
 import 'package:syncopathy/persistence/fast_file_hash.dart';
 
 class _IndexingParams {
@@ -47,17 +46,6 @@ class _IndexingParams {
     required this.progressPort,
     required this.storeReference,
   });
-}
-
-/// What walking the search paths turned up, plus the directories that could not
-/// be read (missing search path, permissions, a path the platform refuses to
-/// list) and were therefore skipped.
-class _ListingResult {
-  final List<File> mediaFiles;
-  final List<File> funscriptFiles;
-  final List<String> skippedPaths;
-
-  _ListingResult(this.mediaFiles, this.funscriptFiles, this.skippedPaths);
 }
 
 class _IndexingResult {
@@ -155,49 +143,11 @@ class MediaManager {
 
   MediaManager(this._settings);
 
-  static const Set<String> _videoExtensions = {
-    '.mp4',
-    '.mkv',
-    '.avi',
-    '.mov',
-    '.wmv',
-    '.webm',
-  };
-  static const Set<String> _audioExtensions = {
-    '.mp3',
-    '.aac',
-    '.wav',
-    '.flac',
-    '.ogg',
-    '.m4a',
-    '.wma',
-    '.opus',
-  };
-
   // Concurrency for the hashing / metadata pools.
   static const int _hashPoolSize = 4;
   // Emit a progress update every N processed items to avoid signal churn.
   static const int _hashProgressInterval = 10;
   static const int _metadataProgressInterval = 5;
-
-  /// Copies a retrieved metadata record into a persistable [MediaMetadata]
-  /// entity. Shared by the existing-media and new-media indexing paths.
-  static MediaMetadata _toMediaMetadata(MediaMetadataRetrieved m) {
-    return MediaMetadata(
-      duration: m.duration,
-      aspectRatio: m.aspectRatio,
-      audioChannels: m.audioChannels,
-      audioCodec: m.audioCodec,
-      bitRate: m.bitRate,
-      creationTime: m.creationTime,
-      frameRate: m.frameRate,
-      height: m.height,
-      width: m.width,
-      pixelFormat: m.pixelFormat,
-      rotation: m.rotation,
-      videoCodec: m.videoCodec,
-    );
-  }
 
   Future<void> startIndexing() async {
     if (_isIndexing.value) return;
@@ -362,7 +312,7 @@ class MediaManager {
         }
 
         if (media.metadata.target == null && found.metadata != null) {
-          media.metadata.target = _toMediaMetadata(found.metadata!);
+          media.metadata.target = found.metadata!.toEntity();
         }
       } else {
         media.fileNotFound = true;
@@ -384,7 +334,7 @@ class MediaManager {
         ],
       )..firstIndexedOn ??= DateTime.now();
       if (newFound.metadata != null) {
-        media.metadata.target = _toMediaMetadata(newFound.metadata!);
+        media.metadata.target = newFound.metadata!.toEntity();
       }
       mediaBox.put(media); // Put to get ID
       mediaMap[newFound.mediaHash] = media;
@@ -433,7 +383,7 @@ class MediaManager {
 
     try {
       progress.status("Listing files...");
-      final listing = await _listMediaFiles(params.searchPaths);
+      final listing = await MediaFileScanner.list(params.searchPaths);
 
       final (mediaTrie, groups) = await _hashMediaFiles(
         listing.mediaFiles,
@@ -468,62 +418,6 @@ class MediaManager {
     }
   }
 
-  /// Recursively lists the search paths, splitting entries into media files
-  /// (by extension) and `.funscript` files.
-  ///
-  /// Walks the tree one directory at a time rather than using
-  /// `list(recursive: true)`: a recursive listing reports the first directory
-  /// it cannot read as a stream error, which aborts the walk of everything
-  /// after it — the rest of that tree *and* every remaining search path — and
-  /// leaves the scan with nothing at all. Here an unreadable directory costs
-  /// only its own subtree, and is reported back so the user can be told.
-  static Future<_ListingResult> _listMediaFiles(List<String> searchPaths) async {
-    final combinedExtension = {..._videoExtensions, ..._audioExtensions};
-    final List<File> mediaFiles = [];
-    final List<File> funscriptFiles = [];
-    final List<String> skippedPaths = [];
-
-    for (final searchPath in searchPaths) {
-      if (!await Directory(searchPath).exists()) {
-        skippedPaths.add(searchPath);
-        continue;
-      }
-
-      final pending = <String>[searchPath];
-      while (pending.isNotEmpty) {
-        final dirPath = pending.removeLast();
-        try {
-          // The listing itself goes through the extended-length form of the
-          // path (Windows only); children are rebuilt from the plain [dirPath]
-          // so the `\\?\` prefix never leaves this loop.
-          final entities = Directory(
-            toExtendedLengthPath(dirPath),
-          ).list(recursive: false, followLinks: false);
-
-          await for (final entity in entities) {
-            final name = p.basename(entity.path);
-            final path = p.join(dirPath, name);
-
-            if (entity is Directory) {
-              pending.add(path);
-            } else if (entity is File) {
-              final extension = p.extension(name).toLowerCase();
-              if (combinedExtension.contains(extension)) {
-                mediaFiles.add(File(path));
-              } else if (extension == '.funscript') {
-                funscriptFiles.add(File(path));
-              }
-            }
-          }
-        } catch (e, st) {
-          Logger.error('Failed to list directory: $dirPath', e, st);
-          skippedPaths.add(dirPath);
-        }
-      }
-    }
-    return _ListingResult(mediaFiles, funscriptFiles, skippedPaths);
-  }
-
   /// Hashes all media files (pooled), returning a trie of their basenames (for
   /// funscript matching) and the found media grouped by basename.
   static Future<(Trie, Map<String, List<_FoundMediaFile>>)> _hashMediaFiles(
@@ -552,10 +446,7 @@ class MediaManager {
       if (hash == null) continue;
 
       final basename = p.basenameWithoutExtension(file.path);
-      final extension = p.extension(file.path).toLowerCase();
-      final type = _videoExtensions.contains(extension)
-          ? MediaType.video
-          : MediaType.audio;
+      final type = MediaFileScanner.typeForPath(file.path);
 
       mediaTrie.insert(basename);
       groups

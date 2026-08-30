@@ -121,7 +121,7 @@ int funscriptAxisRank(String path) {
       ? name.substring(0, name.length - '.funscript'.length)
       : name;
 
-  final match = RegExp(r'[._\- ]([a-zA-Z]\d|[a-zA-Z]+)$').firstMatch(base);
+  final match = _axisSuffixPattern.firstMatch(base);
   if (match == null) return 0;
 
   final token = match.group(1)!.toLowerCase();
@@ -129,6 +129,26 @@ int funscriptAxisRank(String path) {
   if (_secondaryAxisTokens.contains(token)) return 2;
   return 0;
 }
+
+/// Strips a recognized axis suffix from [basename] (a filename with no
+/// extension), returning the stem shared by every script of one multi-axis set.
+///
+/// `scene.twist` and `scene_L0` both reduce to `scene`, which is what groups a
+/// stroke script with its companions. A name with no recognized axis token is
+/// returned unchanged, so `scene.part2` keeps its suffix.
+String stripFunscriptAxisSuffix(String basename) {
+  final match = _axisSuffixPattern.firstMatch(basename);
+  if (match == null) return basename;
+
+  final token = match.group(1)!.toLowerCase();
+  if (_strokeAxisTokens.contains(token) ||
+      _secondaryAxisTokens.contains(token)) {
+    return basename.substring(0, match.start);
+  }
+  return basename;
+}
+
+final RegExp _axisSuffixPattern = RegExp(r'[._\- ]([a-zA-Z]\d|[a-zA-Z]+)$');
 
 /// Suffixes that name the stroke axis itself. Such a script is a perfectly good
 /// main script — it just loses to an unsuffixed one when both exist.

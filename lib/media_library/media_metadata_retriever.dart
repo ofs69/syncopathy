@@ -5,6 +5,7 @@ import 'package:pool/pool.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/task_queue.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
+import 'package:syncopathy/persistence/entities/media_metadata.dart';
 
 class MetadataRequest extends BaseRequest {
   @override
@@ -46,6 +47,23 @@ class MediaMetadataRetrieved {
     this.aspectRatio,
     this.creationTime,
   });
+
+  /// Copies this into the persistable entity. Lives here rather than on the
+  /// entity so `persistence` keeps knowing nothing about ffprobe.
+  MediaMetadata toEntity() => MediaMetadata(
+    duration: duration,
+    aspectRatio: aspectRatio,
+    audioChannels: audioChannels,
+    audioCodec: audioCodec,
+    bitRate: bitRate,
+    creationTime: creationTime,
+    frameRate: frameRate,
+    height: height,
+    width: width,
+    pixelFormat: pixelFormat,
+    rotation: rotation,
+    videoCodec: videoCodec,
+  );
 }
 
 class MediaMetadataRetriever

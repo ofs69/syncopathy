@@ -15,6 +15,7 @@ import 'package:syncopathy/media_library/filter/media_filter.dart';
 import 'package:syncopathy/media_library/filter/media_filter_logic.dart';
 import 'package:syncopathy/media_library/filter/media_filter_preset.dart';
 import 'package:syncopathy/media_library/media_filter_overlay.dart';
+import 'package:syncopathy/media_library/matching/funscript_matching_page.dart';
 import 'package:syncopathy/media_library/media_badge.dart';
 import 'package:syncopathy/media_library/media_item.dart';
 import 'package:syncopathy/media_library/delete_media_dialog.dart';
@@ -218,6 +219,21 @@ class _MediaLibraryState extends State<MediaLibrary> with EffectDispose {
               color: colorScheme.primary,
               icon: const Icon(Icons.playlist_play),
               onPressed: _startPlaylist,
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              tooltip: "Match unmatched funscripts",
+              style: IconButton.styleFrom(
+                backgroundColor: colorScheme.onInverseSurface,
+              ),
+              color: colorScheme.primary,
+              icon: const Icon(Icons.link),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FunscriptMatchingPage(),
+                ),
+              ),
             ),
             const SizedBox(width: 8),
             _buildStatusText(context),
