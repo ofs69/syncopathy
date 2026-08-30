@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,7 +24,15 @@ import 'package:syncopathy/notification_feed.dart';
 /// and asks a person. Nothing is written until Apply, and what Apply wrote can
 /// be undone.
 class FunscriptMatchingPage extends StatefulWidget {
-  const FunscriptMatchingPage({super.key});
+  const FunscriptMatchingPage({super.key, this.session});
+
+  /// A session to review instead of scanning for one.
+  ///
+  /// Only tests pass this. A widget test has no database to scan, and this
+  /// page's job is laying out a review — which cannot be checked at all
+  /// against the empty state a failed scan leaves behind.
+  @visibleForTesting
+  final MatchingSessionModel? session;
 
   @override
   State<FunscriptMatchingPage> createState() => _FunscriptMatchingPageState();
@@ -42,17 +52,47 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
   /// becomes two stacked panes.
   static const double _wideLayoutBreakpoint = 900;
 
+  /// Width the reviewer dragged the list to, or null while it follows the
+  /// window.
+  double? _listWidthOverride;
+
+  /// Width of the review list.
+  ///
+  /// A share of the window rather than a fixed size: the list holds release
+  /// names, which are long, and a column narrow enough to ellipsize every one
+  /// of them to its common prefix is a column that cannot be worked from. The
+  /// lower bound is what fits a score, a name and a decision icon; the upper
+  /// bound leaves the detail pane — where the evidence lives — readable.
+  double _listWidth(double available) {
+    final maximum = math.max(_minListWidth, available - _minDetailWidth);
+    final preferred = _listWidthOverride ?? available * _listWidthShare;
+    return preferred.clamp(_minListWidth, maximum);
+  }
+
+  /// Apply-bar width below which the buttons drop to their short labels.
+  static const double _compactApplyBarWidth = 820;
+
+  /// Toolbar width below which the page title is dropped so the controls and
+  /// the counts keep their room.
+  static const double _compactToolbarWidth = 760;
+
+  static const double _minListWidth = 420;
+  static const double _minDetailWidth = 460;
+  static const double _listWidthShare = 0.34;
+
+  /// Share of a short window's height the stacked list may take. The detail
+  /// pane keeps the rest, and it is the one that has to lay out a decision.
+  static const double _stackedListShare = 0.4;
+
   @override
   void initState() {
     super.initState();
     _options = FunscriptMatchingSettings();
     _rules = MatchRulesStore();
-    _session = MatchingSessionModel(
-      context.read<SettingsModel>(),
-      _options,
-      _rules,
-    );
-    _start();
+    _session =
+        widget.session ??
+        MatchingSessionModel(context.read<SettingsModel>(), _options, _rules);
+    if (widget.session == null) _start();
   }
 
   /// Loads what persisted, then scans. Opening the tool is itself the explicit
@@ -67,7 +107,8 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
   @override
   void dispose() {
     _keyboardFocus.dispose();
-    _session.dispose();
+    // An injected session belongs to whoever passed it in.
+    if (widget.session == null) _session.dispose();
     _options.dispose();
     super.dispose();
   }
@@ -199,6 +240,12 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
     final theme = Theme.of(context);
     final busy = _session.isBusy;
     final obvious = _session.clearWinnerCount;
+    // Built here rather than inside the LayoutBuilder below. A LayoutBuilder
+    // runs its builder during layout, outside the build this SignalBuilder is
+    // tracking, so a signal read in there is a signal the toolbar never hears
+    // about again — the scan would run to completion behind a status line
+    // still showing its first message.
+    final status = _buildStatus(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -206,42 +253,77 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
         borderRadius: BorderRadius.circular(12.0),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            tooltip: 'Back to library',
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
-          const SizedBox(width: 4),
-          Text('Match funscripts', style: theme.textTheme.titleMedium),
-          const SizedBox(width: 16),
-          Expanded(child: _buildStatus(context)),
-          if (obvious > 0) ...[
-            Tooltip(
-              message:
-                  'Accepts only where the top video scores well and nothing '
-                  'else comes close — and never where the matcher flagged a '
-                  'reason to doubt it. Everything else still needs you.',
-              child: FilledButton.tonalIcon(
-                icon: const Icon(Icons.done_all, size: 18),
-                label: Text('Accept $obvious obvious'),
-                onPressed: busy ? null : _acceptObvious,
+      // The controls and the counts are what the toolbar is for; the page
+      // title is the one thing in it a reviewer already knows. Below the
+      // width where everything fits, the title goes and the accept button
+      // drops to its short label, rather than the row running off the edge.
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < _compactToolbarWidth;
+          return Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                tooltip: 'Back to library',
+                onPressed: () => Navigator.of(context).maybePop(),
               ),
-            ),
-            const SizedBox(width: 8),
-          ],
-          IconButton(
-            icon: const Icon(Icons.tune),
-            tooltip: 'Matching options',
-            onPressed: busy ? null : _openSettings,
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Scan again',
-            onPressed: busy ? null : _session.scan,
-          ),
-        ],
+              const SizedBox(width: 4),
+              // Title and status share one Expanded rather than sitting in
+              // the outer row as two flex children. A loose Flexible beside
+              // an Expanded is given an equal share of the free space and
+              // hands back whatever it does not use — and a Row aligned to
+              // the start drops that remainder on the floor, leaving the
+              // trailing buttons short of the right edge. Nested like this
+              // the title shrinks when it has to and the status absorbs
+              // every pixel it leaves behind.
+              Expanded(
+                child: Row(
+                  children: [
+                    if (!compact) ...[
+                      Flexible(
+                        child: Text(
+                          'Match funscripts',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                    ],
+                    Expanded(child: status),
+                  ],
+                ),
+              ),
+              if (obvious > 0) ...[
+                Tooltip(
+                  message:
+                      'Accepts only where the top video scores well and '
+                      'nothing else comes close — and never where the matcher '
+                      'flagged a reason to doubt it. Everything else still '
+                      'needs you.',
+                  child: FilledButton.tonalIcon(
+                    icon: const Icon(Icons.done_all, size: 18),
+                    label: Text(
+                      compact ? 'Accept $obvious' : 'Accept $obvious obvious',
+                    ),
+                    onPressed: busy ? null : _acceptObvious,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              IconButton(
+                icon: const Icon(Icons.tune),
+                tooltip: 'Matching options',
+                onPressed: busy ? null : _openSettings,
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Scan again',
+                onPressed: busy ? null : _session.scan,
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -273,6 +355,10 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
           Flexible(
             child: Text(
               status,
+              // One line, always. A status squeezed thin by the buttons
+              // beside it would otherwise wrap into a column of single
+              // characters and push the whole toolbar open.
+              maxLines: 1,
               style: busy
                   ? mono
                   : mono?.copyWith(color: theme.colorScheme.error),
@@ -292,6 +378,7 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
       '${discovery.media.length} unmatched '
       '${discovery.media.length == 1 ? 'video' : 'videos'} to choose from',
       style: mono,
+      maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
   }
@@ -315,15 +402,26 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(width: 380, child: list),
-              const VerticalDivider(width: 16, thickness: 1),
+              SizedBox(width: _listWidth(constraints.maxWidth), child: list),
+              _ListDivider(
+                onDrag: (delta) => setState(() {
+                  _listWidthOverride =
+                      _listWidth(constraints.maxWidth) + delta;
+                }),
+              ),
               Expanded(child: detail),
             ],
           );
         }
+        // Stacked. The list takes a share of the height rather than a fixed
+        // slice, so a short window shrinks it instead of leaving the detail
+        // pane too small to lay out.
         return Column(
           children: [
-            SizedBox(height: 260, child: list),
+            SizedBox(
+              height: math.min(260, constraints.maxHeight * _stackedListShare),
+              child: list,
+            ),
             const Divider(height: 16, thickness: 1),
             Expanded(child: detail),
           ],
@@ -433,38 +531,56 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
                   ),
                 ),
               ),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    accepted == 0 && rejected == 0
-                        ? 'Nothing has been changed yet.'
-                        : '$accepted to link, $rejected to remember as '
-                              '"no match".',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ),
-                if (undoable != null)
-                  TextButton.icon(
-                    icon: const Icon(Icons.undo, size: 16),
-                    label: Text('Undo last apply (${undoable.linkedScripts})'),
-                    onPressed: busy ? null : _undoApply,
-                  ),
-                TextButton(
-                  onPressed: busy || decided == 0
-                      ? null
-                      : _session.clearDecisions,
-                  child: const Text('Reset decisions'),
-                ),
-                const SizedBox(width: 8),
-                FilledButton.icon(
-                  icon: const Icon(Icons.check, size: 18),
-                  label: Text(accepted == 0 ? 'Apply' : 'Apply $accepted'),
-                  onPressed: busy || (accepted == 0 && rejected == 0)
-                      ? null
-                      : _apply,
-                ),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < _compactApplyBarWidth;
+                return Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        accepted == 0 && rejected == 0
+                            ? 'Nothing has been changed yet.'
+                            : '$accepted to link, $rejected to remember as '
+                                  '"no match".',
+                        // One line, always. This is the widest thing in the
+                        // bar and the first to be squeezed, and left to wrap
+                        // it grows the bar tall enough to swallow the review
+                        // panes above it.
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ),
+                    if (undoable != null)
+                      TextButton.icon(
+                        icon: const Icon(Icons.undo, size: 16),
+                        label: Text(
+                          compact
+                              ? 'Undo (${undoable.linkedScripts})'
+                              : 'Undo last apply '
+                                    '(${undoable.linkedScripts})',
+                        ),
+                        onPressed: busy ? null : _undoApply,
+                      ),
+                    TextButton(
+                      onPressed: busy || decided == 0
+                          ? null
+                          : _session.clearDecisions,
+                      child: Text(compact ? 'Reset' : 'Reset decisions'),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton.icon(
+                      icon: const Icon(Icons.check, size: 18),
+                      label: Text(
+                        accepted == 0 ? 'Apply' : 'Apply $accepted',
+                      ),
+                      onPressed: busy || (accepted == 0 && rejected == 0)
+                          ? null
+                          : _apply,
+                    ),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -488,7 +604,11 @@ class _ReviewListState extends State<_ReviewList> {
   final TextEditingController _search = TextEditingController();
   final ScrollController _scroll = ScrollController();
 
-  static const double _rowExtent = 64;
+  /// Fixed row height, which is what lets the list jump straight to a row
+  /// rather than measuring its way there. Set a little above Material's dense
+  /// two-line minimum so a larger text scale grows into the slack instead of
+  /// being clipped by it.
+  static const double _rowExtent = 68;
 
   @override
   void dispose() {
@@ -655,6 +775,32 @@ class _ReviewListState extends State<_ReviewList> {
   }
 }
 
+/// The divider between the list and the detail pane, draggable so a reviewer
+/// working through very long release names can give the list the room it
+/// needs without leaving the tool.
+class _ListDivider extends StatelessWidget {
+  const _ListDivider({required this.onDrag});
+
+  final ValueChanged<double> onDrag;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.resizeLeftRight,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onHorizontalDragUpdate: (details) => onDrag(details.delta.dx),
+        // A one-pixel line is impossible to grab, so the hit area is padded
+        // well past what it draws.
+        child: const SizedBox(
+          width: 16,
+          child: VerticalDivider(width: 16, thickness: 1),
+        ),
+      ),
+    );
+  }
+}
+
 class _ProposalTile extends StatelessWidget {
   const _ProposalTile({
     required this.proposal,
@@ -678,6 +824,11 @@ class _ProposalTile extends StatelessWidget {
 
     return ListTile(
       dense: true,
+      // Tighter than the Material default on purpose: every pixel taken by
+      // padding is a pixel of release name that ellipsizes away.
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+      horizontalTitleGap: 8,
+      minLeadingWidth: 0,
       selected: isSelected,
       selectedTileColor: theme.colorScheme.surfaceContainerHighest,
       onTap: onTap,
@@ -1604,15 +1755,25 @@ class _Fact extends StatelessWidget {
       children: [
         Icon(icon, size: 14, color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(width: 4),
-        Text(
-          text,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        // A fact is a folder name, a scene title or a cast list, any of which
+        // can be longer than the pane is wide. Ellipsized rather than allowed
+        // to run off the edge — the tooltip below still carries the whole of
+        // it.
+        Flexible(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       ],
     );
-    return tooltip == null ? row : Tooltip(message: tooltip!, child: row);
+    // Falls back to the fact itself, so anything the ellipsis took is still
+    // readable.
+    return Tooltip(message: tooltip ?? text, child: row);
   }
 }
 
