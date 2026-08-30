@@ -6,8 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/global_shortcuts.dart';
+import 'package:syncopathy/heresphere/heresphere_controller.dart';
+import 'package:syncopathy/heresphere/heresphere_media_resolver.dart';
+import 'package:syncopathy/heresphere/media_library_source.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
+import 'package:syncopathy/media_library/media_badge.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 
 import 'package:syncopathy/model/battery_model.dart';
@@ -41,6 +45,7 @@ Future<Widget> _initializeAppAndRun({required bool simple}) async {
 
   MediaLibrarySettingsModel? mediaSettings;
   MediaManager? mediaManager;
+  HereSphereController? hereSphere;
   if (!simple) {
     mediaSettings = MediaLibrarySettingsModel();
     await mediaSettings.load();
@@ -65,6 +70,9 @@ Future<Widget> _initializeAppAndRun({required bool simple}) async {
   // reads the clock through this, so handing playback over is one assignment
   // rather than a rebuild of the funscript pipeline and the device backends.
   final activeSession = ActivePlaybackSession(videoPlayer);
+  // Closes the loop: the player is what the session boundary is built from, and
+  // this hands it back a way to ask whether it is still the one in charge.
+  videoPlayer.bindOwnership(activeSession);
   getIt.registerSingleton<ActivePlaybackSession>(activeSession);
 
   var playerModel = PlayerModel(
@@ -73,6 +81,32 @@ Future<Widget> _initializeAppAndRun({required bool simple}) async {
     activeSession.session,
     batteryModel,
   );
+
+  // Built after the active session, because handing the clock to HereSphere and
+  // giving it back is the controller's job. Experimental and inert until the
+  // user enables it: constructing it only subscribes it to the settings that
+  // decide whether a socket is ever bound.
+  if (!simple && !kIsWeb) {
+    final resolver = HereSphereMediaResolver.fromService(oBox.mediaService);
+    hereSphere = HereSphereController(
+      settings,
+      MediaLibraryHereSphereSource(
+        oBox.mediaService,
+        categories: oBox.userCategoryService,
+        decorateThumbnails: () => settings.hereSphereDecorateThumbnails.value,
+        // The badges the library grid is showing, so the headset's thumbnails
+        // carry the same information the cards do rather than a second set
+        // configured somewhere else.
+        enabledBadgeIds: () =>
+            mediaSettings?.enabledBadges.value ?? defaultBadgeIds,
+      ),
+      activeSession: activeSession,
+      localSession: videoPlayer,
+      resolveMedia: (id, resource) =>
+          resolver.byId(id) ?? resolver.byResource(resource),
+    );
+    getIt.registerSingleton<HereSphereController>(hereSphere);
+  }
 
   final alertManager = AlertManager();
   getIt.registerSingleton<AlertManager>(alertManager);
@@ -89,6 +123,7 @@ Future<Widget> _initializeAppAndRun({required bool simple}) async {
       if (mediaSettings != null) Provider.value(value: mediaSettings),
       if (!simple) Provider.value(value: getIt.get<MediaFilterPresetsModel>()),
       if (mediaManager != null) Provider.value(value: mediaManager),
+      if (hereSphere != null) Provider.value(value: hereSphere),
     ],
     // HACK: I added this ExcludeSemantics because it spams some accessibility error 🤷‍♂️
     // [ERROR:flutter/shell/platform/common/accessibility_bridge.cc(114)] Failed to update ui::AXTree, error: Nodes left pending by the update: 76

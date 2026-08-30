@@ -58,6 +58,26 @@ class BadgeSpec {
   });
 }
 
+/// Badge pill geometry, shared by the card overlay and by the copies drawn
+/// onto the thumbnails published to HereSphere. One definition, so a badge
+/// looks the same wherever it is rendered.
+const double mediaBadgeIconSize = 12.0;
+const double mediaBadgeFontSize = 12.0;
+const double mediaBadgePadding = 4.0;
+const double mediaBadgeRadius = 4.0;
+const double mediaBadgeGap = 4.0;
+const double mediaBadgeSpacing = 2.0;
+
+/// The typeface a badge's value is set in.
+TextStyle mediaBadgeTextStyle({
+  required Color color,
+  double fontSize = mediaBadgeFontSize,
+}) => GoogleFonts.robotoMono(
+  color: color,
+  fontSize: fontSize,
+  fontWeight: FontWeight.bold,
+);
+
 /// One rendered badge pill.
 ///
 /// Icon-only and text badges must come out the same height, so the text is laid
@@ -81,8 +101,8 @@ class MediaBadgeChip extends StatelessWidget {
     this.tooltip,
   });
 
-  static const double _iconSize = 12.0;
-  static const double _fontSize = 12.0;
+  static const double _iconSize = mediaBadgeIconSize;
+  static const double _fontSize = mediaBadgeFontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -111,10 +131,9 @@ class MediaBadgeChip extends StatelessWidget {
                 maxLines: 1,
                 softWrap: false,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.robotoMono(
+                style: mediaBadgeTextStyle(
                   color: foreground,
                   fontSize: _fontSize,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),

@@ -3,11 +3,14 @@ import 'dart:typed_data';
 import 'package:flutter/widgets.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
-import 'package:media_kit_video/media_kit_video.dart' as media_kit_video
+import 'package:media_kit_video/media_kit_video.dart'
+    as media_kit_video
     show Video;
 import 'package:path/path.dart' as p;
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/playlist_model.dart';
+import 'package:syncopathy/notification_feed.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/playback_session.dart';
 import 'package:syncopathy/player/smooth_video_signals.dart';
@@ -20,9 +23,8 @@ import 'package:syncopathy/player/video_player.dart';
 /// the narrower [PlaybackSession].
 abstract class MediaKitVideoPlayer extends VideoPlayer {
   /// A local player accepts every command, always.
-  static final ReadonlySignal<Set<PlaybackCapability>> _allCapabilities = signal(
-    Set.unmodifiable(PlaybackCapability.values.toSet()),
-  );
+  static final ReadonlySignal<Set<PlaybackCapability>> _allCapabilities =
+      signal(Set.unmodifiable(PlaybackCapability.values.toSet()));
 
   @override
   final bool embeddedPlayer;
@@ -198,6 +200,7 @@ abstract class MediaKitVideoPlayer extends VideoPlayer {
 
   @override
   Future<void> openSingleVideo(MediaFile media) async {
+    if (_refuseWhileNotOwner()) return;
     // If a playlist is currently open try to find the video and set the index
     final playlistModel = currentPlaylist.value;
     final index = playlistModel.getIndexForVideo(media);
@@ -212,11 +215,28 @@ abstract class MediaKitVideoPlayer extends VideoPlayer {
 
   @override
   Future<void> openMultipleVideos(List<MediaFile> videos) async {
+    if (_refuseWhileNotOwner()) return;
     if (videos.isEmpty) return;
     _previouslyLoadedVideos.value = videos;
     final playlist = Playlist(videos.map((v) => Media(v.mediaPath)).toList());
     await player.open(playlist, play: player.state.playing);
     playlistShuffledInternal.value = false;
+  }
+
+  /// Refuses to start playing while another session owns the clock, and says
+  /// so. Returns whether the caller should stop.
+  ///
+  /// Checked here rather than at each button, so a path added later cannot
+  /// quietly reintroduce the conflict: every way into local playback comes
+  /// through these two methods.
+  bool _refuseWhileNotOwner() {
+    if (ownsPlayback) return false;
+    final owner = playbackOwner?.sessionName ?? 'another player';
+    Logger.info('Refused local playback: $owner owns the clock');
+    AlertManager.showError(
+      '$owner is playing. Stop it there before playing something here.',
+    );
+    return true;
   }
 
   @override
@@ -247,6 +267,9 @@ abstract class MediaKitVideoPlayer extends VideoPlayer {
 
   @override
   Future<Uint8List?> screenshot() async {
+    // Nothing is rendering here while another session owns playback, so the
+    // honest answer is no frame rather than a stale one.
+    if (!ownsPlayback) return null;
     return await player.screenshot(
       format: 'image/jpeg',
       includeLibassSubtitles: false,

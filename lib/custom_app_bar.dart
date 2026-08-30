@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/connection_button.dart';
 import 'package:syncopathy/helper/extensions.dart';
+import 'package:syncopathy/heresphere/heresphere_status_button.dart';
 import 'package:syncopathy/home_button.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
@@ -93,6 +94,7 @@ class CustomAppBarState extends State<CustomAppBar> {
         if (hasBattery)
           _buildBatteryIndicator(context, batteryModel, chargerConnected),
         const SizedBox(width: 4.0),
+        const HereSphereStatusButton(),
         ConnectionButton(),
         const SizedBox(width: 4.0),
 
@@ -268,7 +270,10 @@ class _MediaActionButtonsState extends State<_MediaActionButtons> {
             inactiveTooltip: 'Dislike Video',
           ),
         if (widget.mediaManager != null) const SizedBox(width: 16),
-        if (!syncopathySimpleMode)
+        // Closes the local player, so it is only offered while the local
+        // player is the one playing. Under an external session it would report
+        // success and change nothing anyone can see.
+        if (!syncopathySimpleMode && getIt.get<VideoPlayer>().ownsPlayback)
           IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => getIt.get<VideoPlayer>().closeMedia(),

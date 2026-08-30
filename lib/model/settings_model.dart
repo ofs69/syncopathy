@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/helper/entity_binding.dart';
+import 'package:syncopathy/heresphere/heresphere_mode.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/platform/key_value_store/key_value_store.dart';
 import 'package:syncopathy/player/hwdec_mode.dart';
@@ -42,6 +43,51 @@ class SettingsModel {
   final Signal<bool> autoReconnect = signal(false);
   final Signal<HwdecMode> hwdecMode = signal(HwdecMode.autoCopy);
   final MapSignal<String, ShortcutBinding> customShortcuts = mapSignal({});
+
+  /// Experimental: serve the media library to HereSphere over the local
+  /// network. Off by default — enabling it exposes the indexed library to
+  /// whoever can reach the port.
+  final Signal<bool> hereSphereEnabled = signal(false);
+  final Signal<int> hereSpherePort = signal(9678);
+  final Signal<String> hereSphereBindAddress = signal('0.0.0.0');
+
+  /// Which application commands the device while HereSphere plays the video.
+  /// Only one may, so this is a choice rather than a pair of toggles.
+  final Signal<HereSphereDeviceOwner> hereSphereDeviceOwner = signal(
+    HereSphereDeviceOwner.syncopathy,
+  );
+
+  /// Whether the timestamp channel's address is taken from the player that
+  /// connected to the media server, rather than typed in.
+  final Signal<bool> hereSphereTimestampAutoDetect = signal(true);
+
+  /// Where to reach HereSphere's DeoVR-compatible timestamp server, which
+  /// supplies the periodic clock correction and the heartbeat. Consulted only
+  /// when [hereSphereTimestampAutoDetect] is off.
+  final Signal<String> hereSphereTimestampHost = signal('127.0.0.1');
+  final Signal<int> hereSphereTimestampPort = signal(23554);
+
+  /// Whether Syncopathy may command HereSphere over the timestamp channel —
+  /// seek, play/pause, change speed. Off by default: observing a player and
+  /// steering it are different permissions, and only this one reaches out.
+  final Signal<bool> hereSphereAllowRemoteControl = signal(false);
+
+  /// Whether to draw the media library's badges and a funscript heatmap over
+  /// the thumbnails HereSphere shows.
+  final Signal<bool> hereSphereDecorateThumbnails = signal(true);
+
+  /// The login HereSphere must present.
+  ///
+  /// The password is held only as a salted PBKDF2 hash, so it can be checked
+  /// but never read back or displayed. An empty hash means no password is set,
+  /// which leaves the server refusing everyone rather than admitting everyone.
+  final Signal<String> hereSphereUsername = signal('syncopathy');
+  final Signal<String> hereSpherePasswordHash = signal('');
+
+  /// Whether a usable login exists. The server is unreachable without one.
+  late final ReadonlySignal<bool> hereSphereHasPassword = computed(
+    () => hereSpherePasswordHash.value.isNotEmpty,
+  );
 
   /// The `hwdec` value actually handed to mpv. A `--hwdec=` command line
   /// argument wins over the stored setting, so a user can diagnose a driver
@@ -129,6 +175,56 @@ class SettingsModel {
     EntityBinding(
       () => customShortcuts.value = _entity.customShortcuts,
       () => _entity.customShortcuts = customShortcuts.value,
+    ),
+    EntityBinding(
+      () => hereSphereEnabled.value = _entity.hereSphereEnabled,
+      () => _entity.hereSphereEnabled = hereSphereEnabled.value,
+    ),
+    EntityBinding(
+      () => hereSpherePort.value = _entity.hereSpherePort,
+      () => _entity.hereSpherePort = hereSpherePort.value,
+    ),
+    EntityBinding(
+      () => hereSphereBindAddress.value = _entity.hereSphereBindAddress,
+      () => _entity.hereSphereBindAddress = hereSphereBindAddress.value,
+    ),
+    EntityBinding(
+      () => hereSphereDeviceOwner.value = _entity.hereSphereDeviceOwner,
+      () => _entity.hereSphereDeviceOwner = hereSphereDeviceOwner.value,
+    ),
+    EntityBinding(
+      () => hereSphereTimestampAutoDetect.value =
+          _entity.hereSphereTimestampAutoDetect,
+      () => _entity.hereSphereTimestampAutoDetect =
+          hereSphereTimestampAutoDetect.value,
+    ),
+    EntityBinding(
+      () => hereSphereTimestampHost.value = _entity.hereSphereTimestampHost,
+      () => _entity.hereSphereTimestampHost = hereSphereTimestampHost.value,
+    ),
+    EntityBinding(
+      () => hereSphereTimestampPort.value = _entity.hereSphereTimestampPort,
+      () => _entity.hereSphereTimestampPort = hereSphereTimestampPort.value,
+    ),
+    EntityBinding(
+      () => hereSphereAllowRemoteControl.value =
+          _entity.hereSphereAllowRemoteControl,
+      () => _entity.hereSphereAllowRemoteControl =
+          hereSphereAllowRemoteControl.value,
+    ),
+    EntityBinding(
+      () => hereSphereDecorateThumbnails.value =
+          _entity.hereSphereDecorateThumbnails,
+      () => _entity.hereSphereDecorateThumbnails =
+          hereSphereDecorateThumbnails.value,
+    ),
+    EntityBinding(
+      () => hereSphereUsername.value = _entity.hereSphereUsername,
+      () => _entity.hereSphereUsername = hereSphereUsername.value,
+    ),
+    EntityBinding(
+      () => hereSpherePasswordHash.value = _entity.hereSpherePasswordHash,
+      () => _entity.hereSpherePasswordHash = hereSpherePasswordHash.value,
     ),
   ];
 

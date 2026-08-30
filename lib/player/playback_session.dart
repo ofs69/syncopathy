@@ -40,6 +40,12 @@ enum PlaybackCapability {
 /// an external player implements the same contract without any of the
 /// local-playback surface.
 abstract class PlaybackSession with EffectDispose {
+  /// What to call this session when telling the user which one is in charge.
+  ///
+  /// Exists so a refusal can name the player that holds playback without the
+  /// local player having to know what else might exist.
+  String get sessionName => 'the player';
+
   /// The library entry currently loaded, or null when nothing is open.
   ReadonlySignal<MediaFile?> get currentMedia;
 
@@ -121,7 +127,10 @@ abstract class PlaybackSession with EffectDispose {
 
   /// Moves the playhead by [offset] relative to the last reported position.
   void seekRelative(Duration offset) => seekTo(
-    Duration(microseconds: (rawPosition.value * Duration.microsecondsPerSecond).round()) +
+    Duration(
+          microseconds: (rawPosition.value * Duration.microsecondsPerSecond)
+              .round(),
+        ) +
         offset,
   );
 
@@ -146,11 +155,23 @@ abstract class PlaybackSession with EffectDispose {
 class ActivePlaybackSession {
   final Signal<PlaybackSession> _session;
 
-  ActivePlaybackSession(PlaybackSession initial) : _session = signal(initial);
+  /// The session that owns playback by default, and that ownership returns to.
+  final PlaybackSession local;
+
+  ActivePlaybackSession(this.local) : _session = signal(local);
 
   ReadonlySignal<PlaybackSession> get session => _session;
 
   PlaybackSession get value => _session.value;
+
+  /// Whether the local player is the one in charge.
+  ///
+  /// The local player checks this before starting anything: while another
+  /// session owns the clock, opening a video here would put two players on one
+  /// device and leave the funscript following whichever won.
+  late final ReadonlySignal<bool> localOwnsPlayback = computed(
+    () => identical(_session.value, local),
+  );
 
   /// Hands clock ownership to [session]. The previous session is left alone —
   /// it is not disposed, so control can be handed back.

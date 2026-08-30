@@ -4,51 +4,7 @@ import 'package:syncopathy/model/timesource_model.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/player/playback_session.dart';
 
-/// A [PlaybackSession] driven entirely from the test, standing in for a player
-/// Syncopathy does not own. Every signal is writable so a test can push the
-/// clock around without a real decoder.
-class FakePlaybackSession extends PlaybackSession {
-  @override
-  final Signal<MediaFile?> currentMedia = signal(null);
-  @override
-  final Signal<String> loadedPath = signal("");
-  @override
-  final Signal<double?> duration = signal(null);
-  @override
-  final Signal<bool> paused = signal(true);
-  @override
-  final Signal<bool> buffering = signal(false);
-  @override
-  final Signal<bool> seeking = signal(false);
-  @override
-  final Signal<double> rawPosition = signal(0.0);
-  @override
-  final Signal<double> playbackSpeed = signal(1.0);
-  @override
-  final Signal<bool> loopFile = signal(false);
-  @override
-  final Signal<int?> videoWidth = signal(null);
-  @override
-  final Signal<int?> videoHeight = signal(null);
-  @override
-  final Signal<bool> connected = signal(true);
-  @override
-  final Signal<Set<PlaybackCapability>> capabilities = signal({});
-
-  /// No extrapolation: the tests want the clock to be exactly what they set.
-  @override
-  ReadonlySignal<double> get smoothPosition => rawPosition;
-
-  final List<Duration> seeks = [];
-
-  @override
-  void seekTo(Duration position) {
-    if (!supports(PlaybackCapability.seek)) {
-      unsupported(PlaybackCapability.seek);
-    }
-    seeks.add(position);
-  }
-}
+import 'support/fake_playback_session.dart';
 
 MediaFile _media(String name) => MediaFile(
   name: name,
@@ -140,37 +96,40 @@ void main() {
       expect(timesource.loadedPath.value, 'Q:/media/a.mp4');
     });
 
-    test('a handover retargets the clock without rebuilding the timesource', () {
-      final local = FakePlaybackSession()
-        ..rawPosition.value = 10.0
-        ..paused.value = false;
-      final external = FakePlaybackSession()
-        ..rawPosition.value = 99.0
-        ..paused.value = false
-        ..playbackSpeed.value = 2.0;
+    test(
+      'a handover retargets the clock without rebuilding the timesource',
+      () {
+        final local = FakePlaybackSession()
+          ..rawPosition.value = 10.0
+          ..paused.value = false;
+        final external = FakePlaybackSession()
+          ..rawPosition.value = 99.0
+          ..paused.value = false
+          ..playbackSpeed.value = 2.0;
 
-      final active = ActivePlaybackSession(local);
-      final timesource = TimesourceModel.fromSession(active.session);
-      final positions = <int>[];
-      final dispose = effect(() {
-        timesource.rawPosition.value;
-        positions.add(timesource.currentRawMs);
-      });
+        final active = ActivePlaybackSession(local);
+        final timesource = TimesourceModel.fromSession(active.session);
+        final positions = <int>[];
+        final dispose = effect(() {
+          timesource.rawPosition.value;
+          positions.add(timesource.currentRawMs);
+        });
 
-      expect(timesource.currentRawMs, 10000);
+        expect(timesource.currentRawMs, 10000);
 
-      active.takeOver(external);
+        active.takeOver(external);
 
-      expect(timesource.currentRawMs, 99000);
-      expect(timesource.playbackSpeed.value, 2.0);
+        expect(timesource.currentRawMs, 99000);
+        expect(timesource.playbackSpeed.value, 2.0);
 
-      // The old session is still alive but no longer drives the clock.
-      local.rawPosition.value = 11.0;
-      expect(timesource.currentRawMs, 99000);
+        // The old session is still alive but no longer drives the clock.
+        local.rawPosition.value = 11.0;
+        expect(timesource.currentRawMs, 99000);
 
-      dispose();
-      expect(positions, [10000, 99000]);
-    });
+        dispose();
+        expect(positions, [10000, 99000]);
+      },
+    );
 
     test('a session that lost contact reads as paused', () {
       final session = FakePlaybackSession()..paused.value = false;
@@ -212,6 +171,20 @@ void main() {
       expect(active.value.currentMedia.value?.name, 'local');
       active.takeOver(external);
       expect(active.value.currentMedia.value?.name, 'external');
+    });
+
+    test('local ownership follows the handover, and comes back', () {
+      // What the local player checks before starting anything, so that a click
+      // in the library cannot put a second video against the same device.
+      final local = FakePlaybackSession();
+      final external = FakePlaybackSession();
+      final active = ActivePlaybackSession(local);
+
+      expect(active.localOwnsPlayback.value, isTrue);
+      active.takeOver(external);
+      expect(active.localOwnsPlayback.value, isFalse);
+      active.takeOver(local);
+      expect(active.localOwnsPlayback.value, isTrue);
     });
   });
 }

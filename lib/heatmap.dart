@@ -56,22 +56,7 @@ class _HeatmapState extends State<Heatmap> {
       return _cachedEffectiveSpeeds!;
     }
 
-    final speeds = actions.length < 2
-        ? const <double>[]
-        : List<double>.filled(actions.length - 1, 0.0);
-    if (actions.length >= 2) {
-      // Same dwell-aware, jitter-merged strokes as
-      // FunscriptAlgorithms.averageSpeed, so the heatmap colouring and the
-      // aggregate score agree. Each coarse stroke's speed is assigned to every
-      // action pair it spans (remapped pos/ms; playbackSpeed scales linearly).
-      final remapScale = (strokeRange.end - strokeRange.start) / 100.0;
-      for (final s in FunscriptAlgorithms.strokeSegments(actions)) {
-        final speed = s.speed * playbackSpeed * remapScale / 1000.0;
-        for (int k = s.start; k < s.end; k++) {
-          speeds[k] = speed;
-        }
-      }
-    }
+    final speeds = heatmapEffectiveSpeeds(actions, playbackSpeed, strokeRange);
 
     _cachedActions = actions;
     _cachedSpeed = playbackSpeed;
@@ -261,6 +246,35 @@ class _SegmentData {
       posSampleCount > 0 ? totalMinPos / posSampleCount : 0.0;
   double get averageMax =>
       posSampleCount > 0 ? totalMaxPos / posSampleCount : 0.0;
+}
+
+/// Effective per-action-pair speeds, the size-independent half of the heatmap.
+///
+/// Extracted from the widget so anything that needs a heatmap without one —
+/// the thumbnails published to HereSphere, for instance — colours it from the
+/// same numbers the seek bar does, rather than from a second speed model that
+/// would drift out of agreement with it.
+///
+/// Same dwell-aware, jitter-merged strokes as
+/// [FunscriptAlgorithms.averageSpeed], so the heatmap colouring and the
+/// aggregate score agree. Each coarse stroke's speed is assigned to every
+/// action pair it spans (remapped pos/ms; playbackSpeed scales linearly).
+List<double> heatmapEffectiveSpeeds(
+  List<FunscriptAction> actions,
+  double playbackSpeed,
+  RangeValues strokeRange,
+) {
+  if (actions.length < 2) return const <double>[];
+
+  final speeds = List<double>.filled(actions.length - 1, 0.0);
+  final remapScale = (strokeRange.end - strokeRange.start) / 100.0;
+  for (final s in FunscriptAlgorithms.strokeSegments(actions)) {
+    final speed = s.speed * playbackSpeed * remapScale / 1000.0;
+    for (int k = s.start; k < s.end; k++) {
+      speeds[k] = speed;
+    }
+  }
+  return speeds;
 }
 
 /// A [CustomPainter] that draws the heatmap based on movement speed.

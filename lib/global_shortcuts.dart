@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/model/shortcut_settings.dart';
+import 'package:syncopathy/player/playback_session.dart';
 import 'package:syncopathy/player/video_player.dart';
 
 class TogglePauseIntent extends Intent {
@@ -73,6 +74,7 @@ class _GlobalShortcutsState extends State<GlobalShortcuts> {
   @override
   Widget build(BuildContext context) {
     final videoPlayer = context.read<VideoPlayer>();
+    final activeSession = context.read<ActivePlaybackSession>();
     final settingsModel = context.read<SettingsModel>();
 
     return SignalBuilder(
@@ -98,14 +100,31 @@ class _GlobalShortcutsState extends State<GlobalShortcuts> {
           manager: _shortcutManager,
           child: Actions(
             actions: <Type, Action<Intent>>{
+              // Aimed at whichever session owns playback, not at the local
+              // player: with HereSphere in charge, the pause key was stopping
+              // an idle mpv while the headset carried on.
               TogglePauseIntent: CallbackAction<TogglePauseIntent>(
-                onInvoke: (intent) => videoPlayer.togglePause(),
+                onInvoke: (intent) {
+                  final session = activeSession.value;
+                  if (!session.supports(PlaybackCapability.playPause)) {
+                    return null;
+                  }
+                  session.togglePause();
+                  return null;
+                },
               ),
+              // Playlists are a local-player idea, so these stay local — but
+              // only while the local player is the one playing. Skipping a
+              // hidden playlist under an external session is a silent surprise.
               NextTrackIntent: CallbackAction<NextTrackIntent>(
-                onInvoke: (intent) => videoPlayer.jumpNextPlaylistEntry(),
+                onInvoke: (intent) => videoPlayer.ownsPlayback
+                    ? videoPlayer.jumpNextPlaylistEntry()
+                    : null,
               ),
               PreviousTrackIntent: CallbackAction<PreviousTrackIntent>(
-                onInvoke: (intent) => videoPlayer.jumpPreviousPlaylistEntry(),
+                onInvoke: (intent) => videoPlayer.ownsPlayback
+                    ? videoPlayer.jumpPreviousPlaylistEntry()
+                    : null,
               ),
               ToggleHomeModeIntent: CallbackAction<ToggleHomeModeIntent>(
                 onInvoke: (intent) => settingsModel.homeDeviceEnabled.value =

@@ -2,20 +2,29 @@
 
 ## Status
 
-Proposed advanced experimental feature.
+Experimental. Phases 1 through 5 are implemented and covered by automated tests.
+What remains is the protocol spike (phase 0) and the hardware and headset
+verification in phase 4, both of which need a real HereSphere build and a real
+device; the code was written against the reference implementations listed at the
+end and is unproven against the player itself.
 
 ## Objective
 
-Allow HereSphere on Windows or a standalone headset to browse and stream videos from Syncopathy while Syncopathy remains the sole owner of funscript processing and Handy playback.
+Allow HereSphere on Windows or a standalone headset to browse and stream videos from Syncopathy, with funscript playback available through either application.
 
-HereSphere is the authoritative video player. Syncopathy supplies media and metadata, observes HereSphere's playback clock, resolves the selected media to its local funscript, and drives the configured Handy backend.
+HereSphere is always the authoritative video player. Which application drives the device is a user choice, made explicitly in settings:
+
+- **Syncopathy drives the device** (default). Syncopathy supplies media and metadata, observes HereSphere's playback clock, resolves the selected media to its local funscript, and drives the configured Handy backend. Syncopathy's own processing - stroke range, intensity, smoothing, inversion - applies, and no script URL is published.
+- **HereSphere drives the device.** Syncopathy publishes funscript URLs alongside the video and is a media server and nothing more. HereSphere's synchronized peripherals apply their own settings to the stored script.
+
+Only one of them may command the device at a time. The mode is what makes that explicit rather than something the user has to infer from a stroker behaving oddly.
 
 ## Non-goals
 
 - Do not embed or automate HereSphere itself.
 - Do not have two players decode the same video and attempt to stay synchronized.
 - Do not infer playback position from HTTP download progress.
-- Do not let HereSphere and Syncopathy command the same Handy simultaneously.
+- Do not let HereSphere and Syncopathy command the same Handy simultaneously. Either may command it; never both, and never implicitly.
 - Do not add transcoding in the first version.
 - Do not support this feature in the Syncopathy web build.
 - Do not support multiple concurrent HereSphere sessions in the first version.
@@ -63,8 +72,9 @@ Expose a small library API with the `HereSphere-JSON-Version: 1` response header
 
 - Library endpoint containing sections and per-video metadata URLs.
 - Per-video endpoint containing title, duration, dimensions, projection data when known, thumbnail URL, media source URL, and `eventServer` URL.
-- Initially omit the `scripts` field so HereSphere cannot take ownership of the funscript.
-- An `Interactive` display tag may be included without exposing the script.
+- A bulk metadata endpoint at `/scan`, describing every entry in one response.
+- Publish the `scripts` field only in the mode where HereSphere drives the device. Omitting it is what keeps HereSphere from taking ownership of the funscript.
+- Publish `tags` in both modes. They mark the entry as interactive without exposing the script, and they are what the player's own filtering works on.
 
 Use opaque media identifiers derived from stable application state. Never put a filesystem path in a route or trust a path supplied by the client.
 
@@ -146,30 +156,111 @@ Map API identifiers, event identifiers, and streamed resource URLs to `MediaFile
 
 ## User Experience
 
-Add an experimental HereSphere section to settings:
+An experimental HereSphere card in settings, holding:
 
 - Enable HereSphere server.
 - Listen interface and port.
-- Display the URL to enter in HereSphere, with copy action.
-- HereSphere timestamp host and port.
-- Connection status for API client, timestamp channel, and Handy.
-- Test connection action.
-- Optional `Open selected media in HereSphere` capability after outbound commands are proven.
-- Clear warning that HereSphere synchronized peripherals must remain disabled when Syncopathy owns the Handy.
+- The URL to enter in HereSphere, with a copy action, and a *Generate a new
+  link* action that invalidates the old one.
+- Which application drives the device, as two mutually exclusive options with
+  their consequences spelled out - not a toggle, because they are two different
+  arrangements rather than one feature with an on and an off.
+- HereSphere timestamp host and port, shown only in the mode that uses them.
+- Live status for the server, the timestamp channel, and the connected client.
+- An opt-in for outbound commands.
 
-When external playback is active, the regular player page should clearly indicate that HereSphere owns video controls. Unsupported local controls should be disabled rather than silently doing nothing.
+Status lines say what the state means for the device, not just what it is:
+"connected, but HereSphere has stopped reporting - the device is held" rather
+than a red dot. The two failure modes a user cannot see from outside are a
+socket that is open but silent, and a device connection that is still live in
+the mode where it should not be; both are called out explicitly, the second with
+a *Disconnect* action beside it.
+
+When external playback is active the player page is covered by an ownership
+panel naming the media, the clock, and whether the device is being driven.
+Covering the surface is how the local controls are disabled - they belong to a
+player that is not the one playing.
 
 ## Security and Privacy
 
 - Default to disabled.
+- Require a username and password before anything about the library is revealed.
 - Prefer binding to a selected private-network interface instead of every interface.
 - Include an unguessable session token in every library, thumbnail, event, and stream URL.
 - Resolve only application-issued IDs and reject path traversal or arbitrary file paths.
-- Never log tokens or complete media paths at normal log levels.
-- Limit request headers and range sizes defensively.
+- Never log tokens, passwords, or complete media paths at normal log levels.
+- Limit request headers, request bodies, and range sizes defensively.
 - Allow only one active HereSphere client in the first version.
 - Document the operating-system firewall prompt and the fact that enabling the server exposes selected media to the local network.
-- Stop the server and invalidate tokens when the feature is disabled.
+- Stop the server and invalidate sessions when the feature is disabled.
+
+### Authentication
+
+HereSphere's own mechanism, which is the only one the player can drive: the
+client posts `username` and `password` to the library endpoint, and the server
+answers with an `access` field — `0` to make it prompt, `-1` for a wrong answer,
+`1` to hand over the library.
+
+**Two credentials, because there are two kinds of request.** The JSON API can
+carry a login; the byte-serving routes cannot. Media, thumbnail, script and
+event requests come from the video player as plain GETs with no body, so a
+password has nowhere to travel. A session token in the path stands in for one on
+those routes, and it is minted only by a successful login — a consequence of
+authenticating rather than a replacement for it.
+
+That also removed the worst part of the earlier design. The token used to be
+persistent and typed by hand, which is why it had to be short enough to enter on
+a headset keyboard. Now the only thing a person types is `http://<address>:<port>`
+and then their password when prompted; every tokenised URL is issued by the
+server and never read by a human, so tokens are 22 characters of full alphabet
+and expire.
+
+Decisions worth recording:
+
+- **The password is stored only as a salted PBKDF2-HMAC-SHA256 hash**
+  (120k iterations, `pbkdf2-sha256$<iterations>$<salt>$<key>`). The settings
+  file is plain JSON in the application data directory and it travels in bug
+  reports; a recovered password would be worth more than the media it guards,
+  because people reuse them. The cost is that it cannot be displayed again — a
+  forgotten password is replaced, not looked up. The derivation runs on its own
+  isolate, because the same event loop is streaming video and a 150ms stall
+  would be a visible hitch.
+
+- **No password set means nobody gets in, not everybody.** The server still
+  binds — not binding would read as the feature being broken — and refuses every
+  login, with the settings panel saying so plainly.
+
+- **Failed logins are rate-limited per address**: five wrong answers and that
+  address is refused for a minute, right answer included. A local network is not
+  a safe place to leave an unlimited password oracle; anything on it can guess as
+  fast as the server will answer. The blank login HereSphere sends *before* it
+  prompts is not counted as a failure, or a player that asks twice would spend
+  the user's budget before they had typed anything.
+
+- **Changing the password signs every device out.** A session token issued
+  against the old credentials would otherwise outlive them, and a password
+  change that leaves existing access intact is not a password change.
+
+- **A stale token on a JSON route answers `access: 0`, not `404`.** That sends
+  HereSphere back to log in; a 404 would leave it holding a dead library with
+  nothing to act on. The byte routes still answer 404, since a video decoder has
+  no use for an access field.
+
+- Both the password and the username are compared in constant time, and a wrong
+  username still pays the full derivation, so neither the timing nor the latency
+  says which half was wrong.
+
+- **A generated password is three words, not sixteen random characters.**
+  `river-gold-lamp`. The first version drew sixteen characters from an
+  unambiguous alphabet, about eighty bits — and optimised the wrong thing. This
+  password is typed once, on a headset keyboard, from a string read off a
+  monitor across the room; transcription is the hard part and entropy per
+  character is not. Three words from a 344-word list is roughly twenty-five
+  bits, tens of millions of combinations. Against a lockout that answers five
+  wrong guesses per address per minute, that is already unreachable — the
+  lockout, not the password, is what makes guessing pointless, and it was doing
+  that job at eighty bits too. Nothing stops a user typing whatever they like
+  instead; this is only what the generator suggests.
 
 ## Implementation Phases
 
@@ -228,42 +319,283 @@ test matrix below.
 
 ### Phase 2: Single-video streaming server
 
-- [ ] Add native server lifecycle management.
-- [ ] Implement tokenized single-video metadata, thumbnail, event, and stream endpoints.
-- [ ] Implement standards-compliant byte-range handling.
-- [ ] Add a minimal settings/status panel.
+- [x] Add native server lifecycle management.
+- [x] Implement tokenized single-video metadata, thumbnail, event, and stream endpoints.
+- [x] Implement standards-compliant byte-range handling.
+- [x] Add a minimal settings/status panel.
 - [ ] Test sustained throughput and seeking without excessive memory growth.
 
 Exit criterion: HereSphere can open, seek, and play one Syncopathy-selected video over localhost and LAN.
 
+Everything lives under `lib/heresphere/`. `HereSphereServer` is a plain
+`dart:io` `HttpServer` — no `shelf` dependency, because the whole surface is
+five routes and the one part that needs care is the `Range` header, which a
+framework would not have helped with. `HereSphereController` owns its lifecycle
+from settings; the server itself has no opinion about persistence, so a test can
+bind one directly.
+
+The library is reached through a `HereSphereLibrary` interface rather than
+ObjectBox. `MediaLibraryHereSphereSource` implements it over `MediaService` and
+`ThumbnailGenerator`; the request handling is tested against a fake and never
+holds a database handle.
+
+Four things landed differently than written above:
+
+- **The URL a person types carries no secret.** An earlier version put a
+  persistent token in it, which forced the token to be short enough to enter on
+  a headset keyboard. Authentication replaced that: the typed URL is just
+  `http://<address>:<port>`, the password is prompted for by the player, and the
+  tokens in every other URL are issued by the server. See **Authentication**
+  above. The generated password is the one thing still entered by hand, and it
+  is generated accordingly.
+
+- **URLs are derived from the request's own `Host` header, not from a
+  configured advertised base.** A headset reaching the LAN address and a browser
+  reaching loopback then both get URLs that work, without the user having to
+  declare which address to advertise. The header is client-controlled, so it is
+  validated and falls back to the bound address; it is only ever reflected to
+  the client that sent it. The settings panel enumerates interfaces for display
+  only, and lists just the bound address when one interface is selected — an
+  address the server is not listening on would be a link that silently fails.
+
+- **Projection, stereo layout, and `fov` are omitted rather than guessed.**
+  Syncopathy cannot yet determine them, and sending a wrong value overrides
+  HereSphere's own filename-based detection. Publishing nothing leaves that
+  detection in charge. Adding them is a phase 5 item.
+
+- **The event endpoint exists but nothing consumes it.** Payloads are parsed
+  into `HereSphereEvent` and published on `HereSphereServer.events`; the session
+  that turns them into a clock is phase 3. It answers `200` even to a malformed
+  body — a rejection tells the player nothing useful, and an endpoint that looks
+  broken risks it giving up on events altogether.
+
+Two decisions worth recording:
+
+- **`scripts` is absent from every response, and that is asserted in a test.**
+  It is the one field that would let HereSphere drive the device. The entry is
+  still marked with an `Interactive` tag, which says a script exists without
+  handing it over.
+
+- **One client at a time, keyed on remote address.** `ClientClaim` holds the
+  session for ten minutes past the last request — long enough to outlast the
+  quiet stretch between a library scan and opening a video. All loopback
+  addresses collapse to one key, since a local client arrives as `127.0.0.1` or
+  `::1` from one request to the next and treating those as rivals would lock the
+  user out of their own server.
+
+Byte-range handling follows RFC 9110: open-ended, closed, and suffix forms;
+`206` with `Content-Range`; `416` with `bytes */<length>` for a range past the
+end; and a header that is invalid, in an unknown unit, or asking for more than
+one range is *ignored* rather than rejected, which means serving the full
+representation. `resolveRange` is pure and holds every one of those rules, so
+they are decided in one place and tested without a socket. The file is never
+read into memory — `openRead` yields chunks and `addStream` pauses it when the
+socket buffer fills — and a client hanging up mid-response is treated as
+routine, because that is exactly what a seek is.
+
+Still open at the end of this phase, and deliberately so:
+
+- Sustained-throughput and memory behaviour under a real multi-hour 8K file
+  needs measuring against real HereSphere; it stays in the manual matrix below.
+- The refuse-a-second-client path is unit-tested through `ClientClaim` but not
+  end to end, since both ends of a loopback test share one address key.
+- Sections are `Interactive` and `Other Videos`, each capped at 500 entries. A
+  larger library silently publishes only its first 500 per section until phase 5
+  carves it up properly.
+
 ### Phase 3: HereSphere playback session
 
-- [ ] Parse and validate event-server messages.
-- [ ] Implement the TCP timestamp client and keepalive.
-- [ ] Resolve the current API media ID to `MediaFile` and its selected funscript.
-- [ ] Produce raw and smooth position signals.
-- [ ] Implement seek/discontinuity detection and connection-loss fail-safe behavior.
-- [ ] Drive a fake backend through the full playback-state matrix.
+- [x] Parse and validate event-server messages.
+- [x] Implement the TCP timestamp client and keepalive.
+- [x] Resolve the current API media ID to `MediaFile` and its selected funscript.
+- [x] Produce raw and smooth position signals.
+- [x] Implement seek/discontinuity detection and connection-loss fail-safe behavior.
+- [x] Drive a fake backend through the full playback-state matrix.
 
 Exit criterion: fake-device playback stays aligned through play, pause, seek, speed change, and disconnect.
 
+`HereSpherePlaybackSession` is fed by both channels and reuses
+`SmoothVideoSignals` for extrapolation, so its clock behaves like the local
+player's rather than being a second implementation of the same idea.
+`HereSphereTimestampClient` owns the socket; the framing it speaks is pure and
+lives in `timestamp_protocol.dart`, tested without one.
+
+Four things are worth recording:
+
+- **Stall detection has to run before seek detection.** Once the prediction has
+  run a second ahead of a frozen clock, a stall and a jump backwards look
+  identical - both arrive as a large negative drift. What separates them is not
+  the distance from the *prediction* but the distance from the *previous
+  report*: a stalled clock has barely moved, a seek has moved a long way. The
+  first draft checked seeks first and so never detected a stall at all. The rule
+  now is: if the clock advanced by less than a tenth of what was predicted, over
+  an interval long enough to judge, it is stalled.
+
+- **A lost heartbeat does not hand ownership back.** The obvious design - own
+  the clock only while connected - makes a brief dropout bounce playback to the
+  local player, which unloads the funscript and reloads it on reconnect.
+  Ownership is keyed on resolved media instead; a dropped channel leaves
+  HereSphere in charge with `connected` false, which `TimesourceModel` folds
+  into `paused`. Same fail-safe, no churn.
+
+- **`setChannelHealthy` reads its own signal untracked.** It is called from an
+  effect watching the channel's health, and its `if (current == next) return`
+  guard made that effect depend on the signal it was about to write - so the
+  effect re-ran and immediately undid itself. Caught by the ownership tests,
+  which is the only reason it is not a silent "the device never starts" bug.
+
+- **An unknown player state counts as paused.** Both on the timestamp channel
+  and in the event decoder. Guessing "playing" for a value this build does not
+  understand would keep a device running on an unverified clock.
+
+Media resolution is ordered: the `id` from an event first, then the identifier
+carved out of a streamed `resource` URL, then - only for a file HereSphere
+opened by itself - a filename match, and only when exactly one entry matches.
+An ambiguous filename resolves to nothing, because the wrong script driving a
+device is worse than no script.
+
 ### Phase 4: Handy integration
 
+- [x] Add explicit external-session ownership indicators and warnings.
 - [ ] Exercise command, Bluetooth HSP, and Web HSP backends.
 - [ ] Verify buffer rebuilds for seeks inside and outside the current HSP window.
 - [ ] Measure steady-state and post-seek clock deltas.
 - [ ] Confirm pause and disconnect stop device movement promptly.
-- [ ] Add explicit external-session ownership indicators and warnings.
 
 Exit criterion: the Handy is driven only by Syncopathy and remains acceptably synchronized during normal playback and recovery cases.
 
+The backends needed no changes: they consume `TimesourceModel`, and the session
+boundary from phase 1 means they cannot tell which player is behind it. The seek
+pulse is shaped to match what the HSP mixin expects - `seeking` raised, the new
+position written, then `seeking` cleared - because the mixin rebuilds its buffer
+on the falling edge and would otherwise rebuild around the old position.
+
+`HereSpherePlaybackOverlay` covers the player page while HereSphere owns the
+clock. Covering the surface *is* how local controls are disabled: they belong to
+a player that is not the one playing, and a greyed-out button is a worse answer
+than an explanation. It also reports whether the device is actually being
+driven, since a stroker that is not moving looks the same whether that is
+deliberate or a connection failure.
+
+In the other mode the settings panel warns when Syncopathy still holds a device
+connection, and offers to drop it. Syncopathy cannot see what HereSphere is
+connected to, so it reports the half it does know rather than leaving the user
+to work out why the strokes are fighting.
+
+The remaining boxes need real hardware and a real headset, and belong to the
+manual pass.
+
 ### Phase 5: Library browsing and polish
 
-- [ ] Publish useful Syncopathy categories or bounded library sections.
-- [ ] Include cached JPEG thumbnails and known media metadata.
-- [ ] Add projection/stereo metadata where Syncopathy can determine it safely.
-- [ ] Add reconnect diagnostics and actionable error messages.
-- [ ] Consider outbound open/seek/play commands as a separate opt-in capability.
+- [x] Publish useful Syncopathy categories or bounded library sections.
+- [x] Publish the whole library, with bulk metadata and tags for the player's own search.
+- [x] Include cached thumbnails and known media metadata.
+- [x] Draw the media library's badges and a funscript heatmap onto published thumbnails.
+- [x] Report HereSphere's state from every tab, not only the player page.
+- [x] Add projection/stereo metadata where Syncopathy can determine it safely.
+- [x] Add reconnect diagnostics and actionable error messages.
+- [x] Consider outbound open/seek/play commands as a separate opt-in capability.
+
+Sections are `Interactive`, `Other Videos`, and one per user category, with no
+cap.
+
+**The section cap was removed.** It was set at five hundred on the theory that a
+headset should not be handed an enormous index, and the first real library ran
+straight into it: 506 entries published out of considerably more, with the
+missing ones indistinguishable from media that had failed to index. The trade
+was wrong in both directions — the index carries nothing per entry but a URL, so
+the response was never the expensive part, and silently dropping half a library
+is a far worse failure than a large response.
+
+**Bulk metadata goes over `/scan`.** The index gives the player URLs and nothing
+else, so without this it learns an entry's title only by fetching that entry's
+own metadata — thousands of round trips for a large library, and a search that
+covers only what has already been pulled. `/scan` answers with every title,
+date, duration, rating and tag at once, which is what makes the player's own
+search, sort and filter work across the whole library rather than across the
+part of it that happens to be loaded.
+
+HereSphere reaches it by appending `/scan` to the library URL it was given, so it
+arrives with no session token and authenticates with credentials in the body,
+exactly as the index does. If a player build does not send credentials there, it
+gets `access: 0` and the library still works entry by entry — the endpoint is an
+optimisation, and a failure of it must never be a failure of the library.
+
+**Tags are the search surface.** The player groups them by the part before the
+colon and offers each group as a filter, so the groups published are the
+questions this library actually gets browsed with: `Category` (the user's own),
+`Interactive`, `Speed` and `Range` bands read off the script, `Resolution`,
+`Watched`, `Rating`, and `Script` for AI-generated and multi-axis. Bands rather
+than raw numbers, because a filter needs values that repeat across entries — an
+exact average speed is unique to each one and would give a filter list as long
+as the library.
+
+**Thumbnails carry the library's badges and a heatmap strip.** The same badges
+the media grid draws, from the same settings, plus a strip of the funscript along
+the bottom edge — so an entry can be told apart in the headset the same way it
+can on the desktop, which matters more there because reading a title in VR is
+slower. Decorated thumbnails are re-encoded as PNG and cached, keyed on
+everything that changes how one is drawn, so a rating or a play count going up
+invalidates the picture rather than leaving a stale badge on it. Drawing failure
+degrades to the plain thumbnail; a decoration bug must never cost the library its
+pictures. Off in one setting for anyone who wants a clean frame.
+
+**Projection metadata is read off the filename, and only off the filename.**
+Nothing is inferred from resolution or aspect ratio. HereSphere applies the same
+naming convention itself and trusts the API over its own detection when the API
+speaks - so a guess would actively make things worse, while a marker the file
+already carries cannot. It is worth publishing at all only because Syncopathy
+serves media under an opaque identifier, so the player never sees the filename;
+reading it here keeps a correctly named file working after the entry has been
+renamed in the library. Markers must stand alone as tokens, so `1800s` is not a
+180 and `outdoors` is not an over-under.
+
+**The timestamp host is discovered, not typed.** The channel runs opposite to
+everything else here - HereSphere listens and Syncopathy dials out - and the
+first version asked the user for that address. That was the wrong answer to a
+question the server can already answer: the player making these requests is the
+player to connect back to, so its address is taken from the connection it
+already opened. Only an authenticated request sets it, because it decides where
+Syncopathy opens an outbound connection and a stranger must not be able to aim
+that. A typed host remains, for the case where what connects is not what plays,
+behind a switch that defaults to automatic.
+
+**The player tab shows the script running, not a blank cover.** The overlay
+still covers the local controls - they belong to a player that is not the one
+playing - but it carries the live heatmap with the playhead on it, driven from
+the session that owns playback. A title and a clock can both look right while
+nothing is happening; a marker travelling across the heatmap is the funscript
+pipeline visibly running on HereSphere's clock. Making the whole video widget
+session-agnostic, rather than binding it to the local `VideoPlayer`, is still
+outstanding.
+
+**The local player refuses to start while it is not the one playing.** The
+first version handed the clock over and left every local control live, so
+clicking a video in the library opened it in mpv underneath a headset that was
+already playing - two videos, two soundtracks, and a funscript following
+whichever reported last. The guard is one check in the local player's two open
+methods rather than one per button, so a call site added later cannot quietly
+reintroduce it, and it says which session is in charge rather than failing
+silently. Handing the clock to HereSphere also pauses the local player, since
+handing over ownership does not by itself stop anything that was running.
+
+Local controls that command the local player are hidden or aimed elsewhere
+while an external session owns playback: the close button, the playlist
+controls, the frame-grab thumbnail, and the pause shortcut - which now targets
+whichever session owns playback instead of always the local one. Fullscreen
+carries the same cover as the embedded page; without it, going fullscreen was a
+way back to a full set of controls for a player that was not playing.
+
+Known remaining: the playback-speed slider in the script settings still
+commands the local player, and `VideoWidget` is still bound to `VideoPlayer`
+rather than to the active session - the structural fix both of those want.
+
+**Outbound commands are opt-in and separately gated.** Observing a player and
+steering it are different permissions.
+`HereSphereTimestampClient.sendCommand` refuses unless enabled, and the session
+advertises `seek`, `playPause` and `setSpeed` capabilities only while a command
+sink is attached - so the UI disables those controls rather than offering ones
+that quietly do nothing.
 
 ## Test Matrix
 
@@ -274,8 +606,25 @@ Cover at least:
 - MP4 and MKV, short and multi-hour media, and high-bitrate 8K media.
 - Initial play, pause/resume, repeated scrub seeks, large seeks, playback speed changes, natural end, and looping.
 - Buffering or Wi-Fi interruption, timestamp disconnect, HTTP disconnect, headset sleep, Syncopathy restart, and Handy reconnect.
+- Every local control while a headset is playing: library click, playlist play-all, wheel of fortune, keyboard shortcuts, fullscreen, close, and the playlist buttons.
 - Bluetooth HSP, Web HSP, and command backends.
+- Both device-owner modes, including switching between them mid-session.
 - Invalid ranges, malformed JSON, stale tokens, unknown IDs, and simultaneous-client attempts.
+- A library large enough to have been truncated by the old cap, browsed end to end in the headset.
+- The player's own search and tag filters against the published `/scan` data.
+- Decorated thumbnails: badges legible at headset distance, heatmap readable over a bright frame, and the picture still correct after a rating or play count changes.
+- The login handshake on a real player: first prompt, wrong password, correct password, a password changed while a headset is connected, and a session left idle overnight.
+
+Automated coverage already spans the byte-range rules, the API response shapes
+in both modes, the TCP framing (including split reads, coalesced frames and a
+desynchronised stream), the timestamp client against a real socket (reconnect,
+keepalive, staleness), the clock rules (seek, stall, loop, fail-safe), media
+resolution, projection detection, and clock handover. What the manual pass has
+to add is everything involving a real HereSphere build, a real headset, real
+media, and a real device: the protocol semantics this was written to, sustained
+throughput and memory on multi-hour 8K files, measured latency, and the
+refuse-a-second-client path, which cannot be exercised from loopback because
+both ends share one address key.
 
 ## Acceptance Criteria
 
@@ -284,9 +633,11 @@ Cover at least:
 - Steady playback uses a smoothly advancing clock and periodic authoritative correction.
 - Play, pause, seek, and speed changes propagate to the Handy within measured and documented bounds.
 - A lost or stale HereSphere session stops Handy playback safely.
-- HereSphere receives no funscript URL and does not control the Handy.
+- In the default mode HereSphere receives no funscript URL and does not control the Handy; in the other mode it receives script URLs and Syncopathy commands nothing.
+- Switching the mode takes effect on the next request, and script URLs issued in the other mode stop resolving at once.
 - Existing local playback remains unchanged when the experiment is disabled.
 - The server is off by default and does not expose arbitrary files.
+- Nothing about the library is revealed before a successful login, and no route but the login endpoint answers without a session token.
 
 ## Risks and Open Questions
 
@@ -294,8 +645,15 @@ Cover at least:
 - Event behavior during buffering, looping, and seeking may require conservative inference.
 - One-second timestamp snapshots are insufficient for prompt pause handling by themselves; event callbacks must prove reliable.
 - HereSphere codec support varies by platform. Direct streaming cannot repair unsupported encodings.
-- Very large libraries may need pagination-like sections or explicit limits.
-- If timestamp-server configuration cannot be discovered reliably, headset address and port will require manual setup.
+- `/scan` duration is published in seconds while `videoData` publishes
+  milliseconds. That asymmetry mirrors the reference implementation, which has
+  sent it that way for years, but it has not been checked against a real player:
+  if durations read wrong while browsing and right once an entry opens, this
+  scale is why.
+- Whether HereSphere sends credentials to `/scan` at all is unverified. If it
+  does not, the endpoint is inert and the library falls back to per-entry
+  metadata.
+- The timestamp host is discovered, not configured; the port is still assumed to be HereSphere's default.
 
 ## Rough Effort
 

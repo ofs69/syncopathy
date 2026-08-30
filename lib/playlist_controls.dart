@@ -20,6 +20,11 @@ class _PlaylistControlsState extends State<PlaylistControls> {
       builder: (context) {
         final playlist = player.currentPlaylist.value;
 
+        // The playlist is the local player's. While another session owns
+        // playback these would shuffle and skip through something nobody is
+        // watching.
+        if (!player.ownsPlayback) return const SizedBox.shrink();
+
         if (playlist.entries.length <= 1) {
           return const SizedBox.shrink();
         }

@@ -45,6 +45,28 @@ Settings _$SettingsFromJson(Map<String, dynamic> json) => Settings(
             MapEntry(k, ShortcutBinding.fromJson(e as Map<String, dynamic>)),
       ) ??
       const {},
+  hereSphereEnabled: json['hereSphereEnabled'] as bool? ?? false,
+  hereSpherePort: (json['hereSpherePort'] as num?)?.toInt() ?? 9678,
+  hereSphereBindAddress: json['hereSphereBindAddress'] as String? ?? '0.0.0.0',
+  hereSphereDeviceOwner:
+      $enumDecodeNullable(
+        _$HereSphereDeviceOwnerEnumMap,
+        json['hereSphereDeviceOwner'],
+        unknownValue: HereSphereDeviceOwner.syncopathy,
+      ) ??
+      HereSphereDeviceOwner.syncopathy,
+  hereSphereTimestampHost:
+      json['hereSphereTimestampHost'] as String? ?? '127.0.0.1',
+  hereSphereTimestampPort:
+      (json['hereSphereTimestampPort'] as num?)?.toInt() ?? 23554,
+  hereSphereTimestampAutoDetect:
+      json['hereSphereTimestampAutoDetect'] as bool? ?? true,
+  hereSphereAllowRemoteControl:
+      json['hereSphereAllowRemoteControl'] as bool? ?? false,
+  hereSphereDecorateThumbnails:
+      json['hereSphereDecorateThumbnails'] as bool? ?? true,
+  hereSphereUsername: json['hereSphereUsername'] as String? ?? 'syncopathy',
+  hereSpherePasswordHash: json['hereSpherePasswordHash'] as String? ?? '',
 );
 
 Map<String, dynamic> _$SettingsToJson(Settings instance) => <String, dynamic>{
@@ -64,6 +86,18 @@ Map<String, dynamic> _$SettingsToJson(Settings instance) => <String, dynamic>{
   'funscriptGraphEnabled': instance.funscriptGraphEnabled,
   'hwdecMode': _$HwdecModeEnumMap[instance.hwdecMode]!,
   'customShortcuts': instance.customShortcuts,
+  'hereSphereEnabled': instance.hereSphereEnabled,
+  'hereSpherePort': instance.hereSpherePort,
+  'hereSphereBindAddress': instance.hereSphereBindAddress,
+  'hereSphereDeviceOwner':
+      _$HereSphereDeviceOwnerEnumMap[instance.hereSphereDeviceOwner]!,
+  'hereSphereTimestampAutoDetect': instance.hereSphereTimestampAutoDetect,
+  'hereSphereTimestampHost': instance.hereSphereTimestampHost,
+  'hereSphereTimestampPort': instance.hereSphereTimestampPort,
+  'hereSphereAllowRemoteControl': instance.hereSphereAllowRemoteControl,
+  'hereSphereDecorateThumbnails': instance.hereSphereDecorateThumbnails,
+  'hereSphereUsername': instance.hereSphereUsername,
+  'hereSpherePasswordHash': instance.hereSpherePasswordHash,
 };
 
 const _$SettingsJsonSchema = {
@@ -94,6 +128,37 @@ const _$SettingsJsonSchema = {
       'additionalProperties': {r'$ref': r'#/$defs/ShortcutBinding'},
       'default': {},
     },
+    'hereSphereEnabled': {'type': 'boolean', 'default': false},
+    'hereSpherePort': {'type': 'integer', 'default': 9678},
+    'hereSphereBindAddress': {'type': 'string', 'default': '0.0.0.0'},
+    'hereSphereDeviceOwner': {'type': 'object'},
+    'hereSphereTimestampAutoDetect': {
+      'type': 'boolean',
+      'description':
+          "Whether to take HereSphere's address from the player that connected,\nrather than one the user typed. On by default: the address is already\nknown, because that player is the one making requests to this server.",
+      'default': true,
+    },
+    'hereSphereTimestampHost': {
+      'type': 'string',
+      'description':
+          'Address of the machine running HereSphere, for the timestamp channel.\nUsed only when auto-detection is off.',
+      'default': '127.0.0.1',
+    },
+    'hereSphereTimestampPort': {'type': 'integer', 'default': 23554},
+    'hereSphereAllowRemoteControl': {'type': 'boolean', 'default': false},
+    'hereSphereDecorateThumbnails': {
+      'type': 'boolean',
+      'description':
+          "Whether published thumbnails carry the library's badges and a heatmap\nstrip. On by default: the point of the badges is to tell entries apart at\na glance, and that is worth more in a headset than on a desktop.",
+      'default': true,
+    },
+    'hereSphereUsername': {
+      'type': 'string',
+      'description':
+          'Login HereSphere must present. The password is stored only as a salted\nPBKDF2 hash — this file is plain JSON in the application data directory\nand it travels in bug reports.',
+      'default': 'syncopathy',
+    },
+    'hereSpherePasswordHash': {'type': 'string', 'default': ''},
   },
   r'$defs': {
     'ShortcutBinding': {
@@ -122,4 +187,9 @@ const _$HwdecModeEnumMap = {
   HwdecMode.autoCopy: 'autoCopy',
   HwdecMode.autoSafe: 'autoSafe',
   HwdecMode.none: 'none',
+};
+
+const _$HereSphereDeviceOwnerEnumMap = {
+  HereSphereDeviceOwner.syncopathy: 'syncopathy',
+  HereSphereDeviceOwner.hereSphere: 'hereSphere',
 };

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
+import 'package:syncopathy/heresphere/heresphere_playback_overlay.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
@@ -112,6 +113,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
                   ],
                 ),
         ),
+        // Last in the stack, so it covers the local controls as well as the
+        // video: while HereSphere owns the clock they belong to a player that
+        // is not the one playing.
+        const HereSpherePlaybackOverlay(),
       ],
     );
   }

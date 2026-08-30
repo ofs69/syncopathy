@@ -8,6 +8,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
+import 'package:syncopathy/heresphere/heresphere_settings_card.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/delete_media_dialog.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
@@ -98,6 +99,17 @@ class _SettingsPageState extends State<SettingsPage> {
         title: 'Shortcuts',
         children: [_buildShortcutSettings(context)],
       ),
+      // Native only, and library only: it serves the indexed media library, so
+      // it has nothing to publish in simple mode.
+      if (!kIsWeb && !syncopathySimpleMode)
+        (context) => _buildSettingsCard(
+          context,
+          title: 'HereSphere',
+          subtitle:
+              'Stream this library to HereSphere while Syncopathy keeps '
+              'driving the device.',
+          children: const [HereSphereSettingsBody()],
+        ),
       if (!kIsWeb)
         (context) => _buildSettingsCard(
           context,
@@ -613,7 +625,8 @@ class _SettingsPageState extends State<SettingsPage> {
         selectedMedia: plan.media.toSet(),
         selectedFunscripts: plan.funscripts.toSet(),
         databaseOnly: true,
-        title: 'Clean Up '
+        title:
+            'Clean Up '
             '${_itemCount(plan.media.length + plan.funscripts.length)}?',
         summary: notes.isEmpty ? null : notes.join(' '),
         onConfirmed: () async => cleanup.apply(plan),

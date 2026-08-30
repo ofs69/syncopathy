@@ -14,6 +14,29 @@ import 'package:syncopathy/player/playback_session.dart';
 /// render. The clock and the transport commands live on [PlaybackSession]; keep
 /// them there so the device pipeline never needs to know a local player exists.
 abstract class VideoPlayer extends PlaybackSession {
+  @override
+  String get sessionName => 'the local player';
+
+  ActivePlaybackSession? _ownership;
+
+  /// Tells the local player who currently owns playback.
+  ///
+  /// Bound once at startup rather than passed to the constructor, because the
+  /// [ActivePlaybackSession] is built *from* this player and cannot exist
+  /// before it. Until it is bound the player assumes it is in charge, which is
+  /// the right answer for a build that has no other session at all.
+  void bindOwnership(ActivePlaybackSession ownership) => _ownership = ownership;
+
+  /// Whether this player may act on a command right now.
+  ///
+  /// False while an external session holds the clock. Starting local playback
+  /// then would leave two players running against one device, with the
+  /// funscript following whichever reported last.
+  bool get ownsPlayback => _ownership?.localOwnsPlayback.value ?? true;
+
+  /// The session that does own playback, for a message that names it.
+  PlaybackSession? get playbackOwner => _ownership?.value;
+
   static const double minPlaybackSpeed = 0.5;
   static const double maxPlaybackSpeed = 2.0;
   static const double maxVolume = 130;
