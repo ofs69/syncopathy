@@ -8,6 +8,7 @@ import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
+import 'package:syncopathy/player/playback_session.dart';
 import 'package:syncopathy/player/video_player.dart';
 
 class VideoControls extends SignalStatefulWidget {
@@ -37,6 +38,7 @@ class _VideoControlsState extends State<VideoControls> {
 
   @override
   Widget build(BuildContext context) {
+    final activeSession = context.read<ActivePlaybackSession>();
     final player = context.read<VideoPlayer>();
     final playerModel = context.read<PlayerModel>();
     final settingsModel = context.read<SettingsModel>();
@@ -45,86 +47,95 @@ class _VideoControlsState extends State<VideoControls> {
 
     return Material(
       type: MaterialType.transparency,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(4.0, 0.0, 4.0, 4.0),
-        decoration: stdBoxShadow(),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 1. Heatmap Row (Remains the same)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: _buildHeatmapRow(player, playerModel, settingsModel),
-            ),
+      child: SignalBuilder(
+        builder: (context) {
+          // Every clock-bound control is aimed at whichever session owns
+          // playback, not at the local player. While an external player is in
+          // charge these *are* its controls: the seek bar follows its clock,
+          // and a command it will not accept is disabled rather than replaced
+          // by a panel explaining that pressing it would do nothing.
+          final session = activeSession.session.value;
+          final localOwnsPlayback = activeSession.localOwnsPlayback.value;
 
-            const SizedBox(height: 8.0),
+          return Container(
+            padding: const EdgeInsets.fromLTRB(4.0, 0.0, 4.0, 4.0),
+            decoration: stdBoxShadow(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 1. Heatmap Row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: _buildHeatmapRow(session, playerModel, settingsModel),
+                ),
 
-            // 2. Main Controls Row
-            ExcludeFocus(
-              excluding: true,
-              child: Row(
-                children: [
-                  // Play/Pause
-                  _wrapInContainer(
-                    SignalBuilder(
-                      builder: (context) => IconButton(
-                        icon: Icon(
-                          player.paused.value ? Icons.play_arrow : Icons.pause,
-                        ),
-                        tooltip: player.paused.value ? 'Play' : 'Pause',
-                        onPressed: player.togglePause,
+                const SizedBox(height: 8.0),
+
+                // 2. Main Controls Row
+                ExcludeFocus(
+                  excluding: true,
+                  child: Row(
+                    children: [
+                      // Play/Pause
+                      _wrapInContainer(_buildPlayPauseButton(session)),
+                      const SizedBox(width: 4),
+                      // Audio belongs to the local player, and an external
+                      // session has no answer for it. Its state takes the same
+                      // slot, so the row keeps its shape either way.
+                      _wrapInContainer(
+                        localOwnsPlayback
+                            ? _buildVolumeSlider(player, isPortrait)
+                            : _buildSessionStatus(session),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  _wrapInContainer(_buildVolumeSlider(player, isPortrait)),
-                  const SizedBox(width: 4),
+                      const SizedBox(width: 4),
 
-                  // Time Display
-                  _wrapInContainer(
-                    SignalBuilder(
-                      builder: (context) {
-                        return Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Text(
-                            _formatResponsiveTimestamp(player, isPortrait),
-                            style: GoogleFonts.robotoMono(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  // Action Buttons
-                  _wrapInContainer(
-                    Row(
-                      children: [
-                        _buildFunscriptDropdown(playerModel, player),
-                        _buildGraphButton(),
-                        _buildSettingsButton(),
-                        IconButton(
-                          icon: const Icon(Icons.fullscreen),
-                          tooltip: 'Toggle fullscreen',
-                          onPressed: widget.onFullscreenToggle,
+                      // Time Display
+                      _wrapInContainer(
+                        SignalBuilder(
+                          builder: (context) {
+                            return Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Text(
+                                _formatResponsiveTimestamp(session, isPortrait),
+                                style: GoogleFonts.robotoMono(),
+                              ),
+                            );
+                          },
                         ),
-                      ],
-                    ),
+                      ),
+
+                      const Spacer(),
+
+                      // Action Buttons
+                      _wrapInContainer(
+                        Row(
+                          children: [
+                            _buildFunscriptDropdown(playerModel, session),
+                            _buildGraphButton(),
+                            _buildSettingsButton(),
+                            IconButton(
+                              icon: const Icon(Icons.fullscreen),
+                              tooltip: 'Toggle fullscreen',
+                              onPressed: widget.onFullscreenToggle,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  String _formatResponsiveTimestamp(VideoPlayer player, bool isPortrait) {
-    final current = Duration(seconds: player.currentPositionSeconds.value);
+  String _formatResponsiveTimestamp(PlaybackSession session, bool isPortrait) {
+    final current = Duration(seconds: session.currentPositionSeconds.value);
     final total = Duration(
-      milliseconds: ((player.duration.value ?? 0.0) * 1000.0).toInt(),
+      milliseconds: ((session.duration.value ?? 0.0) * 1000.0).toInt(),
     );
     final hasHours = total.inHours >= 1;
 
@@ -140,8 +151,86 @@ class _VideoControlsState extends State<VideoControls> {
     return "${format(current, hasHours)} / ${format(total, hasHours)}";
   }
 
+  Widget _buildPlayPauseButton(PlaybackSession session) {
+    return SignalBuilder(
+      builder: (context) {
+        final paused = session.paused.value;
+        final canToggle = session.supports(PlaybackCapability.playPause);
+        return IconButton(
+          icon: Icon(paused ? Icons.play_arrow : Icons.pause),
+          tooltip: canToggle
+              ? (paused ? 'Play' : 'Pause')
+              : 'Play and pause are in ${session.sessionName}',
+          onPressed: canToggle ? session.togglePause : null,
+        );
+      },
+    );
+  }
+
+  /// What the session that owns playback is doing, and so whether the device is
+  /// being driven at all.
+  ///
+  /// "Stopped" is never left to be inferred: a stroker that is not moving looks
+  /// the same whether that is deliberate or a lost connection, and only one of
+  /// those is worth going to fix. It takes the volume slider's slot, which is
+  /// free precisely because the local player — whose volume that is — is not
+  /// the one playing.
+  Widget _buildSessionStatus(PlaybackSession session) {
+    return SignalBuilder(
+      builder: (context) {
+        final name = session.sessionName;
+        final (icon, color, label, detail) =
+            switch ((
+              session.connected.value,
+              session.buffering.value,
+              session.paused.value,
+            )) {
+              (false, _, _) => (
+                Icons.link_off,
+                Theme.of(context).colorScheme.error,
+                'Disconnected',
+                '$name is not sending its clock — the device is stopped.',
+              ),
+              (true, true, _) => (
+                Icons.hourglass_top,
+                Colors.amber,
+                'Buffering',
+                '$name is buffering — the device is held.',
+              ),
+              (true, false, true) => (
+                Icons.pause_circle_outline,
+                Colors.white70,
+                'Paused',
+                '$name is paused.',
+              ),
+              (true, false, false) => (
+                Icons.play_circle_outline,
+                Colors.lightGreenAccent,
+                'Playing',
+                'Following $name, driving the device.',
+              ),
+            };
+
+        return Tooltip(
+          message: detail,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 18, color: color),
+                const SizedBox(width: 8),
+                Text('$name · $label', style: TextStyle(color: color)),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildHeatmapRow(
-    VideoPlayer player,
+    PlaybackSession session,
     PlayerModel playerModel,
     SettingsModel settingsModel,
   ) {
@@ -156,10 +245,15 @@ class _VideoControlsState extends State<VideoControls> {
                 final actions = funscript?.processedActions.value ?? [];
                 return Heatmap(
                   actions: actions,
-                  totalDuration: player.duration,
-                  videoPositionFixedStep: player.currentPositionFixedStep,
-                  onClick: (d) => player.seekTo(d),
-                  playbackSpeed: player.playbackSpeed,
+                  totalDuration: session.duration,
+                  videoPositionFixedStep: session.currentPositionFixedStep,
+                  // Seeking is a capability, not a given: an external session
+                  // Syncopathy only observes cannot be steered, so the bar
+                  // shows the playhead without accepting clicks.
+                  onClick: session.supports(PlaybackCapability.seek)
+                      ? session.seekTo
+                      : null,
+                  playbackSpeed: session.playbackSpeed,
                   strokeRange: settingsModel.minMaxRange,
                 );
               },
@@ -213,10 +307,13 @@ class _VideoControlsState extends State<VideoControls> {
     );
   }
 
-  Widget _buildFunscriptDropdown(PlayerModel playerModel, VideoPlayer player) {
+  Widget _buildFunscriptDropdown(
+    PlayerModel playerModel,
+    PlaybackSession session,
+  ) {
     return SignalBuilder(
       builder: (context) {
-        final media = player.currentMedia.value;
+        final media = session.currentMedia.value;
         if (media == null || media.funscripts.isEmpty) {
           return const SizedBox.shrink();
         }

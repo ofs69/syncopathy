@@ -14,7 +14,12 @@ class Heatmap extends StatefulWidget {
   final ReadonlySignal<double> playbackSpeed;
   final ReadonlySignal<RangeValues> strokeRange;
   final ReadonlySignal<int> videoPositionFixedStep;
-  final void Function(Duration) onClick;
+
+  /// Seeks to the clicked position, or null when the session that owns
+  /// playback cannot be steered. Null makes the bar a read-only display of the
+  /// script and the playhead: a bar that accepts a click and then silently
+  /// swallows it is worse than one that does not accept it.
+  final void Function(Duration)? onClick;
   int get totalDurationMs => ((totalDuration.value ?? 0.0) * 1000.0).round();
 
   const Heatmap({
@@ -71,12 +76,16 @@ class _HeatmapState extends State<Heatmap> {
     _throttler.dispose();
   }
 
+  bool get _seekable => widget.onClick != null;
+
   void _handleInteraction(Offset localPosition, BoxConstraints constraints) {
+    final onClick = widget.onClick;
+    if (onClick == null) return;
     final totalDuration = widget.totalDuration.value ?? 0;
     if (totalDuration > 0 && constraints.maxWidth > 0) {
       final dx = localPosition.dx.clamp(0, constraints.maxWidth);
       final clickedMs = (dx / constraints.maxWidth) * widget.totalDurationMs;
-      widget.onClick(Duration(milliseconds: clickedMs.round()));
+      onClick(Duration(milliseconds: clickedMs.round()));
     }
   }
 
@@ -84,12 +93,14 @@ class _HeatmapState extends State<Heatmap> {
   /// screen-reader / keyboard slider actions so the seek bar isn't
   /// mouse-gesture-only.
   void _seekByFraction(double delta) {
+    final onClick = widget.onClick;
+    if (onClick == null) return;
     final durationMs = widget.totalDurationMs;
     if (durationMs <= 0) return;
     final current =
         widget.videoPositionFixedStep.value / videoPlayerPositionFixedStepCount;
     final target = (current + delta).clamp(0.0, 1.0);
-    widget.onClick(Duration(milliseconds: (target * durationMs).round()));
+    onClick(Duration(milliseconds: (target * durationMs).round()));
   }
 
   @override
@@ -101,9 +112,9 @@ class _HeatmapState extends State<Heatmap> {
         // no-op decoration).
         return Semantics(
           slider: true,
-          label: 'Seek position',
-          onIncrease: () => _seekByFraction(0.02),
-          onDecrease: () => _seekByFraction(-0.02),
+          label: _seekable ? 'Seek position' : 'Playback position',
+          onIncrease: _seekable ? () => _seekByFraction(0.02) : null,
+          onDecrease: _seekable ? () => _seekByFraction(-0.02) : null,
           child: _buildHeatmap(context, constraints),
         );
       },
@@ -113,7 +124,11 @@ class _HeatmapState extends State<Heatmap> {
   Widget _buildHeatmap(BuildContext context, BoxConstraints constraints) {
     return MouseRegion(
       onHover: (event) {
-        if (widget.totalDurationMs > 0 && constraints.maxWidth > 0) {
+        // The hover line previews where a click would land, so it only means
+        // anything while a click can land somewhere.
+        if (_seekable &&
+            widget.totalDurationMs > 0 &&
+            constraints.maxWidth > 0) {
           _hoverPosition.value = event.localPosition.dx.clamp(
             0,
             constraints.maxWidth,

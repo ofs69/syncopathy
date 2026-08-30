@@ -8,11 +8,13 @@ import 'package:syncopathy/model/settings_model.dart';
 
 /// HereSphere's state, in the app bar, from every tab.
 ///
-/// The playback overlay only covers the player page, so with the media library
-/// or settings open there was nothing at all to say a headset had taken over —
-/// which reads as the feature not working. This is deliberately always visible
-/// while the feature is on, including when nothing is playing: "the server is
-/// up and idle" and "the server never started" look identical otherwise.
+/// The player tab carries the playback state, so with the media library or
+/// settings open there would be nothing at all to say a headset had taken over
+/// — which reads as the feature not working. This is deliberately always
+/// visible while the feature is on, including when nothing is playing: "the
+/// server is up and idle" and "the server never started" look identical
+/// otherwise. It is also the only HereSphere-specific chrome outside settings:
+/// everything about the media that is playing belongs to the player tab.
 class HereSphereStatusButton extends StatelessWidget {
   const HereSphereStatusButton({super.key});
 
@@ -33,12 +35,18 @@ class HereSphereStatusButton extends StatelessWidget {
         if (!settings.hereSphereEnabled.value) return const SizedBox.shrink();
         final status = _Status.of(controller, settings);
 
-        return MenuAnchor(
-          menuChildren: [_detail(context, controller, settings, status)],
-          builder: (context, menu, _) => IconButton(
-            icon: Icon(status.icon, color: status.color(context)),
-            tooltip: status.tooltip,
-            onPressed: () => menu.isOpen ? menu.close() : menu.open(),
+        // The gap to the next action is carried here rather than by the app
+        // bar, because everything above returns an empty box: a SizedBox in
+        // the actions list would leave a stray gap whenever this is hidden.
+        return Padding(
+          padding: const EdgeInsets.only(right: 4.0),
+          child: MenuAnchor(
+            menuChildren: [_detail(context, controller, settings, status)],
+            builder: (context, menu, _) => IconButton(
+              icon: Icon(status.icon, color: status.color(context)),
+              tooltip: status.tooltip,
+              onPressed: () => menu.isOpen ? menu.close() : menu.open(),
+            ),
           ),
         );
       },

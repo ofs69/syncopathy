@@ -7,7 +7,7 @@ import 'package:syncopathy/focus_numeric_input.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
 import 'package:syncopathy/player/handy_native_hsp_mixin.dart';
-import 'package:syncopathy/player/video_player.dart';
+import 'package:syncopathy/player/playback_session.dart';
 import 'package:syncopathy/settings_overlay.dart';
 
 class ScriptPlayerSettings extends StatefulWidget {
@@ -385,7 +385,7 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
 
   Widget _buildTimingSettings(BuildContext context) {
     final settings = context.read<SettingsModel>();
-    final player = context.read<VideoPlayer>();
+    final activeSession = context.read<ActivePlaybackSession>();
     final playerModel = context.read<PlayerModel>();
 
     return Column(
@@ -398,16 +398,24 @@ class _ScriptPlayerSettingsState extends State<ScriptPlayerSettings> {
           isThreeLine: true,
         ),
         SignalBuilder(
-          builder: (context) => Slider(
-            value: player.playbackSpeed.value,
-            min: 0.5,
-            max: 2.0,
-            divisions: 15,
-            label: player.playbackSpeed.value.toStringAsFixed(2),
-            onChanged: player.paused.value
-                ? (value) => player.setSpeed(value)
-                : null,
-          ),
+          builder: (context) {
+            // Aimed at whichever session owns playback: with an external
+            // player in charge this was retuning an idle mpv while the script
+            // kept running at the old rate. A session that will not accept a
+            // speed change disables the slider rather than swallowing it.
+            final session = activeSession.session.value;
+            final canSetSpeed =
+                session.paused.value &&
+                session.supports(PlaybackCapability.setSpeed);
+            return Slider(
+              value: session.playbackSpeed.value,
+              min: 0.5,
+              max: 2.0,
+              divisions: 15,
+              label: session.playbackSpeed.value.toStringAsFixed(2),
+              onChanged: canSetSpeed ? session.setSpeed : null,
+            );
+          },
         ),
         const ListTile(
           leading: Icon(Icons.timer_outlined),

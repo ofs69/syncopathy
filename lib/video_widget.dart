@@ -12,6 +12,7 @@ import 'package:syncopathy/helper/throttler.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/model/player_model.dart';
 import 'package:syncopathy/model/settings_model.dart';
+import 'package:syncopathy/player/playback_session.dart';
 import 'package:syncopathy/player/script_player_settings.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/scrolling_graph.dart';
@@ -84,6 +85,7 @@ class _VideoWidgetState extends State<VideoWidget> with EffectDispose {
     final player = widget.player;
     final settings = context.watch<SettingsModel>();
     final playerModel = context.watch<PlayerModel>();
+    final activeSession = context.read<ActivePlaybackSession>();
 
     return Material(
       child: SignalBuilder(
@@ -134,6 +136,7 @@ class _VideoWidgetState extends State<VideoWidget> with EffectDispose {
                               child: _buildOverlayColumn(
                                 context,
                                 player,
+                                activeSession,
                                 playerModel,
                                 settings,
                                 showSettings: showSettings,
@@ -195,6 +198,7 @@ class _VideoWidgetState extends State<VideoWidget> with EffectDispose {
   Widget _buildOverlayColumn(
     BuildContext context,
     VideoPlayer player,
+    ActivePlaybackSession activeSession,
     PlayerModel playerModel,
     SettingsModel settings, {
     required bool showSettings,
@@ -227,7 +231,10 @@ class _VideoWidgetState extends State<VideoWidget> with EffectDispose {
                     ),
                     child: _funscriptGraph(
                       playerModel.currentlyOpen,
-                      player,
+                      // The graph scrolls on the clock that is actually
+                      // running, which under an external session is not the
+                      // local player's.
+                      activeSession.session.value,
                       settings,
                     ),
                   ),
@@ -280,7 +287,7 @@ class _VideoWidgetState extends State<VideoWidget> with EffectDispose {
 
   Widget _funscriptGraph(
     ReadonlySignal<MediaFunscript?> currentlyOpen,
-    VideoPlayer player,
+    PlaybackSession session,
     SettingsModel settings,
   ) {
     return Container(
@@ -288,9 +295,9 @@ class _VideoWidgetState extends State<VideoWidget> with EffectDispose {
       decoration: stdBoxShadow(),
       child: ScrollingGraph(
         currentlyOpen: currentlyOpen,
-        videoPosition: player.smoothPosition,
+        videoPosition: session.smoothPosition,
         viewDuration: settings.funscriptGraphViewDuration,
-        playbackRate: player.playbackSpeed,
+        playbackRate: session.playbackSpeed,
         strokeRange: settings.minMaxRange,
       ),
     );

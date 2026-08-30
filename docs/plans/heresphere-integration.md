@@ -470,12 +470,11 @@ pulse is shaped to match what the HSP mixin expects - `seeking` raised, the new
 position written, then `seeking` cleared - because the mixin rebuilds its buffer
 on the falling edge and would otherwise rebuild around the old position.
 
-`HereSpherePlaybackOverlay` covers the player page while HereSphere owns the
-clock. Covering the surface *is* how local controls are disabled: they belong to
-a player that is not the one playing, and a greyed-out button is a worse answer
-than an explanation. It also reports whether the device is actually being
-driven, since a stroker that is not moving looks the same whether that is
-deliberate or a connection failure.
+The player tab reports whether the device is actually being driven, since a
+stroker that is not moving looks the same whether that is deliberate or a
+connection failure. It sits where the volume slider does, which is free
+precisely because the local player - whose volume that is - is not the one
+playing.
 
 In the other mode the settings panel warns when Syncopathy still holds a device
 connection, and offers to drop it. Syncopathy cannot see what HereSphere is
@@ -560,14 +559,23 @@ Syncopathy opens an outbound connection and a stranger must not be able to aim
 that. A typed host remains, for the case where what connects is not what plays,
 behind a switch that defaults to automatic.
 
-**The player tab shows the script running, not a blank cover.** The overlay
-still covers the local controls - they belong to a player that is not the one
-playing - but it carries the live heatmap with the playhead on it, driven from
-the session that owns playback. A title and a clock can both look right while
-nothing is happening; a marker travelling across the heatmap is the funscript
-pipeline visibly running on HereSphere's clock. Making the whole video widget
-session-agnostic, rather than binding it to the local `VideoPlayer`, is still
-outstanding.
+**HereSphere has no player UI of its own; it drives the player tab.** The first
+version covered the player page with a `HereSpherePlaybackOverlay` that
+restated the title, the clock and the heatmap over a scrim. That was a second
+player UI maintained beside the real one, and it answered a question the real
+one could answer itself. The controls are now aimed at whichever session owns
+playback: the seek bar follows its clock, play/pause and the speed slider
+command it, and the funscript graph scrolls on it. A marker travelling across
+the heatmap is the funscript pipeline visibly running on HereSphere's clock,
+which a title and a clock alone cannot show - and it is the same heatmap the
+local player uses, not a copy of it.
+
+Commands are gated on capability rather than hidden behind a cover: a session
+that will not accept a seek gets a bar that shows the playhead and takes no
+clicks, and one that will not accept play/pause gets a disabled button that
+says where the control is. Only the genuinely local controls - volume, the
+playlist, the close button, the frame grab - go away, because an external
+session has no answer for them at all.
 
 **The local player refuses to start while it is not the one playing.** The
 first version handed the clock over and left every local control live, so
@@ -583,12 +591,13 @@ Local controls that command the local player are hidden or aimed elsewhere
 while an external session owns playback: the close button, the playlist
 controls, the frame-grab thumbnail, and the pause shortcut - which now targets
 whichever session owns playback instead of always the local one. Fullscreen
-carries the same cover as the embedded page; without it, going fullscreen was a
-way back to a full set of controls for a player that was not playing.
+needs no special case: it builds the same `VideoWidget`, so it carries the same
+session-aimed controls.
 
-Known remaining: the playback-speed slider in the script settings still
-commands the local player, and `VideoWidget` is still bound to `VideoPlayer`
-rather than to the active session - the structural fix both of those want.
+`VideoWidget` still takes the local `VideoPlayer` for the surface it renders,
+the volume and the playlist, which is what that argument is for. Everything
+clock-bound in it - the seek bar, the transport buttons, the timestamp and the
+scrolling graph - reads `ActivePlaybackSession` instead.
 
 **Outbound commands are opt-in and separately gated.** Observing a player and
 steering it are different permissions.

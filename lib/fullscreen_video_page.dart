@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/player/video_player.dart';
 import 'package:syncopathy/simple/simple_mode/simple_mode.dart';
-import 'package:syncopathy/heresphere/heresphere_playback_overlay.dart';
 import 'package:syncopathy/video_widget.dart';
 
 class FullscreenVideoPage extends StatefulWidget {
@@ -64,22 +63,14 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
           // Tooltips, and a Hero flight reparents that subtree into the
           // Navigator overlay, tripping an overlay-theater assertion. A plain
           // route transition avoids the crash.
-          body: Stack(
-            children: [
-              Center(
-                child: VideoWidget(
-                  player: widget.player,
-                  isFullscreen: true,
-                  showControls: widget.showControls,
-                  showFunscriptGraph: widget.showFunscriptGraph,
-                  showSettings: widget.showSettings,
-                ),
-              ),
-              // The embedded page has this too. Without it, going fullscreen
-              // was a way round the cover and back to a full set of local
-              // controls for a player that is not the one playing.
-              const HereSpherePlaybackOverlay(),
-            ],
+          body: Center(
+            child: VideoWidget(
+              player: widget.player,
+              isFullscreen: true,
+              showControls: widget.showControls,
+              showFunscriptGraph: widget.showFunscriptGraph,
+              showSettings: widget.showSettings,
+            ),
           ),
         ),
       ),
