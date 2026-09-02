@@ -21,21 +21,28 @@ const String hereSpherePathPrefix = 'hs';
 /// making us buffer something large.
 const int _maxRequestBodyBytes = 64 * 1024;
 
-/// How long the one permitted client keeps its claim after its last request.
+/// How long the driving client keeps its claim after its last event.
 ///
-/// HereSphere goes quiet between a library scan and opening a video, so the
-/// window has to outlast browsing. It only matters when a second client tries
-/// to connect, which in normal use never happens.
+/// HereSphere goes quiet between transitions — a paused video reports nothing —
+/// so the window has to outlast a pause. It only matters when a second player
+/// starts posting events, which in normal use never happens.
 const Duration _clientClaimTimeout = Duration(minutes: 10);
 
 enum HereSphereServerState { stopped, starting, running, failed }
 
-/// Tracks which client holds the single permitted session.
+/// Tracks which client drives the clock.
 ///
-/// One session at a time, by design: two players sharing one clock would leave
+/// One driver at a time, by design: two players reporting playback would leave
 /// Syncopathy unable to say which of them the device should follow. The holder
-/// keeps its claim for [timeout] past its last request, which has to outlast
-/// the quiet stretch between a library scan and opening a video.
+/// keeps its claim for [timeout] past its last event, which has to outlast the
+/// quiet stretch between a pause and the next transition.
+///
+/// Scoped to the events that carry playback, and to nothing else. Reading the
+/// library confuses no clock, so a phone browsing while a headset plays is not
+/// a rival — it was only ever treated as one because this check sat in front of
+/// every route rather than in front of the one that matters. Gating reads also
+/// meant a headset that woke on a new DHCP lease was locked out by its own
+/// stale claim, since the key is the address it happened to arrive from.
 class ClientClaim {
   final Duration timeout;
 
@@ -104,7 +111,11 @@ class HereSphereServer {
 
   final Signal<String?> _connectedClient = signal(null);
 
-  /// Address of the client currently holding the session, for the status panel.
+  /// Address of the client last heard from, for the status panel.
+  ///
+  /// Any authenticated request counts, not only one from whoever is driving:
+  /// the panel is answering "has anything reached me", and a headset browsing
+  /// the library has plainly reached us.
   ReadonlySignal<String?> get connectedClient => _connectedClient;
 
   final Signal<String?> _clientAddress = signal(null);
@@ -119,7 +130,7 @@ class HereSphereServer {
   ///
   /// Set only from an authenticated request. It decides where Syncopathy opens
   /// an outbound connection, so an unauthenticated stranger must not be able to
-  /// aim it.
+  /// aim it — and, once a player is driving, only that player may move it.
   ReadonlySignal<String?> get clientAddress => _clientAddress;
 
   final StreamController<HereSphereEvent> _events =
@@ -132,7 +143,7 @@ class HereSphereServer {
   /// gives the protocol spike something to observe.
   Stream<HereSphereEvent> get events => _events.stream;
 
-  final ClientClaim _claim = ClientClaim();
+  final ClientClaim _claim;
 
   final Signal<int> _activeSessions = signal(0);
 
@@ -152,8 +163,13 @@ class HereSphereServer {
     this._library, {
     SessionTokenStore? sessions,
     LoginThrottle? throttle,
+    ClientClaim? claim,
   }) : sessions = sessions ?? SessionTokenStore(),
-       throttle = throttle ?? LoginThrottle();
+       throttle = throttle ?? LoginThrottle(),
+       // Injectable so a test can stand a rival player up. Two clients cannot
+       // be told apart over loopback — they share one address key — so this is
+       // the only way to exercise the rule at all.
+       _claim = claim ?? ClientClaim();
 
   bool get isRunning => _server != null;
 
@@ -277,16 +293,6 @@ class HereSphereServer {
       final segments = request.uri.pathSegments
           .where((segment) => segment.isNotEmpty)
           .toList();
-
-      if (!_claimClient(request)) {
-        await _drain(request);
-        Logger.warning(
-          'HereSphere: refused a second client from ${_clientKey(request)}; '
-          '${_claim.holder} holds the session',
-        );
-        await _writeStatus(response, HttpStatus.forbidden);
-        return;
-      }
 
       // The one route that answers without a token, because it is where a
       // client that has none goes to log in. It reveals nothing until it does:
@@ -517,6 +523,18 @@ class HereSphereServer {
 
     if (path.length == 1 && path[0] == 'event') {
       if (!_allow(request, const {'POST'})) return;
+      // The one route that moves the clock, so the one route a second player
+      // may not reach. Refused rather than ignored: a player whose events are
+      // silently dropped looks to its user like a device that stopped working.
+      if (!_claimClient(request)) {
+        await _drain(request);
+        Logger.warning(
+          'HereSphere: refused playback events from ${_clientKey(request)}; '
+          '${_claim.holder} is driving',
+        );
+        await _writeStatus(request.response, HttpStatus.forbidden);
+        return;
+      }
       await _handleEvent(request);
       return;
     }
@@ -755,10 +773,12 @@ class HereSphereServer {
     final key = _clientKey(request);
     final previous = _claim.holder;
     if (!_claim.claim(key, DateTime.now())) return false;
-    if (previous != key) {
-      Logger.info('HereSphere: session claimed by $key');
-      _connectedClient.value = key;
-    }
+    if (previous != key) Logger.info('HereSphere: playback claimed by $key');
+    // Re-read after the claim, never before: the request that hands the clock
+    // to a new driver is also the first evidence of where that driver lives,
+    // which is what lets a headset back on a new lease move the channel with
+    // it rather than leaving it dialling the address it used yesterday.
+    _noteClientAddress(request);
     return true;
   }
 
@@ -776,6 +796,19 @@ class HereSphereServer {
   void _noteClientAddress(HttpRequest request) {
     final address = request.connectionInfo?.remoteAddress;
     if (address == null) return;
+
+    final key = _clientKey(request);
+    _connectedClient.value = key;
+
+    // Whoever drives the clock is the player worth dialling; a phone browsing
+    // the library is not, and now that browsing no longer needs the claim it
+    // could otherwise aim the channel at itself. Before anyone is driving, the
+    // client doing the asking is the only candidate there is — which is what
+    // brings the channel up while a headset is still browsing, rather than a
+    // beat late at the first video it opens.
+    final driver = _claim.holder;
+    if (driver != null && driver != key) return;
+
     final dialable = address.isLoopback ? '127.0.0.1' : address.address;
     if (_clientAddress.value != dialable) {
       Logger.info('HereSphere: player reachable at $dialable');

@@ -47,12 +47,38 @@ MediaFile clip(
 
 DateTime day(int n) => DateTime(2026, 1, n);
 
-List<String> namesIn(List<HereSphereShelf> shelves, String name) =>
-    shelves
-        .firstWhere((shelf) => shelf.name == name)
-        .media
-        .map((media) => media.name)
-        .toList();
+/// A script file, with the id set by hand — detached entities all share id 0,
+/// and the main script is found in the list by id.
+FunscriptFile script(
+  String path, {
+  required int id,
+  bool token = false,
+  bool missing = false,
+}) {
+  return FunscriptFile(
+    path: path,
+    averageSpeed: 150,
+    averageMin: 10,
+    averageMax: 90,
+    isScriptToken: token,
+    fileNotFound: missing,
+    funscriptHash: 'hash-$path',
+  )..id = id;
+}
+
+/// A library entry carrying [scripts], with [main] as its main script.
+MediaFile scripted(List<FunscriptFile> scripts, {required FunscriptFile main}) {
+  final media = clip('scene');
+  media.mainFunscript.target = main;
+  media.funscripts.addAll(scripts);
+  return media;
+}
+
+List<String> namesIn(List<HereSphereShelf> shelves, String name) => shelves
+    .firstWhere((shelf) => shelf.name == name)
+    .media
+    .map((media) => media.name)
+    .toList();
 
 bool hasShelf(List<HereSphereShelf> shelves, String name) =>
     shelves.any((shelf) => shelf.name == name);
@@ -91,6 +117,58 @@ void main() {
     });
   });
 
+  group('the scripts an entry offers', () {
+    test('are ordered with the main script first', () {
+      final main = script(r'Q:\media\scene.funscript', id: 1);
+      final twist = script(r'Q:\media\scene.twist.funscript', id: 2);
+
+      // A player taking the first entry has to get the one that matters, so
+      // position is the identity here rather than a presentation choice.
+      expect(
+        playableScripts(scripted([twist, main], main: main)).map((s) => s.id),
+        [1, 2],
+      );
+    });
+
+    test('drop tokens and files that have gone missing', () {
+      final main = script(r'Q:\media\scene.funscript', id: 1);
+      final locked = script(
+        r'Q:\media\scene.twist.funscript',
+        id: 2,
+        token: true,
+      );
+      final gone = script(
+        r'Q:\media\scene.roll.funscript',
+        id: 3,
+        missing: true,
+      );
+
+      expect(
+        playableScripts(
+          scripted([main, locked, gone], main: main),
+        ).map((s) => s.id),
+        [1],
+      );
+    });
+
+    test('are none when the main script cannot be played', () {
+      // The case that made the Interactive tag and the published scripts
+      // disagree: an encrypted stroke script beside a real twist one. Handing
+      // the twist script over as the entry's first would drive the stroke axis
+      // from data describing a different one.
+      final locked = script(r'Q:\media\scene.funscript', id: 1, token: true);
+      final twist = script(r'Q:\media\scene.twist.funscript', id: 2);
+      final media = scripted([locked, twist], main: locked);
+
+      expect(hasPlayableFunscript(media), isFalse);
+      expect(playableScripts(media), isEmpty);
+    });
+
+    test('are none when there is no script at all', () {
+      expect(playableScripts(clip('scene')), isEmpty);
+    });
+  });
+
   group('shelves', () {
     test('recently added is newest first', () {
       final shelves = hereSphereShelves([
@@ -99,11 +177,7 @@ void main() {
         clip('middle', addedOn: day(5)),
       ]);
 
-      expect(namesIn(shelves, 'Recently Added'), [
-        'newest',
-        'middle',
-        'old',
-      ]);
+      expect(namesIn(shelves, 'Recently Added'), ['newest', 'middle', 'old']);
     });
 
     test('media the library never dated is left off recently added', () {
@@ -273,7 +347,9 @@ void main() {
     test('a preset with no name is left out', () {
       final shelves = hereSpherePresetShelves(
         [clip('anything')],
-        [preset('   ', [availableFilters['Playable']!()])],
+        [
+          preset('   ', [availableFilters['Playable']!()]),
+        ],
       );
 
       expect(shelves, isEmpty);
@@ -302,8 +378,12 @@ void main() {
       final shelves = hereSpherePresetShelves(
         [clip('a')],
         [
-          preset('First', [availableFilters['Playable']!()..negated.value = true]),
-          preset('Second', [availableFilters['Playable']!()..negated.value = true]),
+          preset('First', [
+            availableFilters['Playable']!()..negated.value = true,
+          ]),
+          preset('Second', [
+            availableFilters['Playable']!()..negated.value = true,
+          ]),
         ],
       );
 

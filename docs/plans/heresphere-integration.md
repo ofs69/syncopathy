@@ -381,7 +381,8 @@ Two decisions worth recording:
   quiet stretch between a library scan and opening a video. All loopback
   addresses collapse to one key, since a local client arrives as `127.0.0.1` or
   `::1` from one request to the next and treating those as rivals would lock the
-  user out of their own server.
+  user out of their own server. (Narrowed in phase 5 to the event route alone —
+  see *The claim guards the clock, not the library*.)
 
 Byte-range handling follows RFC 9110: open-ended, closed, and suffix forms;
 `206` with `Content-Range`; `416` with `bytes */<length>` for a range past the
@@ -397,8 +398,9 @@ Still open at the end of this phase, and deliberately so:
 
 - Sustained-throughput and memory behaviour under a real multi-hour 8K file
   needs measuring against real HereSphere; it stays in the manual matrix below.
-- The refuse-a-second-client path is unit-tested through `ClientClaim` but not
-  end to end, since both ends of a loopback test share one address key.
+- The refuse-a-second-driver path is covered end to end by injecting a claim
+  already held by another address, since both ends of a loopback test key as
+  the same client and cannot otherwise be told apart.
 - Sections are `Interactive` and `Other Videos`, each capped at 500 entries. A
   larger library silently publishes only its first 500 per section until phase 5
   carves it up properly.
@@ -544,6 +546,22 @@ was wrong in both directions — the index carries nothing per entry but a URL, 
 the response was never the expensive part, and silently dropping half a library
 is a far worse failure than a large response.
 
+**The claim guards the clock, not the library.** One player drives at a time —
+two reporting playback would leave Syncopathy unable to say which the device
+should follow — but that is a statement about `/event`, and it used to be
+enforced in front of every route. Reading the library confuses no clock, so the
+cost was paid for nothing: a second device could not so much as list the library,
+and, since the claim key is the address a request arrived from, a headset that
+woke on a new DHCP lease was refused by its own stale claim for ten minutes. The
+check now sits on the event route alone.
+
+Two things that rode on it are now separate. `connectedClient` answers "has
+anything reached me" and follows any authenticated request, which is the question
+the status panel is asking. `clientAddress` decides where the timestamp channel
+dials, so it follows whoever is driving — with the client doing the asking as the
+only candidate before anyone is, which is what brings the channel up while a
+headset is still browsing rather than a beat late at the first video it opens.
+
 **Bulk metadata goes over `/scan`.** The index gives the player URLs and nothing
 else, so without this it learns an entry's title only by fetching that entry's
 own metadata — thousands of round trips for a large library, and a search that
@@ -656,7 +674,8 @@ Cover at least:
 - Every local control while a headset is playing: library click, playlist play-all, wheel of fortune, keyboard shortcuts, fullscreen, close, and the playlist buttons.
 - Bluetooth HSP, Web HSP, and command backends.
 - Both device-owner modes, including switching between them mid-session.
-- Invalid ranges, malformed JSON, stale tokens, unknown IDs, and simultaneous-client attempts.
+- Invalid ranges, malformed JSON, stale tokens, unknown IDs, and simultaneous-client attempts — including a second device browsing the library while a headset plays, which must be allowed, and a second player posting events, which must not.
+- A headset that sleeps and returns on a different address: it should reach the library at once and take the clock back at its next event, not wait out the previous claim.
 - A library large enough to have been truncated by the old cap, browsed end to end in the headset.
 - The player's own search and tag filters against the published `/scan` data.
 - The shelves and preset sections in a real headset: that the order reads as a landing page rather than a filing cabinet, that `Random Interactive` really does redraw, and that a preset returns in the headset what it returns on the desktop.
@@ -671,8 +690,8 @@ resolution, projection detection, and clock handover. What the manual pass has
 to add is everything involving a real HereSphere build, a real headset, real
 media, and a real device: the protocol semantics this was written to, sustained
 throughput and memory on multi-hour 8K files, measured latency, and the
-refuse-a-second-client path, which cannot be exercised from loopback because
-both ends share one address key.
+refuse-a-second-driver path against two real players, which loopback can only
+approximate by injecting the claim.
 
 ## Acceptance Criteria
 
@@ -701,7 +720,7 @@ both ends share one address key.
 - Whether HereSphere sends credentials to `/scan` at all is unverified. If it
   does not, the endpoint is inert and the library falls back to per-entry
   metadata.
-- The timestamp host is discovered, not configured; the port is still assumed to be HereSphere's default.
+- The timestamp host is discovered rather than configured, with a typed host as the fallback. The port has its own setting, defaulting to HereSphere's 23554.
 
 ## Rough Effort
 

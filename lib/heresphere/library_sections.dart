@@ -5,6 +5,7 @@ import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_library/filter/media_filter.dart';
 import 'package:syncopathy/media_library/filter/media_filter_logic.dart';
 import 'package:syncopathy/model/media_filter_presets_model.dart';
+import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 
 /// A named group of media, before it is turned into API entries.
@@ -20,6 +21,37 @@ typedef HereSphereShelf = ({String name, List<MediaFile> media});
 bool hasPlayableFunscript(MediaFile media) {
   final main = media.mainFunscript.target;
   return main != null && !main.fileNotFound && !main.isScriptToken;
+}
+
+/// The entry's scripts, main axis first, with anything unplayable dropped.
+///
+/// Order is the identity: a script's position here is what its URL names, so
+/// it has to be derived the same way every time rather than from whatever
+/// order the relation happens to return.
+List<FunscriptFile> playableScripts(MediaFile media) {
+  // The same rule the Interactive tag and the shelves use, so one entry
+  // cannot be non-interactive in the library and scripted in its metadata.
+  // It matters most in the case that made the two disagree: a stroke script
+  // that is an encrypted token beside a real secondary-axis one. The main
+  // script is chosen by axis before playability — rightly, since a twist
+  // script is not a stroke script — so handing that twist script over as the
+  // entry's first script would drive the stroke axis from data describing a
+  // different one. Nothing is the better answer.
+  if (!hasPlayableFunscript(media)) return const [];
+
+  final usable = media.funscripts
+      .where((script) => !script.fileNotFound && !script.isScriptToken)
+      .toList();
+  usable.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
+
+  // Non-null past the guard, which is exactly the statement that this entry
+  // has a usable main script.
+  final main = media.mainFunscript.target!;
+  final mainIndex = usable.indexWhere((script) => script.id == main.id);
+  if (mainIndex <= 0) return usable;
+  // The stroke script leads, so a player taking the first entry takes the
+  // one that matters.
+  return [usable.removeAt(mainIndex), ...usable];
 }
 
 /// The shelves that open the library.

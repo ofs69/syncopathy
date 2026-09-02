@@ -251,7 +251,7 @@ class MediaLibraryHereSphereSource implements HereSphereLibrary {
   List<HereSphereScript> scripts(HereSphereEntry entry) {
     final media = _mediaService.getByHash(entry.id);
     if (media == null) return const [];
-    final files = _playableScripts(media);
+    final files = playableScripts(media);
     return [
       for (var i = 0; i < files.length; i++)
         HereSphereScript(index: i, name: _scriptName(files[i], media)),
@@ -262,7 +262,7 @@ class MediaLibraryHereSphereSource implements HereSphereLibrary {
   Future<Uint8List?> scriptBytes(HereSphereEntry entry, int index) async {
     final media = _mediaService.getByHash(entry.id);
     if (media == null) return null;
-    final files = _playableScripts(media);
+    final files = playableScripts(media);
     if (index < 0 || index >= files.length) return null;
     try {
       return await File(files[index].path).readAsBytes();
@@ -271,26 +271,6 @@ class MediaLibraryHereSphereSource implements HereSphereLibrary {
       // naming the path in a response.
       return null;
     }
-  }
-
-  /// The entry's scripts, main axis first, with anything unplayable dropped.
-  ///
-  /// Order is the identity: a script's position here is what its URL names, so
-  /// it has to be derived the same way every time rather than from whatever
-  /// order the relation happens to return.
-  static List<FunscriptFile> _playableScripts(MediaFile media) {
-    final usable = media.funscripts
-        .where((script) => !script.fileNotFound && !script.isScriptToken)
-        .toList();
-    usable.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
-
-    final main = media.mainFunscript.target;
-    if (main == null) return usable;
-    final mainIndex = usable.indexWhere((script) => script.id == main.id);
-    if (mainIndex <= 0) return usable;
-    // The stroke script leads, so a player taking the first entry takes the
-    // one that matters.
-    return [usable.removeAt(mainIndex), ...usable];
   }
 
   /// A name for the script, which for a multi-axis set is the axis suffix.
@@ -367,7 +347,7 @@ class MediaLibraryHereSphereSource implements HereSphereLibrary {
       tags.add('Speed:${_speedBand(main.averageSpeed)}');
       tags.add('Range:${_rangeBand(main.averageMin, main.averageMax)}');
       if (main.isAiGenerated) tags.add('Script:AI Generated');
-      final axes = _playableScripts(media).length;
+      final axes = playableScripts(media).length;
       if (axes > 1) tags.add('Script:Multi-Axis');
     }
 

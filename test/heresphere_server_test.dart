@@ -75,7 +75,9 @@ void main() {
   late Directory tempDir;
   late File mediaFile;
   late Uint8List mediaBytes;
+  late _FakeLibrary library;
   late HereSphereServer server;
+  late ClientClaim claim;
   late HttpClient client;
   late String origin;
 
@@ -163,7 +165,7 @@ void main() {
     ]);
     await mediaFile.writeAsBytes(mediaBytes);
 
-    final library = _FakeLibrary(
+    library = _FakeLibrary(
       {
         mediaId: HereSphereEntry(
           id: mediaId,
@@ -191,7 +193,11 @@ void main() {
       },
     );
 
-    server = HereSphereServer(library);
+    // Held so a test can stand a rival player up. Two clients cannot be told
+    // apart over loopback — every one of them keys as `loopback` — so injecting
+    // the claim is the only way to exercise the rule at all.
+    claim = ClientClaim();
+    server = HereSphereServer(library, claim: claim);
     // Port 0: the OS picks a free one, so tests never collide with a real
     // server or with each other.
     await server.start(
@@ -698,6 +704,102 @@ void main() {
       final response = await request('/event');
       expect(response.statusCode, HttpStatus.methodNotAllowed);
       expect(response.header(HttpHeaders.allowHeader), 'POST');
+    });
+  });
+
+  group('one player drives, the rest may look', () {
+    /// Hands the clock to somebody who is not this test's client.
+    void rivalIsDriving() => claim.claim('192.168.1.50', DateTime.now());
+
+    test('a rival driver does not close the library', () async {
+      rivalIsDriving();
+
+      // None of this touches the clock, so none of it is anyone's to lose.
+      expect((await login()).json['access'], hereSphereAccessGranted);
+      expect((await postTo('/scan')).json['access'], hereSphereAccessGranted);
+      expect((await request('/video/$mediaId')).statusCode, HttpStatus.ok);
+      expect((await request('/thumb/$mediaId')).statusCode, HttpStatus.ok);
+      expect((await request('/media/$mediaId')).statusCode, HttpStatus.ok);
+    });
+
+    test('a rival driver keeps playback events out', () async {
+      rivalIsDriving();
+
+      final response = await request(
+        '/event',
+        method: 'POST',
+        body: jsonEncode({'id': mediaId, 'event': 1, 'time': 1.0}),
+      );
+
+      // Refused rather than ignored: a player whose events vanish looks to its
+      // user like a device that stopped working.
+      expect(response.statusCode, HttpStatus.forbidden);
+    });
+
+    test('browsing does not take the clock from nobody', () async {
+      // Reads used to claim the session, which is what locked a headset out of
+      // its own server for ten minutes after it came back on a new address.
+      await request('/video/$mediaId');
+
+      final response = await request(
+        '/event',
+        method: 'POST',
+        body: jsonEncode({'id': mediaId, 'event': 1, 'time': 1.0}),
+      );
+      expect(response.statusCode, HttpStatus.ok);
+    });
+
+    test('a driver that has gone quiet gives way', () async {
+      claim = ClientClaim(timeout: Duration.zero);
+      claim.claim('192.168.1.50', DateTime(2020));
+
+      // The rival is stale, so the clock is there for the taking.
+      expect(claim.claim('loopback', DateTime.now()), isTrue);
+    });
+
+    test('the status panel still sees a client that only browsed', () async {
+      rivalIsDriving();
+      await request('/video/$mediaId');
+
+      // "Has anything reached me" is a different question from "who is
+      // driving", and the panel is asking the first one.
+      expect(server.connectedClient.value, isNotNull);
+    });
+
+    test('a client that only browses cannot aim the timestamp channel', () async {
+      // The channel dials whoever is driving, and Syncopathy opens that
+      // connection outbound. Reads no longer need the claim, so without this a
+      // phone browsing the library could point it at itself.
+      //
+      // On its own server, because the shared one has already recorded this
+      // client's address at login — and an assertion that cannot come out the
+      // other way proves nothing.
+      final rival = ClientClaim();
+      final other = HereSphereServer(library, claim: rival);
+      addTearDown(other.dispose);
+      await other.start(
+        address: '127.0.0.1',
+        port: 0,
+        auth: HereSphereAuth(
+          username: username,
+          password: await hashHereSpherePassword(password),
+        ),
+      );
+      // After starting, not before: a start stops first, and stopping releases
+      // the claim along with everything else the old server was holding.
+      rival.claim('192.168.1.50', DateTime.now());
+
+      final origin = 'http://127.0.0.1:${other.port}';
+      final req = await client.postUrl(Uri.parse('$origin/'));
+      req.write(jsonEncode({'username': username, 'password': password}));
+      final body = jsonDecode(
+        await (await req.close()).transform(utf8.decoder).join(),
+      );
+      expect(body['access'], hereSphereAccessGranted);
+
+      expect(other.clientAddress.value, isNull);
+      // The panel still knows something arrived, which is a different question.
+      expect(other.connectedClient.value, isNotNull);
     });
   });
 
