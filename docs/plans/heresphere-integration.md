@@ -506,17 +506,18 @@ The complete lists answer "where is that file" — a question the player's own
 search over `/scan` answers better than a list of several thousand entries can,
 which is why they sit below rather than above.
 
-**Shelves are capped; queries are not.** A shelf is a top-N view by definition —
-"Recently Added" means the newest few, not the library in date order — so the cap
-is the shelf rather than a truncation of one, and everything on a shelf is also
-in `Interactive`, `Other Videos` or a category below it. A preset and a category
-are queries, and answering one with the first forty matches would make a filter
-that lies about its own result. `Favourites` is uncapped for the same reason it
-is not really a shelf: it is a list the user built by hand.
+**Nothing is capped.** A shelf is an ordering and a question, not a sample: the
+point of `Unwatched Interactive` is that it is everything unwatched, and one that
+quietly showed the first forty would be a section that lied about its own name.
+The same reasoning that removed the five-hundred section cap applies — the index
+carries nothing per entry but a URL, so length was never what made it expensive.
+What each shelf contributes is its order and its predicate, and both survive
+being complete.
 
-`Random Interactive` is redrawn on every index request. Scrolling a long grid in
-a headset is slow enough that "show me something" is a real way to browse, and a
-shelf answering with the same forty entries every time would not be one.
+`Random Interactive` is reshuffled on every index request. Scrolling a long grid
+in a headset is slow enough that "show me something" is a real way to browse, and
+what makes this shelf that is the reshuffle rather than any cut: the front of the
+row is different every time it is opened, and the rest is still all there.
 
 **Saved filter presets become sections, evaluated by the desktop's own code.**
 `MediaFilterLogic.filterAndSort` is a pure function over `List<MediaFile>` and

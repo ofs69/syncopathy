@@ -133,7 +133,7 @@ void main() {
       expect(namesIn(shelves, 'Unwatched Interactive'), ['fresh']);
     });
 
-    test('unwatched is newest first, so the cap keeps the new arrivals', () {
+    test('unwatched leads with the newest arrivals, not with A', () {
       final shelves = hereSphereShelves([
         clip('aaa', scripted: true, addedOn: day(1)),
         clip('zzz', scripted: true, addedOn: day(2)),
@@ -174,28 +174,39 @@ void main() {
       expect(first, isNot(second));
     });
 
-    test('shelves are capped, and the cap picks the top of the order', () {
+    test('no shelf is a sample of what it names', () {
+      // A shelf is an ordering and a question, not a top-N view: the point of
+      // "Unwatched Interactive" is that it is everything unwatched.
       final library = [
-        for (var i = 0; i < hereSphereShelfSize + 20; i++)
+        for (var i = 0; i < 200; i++)
+          clip(
+            'clip$i',
+            scripted: true,
+            rating: MediaRating.like,
+            addedOn: day(1).add(Duration(days: i)),
+          ),
+      ];
+
+      final shelves = hereSphereShelves(library);
+      for (final name in [
+        'Recently Added',
+        'Unwatched Interactive',
+        'Favourites',
+        'Random Interactive',
+      ]) {
+        expect(namesIn(shelves, name), hasLength(200), reason: name);
+      }
+    });
+
+    test('recently added still leads with the newest', () {
+      final library = [
+        for (var i = 0; i < 200; i++)
           clip('clip$i', addedOn: day(1).add(Duration(days: i))),
       ];
 
-      final recent = namesIn(hereSphereShelves(library), 'Recently Added');
-      expect(recent, hasLength(hereSphereShelfSize));
-      expect(recent.first, 'clip${hereSphereShelfSize + 19}');
-    });
-
-    test('favourites is not capped', () {
-      // A hand-built list is short by construction, and cutting it would drop
-      // a deliberate choice rather than trim a view.
-      final library = [
-        for (var i = 0; i < hereSphereShelfSize + 20; i++)
-          clip('clip$i', rating: MediaRating.like),
-      ];
-
       expect(
-        namesIn(hereSphereShelves(library), 'Favourites'),
-        hasLength(hereSphereShelfSize + 20),
+        namesIn(hereSphereShelves(library), 'Recently Added').first,
+        'clip199',
       );
     });
 
