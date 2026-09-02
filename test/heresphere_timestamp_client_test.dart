@@ -10,6 +10,11 @@ import 'package:syncopathy/heresphere/timestamp_protocol.dart';
 class _FakePlayer {
   final ServerSocket _server;
   final List<Socket> connections = [];
+
+  /// The connections still open. Every attempt the client makes is accepted by
+  /// the OS whether the client wants it or not, so how many were *accepted*
+  /// says nothing; how many it kept is the interesting number.
+  final List<Socket> open = [];
   final List<int> received = [];
 
   final _connected = Completer<Socket>();
@@ -17,7 +22,12 @@ class _FakePlayer {
   _FakePlayer._(this._server) {
     _server.listen((socket) {
       connections.add(socket);
-      socket.listen(received.addAll, onError: (_) {}, onDone: () {});
+      open.add(socket);
+      socket.listen(
+        received.addAll,
+        onError: (_) => open.remove(socket),
+        onDone: () => open.remove(socket),
+      );
       if (!_connected.isCompleted) _connected.complete(socket);
     });
   }
@@ -156,6 +166,48 @@ void main() {
     final connectionsWhenStopped = player.connections.length;
     await Future<void>.delayed(const Duration(seconds: 2));
     expect(player.connections.length, connectionsWhenStopped);
+  });
+
+  test('switching off and on again leaves only one connection', () async {
+    // `Socket.connect` cannot be cancelled, so a stop lands while an attempt is
+    // still in flight — the shape of a user toggling the feature off and on
+    // because the headset was not answering. The abandoned attempt must not
+    // come back and install itself alongside the one that replaced it.
+    client.start(host: '127.0.0.1', port: player.port);
+    client.stop();
+    client.start(host: '127.0.0.1', port: player.port);
+
+    await player.firstConnection;
+    await waitFor(() => client.socketConnected.value);
+    await waitFor(() => player.open.length == 1);
+
+    expect(player.open.length, 1);
+
+    // The orphan was the harmful part: the client held no reference to it, so
+    // it outlived a stop still delivering frames and, when it eventually
+    // dropped, tore down whichever connection was live by then. A stop now
+    // really does close everything.
+    client.stop();
+    expect(client.socketConnected.value, isFalse);
+    await waitFor(() => player.open.isEmpty);
+    expect(player.open, isEmpty);
+  });
+
+  test('an endpoint change abandons the attempt it replaced', () async {
+    final other = await _FakePlayer.bind();
+    addTearDown(other.close);
+
+    client.start(host: '127.0.0.1', port: player.port);
+    // Retyped before the first attempt resolves.
+    client.start(host: '127.0.0.1', port: other.port);
+
+    await other.firstConnection;
+    await waitFor(() => client.socketConnected.value);
+    await waitFor(() => player.open.isEmpty);
+
+    expect(other.open.length, 1);
+    // Whatever the abandoned attempt reached is dropped, not kept alongside.
+    expect(player.open, isEmpty);
   });
 
   test('an unreachable endpoint reports rather than throws', () async {

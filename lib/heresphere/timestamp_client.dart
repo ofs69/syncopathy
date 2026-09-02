@@ -68,6 +68,20 @@ class HereSphereTimestampClient {
   /// True between [start] and [stop]; a drop only reconnects while it is set.
   bool _wanted = false;
 
+  /// Which connection attempt is the live one.
+  ///
+  /// `Socket.connect` cannot be cancelled, and it waits up to five seconds on a
+  /// headset that is asleep — long enough for the user to switch the feature off
+  /// and on again, or retype the host, while an attempt is still in flight.
+  /// Asking only whether a connection is still [_wanted] does not tell that
+  /// attempt apart from the one that replaced it, so it installs itself over
+  /// the newer socket, subscription and timers. The overwritten connection is
+  /// then unreachable: nothing can close it, it survives the next [stop] still
+  /// pushing frames, and when it finally drops it tears down whichever
+  /// connection is live by then. Numbering the attempts is what makes "is this
+  /// still the one wanted" answerable.
+  int _generation = 0;
+
   /// Whether outbound commands are allowed. Off by default: commanding the
   /// player is a separate opt-in from observing it.
   final Signal<bool> allowCommands = signal(false);
@@ -86,11 +100,14 @@ class HereSphereTimestampClient {
     _host = host;
     _port = port;
     _reconnectDelay = _initialReconnectDelay;
-    _connect();
+    _connect(_generation);
   }
 
   void stop() {
     _wanted = false;
+    // Abandons whatever is in flight, so it cannot come back and install
+    // itself over the next connection.
+    _generation++;
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
     _teardownConnection();
@@ -102,8 +119,8 @@ class HereSphereTimestampClient {
     await _frames.close();
   }
 
-  Future<void> _connect() async {
-    if (!_wanted) return;
+  Future<void> _connect(int generation) async {
+    if (generation != _generation) return;
     final host = _host;
     if (host == null) return;
 
@@ -113,7 +130,7 @@ class HereSphereTimestampClient {
         _port,
         timeout: const Duration(seconds: 5),
       );
-      if (!_wanted) {
+      if (generation != _generation) {
         socket.destroy();
         return;
       }
@@ -144,6 +161,9 @@ class HereSphereTimestampClient {
         (_) => _checkFreshness(),
       );
     } catch (e) {
+      // A superseded attempt failing says nothing about the current endpoint,
+      // and reporting it would overwrite the live error and reset the backoff.
+      if (generation != _generation) return;
       _lastError.value = _describe(e, host, _port);
       _scheduleReconnect();
     }
@@ -253,7 +273,8 @@ class HereSphereTimestampClient {
     if (!_wanted) return;
     _reconnectTimer?.cancel();
     final delay = _reconnectDelay;
-    _reconnectTimer = Timer(delay, _connect);
+    final generation = _generation;
+    _reconnectTimer = Timer(delay, () => _connect(generation));
     // Bounded doubling: a headset that is off should not be probed every
     // second forever, but a brief drop should recover quickly.
     final next = delay * 2;
