@@ -4,12 +4,14 @@ import 'dart:typed_data';
 import 'package:path/path.dart' as p;
 import 'package:syncopathy/heresphere/heresphere_library.dart';
 import 'package:syncopathy/heresphere/heresphere_projection.dart';
+import 'package:syncopathy/heresphere/library_sections.dart';
 import 'package:syncopathy/heresphere/thumbnail_decorator.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_library/media_badge.dart';
 import 'package:syncopathy/media_library/thumbnail_generator.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
+import 'package:syncopathy/model/media_filter_presets_model.dart';
 import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/persistence/service/media_service.dart';
@@ -47,6 +49,11 @@ class MediaLibraryHereSphereSource implements HereSphereLibrary {
   /// same list, so a badge turned off on the cards is off in the headset too.
   final List<String> Function() _enabledBadgeIds;
 
+  /// The user's saved filter presets, each published as a section. Read through
+  /// a callback so one saved, renamed or deleted on the desktop is reflected by
+  /// the next request rather than at the next restart.
+  final List<MediaFilterPreset> Function() _presets;
+
   /// Decorated thumbnails, keyed by a signature of everything that affects how
   /// one is drawn. Insertion-ordered, evicted oldest-first.
   final Map<String, HereSphereThumbnail> _decorated = {};
@@ -57,24 +64,36 @@ class MediaLibraryHereSphereSource implements HereSphereLibrary {
     ThumbnailGenerator? thumbnails,
     bool Function()? decorateThumbnails,
     List<String> Function()? enabledBadgeIds,
+    List<MediaFilterPreset> Function()? presets,
   }) : _categories = categories,
        _thumbnails = thumbnails ?? ThumbnailGenerator(),
        _decorateThumbnails = decorateThumbnails ?? (() => true),
-       _enabledBadgeIds = enabledBadgeIds ?? (() => defaultBadgeIds);
+       _enabledBadgeIds = enabledBadgeIds ?? (() => defaultBadgeIds),
+       _presets = presets ?? (() => const []);
 
   @override
   List<HereSphereSection> sections() {
     final playable = _playable();
 
-    // Scripted media first, and named for it: that is what Syncopathy is for,
-    // and it is the half a user is looking for in the headset.
+    // Scripted media apart from the rest, and named for it: that is what
+    // Syncopathy is for, and it is the half a user is looking for in the
+    // headset.
     final interactive = <MediaFile>[];
     final rest = <MediaFile>[];
     for (final media in playable) {
-      (_hasFunscript(media) ? interactive : rest).add(media);
+      (hasPlayableFunscript(media) ? interactive : rest).add(media);
     }
 
-    return [
+    // Ordered by the question each answers. The shelves and the user's own
+    // saved queries answer "what do I watch now", which is what a headset gets
+    // opened with; the complete lists below them answer "where is that file",
+    // which the player's own search over `/scan` answers better than any list
+    // of several thousand entries can.
+    return withDistinctNames([
+      for (final shelf in hereSphereShelves(playable))
+        HereSphereSection(name: shelf.name, entries: _toEntries(shelf.media)),
+      for (final shelf in hereSpherePresetShelves(playable, _presets()))
+        HereSphereSection(name: shelf.name, entries: _toEntries(shelf.media)),
       if (interactive.isNotEmpty)
         HereSphereSection(
           name: 'Interactive',
@@ -86,7 +105,7 @@ class MediaLibraryHereSphereSource implements HereSphereLibrary {
           entries: _toEntries(_sorted(rest)),
         ),
       ..._categorySections(),
-    ];
+    ]);
   }
 
   /// One section per user category, in the order they are arranged here.
@@ -316,7 +335,7 @@ class MediaLibraryHereSphereSource implements HereSphereLibrary {
       addedOn: media.firstIndexedOn,
       rating: _starsFor(media.rating),
       isFavorite: media.isFavorite,
-      hasFunscript: _hasFunscript(media),
+      hasFunscript: hasPlayableFunscript(media),
       playCount: media.playCount,
       tags: _tagsFor(media),
       // From the name on disk, not the library title: renaming an entry in
@@ -341,7 +360,7 @@ class MediaLibraryHereSphereSource implements HereSphereLibrary {
     }
 
     final main = media.mainFunscript.target;
-    final scripted = _hasFunscript(media);
+    final scripted = hasPlayableFunscript(media);
     tags.add('Interactive:${scripted ? 'Yes' : 'No'}');
 
     if (scripted && main != null) {
@@ -399,14 +418,6 @@ class MediaLibraryHereSphereSource implements HereSphereLibrary {
     >= 680 => '720p',
     _ => 'SD',
   };
-
-  /// Whether a script Syncopathy could actually play is attached. An encrypted
-  /// token counts as none: it cannot drive the device, so advertising the entry
-  /// as interactive would be a lie.
-  static bool _hasFunscript(MediaFile media) {
-    final main = media.mainFunscript.target;
-    return main != null && !main.fileNotFound && !main.isScriptToken;
-  }
 
   /// Maps Syncopathy's like/dislike onto HereSphere's five-star scale. No
   /// rating stays absent rather than becoming zero stars, which the headset

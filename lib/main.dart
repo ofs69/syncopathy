@@ -99,6 +99,10 @@ Future<Widget> _initializeAppAndRun({required bool simple}) async {
         // configured somewhere else.
         enabledBadgeIds: () =>
             mediaSettings?.enabledBadges.value ?? defaultBadgeIds,
+        // The library filters the user already saved and named, republished as
+        // sections. Registered above, since this branch only runs when the
+        // media library does.
+        presets: () => getIt.get<MediaFilterPresetsModel>().presets.value,
       ),
       activeSession: activeSession,
       localSession: videoPlayer,

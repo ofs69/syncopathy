@@ -494,9 +494,46 @@ manual pass.
 - [x] Add projection/stereo metadata where Syncopathy can determine it safely.
 - [x] Add reconnect diagnostics and actionable error messages.
 - [x] Consider outbound open/seek/play commands as a separate opt-in capability.
+- [x] Open the library with shelves, and publish the user's saved filter presets as sections.
 
-Sections are `Interactive`, `Other Videos`, and one per user category, with no
-cap.
+Sections are, in order: the shelves `Recently Added`, `Unwatched Interactive`,
+`Favourites` and `Random Interactive`; one per saved filter preset; then
+`Interactive`, `Other Videos`, and one per user category.
+
+**The order is by the question each section answers.** The shelves and the saved
+presets answer "what do I watch now", which is what a headset gets opened with.
+The complete lists answer "where is that file" — a question the player's own
+search over `/scan` answers better than a list of several thousand entries can,
+which is why they sit below rather than above.
+
+**Shelves are capped; queries are not.** A shelf is a top-N view by definition —
+"Recently Added" means the newest few, not the library in date order — so the cap
+is the shelf rather than a truncation of one, and everything on a shelf is also
+in `Interactive`, `Other Videos` or a category below it. A preset and a category
+are queries, and answering one with the first forty matches would make a filter
+that lies about its own result. `Favourites` is uncapped for the same reason it
+is not really a shelf: it is a list the user built by hand.
+
+`Random Interactive` is redrawn on every index request. Scrolling a long grid in
+a headset is slow enough that "show me something" is a real way to browse, and a
+shelf answering with the same forty entries every time would not be one.
+
+**Saved filter presets become sections, evaluated by the desktop's own code.**
+`MediaFilterLogic.filterAndSort` is a pure function over `List<MediaFile>` and
+`MediaFilterSnapshot` restores a preset without any UI, so a preset means the
+same thing in the headset as it does on the monitor. Nothing here invents a
+taxonomy: these are the questions the user already decided were worth keeping,
+under the names they gave them. The desktop's visibility toggles are left out,
+being view state rather than part of what was saved.
+
+A preset that throws is skipped with a warning and costs only its own section. A
+filter can reach for state the server has no business depending on — `Playlist`
+reads the locally loaded playlist through GetIt — and a headset with no library
+at all is a far worse outcome than one missing a section.
+
+Section names are made unique, first claim winning and case ignored, since a
+preset or a category can be called anything, including what a shelf is already
+called, and a name is all a section has in the headset.
 
 **The section cap was removed.** It was set at five hundred on the theory that a
 headset should not be handed an enormous index, and the first real library ran
@@ -621,6 +658,7 @@ Cover at least:
 - Invalid ranges, malformed JSON, stale tokens, unknown IDs, and simultaneous-client attempts.
 - A library large enough to have been truncated by the old cap, browsed end to end in the headset.
 - The player's own search and tag filters against the published `/scan` data.
+- The shelves and preset sections in a real headset: that the order reads as a landing page rather than a filing cabinet, that `Random Interactive` really does redraw, and that a preset returns in the headset what it returns on the desktop.
 - Decorated thumbnails: badges legible at headset distance, heatmap readable over a bright frame, and the picture still correct after a rating or play count changes.
 - The login handshake on a real player: first prompt, wrong password, correct password, a password changed while a headset is connected, and a session left idle overnight.
 
