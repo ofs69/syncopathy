@@ -15,6 +15,7 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'persistence/entities/fast_hash_cache.dart';
+import 'persistence/entities/funscript_analysis_cache.dart';
 import 'persistence/entities/funscript_file.dart';
 import 'persistence/entities/key_value.dart';
 import 'persistence/entities/media_file.dart';
@@ -413,6 +414,77 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(7, 3713565611939386600),
+    name: 'FunscriptAnalysisCache',
+    lastPropertyId: const obx_int.IdUid(10, 9008638420207054291),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 4901539698337256338),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 5414546749085850344),
+        name: 'funscriptHash',
+        type: 9,
+        flags: 32808,
+        indexId: const obx_int.IdUid(9, 6927176752035469828),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 3303580600229235731),
+        name: 'algorithmVersion',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 174337601763028509),
+        name: 'averageSpeed',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 977383439053292017),
+        name: 'averageMin',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 2369500233396198240),
+        name: 'averageMax',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 4078381567651939606),
+        name: 'isScriptToken',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 3626818660766842126),
+        name: 'metadataJson',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 6273920217067966436),
+        name: 'lastActionSeconds',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 9008638420207054291),
+        name: 'lastSeenOn',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -458,8 +530,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(6, 5727764668235585434),
-    lastIndexId: const obx_int.IdUid(8, 283326192770610566),
+    lastEntityId: const obx_int.IdUid(7, 3713565611939386600),
+    lastIndexId: const obx_int.IdUid(9, 6927176752035469828),
     lastRelationId: const obx_int.IdUid(2, 3712515284933883622),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
@@ -963,6 +1035,92 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    FunscriptAnalysisCache: obx_int.EntityDefinition<FunscriptAnalysisCache>(
+      model: _entities[6],
+      toOneRelations: (FunscriptAnalysisCache object) => [],
+      toManyRelations: (FunscriptAnalysisCache object) => {},
+      getId: (FunscriptAnalysisCache object) => object.id,
+      setId: (FunscriptAnalysisCache object, int id) {
+        object.id = id;
+      },
+      objectToFB: (FunscriptAnalysisCache object, fb.Builder fbb) {
+        final funscriptHashOffset = fbb.writeString(object.funscriptHash);
+        final metadataJsonOffset = object.metadataJson == null
+            ? null
+            : fbb.writeString(object.metadataJson!);
+        fbb.startTable(11);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, funscriptHashOffset);
+        fbb.addInt64(2, object.algorithmVersion);
+        fbb.addFloat64(3, object.averageSpeed);
+        fbb.addFloat64(4, object.averageMin);
+        fbb.addFloat64(5, object.averageMax);
+        fbb.addBool(6, object.isScriptToken);
+        fbb.addOffset(7, metadataJsonOffset);
+        fbb.addFloat64(8, object.lastActionSeconds);
+        fbb.addInt64(9, object.lastSeenOn.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final funscriptHashParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final algorithmVersionParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          8,
+          0,
+        );
+        final averageSpeedParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          10,
+          0,
+        );
+        final averageMinParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          12,
+          0,
+        );
+        final averageMaxParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          14,
+          0,
+        );
+        final isScriptTokenParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          false,
+        );
+        final lastSeenOnParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0),
+        );
+        final metadataJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 18);
+        final lastActionSecondsParam = const fb.Float64Reader()
+            .vTableGetNullable(buffer, rootOffset, 20);
+        final object = FunscriptAnalysisCache(
+          funscriptHash: funscriptHashParam,
+          algorithmVersion: algorithmVersionParam,
+          averageSpeed: averageSpeedParam,
+          averageMin: averageMinParam,
+          averageMax: averageMaxParam,
+          isScriptToken: isScriptTokenParam,
+          lastSeenOn: lastSeenOnParam,
+          metadataJson: metadataJsonParam,
+          lastActionSeconds: lastActionSecondsParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -1238,5 +1396,60 @@ class FastHashCache_ {
   /// See [FastHashCache.hash].
   static final hash = obx.QueryStringProperty<FastHashCache>(
     _entities[5].properties[4],
+  );
+}
+
+/// [FunscriptAnalysisCache] entity fields to define ObjectBox queries.
+class FunscriptAnalysisCache_ {
+  /// See [FunscriptAnalysisCache.id].
+  static final id = obx.QueryIntegerProperty<FunscriptAnalysisCache>(
+    _entities[6].properties[0],
+  );
+
+  /// See [FunscriptAnalysisCache.funscriptHash].
+  static final funscriptHash = obx.QueryStringProperty<FunscriptAnalysisCache>(
+    _entities[6].properties[1],
+  );
+
+  /// See [FunscriptAnalysisCache.algorithmVersion].
+  static final algorithmVersion =
+      obx.QueryIntegerProperty<FunscriptAnalysisCache>(
+        _entities[6].properties[2],
+      );
+
+  /// See [FunscriptAnalysisCache.averageSpeed].
+  static final averageSpeed = obx.QueryDoubleProperty<FunscriptAnalysisCache>(
+    _entities[6].properties[3],
+  );
+
+  /// See [FunscriptAnalysisCache.averageMin].
+  static final averageMin = obx.QueryDoubleProperty<FunscriptAnalysisCache>(
+    _entities[6].properties[4],
+  );
+
+  /// See [FunscriptAnalysisCache.averageMax].
+  static final averageMax = obx.QueryDoubleProperty<FunscriptAnalysisCache>(
+    _entities[6].properties[5],
+  );
+
+  /// See [FunscriptAnalysisCache.isScriptToken].
+  static final isScriptToken = obx.QueryBooleanProperty<FunscriptAnalysisCache>(
+    _entities[6].properties[6],
+  );
+
+  /// See [FunscriptAnalysisCache.metadataJson].
+  static final metadataJson = obx.QueryStringProperty<FunscriptAnalysisCache>(
+    _entities[6].properties[7],
+  );
+
+  /// See [FunscriptAnalysisCache.lastActionSeconds].
+  static final lastActionSeconds =
+      obx.QueryDoubleProperty<FunscriptAnalysisCache>(
+        _entities[6].properties[8],
+      );
+
+  /// See [FunscriptAnalysisCache.lastSeenOn].
+  static final lastSeenOn = obx.QueryDateProperty<FunscriptAnalysisCache>(
+    _entities[6].properties[9],
   );
 }

@@ -329,10 +329,71 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "7:3713565611939386600",
+      "lastPropertyId": "10:9008638420207054291",
+      "name": "FunscriptAnalysisCache",
+      "properties": [
+        {
+          "id": "1:4901539698337256338",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5414546749085850344",
+          "name": "funscriptHash",
+          "indexId": "9:6927176752035469828",
+          "type": 9,
+          "flags": 32808
+        },
+        {
+          "id": "3:3303580600229235731",
+          "name": "algorithmVersion",
+          "type": 6
+        },
+        {
+          "id": "4:174337601763028509",
+          "name": "averageSpeed",
+          "type": 8
+        },
+        {
+          "id": "5:977383439053292017",
+          "name": "averageMin",
+          "type": 8
+        },
+        {
+          "id": "6:2369500233396198240",
+          "name": "averageMax",
+          "type": 8
+        },
+        {
+          "id": "7:4078381567651939606",
+          "name": "isScriptToken",
+          "type": 1
+        },
+        {
+          "id": "8:3626818660766842126",
+          "name": "metadataJson",
+          "type": 9
+        },
+        {
+          "id": "9:6273920217067966436",
+          "name": "lastActionSeconds",
+          "type": 8
+        },
+        {
+          "id": "10:9008638420207054291",
+          "name": "lastSeenOn",
+          "type": 10
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "6:5727764668235585434",
-  "lastIndexId": "8:283326192770610566",
+  "lastEntityId": "7:3713565611939386600",
+  "lastIndexId": "9:6927176752035469828",
   "lastRelationId": "2:3712515284933883622",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

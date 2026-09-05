@@ -15,10 +15,12 @@ import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/model/json/funscript_metadata.dart';
 import 'package:syncopathy/objectbox.g.dart';
+import 'package:syncopathy/persistence/entities/funscript_analysis_cache.dart';
 import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/persistence/fast_file_hash.dart';
 import 'package:syncopathy/persistence/service/fast_hash_cache_service.dart';
+import 'package:syncopathy/persistence/service/funscript_analysis_cache_service.dart';
 
 /// A media file on disk that nothing is linked to.
 ///
@@ -195,7 +197,9 @@ class _DiscoveryUpdate {
 /// skipped, and a media group with no funscript is pruned. The residual this
 /// tool exists for is exactly what indexing threw away, so it is only on disk.
 ///
-/// Read-only throughout. Nothing here writes to the database.
+/// Never writes to the library itself — no media, funscript or link is touched.
+/// It does fill the two caches it reads from, so a rescan neither re-hashes nor
+/// re-parses a file that has not changed.
 class MatchDiscovery {
   static const int _hashPoolSize = 4;
   static const int _progressInterval = 25;
@@ -235,6 +239,7 @@ class MatchDiscovery {
       params.storeReference,
     );
     final cacheService = FastHashCacheService(store);
+    final analysisCache = FunscriptAnalysisCacheService(store);
     final pool = Pool(_hashPoolSize);
 
     void report(String status, [double? progress]) {
@@ -290,6 +295,7 @@ class MatchDiscovery {
         listing.funscriptFiles,
         pool,
         cacheService,
+        analysisCache,
         knownScripts,
         linkedScripts,
         trie,
@@ -367,11 +373,14 @@ class MatchDiscovery {
   ///
   /// Parsing is confined to the residual on purpose: it is a JSON decode of an
   /// action array, which is far too expensive to do for a whole library and
-  /// perfectly affordable for the handful that failed to match.
+  /// perfectly affordable for the handful that failed to match. It is confined
+  /// further by [analysisCache] — the decode depends on nothing but the bytes
+  /// of the file, so on a rescan only genuinely new or edited scripts are read.
   static Future<(List<UnmatchedFunscript>, int)> _collectScripts(
     List<File> files,
     Pool pool,
     FastHashCacheService cacheService,
+    FunscriptAnalysisCacheService analysisCache,
     Map<String, FunscriptFile> known,
     Set<String> linked,
     Trie trie,
@@ -415,72 +424,150 @@ class MatchDiscovery {
       residual.add((file, hash));
     }
 
-    report('Reading funscripts…', 0.0);
-    var parsed = 0;
-    final analyzed = residual.map((entry) {
-      final (file, hash) = entry;
-      return pool.withResource(() async {
-        final result = await _analyze(file, hash, known[hash]);
-        parsed++;
-        report(
-          'Reading funscripts ($parsed/${residual.length})',
-          parsed / residual.length,
-        );
-        return result;
-      });
-    }).toList();
+    final now = DateTime.now();
+    final cached = analysisCache.getAll();
 
-    final scripts = <UnmatchedFunscript>[];
-    for (final script in await Future.wait(analyzed)) {
-      if (script != null) scripts.add(script);
+    // Split before reading anything, so the progress line counts the files
+    // actually being decoded rather than the ones already known.
+    final hits = <(File, FunscriptAnalysisCache)>[];
+    final misses = <(File, String)>[];
+    for (final (file, hash) in residual) {
+      final entry = cached[hash];
+      if (entry != null &&
+          entry.algorithmVersion == FunscriptAlgorithms.algorithmVersion) {
+        hits.add((file, entry));
+      } else {
+        misses.add((file, hash));
+      }
     }
 
+    final analyses = <(File, FunscriptAnalysisCache)>[];
+    if (misses.isNotEmpty) {
+      report('Reading funscripts…', 0.0);
+      var parsed = 0;
+      final analyzed = misses.map((entry) {
+        final (file, hash) = entry;
+        return pool.withResource(() async {
+          final result = await analyze(file, hash, now);
+          parsed++;
+          report(
+            'Reading funscripts ($parsed/${misses.length})',
+            parsed / misses.length,
+          );
+          return result == null ? null : (file, result);
+        });
+      }).toList();
+
+      for (final analysis in await Future.wait(analyzed)) {
+        if (analysis != null) analyses.add(analysis);
+      }
+    }
+
+    // Hits are carried forward with their timestamp refreshed: nothing else in
+    // the database refers to these rows, so being used by a scan is the only
+    // evidence cleanup has that the file behind one still exists.
+    for (final (file, entry) in hits) {
+      entry.lastSeenOn = now;
+      analyses.add((file, entry));
+    }
+
+    try {
+      analysisCache.putMany([for (final (_, entry) in analyses) entry]);
+    } catch (e, st) {
+      // A cache that will not write is a slow scan, not a failed one.
+      Logger.error('Failed to store funscript analyses', e, st);
+    }
+
+    final scripts = [
+      for (final (file, entry) in analyses)
+        toUnmatched(file, entry, known[entry.funscriptHash]),
+    ];
+
     // Ordered so the list a user reads is the same on every run.
-    scripts.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
+    scripts.sort(
+      (a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()),
+    );
     return (scripts, trieResolvable);
   }
 
-  static Future<UnmatchedFunscript?> _analyze(
+  /// Combines a file's cached analysis with what the library knows about it.
+  ///
+  /// The split is what makes the analysis cacheable: everything here comes
+  /// from the path or from a database row, and neither belongs in a cache
+  /// keyed by the file's content.
+  @visibleForTesting
+  static UnmatchedFunscript toUnmatched(
+    File file,
+    FunscriptAnalysisCache analysis,
+    FunscriptFile? existing,
+  ) {
+    // The file's own metadata wins; a library row for the same hash is the
+    // fallback, exactly as it was before any of this was cached.
+    final metadata = analysis.metadataJson != null
+        ? FunscriptMetadata.fromJson(jsonDecode(analysis.metadataJson!))
+        : existing?.metadata;
+
+    final metadataDuration = metadata?.duration;
+
+    return UnmatchedFunscript(
+      funscriptHash: analysis.funscriptHash,
+      path: file.path,
+      basename: p.basenameWithoutExtension(file.path),
+      directoryLabel: p.basename(p.dirname(file.path)),
+      averageSpeed: analysis.averageSpeed,
+      averageMin: analysis.averageMin,
+      averageMax: analysis.averageMax,
+      isScriptToken: analysis.isScriptToken,
+      inLibrary: existing != null,
+      metadataJson: metadata == null ? null : jsonEncode(metadata.toJson()),
+      metadataTitle: _blankToNull(metadata?.title),
+      performers:
+          metadata?.performers
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList() ??
+          const [],
+      metadataDurationSeconds: metadataDuration == null || metadataDuration <= 0
+          ? null
+          : metadataDuration.toDouble(),
+      lastActionSeconds: analysis.lastActionSeconds,
+    );
+  }
+
+  /// Reads one funscript into the row that gets cached for it.
+  ///
+  /// Deliberately knows nothing about the library or the file's location: what
+  /// it returns is a function of the file's bytes and nothing else, which is
+  /// what makes it safe to key by content hash.
+  @visibleForTesting
+  static Future<FunscriptAnalysisCache?> analyze(
     File file,
     String hash,
-    FunscriptFile? existing,
+    DateTime now,
   ) async {
     try {
-      final json = FunscriptJson.fromJson(jsonDecode(await file.readAsString()));
+      final json = FunscriptJson.fromJson(
+        jsonDecode(await file.readAsString()),
+      );
       final actions = json.actions;
-      final metadata = json.metadata ?? existing?.metadata;
+      final metadata = json.metadata;
 
       // A script's metadata duration is authored; its last action is derived.
       // Both are only ever supporting evidence, so an absent one is fine.
-      final metadataDuration = metadata?.duration;
       final lastAction = actions.isEmpty
           ? null
-          : actions
-                .map((a) => a.at)
-                .reduce((a, b) => a > b ? a : b);
+          : actions.map((a) => a.at).reduce((a, b) => a > b ? a : b);
 
-      return UnmatchedFunscript(
+      return FunscriptAnalysisCache(
         funscriptHash: hash,
-        path: file.path,
-        basename: p.basenameWithoutExtension(file.path),
-        directoryLabel: p.basename(p.dirname(file.path)),
+        algorithmVersion: FunscriptAlgorithms.algorithmVersion,
         averageSpeed: FunscriptAlgorithms.averageSpeed(actions),
         averageMin: FunscriptAlgorithms.averageMin(actions),
         averageMax: FunscriptAlgorithms.averageMax(actions),
         isScriptToken: Funscript.isScriptToken(actions),
-        inLibrary: existing != null,
         metadataJson: metadata == null ? null : jsonEncode(metadata.toJson()),
-        metadataTitle: _blankToNull(metadata?.title),
-        performers: metadata?.performers
-                .map((e) => e.trim())
-                .where((e) => e.isNotEmpty)
-                .toList() ??
-            const [],
-        metadataDurationSeconds:
-            metadataDuration == null || metadataDuration <= 0
-            ? null
-            : metadataDuration.toDouble(),
         lastActionSeconds: lastAction == null ? null : lastAction / 1000.0,
+        lastSeenOn: now,
       );
     } catch (e, st) {
       // A script that will not parse is not a match problem; skip it rather

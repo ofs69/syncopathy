@@ -1,5 +1,6 @@
 import 'package:syncopathy/objectbox.g.dart';
 import 'package:syncopathy/persistence/entities/fast_hash_cache.dart';
+import 'package:syncopathy/persistence/entities/funscript_analysis_cache.dart';
 import 'package:syncopathy/persistence/entities/funscript_file.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';
 import 'package:syncopathy/persistence/entities/media_metadata.dart';
@@ -21,22 +22,28 @@ class LibraryCleanupPlan {
   /// Cached file hashes for paths no surviving record refers to.
   final List<int> hashCacheIds;
 
+  /// Cached funscript analyses no scan has used in a long time.
+  final List<int> analysisCacheIds;
+
   const LibraryCleanupPlan({
     required this.media,
     required this.funscripts,
     required this.metadataIds,
     required this.hashCacheIds,
+    this.analysisCacheIds = const [],
   });
 
   bool get isEmpty =>
       media.isEmpty &&
       funscripts.isEmpty &&
       metadataIds.isEmpty &&
-      hashCacheIds.isEmpty;
+      hashCacheIds.isEmpty &&
+      analysisCacheIds.isEmpty;
 
   /// Records with no file of their own, so they are reported as a count rather
   /// than listed for review.
-  int get orphanRecordCount => metadataIds.length + hashCacheIds.length;
+  int get orphanRecordCount =>
+      metadataIds.length + hashCacheIds.length + analysisCacheIds.length;
 }
 
 /// Database-only maintenance for the media library: repairs what it can and
@@ -46,6 +53,15 @@ class LibraryCleanupService {
   final FunscriptService _funscriptService;
 
   LibraryCleanupService(this._store, this._funscriptService);
+
+  /// How long a cached funscript analysis survives without a scan using it.
+  ///
+  /// These rows describe files the library deliberately does not hold, so no
+  /// relation can say whether one is still wanted; the only evidence is that a
+  /// scan looked it up. Long enough that someone who runs the match tool now
+  /// and then keeps their cache, short enough that a deleted collection does
+  /// not sit in the database forever.
+  static const Duration analysisCacheRetention = Duration(days: 60);
 
   /// Re-points media whose main script is unusable — unset, dangling, or a
   /// script whose file is gone — at the best script the media still has,
@@ -140,11 +156,23 @@ class LibraryCleanupService {
         .map((c) => c.id)
         .toList();
 
+    // Keyed by content hash rather than by path, so — unlike the hash cache
+    // above — a surviving record cannot vouch for one: the whole point of
+    // these rows is the scripts no record mentions. Age is the only signal.
+    final analysisCutoff = DateTime.now().subtract(analysisCacheRetention);
+    final analysisCacheIds = _store
+        .box<FunscriptAnalysisCache>()
+        .getAll()
+        .where((c) => c.lastSeenOn.isBefore(analysisCutoff))
+        .map((c) => c.id)
+        .toList();
+
     return LibraryCleanupPlan(
       media: media,
       funscripts: funscripts,
       metadataIds: metadataIds,
       hashCacheIds: hashCacheIds,
+      analysisCacheIds: analysisCacheIds,
     );
   }
 
@@ -157,5 +185,6 @@ class LibraryCleanupService {
     _store.box<MediaFile>().removeMany(plan.media.map((m) => m.id).toList());
     _store.box<MediaMetadata>().removeMany(plan.metadataIds);
     _store.box<FastHashCache>().removeMany(plan.hashCacheIds);
+    _store.box<FunscriptAnalysisCache>().removeMany(plan.analysisCacheIds);
   }
 }
