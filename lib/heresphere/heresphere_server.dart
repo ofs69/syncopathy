@@ -21,7 +21,7 @@ const String hereSpherePathPrefix = 'hs';
 /// making us buffer something large.
 const int _maxRequestBodyBytes = 64 * 1024;
 
-/// How long the driving client keeps its claim after its last event.
+/// How long the driving client keeps its claim after it was last heard from.
 ///
 /// HereSphere goes quiet between transitions — a paused video reports nothing —
 /// so the window has to outlast a pause. It only matters when a second player
@@ -40,37 +40,70 @@ enum HereSphereServerState { stopped, starting, running, failed }
 /// Scoped to the events that carry playback, and to nothing else. Reading the
 /// library confuses no clock, so a phone browsing while a headset plays is not
 /// a rival — it was only ever treated as one because this check sat in front of
-/// every route rather than in front of the one that matters. Gating reads also
-/// meant a headset that woke on a new DHCP lease was locked out by its own
-/// stale claim, since the key is the address it happened to arrive from.
+/// every route rather than in front of the one that matters.
+///
+/// The holder is identified by two things, either of which is enough, because
+/// a headset that goes away and comes back rarely comes back identically: see
+/// [isHolder]. Everything it does renews the claim, not only the events: see
+/// [touch].
 class ClientClaim {
   final Duration timeout;
 
   String? _holder;
+  String? _token;
   DateTime _lastSeen = DateTime.fromMillisecondsSinceEpoch(0);
 
   ClientClaim({this.timeout = _clientClaimTimeout});
 
   String? get holder => _holder;
 
+  /// Whether the holder is the client at [key], or the one holding [token].
+  ///
+  /// Either identifies it, because either can change on its own while the
+  /// other stays put. A headset that wakes on a new DHCP lease keeps the
+  /// session token it was issued; one that reopens the library keeps its
+  /// address while its token is replaced. Requiring both would lock a headset
+  /// out of its own playback for the length of [timeout] every time it came
+  /// back differently from how it left — which is the one failure this
+  /// mechanism can least afford, since the thing it guards against (a second
+  /// player posting events) does not happen in normal use at all.
+  bool isHolder(String key, String? token) =>
+      _holder == key || (token != null && _token != null && _token == token);
+
   /// Whether [key] may proceed, renewing the claim when it may.
   ///
   /// The current holder always may. Anyone else may only once the holder has
   /// been quiet for longer than [timeout].
-  bool claim(String key, DateTime now) {
-    final holder = _holder;
-    if (holder != null &&
-        holder != key &&
+  bool claim(String key, DateTime now, {String? token}) {
+    if (_holder != null &&
+        !isHolder(key, token) &&
         now.difference(_lastSeen) <= timeout) {
       return false;
     }
     _holder = key;
+    if (token != null) _token = token;
     _lastSeen = now;
     return true;
   }
 
+  /// Renews the holder's claim without granting one.
+  ///
+  /// Every authenticated request counts, not only the events. A headset
+  /// streaming video is plainly still there, and used to be able to go quiet
+  /// enough to lose its claim anyway, because only the events said so and a
+  /// paused video sends none. Also migrates the claim onto whichever half of
+  /// the identity has changed, so the next event from the same headset is
+  /// recognised however it came back.
+  void touch(String key, DateTime now, {String? token}) {
+    if (_holder == null || !isHolder(key, token)) return;
+    _holder = key;
+    if (token != null) _token = token;
+    _lastSeen = now;
+  }
+
   void release() {
     _holder = null;
+    _token = null;
     _lastSeen = DateTime.fromMillisecondsSinceEpoch(0);
   }
 }
@@ -132,6 +165,19 @@ class HereSphereServer {
   /// an outbound connection, so an unauthenticated stranger must not be able to
   /// aim it — and, once a player is driving, only that player may move it.
   ReadonlySignal<String?> get clientAddress => _clientAddress;
+
+  final StreamController<void> _clientActivity =
+      StreamController<void>.broadcast();
+
+  /// Fires on every authenticated request from the player that is driving —
+  /// or, while nobody is driving, from any signed-in client.
+  ///
+  /// It carries one fact the timestamp channel cannot discover for itself: the
+  /// player is up *now*. That channel dials out to a headset which is often
+  /// asleep, so it backs off to fifteen seconds between attempts; a headset
+  /// that has just asked us for a video frame is awake, and waiting out that
+  /// backoff would leave the device still for no reason.
+  Stream<void> get clientActivity => _clientActivity.stream;
 
   final StreamController<HereSphereEvent> _events =
       StreamController<HereSphereEvent>.broadcast();
@@ -257,6 +303,7 @@ class HereSphereServer {
   Future<void> dispose() async {
     await stop();
     await _events.close();
+    await _clientActivity.close();
   }
 
   void _fail(String message) {
@@ -329,7 +376,7 @@ class HereSphereServer {
       // The token has just been checked, so this request is as authenticated
       // as a login is. Kept current from here rather than only from the login,
       // because a headset that changes address mid-session should be followed.
-      _noteClientAddress(request);
+      _noteClientAddress(request, segments[1]);
       await _route(request, segments[1], segments.sublist(2));
     } catch (e, st) {
       Logger.error('HereSphere request failed: ${request.uri.path}', e, st);
@@ -445,7 +492,7 @@ class HereSphereServer {
     }
 
     throttle.recordSuccess(client);
-    _noteClientAddress(request);
+    _noteClientAddress(request, null);
     Logger.info('HereSphere: $client signed in');
     return HereSphereAuthResult.granted;
   }
@@ -526,7 +573,7 @@ class HereSphereServer {
       // The one route that moves the clock, so the one route a second player
       // may not reach. Refused rather than ignored: a player whose events are
       // silently dropped looks to its user like a device that stopped working.
-      if (!_claimClient(request)) {
+      if (!_claimClient(request, token)) {
         await _drain(request);
         Logger.warning(
           'HereSphere: refused playback events from ${_clientKey(request)}; '
@@ -769,17 +816,32 @@ class HereSphereServer {
     return '$host:${server.port}';
   }
 
-  bool _claimClient(HttpRequest request) {
+  bool _claimClient(HttpRequest request, String token) {
     final key = _clientKey(request);
     final previous = _claim.holder;
-    if (!_claim.claim(key, DateTime.now())) return false;
+    if (!_claim.claim(key, DateTime.now(), token: token)) return false;
     if (previous != key) Logger.info('HereSphere: playback claimed by $key');
     // Re-read after the claim, never before: the request that hands the clock
     // to a new driver is also the first evidence of where that driver lives,
     // which is what lets a headset back on a new lease move the channel with
     // it rather than leaving it dialling the address it used yesterday.
-    _noteClientAddress(request);
+    _noteClientAddress(request, token);
     return true;
+  }
+
+  /// Gives up the driving claim without forgetting where the player lives.
+  ///
+  /// Called once a player has been unreachable long enough to be treated as
+  /// gone. The two halves are deliberately separated: the address is kept,
+  /// because it costs one connection attempt every few seconds and is what
+  /// brings the channel straight back if the headset wakes on the same lease,
+  /// while the claim is exactly what would lock that headset out if it woke on
+  /// a different one.
+  void releaseDriver() {
+    final holder = _claim.holder;
+    if (holder == null) return;
+    Logger.info('HereSphere: $holder is no longer driving');
+    _claim.release();
   }
 
   void _releaseClaim() {
@@ -793,7 +855,7 @@ class HereSphereServer {
   /// Loopback is normalised to `127.0.0.1`: the claim key collapses every
   /// loopback form to one name, which is right for identity and useless for
   /// dialling.
-  void _noteClientAddress(HttpRequest request) {
+  void _noteClientAddress(HttpRequest request, String? token) {
     final address = request.connectionInfo?.remoteAddress;
     if (address == null) return;
 
@@ -806,8 +868,12 @@ class HereSphereServer {
     // client doing the asking is the only candidate there is — which is what
     // brings the channel up while a headset is still browsing, rather than a
     // beat late at the first video it opens.
-    final driver = _claim.holder;
-    if (driver != null && driver != key) return;
+    if (_claim.holder != null && !_claim.isHolder(key, token)) return;
+
+    // Renewed from any request, not only the events: a player streaming video
+    // has not gone quiet, whatever its event traffic says.
+    _claim.touch(key, DateTime.now(), token: token);
+    if (!_clientActivity.isClosed) _clientActivity.add(null);
 
     final dialable = address.isLoopback ? '127.0.0.1' : address.address;
     if (_clientAddress.value != dialable) {

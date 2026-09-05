@@ -34,11 +34,23 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
 
   /// How often a connection that dropped on its own is retried, when
   /// [SettingsModel.autoReconnect] is on.
-  static const int maxReconnectAttempts = 2;
+  ///
+  /// A Handy does not only drop out of range for a moment; it also gets
+  /// switched off, put on the charger, or taken to another room. Two attempts
+  /// covered the first case and none of the others, so anything longer than a
+  /// glitch ended with the user reconnecting by hand. With the backoff below
+  /// these attempts keep watch for a few minutes, which is long enough for a
+  /// device to be switched off and on again.
+  static const int maxReconnectAttempts = 6;
 
   /// Breathing room for the BLE stack to finish tearing the old link down and
   /// for the device to start advertising again before the next scan.
   static const Duration reconnectDelay = Duration(seconds: 2);
+
+  /// Ceiling on the doubling gap between attempts. Keeps a device that is off
+  /// from being scanned for continuously, while staying short enough that one
+  /// switched back on is found promptly.
+  static const Duration maxReconnectDelay = Duration(seconds: 30);
 
   /// Only a connection that was established and then lost is worth retrying: a
   /// scan that never found anything has already told the user so.
@@ -97,17 +109,22 @@ abstract class HandyBluetoothBackendBase extends PlayerBackend
       final reconnected = await retryUntilConnected(
         connect: tryConnect,
         isConnected: () => connected.value,
-        isCancelled: () => _disposed,
+        // Turning auto-reconnect off mid-campaign is the user saying to stop,
+        // and the campaign can run for minutes — long enough for them to.
+        isCancelled: () => _disposed || !settingsModel.autoReconnect.value,
         maxAttempts: maxReconnectAttempts,
         delay: reconnectDelay,
-        onAttempt: (attempt) => Logger.info(
-          "Reconnect attempt $attempt of $maxReconnectAttempts",
-        ),
+        maxDelay: maxReconnectDelay,
+        onAttempt: (attempt) =>
+            Logger.info("Reconnect attempt $attempt of $maxReconnectAttempts"),
       );
 
       if (reconnected) {
         AlertManager.showSuccess("Reconnected to the Handy.");
-      } else if (!_disposed) {
+      } else if (!_disposed && settingsModel.autoReconnect.value) {
+        // Only when the attempts were actually spent. A campaign the user
+        // called off by switching auto-reconnect back off is not a failure,
+        // and reporting it as one would answer their own action with an error.
         AlertManager.showError(
           "Couldn't reconnect to the Handy after $maxReconnectAttempts "
           "attempts. Connect again when it's ready.",

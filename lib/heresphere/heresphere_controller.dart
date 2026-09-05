@@ -30,6 +30,34 @@ import 'package:syncopathy/player/playback_session.dart';
 /// guessing pointless.
 const int _passwordWordCount = 3;
 
+/// How long HereSphere may be unreachable before it gives the clock back.
+///
+/// A brief drop must not move the clock: a headset that stutters for a second
+/// should stay in charge and read as paused, because bouncing ownership would
+/// reload the funscript on every hiccup. A headset that is gone — taken off,
+/// out of battery, off the network — is a different case entirely, and used to
+/// be indistinguishable from the first: nothing ever released the clock, so the
+/// local player stayed locked out until the user found the setting and toggled
+/// it. This is the line between the two.
+///
+/// Generous, because the cost of crossing it late is nothing — the device is
+/// already stopped, held by the same lost heartbeat — while crossing it early
+/// would undo the debouncing that makes a drop survivable.
+const Duration hereSphereAbandonAfter = Duration(seconds: 45);
+
+/// How long to wait before rebinding a server that failed to start, doubling
+/// up to [_maxServerRetryDelay].
+///
+/// A bind fails for reasons that pass: the address belongs to an interface
+/// that is still coming up after a sleep, or the previous socket has not yet
+/// been released. Leaving the feature dead until the user edits a setting made
+/// a momentary condition permanent.
+const Duration _initialServerRetryDelay = Duration(seconds: 2);
+const Duration _maxServerRetryDelay = Duration(seconds: 30);
+
+/// What the server was last asked to bind, so a retry can repeat it.
+typedef _ServerConfig = ({String address, int port, HereSphereAuth? auth});
+
 /// Owns everything the HereSphere feature runs, driven from settings.
 ///
 /// Three things hang together here and are easier to reason about in one place
@@ -53,10 +81,23 @@ class HereSphereController with EffectDispose {
 
   StreamSubscription<void>? _eventSubscription;
   StreamSubscription<HereSphereFrame>? _frameSubscription;
+  StreamSubscription<void>? _activitySubscription;
+
+  /// Counts down to giving the clock back, while the player is unreachable.
+  Timer? _abandonTimer;
+
+  /// What the server should be bound to, or null while it should be down.
+  _ServerConfig? _serverConfig;
+  Timer? _serverRetry;
+  Duration _serverRetryDelay = _initialServerRetryDelay;
 
   /// Serialises restarts. Settings arrive in bursts — a port edit is several
   /// keystrokes — and two overlapping `start` calls would race over the socket.
   Future<void> _pending = Future.value();
+
+  /// How long an unreachable player keeps the clock. Injectable so a test does
+  /// not have to sit out the real window.
+  final Duration abandonAfter;
 
   HereSphereController(
     this._settings,
@@ -64,6 +105,7 @@ class HereSphereController with EffectDispose {
     required ActivePlaybackSession activeSession,
     required PlaybackSession localSession,
     required MediaFile? Function(String? id, String? resource) resolveMedia,
+    this.abandonAfter = hereSphereAbandonAfter,
   }) : _activeSession = activeSession,
        _localSession = localSession,
        server = HereSphereServer(library),
@@ -73,6 +115,12 @@ class HereSphereController with EffectDispose {
       // clock to feed, since Syncopathy is not driving anything then.
       if (!_settings.hereSphereDeviceOwner.value.drivesDevice) return;
       session.applyEvent(event);
+    });
+
+    _activitySubscription = server.clientActivity.listen((_) {
+      // The player just talked to the media server, so it is awake whatever
+      // the timestamp channel's backoff currently believes.
+      timestamps.retryNow();
     });
 
     _frameSubscription = timestamps.frames.listen((frame) {
@@ -129,6 +177,20 @@ class HereSphereController with EffectDispose {
             _settings.hereSphereDeviceOwner.value.drivesDevice &&
             session.currentMedia.value != null;
         untracked(() => _applyOwnership(owns));
+      }),
+      effect(() {
+        // Holding the clock for a player nothing can reach. Fine for a moment,
+        // wrong forever — see [hereSphereAbandonAfter].
+        final stalled =
+            _settings.hereSphereEnabled.value &&
+            _settings.hereSphereDeviceOwner.value.drivesDevice &&
+            session.currentMedia.value != null &&
+            !timestamps.healthy.value;
+        untracked(() => _armAbandonTimer(stalled));
+      }),
+      effect(() {
+        final state = server.state.value;
+        untracked(() => _onServerState(state));
       }),
     ]);
   }
@@ -211,6 +273,77 @@ class HereSphereController with EffectDispose {
     }
   }
 
+  /// Starts or stops the countdown to giving the clock back.
+  ///
+  /// Armed once, not restarted: the window measures how long the player has
+  /// been unreachable, and re-arming it on every unhealthy tick would measure
+  /// nothing.
+  void _armAbandonTimer(bool stalled) {
+    if (!stalled) {
+      _abandonTimer?.cancel();
+      _abandonTimer = null;
+      return;
+    }
+    _abandonTimer ??= Timer(abandonAfter, () {
+      _abandonTimer = null;
+      Logger.info(
+        'HereSphere has been unreachable for ${abandonAfter.inSeconds}s; '
+        'giving the clock back to the local player',
+      );
+      // Dropping the media hands ownership back through the effect that
+      // watches it, and releasing the claim lets the same headset drive again
+      // the moment it returns — on whatever address it returns with. Neither
+      // stops the channel dialling, so a player that wakes up is picked
+      // straight back up and takes the clock again.
+      session.close();
+      server.releaseDriver();
+    });
+  }
+
+  /// Keeps the server bound, retrying a failed bind for as long as one is
+  /// wanted.
+  void _onServerState(HereSphereServerState state) {
+    if (state == HereSphereServerState.running) {
+      // A bind that worked earns the next failure a fresh, short first retry.
+      _serverRetryDelay = _initialServerRetryDelay;
+      return;
+    }
+    // Only a failure is worth acting on. `starting` in particular is not: a
+    // retry passes through it on the way to failing again, and treating that
+    // as progress would reset the backoff every time round.
+    if (state != HereSphereServerState.failed) return;
+
+    final config = _serverConfig;
+    if (config == null || _serverRetry != null) return;
+
+    final delay = _serverRetryDelay;
+    Logger.warning(
+      'HereSphere server failed to bind; retrying in ${delay.inSeconds}s',
+    );
+    _serverRetry = Timer(delay, () {
+      _serverRetry = null;
+      final current = _serverConfig;
+      if (current == null) return;
+      _queue(
+        () => server.start(
+          address: current.address,
+          port: current.port,
+          auth: current.auth,
+        ),
+      );
+    });
+    final next = delay * 2;
+    _serverRetryDelay = next > _maxServerRetryDelay
+        ? _maxServerRetryDelay
+        : next;
+  }
+
+  void _cancelServerRetry() {
+    _serverRetry?.cancel();
+    _serverRetry = null;
+    _serverRetryDelay = _initialServerRetryDelay;
+  }
+
   void _applyServer({
     required bool enabled,
     required int port,
@@ -218,7 +351,9 @@ class HereSphereController with EffectDispose {
     required String username,
     required String passwordHash,
   }) {
+    _cancelServerRetry();
     if (!enabled) {
+      _serverConfig = null;
       _queue(() async {
         await server.stop();
         // Nothing is watching any more, so anything half-open is stale.
@@ -230,6 +365,9 @@ class HereSphereController with EffectDispose {
       username: username,
       encodedPassword: passwordHash,
     );
+    // Remembered so a bind that fails can be repeated without waiting for the
+    // user to touch a setting.
+    _serverConfig = (address: address, port: port, auth: auth);
     // A server with no password still binds. It refuses every login, which is
     // the honest state to be in — and the settings panel says so — where not
     // binding at all would look like the feature is broken.
@@ -254,8 +392,13 @@ class HereSphereController with EffectDispose {
 
   Future<void> dispose() async {
     effectDispose();
+    _abandonTimer?.cancel();
+    _abandonTimer = null;
+    _cancelServerRetry();
+    _serverConfig = null;
     await _eventSubscription?.cancel();
     await _frameSubscription?.cancel();
+    await _activitySubscription?.cancel();
     // Give the clock back before tearing anything down, so nothing downstream
     // is left pointing at a disposed session.
     _activeSession.takeOver(_localSession);

@@ -48,6 +48,17 @@ Future<void> settle() async {
   }
 }
 
+/// Polls until [condition] holds, so a test never sleeps longer than it has to.
+Future<void> waitUntil(
+  bool Function() condition, {
+  Duration timeout = const Duration(seconds: 5),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (!condition() && DateTime.now().isBefore(deadline)) {
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+  }
+}
+
 void main() {
   late SettingsModel settings;
   late HereSphereController controller;
@@ -88,6 +99,24 @@ void main() {
       resolveMedia: (id, resource) => resolved,
     );
   });
+
+  /// Rebuilds the controller with an abandon window a test can wait out.
+  ///
+  /// The real one is three quarters of a minute, which is the right answer for
+  /// a headset and the wrong one for a test suite.
+  Future<void> useShortAbandonWindow([
+    Duration window = const Duration(milliseconds: 100),
+  ]) async {
+    await controller.dispose();
+    controller = HereSphereController(
+      settings,
+      _EmptyLibrary(),
+      activeSession: activeSession,
+      localSession: localSession,
+      resolveMedia: (id, resource) => resolved,
+      abandonAfter: window,
+    );
+  }
 
   tearDown(() async {
     await controller.dispose();
@@ -296,6 +325,95 @@ void main() {
       await controller.dispose();
 
       expect(activeSession.value, same(localSession));
+    });
+
+    test('a player that never comes back gives the clock back', () async {
+      // A dropout has to be survivable without moving the clock, but a headset
+      // that is simply gone — taken off, out of battery — used to keep the
+      // clock for good, and with it the local player's ability to play
+      // anything at all.
+      await useShortAbandonWindow();
+      settings.hereSphereEnabled.value = true;
+      await settle();
+
+      controller.session.applyEvent(open());
+      expect(activeSession.value, same(controller.session));
+
+      await waitUntil(() => identical(activeSession.value, localSession));
+
+      expect(activeSession.value, same(localSession));
+      expect(controller.session.currentMedia.value, isNull);
+    });
+
+    test('a player that comes back takes the clock again', () async {
+      // Giving up has to be recoverable without the user touching anything:
+      // the next thing HereSphere says puts it back in charge.
+      await useShortAbandonWindow();
+      settings.hereSphereEnabled.value = true;
+      await settle();
+
+      controller.session.applyEvent(open());
+      await waitUntil(() => identical(activeSession.value, localSession));
+
+      controller.session.applyEvent(open());
+
+      expect(activeSession.value, same(controller.session));
+      expect(controller.session.currentMedia.value, isNotNull);
+    });
+
+    test('handing the device over cancels the countdown', () async {
+      // The countdown only exists to free a clock HereSphere is holding. Once
+      // it holds nothing, there is nothing to time out — and a timer left
+      // running would close media the user is watching without a device.
+      await useShortAbandonWindow();
+      settings.hereSphereEnabled.value = true;
+      await settle();
+
+      controller.session.applyEvent(open());
+      settings.hereSphereDeviceOwner.value = HereSphereDeviceOwner.hereSphere;
+      await settle();
+
+      expect(activeSession.value, same(localSession));
+      expect(controller.session.currentMedia.value, isNotNull);
+    });
+  });
+
+  group('keeping the server bound', () {
+    test('a bind that fails is retried until it works', () async {
+      // A port is busy for reasons that pass — the previous socket has not been
+      // released, or an interface is still coming up after a sleep. Leaving the
+      // feature dead until the user edits a setting made that permanent.
+      final blocker = await HttpServer.bind('127.0.0.1', 0);
+      settings.hereSpherePort.value = blocker.port;
+      settings.hereSphereEnabled.value = true;
+      await settle();
+
+      expect(controller.server.state.value, HereSphereServerState.failed);
+
+      await blocker.close(force: true);
+
+      await waitUntil(
+        () => controller.server.state.value == HereSphereServerState.running,
+        timeout: const Duration(seconds: 15),
+      );
+      expect(controller.server.isRunning, isTrue);
+    });
+
+    test('nothing is retried once the feature is switched off', () async {
+      final blocker = await HttpServer.bind('127.0.0.1', 0);
+      addTearDown(() => blocker.close(force: true));
+      settings.hereSpherePort.value = blocker.port;
+      settings.hereSphereEnabled.value = true;
+      await settle();
+      expect(controller.server.state.value, HereSphereServerState.failed);
+
+      settings.hereSphereEnabled.value = false;
+      await settle();
+
+      // Long enough for several retries to have come due.
+      await Future<void>.delayed(const Duration(seconds: 5));
+      expect(controller.server.isRunning, isFalse);
+      expect(controller.server.state.value, HereSphereServerState.stopped);
     });
   });
 

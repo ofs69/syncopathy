@@ -415,7 +415,7 @@ final _entities = <obx_int.ModelEntity>[
     backlinks: <obx_int.ModelBacklink>[],
   ),
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(7, 3713565611939386600),
+    id: const obx_int.IdUid(8, 3713565611939386600),
     name: 'FunscriptAnalysisCache',
     lastPropertyId: const obx_int.IdUid(10, 9008638420207054291),
     flags: 0,
@@ -530,11 +530,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(7, 3713565611939386600),
+    lastEntityId: const obx_int.IdUid(8, 3713565611939386600),
     lastIndexId: const obx_int.IdUid(9, 6927176752035469828),
     lastRelationId: const obx_int.IdUid(2, 3712515284933883622),
     lastSequenceId: const obx_int.IdUid(0, 0),
-    retiredEntityUids: const [],
+    retiredEntityUids: const [8765085226492256282],
     retiredIndexUids: const [9035604879022144741],
     retiredPropertyUids: const [
       7700980024447199009,

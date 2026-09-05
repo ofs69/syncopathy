@@ -34,14 +34,16 @@ void main() {
       return (reconnected: reconnected, attempts: attempts, reported: reported);
     }
 
-    test('retries twice before giving up', () async {
+    test('spends the whole budget before giving up', () async {
+      // A Handy does not only glitch: it gets switched off, put on the charger,
+      // carried out of range. Two attempts covered the first case only.
       final result = await run();
-      expect(result.attempts, 2);
+      expect(result.attempts, HandyBluetoothBackendBase.maxReconnectAttempts);
       expect(result.reconnected, isFalse);
     });
 
     test('reports each attempt in order', () async {
-      expect((await run()).reported, [1, 2]);
+      expect((await run()).reported, [1, 2, 3, 4, 5, 6]);
     });
 
     test('stops as soon as the connection is back', () async {
@@ -74,6 +76,55 @@ void main() {
       final result = await run(cancelAfter: (attempts) => attempts >= 1);
       expect(result.attempts, 1);
       expect(result.reconnected, isFalse);
+    });
+
+    /// Records how long the loop waited before each attempt.
+    Future<List<Duration>> waitsBefore({
+      required Duration delay,
+      Duration? maxDelay,
+      int maxAttempts = 5,
+    }) async {
+      final waits = <Duration>[];
+      var last = DateTime.now();
+      await retryUntilConnected(
+        connect: () async {
+          final now = DateTime.now();
+          waits.add(now.difference(last));
+          last = now;
+        },
+        isConnected: () => false,
+        isCancelled: () => false,
+        maxAttempts: maxAttempts,
+        delay: delay,
+        maxDelay: maxDelay,
+      );
+      return waits;
+    }
+
+    test('waits the same short gap when no ceiling is given', () async {
+      final waits = await waitsBefore(
+        delay: const Duration(milliseconds: 20),
+        maxAttempts: 3,
+      );
+      for (final wait in waits) {
+        expect(wait.inMilliseconds, lessThan(60));
+      }
+    });
+
+    test('backs off between attempts, up to the ceiling', () async {
+      // The early attempts catch a link that merely glitched; the later ones
+      // keep watch for a device that is off, without scanning continuously for
+      // as long as it stays off.
+      final waits = await waitsBefore(
+        delay: const Duration(milliseconds: 20),
+        maxDelay: const Duration(milliseconds: 80),
+      );
+
+      expect(waits.length, 5);
+      // 20, 40, 80, then held at the ceiling.
+      expect(waits[1], greaterThan(waits[0]));
+      expect(waits[2], greaterThan(waits[1]));
+      expect(waits[4].inMilliseconds, lessThan(160));
     });
   });
 

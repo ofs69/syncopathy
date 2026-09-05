@@ -138,6 +138,65 @@ void main() {
     expect(player.connections.length, greaterThanOrEqualTo(2));
   });
 
+  test('evidence that the player woke up beats the backoff', () async {
+    // The backoff doubles toward fifteen seconds so a sleeping headset is not
+    // hammered, which is right until the media server hears from that same
+    // headset. Sitting out the rest of the backoff after that is the device
+    // standing still for no reason.
+    //
+    // A backoff far longer than the test, so a connection arriving can only be
+    // the nudge's doing and never a retry that happened to come due.
+    await client.dispose();
+    client = HereSphereTimestampClient(
+      initialReconnectDelay: const Duration(minutes: 5),
+      maxReconnectDelay: const Duration(minutes: 5),
+    );
+
+    // Bound and released first, so the port is one nothing answers on and then
+    // something does — the shape of a headset whose remote control comes up a
+    // moment after the rest of it.
+    final probe = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    final port = probe.port;
+    await probe.close();
+
+    client.start(host: '127.0.0.1', port: port);
+    await waitFor(() => client.lastError.value != null);
+
+    final awake = await ServerSocket.bind(InternetAddress.loopbackIPv4, port);
+    addTearDown(awake.close);
+    final arrived = Completer<void>();
+    awake.listen((_) {
+      if (!arrived.isCompleted) arrived.complete();
+    });
+
+    // Nothing yet: the pending retry has five minutes to run.
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    expect(arrived.isCompleted, isFalse);
+
+    client.retryNow();
+
+    await arrived.future.timeout(const Duration(seconds: 3));
+    // The listener sees the connection a moment before `Socket.connect`
+    // resolves on this side, so the signal lags the accept.
+    await waitFor(() => client.socketConnected.value);
+    expect(client.socketConnected.value, isTrue);
+  });
+
+  test('a nudge while connected changes nothing', () async {
+    client.start(host: '127.0.0.1', port: player.port);
+    await player.firstConnection;
+    await waitFor(() => client.socketConnected.value);
+
+    // Called from the request path, which is busy while a video streams.
+    for (var i = 0; i < 50; i++) {
+      client.retryNow();
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+
+    expect(player.open.length, 1);
+    expect(client.socketConnected.value, isTrue);
+  });
+
   test('health drops when a live connection goes quiet', () async {
     client.start(host: '127.0.0.1', port: player.port);
     final socket = await player.firstConnection;

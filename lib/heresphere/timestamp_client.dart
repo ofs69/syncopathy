@@ -13,10 +13,19 @@ import 'package:syncopathy/logging.dart';
 /// not keep running on a guess.
 const Duration hereSphereStaleAfter = Duration(seconds: 4);
 
-/// First reconnect delay. Each further failure doubles it up to
-/// [_maxReconnectDelay], so a headset that is asleep is not hammered.
+/// Defaults for [HereSphereTimestampClient.initialReconnectDelay] and
+/// [HereSphereTimestampClient.maxReconnectDelay]: each failure doubles the gap
+/// up to the ceiling, so a headset that is asleep is not hammered.
 const Duration _initialReconnectDelay = Duration(seconds: 1);
 const Duration _maxReconnectDelay = Duration(seconds: 15);
+
+/// Shortest gap between two nudged retries.
+///
+/// [HereSphereTimestampClient.retryNow] is called from the media server's
+/// request path, which can be busy — a headset streaming video makes range
+/// requests throughout. This is what keeps a channel that cannot connect from
+/// being retried once per request.
+const Duration _nudgeFloor = Duration(seconds: 1);
 
 /// Client for HereSphere's DeoVR-compatible timestamp server.
 ///
@@ -55,18 +64,40 @@ class HereSphereTimestampClient {
 
   final HereSphereFrameDecoder _decoder = HereSphereFrameDecoder();
 
+  /// Gap before the first reconnect, and the ceiling the doubling stops at.
+  /// Injectable so a test can put a retry far enough out to prove that
+  /// [retryNow], and nothing else, is what brought a connection back.
+  final Duration initialReconnectDelay;
+  final Duration maxReconnectDelay;
+
+  HereSphereTimestampClient({
+    this.initialReconnectDelay = _initialReconnectDelay,
+    this.maxReconnectDelay = _maxReconnectDelay,
+  }) : _reconnectDelay = initialReconnectDelay;
+
   Socket? _socket;
   StreamSubscription<List<int>>? _subscription;
   Timer? _keepalive;
   Timer? _staleWatchdog;
   Timer? _reconnectTimer;
-  Duration _reconnectDelay = _initialReconnectDelay;
+  Duration _reconnectDelay;
 
   String? _host;
   int _port = hereSphereDefaultTimestampPort;
 
   /// True between [start] and [stop]; a drop only reconnects while it is set.
   bool _wanted = false;
+
+  /// A connection attempt is in flight.
+  ///
+  /// `Socket.connect` takes up to five seconds against a sleeping headset, and
+  /// [retryNow] can arrive at any moment during it. Without this the nudge
+  /// would start a second attempt alongside the first, and whichever finished
+  /// last would install itself over the other's socket.
+  bool _connecting = false;
+
+  /// When [retryNow] last acted, for [_nudgeFloor].
+  DateTime? _lastNudgeAt;
 
   /// Which connection attempt is the live one.
   ///
@@ -99,7 +130,7 @@ class HereSphereTimestampClient {
     _wanted = true;
     _host = host;
     _port = port;
-    _reconnectDelay = _initialReconnectDelay;
+    _reconnectDelay = initialReconnectDelay;
     _connect(_generation);
   }
 
@@ -108,10 +139,39 @@ class HereSphereTimestampClient {
     // Abandons whatever is in flight, so it cannot come back and install
     // itself over the next connection.
     _generation++;
+    _connecting = false;
+    _lastNudgeAt = null;
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
     _teardownConnection();
     _lastError.value = null;
+  }
+
+  /// Something else has just seen the player: try again now.
+  ///
+  /// The channel dials out to a headset that is regularly asleep, so the
+  /// backoff grows to fifteen seconds. That is the right answer while there is
+  /// no news, and the wrong one the moment the media server hears from the
+  /// same headset — which is proof it is awake, and arrives seconds before the
+  /// backoff would have run out. Recovering on that evidence is the difference
+  /// between a headset waking to a working device and one waking to a device
+  /// that stays still for another quarter of a minute.
+  ///
+  /// Cheap enough to call from a request handler: it does nothing while a
+  /// socket is up or an attempt is in flight, and never acts more often than
+  /// [_nudgeFloor].
+  void retryNow() {
+    if (!_wanted || _connecting || _socket != null) return;
+    final now = DateTime.now();
+    final last = _lastNudgeAt;
+    if (last != null && now.difference(last) < _nudgeFloor) return;
+    _lastNudgeAt = now;
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+    // The player is up, so the last failure said nothing about how long to
+    // wait for the next attempt. Start the backoff over.
+    _reconnectDelay = initialReconnectDelay;
+    unawaited(_connect(_generation));
   }
 
   Future<void> dispose() async {
@@ -123,6 +183,8 @@ class HereSphereTimestampClient {
     if (generation != _generation) return;
     final host = _host;
     if (host == null) return;
+    if (_connecting) return;
+    _connecting = true;
 
     try {
       final socket = await Socket.connect(
@@ -142,7 +204,7 @@ class HereSphereTimestampClient {
       _decoder.reset();
       _socketConnected.value = true;
       _lastError.value = null;
-      _reconnectDelay = _initialReconnectDelay;
+      _reconnectDelay = initialReconnectDelay;
       Logger.info('HereSphere timestamp channel connected to $host:$_port');
 
       _subscription = socket.listen(
@@ -165,7 +227,15 @@ class HereSphereTimestampClient {
       // and reporting it would overwrite the live error and reset the backoff.
       if (generation != _generation) return;
       _lastError.value = _describe(e, host, _port);
+      // Cleared before scheduling, so the retry this arms is not mistaken for
+      // an attempt still in flight.
+      _connecting = false;
       _scheduleReconnect();
+    } finally {
+      // Only the live attempt owns the flag. A superseded one finishing must
+      // not clear it out from under the attempt that replaced it — and cannot
+      // strand it either, since `stop` clears the flag before `start` sets it.
+      if (generation == _generation) _connecting = false;
     }
   }
 
@@ -278,7 +348,7 @@ class HereSphereTimestampClient {
     // Bounded doubling: a headset that is off should not be probed every
     // second forever, but a brief drop should recover quickly.
     final next = delay * 2;
-    _reconnectDelay = next > _maxReconnectDelay ? _maxReconnectDelay : next;
+    _reconnectDelay = next > maxReconnectDelay ? maxReconnectDelay : next;
   }
 
   static String _describe(Object error, String host, int port) {

@@ -757,6 +757,117 @@ void main() {
       expect(claim.claim('loopback', DateTime.now()), isTrue);
     });
 
+    test('a headset that comes back on a new address keeps driving', () async {
+      // The case this used to get wrong. A headset that sleeps through its
+      // DHCP lease wakes up as a different address and, holding its own stale
+      // claim, was refused its own playback for ten minutes.
+      final now = DateTime(2024);
+      claim.claim('192.168.1.50', now, token: 'token-a');
+
+      expect(
+        claim.claim('192.168.1.77', now, token: 'token-a'),
+        isTrue,
+        reason: 'the session token says it is the same player',
+      );
+      expect(claim.holder, '192.168.1.77');
+    });
+
+    test('a headset that reopens the library keeps driving', () async {
+      // The other half of the same problem: reopening the library mints a
+      // fresh token, and the address is what says it is the same headset.
+      final now = DateTime(2024);
+      claim.claim('192.168.1.50', now, token: 'token-a');
+
+      expect(claim.claim('192.168.1.50', now, token: 'token-b'), isTrue);
+      // The new token replaces the old one, so a later address change is
+      // recognised by it rather than by the one it was issued alongside.
+      expect(claim.isHolder('192.168.1.99', 'token-b'), isTrue);
+      expect(claim.isHolder('192.168.1.99', 'token-a'), isFalse);
+    });
+
+    test('a genuine rival is still kept out', () async {
+      final now = DateTime(2024);
+      claim.claim('192.168.1.50', now, token: 'token-a');
+
+      expect(claim.claim('192.168.1.77', now, token: 'token-b'), isFalse);
+      expect(claim.holder, '192.168.1.50');
+    });
+
+    test('streaming keeps a claim alive through a long pause', () async {
+      // Only events used to renew the claim, and a paused video sends none —
+      // so a headset could lose its claim while plainly still connected.
+      final claim = ClientClaim(timeout: const Duration(minutes: 1));
+      claim.claim('192.168.1.50', DateTime(2024), token: 'token-a');
+
+      // Two minutes on, but it asked for bytes a moment ago.
+      claim.touch(
+        '192.168.1.50',
+        DateTime(2024).add(const Duration(minutes: 2)),
+        token: 'token-a',
+      );
+
+      expect(
+        claim.claim(
+          'loopback',
+          DateTime(2024).add(const Duration(minutes: 2, seconds: 1)),
+        ),
+        isFalse,
+      );
+    });
+
+    test('touching does not hand the claim to a stranger', () async {
+      final claim = ClientClaim();
+      claim.claim('192.168.1.50', DateTime(2024), token: 'token-a');
+
+      claim.touch('192.168.1.77', DateTime(2024), token: 'token-b');
+
+      expect(claim.holder, '192.168.1.50');
+    });
+
+    test('an authenticated request reports the player as awake', () async {
+      // The timestamp channel dials out and backs off to fifteen seconds
+      // against a sleeping headset. This is how it finds out the headset woke
+      // up, seconds before the backoff would have told it.
+      final woke = <void>[];
+      final subscription = server.clientActivity.listen(woke.add);
+      addTearDown(subscription.cancel);
+
+      await request('/video/$mediaId');
+      await pumpEventQueue();
+
+      expect(woke, isNotEmpty);
+    });
+
+    test('a stranger is never reported as the player waking', () async {
+      final woke = <void>[];
+      final subscription = server.clientActivity.listen(woke.add);
+      addTearDown(subscription.cancel);
+
+      // No token, so nothing here says a player is up — and it must not aim
+      // an outbound connection or renew anyone's claim.
+      final response = await client.getUrl(
+        Uri.parse('$origin/hs/nope/video/x'),
+      );
+      await (await response.close()).drain<void>();
+      await pumpEventQueue();
+
+      expect(woke, isEmpty);
+    });
+
+    test('releasing the driver frees the clock for whoever returns', () async {
+      // What the controller does once the player has been unreachable long
+      // enough to count as gone.
+      rivalIsDriving();
+      server.releaseDriver();
+
+      final response = await request(
+        '/event',
+        method: 'POST',
+        body: jsonEncode({'id': mediaId, 'event': 1, 'time': 1.0}),
+      );
+      expect(response.statusCode, HttpStatus.ok);
+    });
+
     test('the status panel still sees a client that only browsed', () async {
       rivalIsDriving();
       await request('/video/$mediaId');
