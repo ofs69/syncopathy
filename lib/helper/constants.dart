@@ -7,6 +7,18 @@ const int maxConcurrentProcess = 4;
 const int lowBatteryThreshold = 20;
 
 const double speedNormalizationValue = 0.4;
+
+/// Holds a dense field's icons to the height the field lays its text out for.
+///
+/// Left at their defaults, `prefixIcon` and `suffixIcon` carry a 48px minimum.
+/// That sets the height of the whole field while `isDense` lays the text out
+/// for a 32px one, so the 16px surplus lands under the text and it rides 8px
+/// above the centre, visibly higher than the icon beside it.
+const BoxConstraints denseFieldIconBox = BoxConstraints(
+  minWidth: 36,
+  minHeight: 36,
+);
+
 Color get favoriteColor => Colors.amber.shade600;
 Color get dislikeColor => Colors.lightBlue.shade500;
 Color get successColor => Colors.green.shade500;

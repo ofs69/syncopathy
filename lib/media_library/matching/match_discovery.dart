@@ -9,6 +9,7 @@ import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/helper/trie.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/media_library/matching/match_snapshot.dart';
+import 'package:syncopathy/media_library/matching/name_normalizer.dart';
 import 'package:syncopathy/media_library/media_file_scanner.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
@@ -53,13 +54,16 @@ class UnmatchedMedia {
     this.height,
   });
 
-  MediaSnapshot toSnapshot() => MediaSnapshot(
+  MediaSnapshot toSnapshot({
+    NoiseVocabulary vocabulary = NoiseVocabulary.standard,
+  }) => MediaSnapshot(
     fileHash: fileHash,
     basename: basename,
     directoryLabel: directoryLabel,
     durationSeconds: durationSeconds,
     width: width,
     height: height,
+    vocabulary: vocabulary,
   );
 }
 
@@ -112,7 +116,9 @@ class UnmatchedFunscript {
       ? null
       : FunscriptMetadata.fromJson(jsonDecode(metadataJson!));
 
-  FunscriptSnapshot toSnapshot() => FunscriptSnapshot(
+  FunscriptSnapshot toSnapshot({
+    NoiseVocabulary vocabulary = NoiseVocabulary.standard,
+  }) => FunscriptSnapshot(
     funscriptHash: funscriptHash,
     basename: basename,
     directoryLabel: directoryLabel,
@@ -120,6 +126,7 @@ class UnmatchedFunscript {
     performers: performers,
     metadataDurationSeconds: metadataDurationSeconds,
     lastActionSeconds: lastActionSeconds,
+    vocabulary: vocabulary,
   );
 }
 

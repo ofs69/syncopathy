@@ -21,10 +21,18 @@ class MediaSnapshot {
   final int? width;
   final int? height;
 
-  late final NormalizedName name = normalizeName(basename);
+  /// Which words normalization throws away. Carried per snapshot rather than
+  /// read from a global so a re-rank under changed settings builds names the
+  /// new settings agree with.
+  final NoiseVocabulary vocabulary;
+
+  late final NormalizedName name = normalizeName(
+    basename,
+    vocabulary: vocabulary,
+  );
   late final NormalizedName? directory = directoryLabel == null
       ? null
-      : normalizeName(directoryLabel!);
+      : normalizeName(directoryLabel!, vocabulary: vocabulary);
 
   MediaSnapshot({
     required this.fileHash,
@@ -33,6 +41,7 @@ class MediaSnapshot {
     this.durationSeconds,
     this.width,
     this.height,
+    this.vocabulary = NoiseVocabulary.standard,
   });
 }
 
@@ -58,13 +67,20 @@ class FunscriptSnapshot {
   /// media's length, and the only duration signal an unannotated script has.
   final double? lastActionSeconds;
 
-  late final NormalizedName name = normalizeName(basename, stripAxis: true);
+  /// See [MediaSnapshot.vocabulary].
+  final NoiseVocabulary vocabulary;
+
+  late final NormalizedName name = normalizeName(
+    basename,
+    stripAxis: true,
+    vocabulary: vocabulary,
+  );
   late final NormalizedName? directory = directoryLabel == null
       ? null
-      : normalizeName(directoryLabel!);
+      : normalizeName(directoryLabel!, vocabulary: vocabulary);
   late final NormalizedName? title = metadataTitle == null
       ? null
-      : normalizeName(metadataTitle!);
+      : normalizeName(metadataTitle!, vocabulary: vocabulary);
 
   /// The basename with any axis suffix removed. Every script of one multi-axis
   /// set shares this, which is what bundles them.
@@ -89,5 +105,6 @@ class FunscriptSnapshot {
     this.performers = const [],
     this.metadataDurationSeconds,
     this.lastActionSeconds,
+    this.vocabulary = NoiseVocabulary.standard,
   });
 }

@@ -147,4 +147,69 @@ void main() {
     expect(isNoiseToken('1080P'), isTrue);
     expect(isNoiseToken('alpha'), isFalse);
   });
+
+  group('a customized vocabulary', () {
+    test('added words are dropped on top of the built-in list', () {
+      const vocabulary = NoiseVocabulary(extraWords: {'studio'});
+
+      final name = normalizeName('Studio Alpha 1080p', vocabulary: vocabulary);
+      expect(name.tokens, ['alpha']);
+      expect(name.noiseTokens, containsAll(['studio', '1080p']));
+
+      // The built-in list alone still keeps it.
+      expect(normalizeName('Studio Alpha 1080p').tokens, ['studio', 'alpha']);
+    });
+
+    test('an excused built-in word is matched on again', () {
+      const vocabulary = NoiseVocabulary(matchedWords: {'quest', 'final'});
+
+      expect(
+        normalizeName('The Final Quest 4K', vocabulary: vocabulary).tokens,
+        ['the', 'final', 'quest'],
+      );
+    });
+
+    test('excusing a word beats the pattern that would also drop it', () {
+      const vocabulary = NoiseVocabulary(matchedWords: {'oculus'});
+
+      // The bare word survives; a headset revision built on it does not.
+      expect(vocabulary.isNoise('oculus'), isFalse);
+      expect(vocabulary.isNoise('oculusquest3'), isTrue);
+    });
+
+    test('excusing beats adding, so a word is never both', () {
+      const vocabulary = NoiseVocabulary(
+        extraWords: {'alpha'},
+        matchedWords: {'alpha'},
+      );
+
+      expect(vocabulary.isNoise('alpha'), isFalse);
+    });
+
+    test('the standard vocabulary matches the bare built-in list', () {
+      expect(NoiseVocabulary.standard.isStandard, isTrue);
+      expect(NoiseVocabulary.standard.isNoise('1080p'), isTrue);
+      expect(builtinNoiseWords, contains('oculus'));
+    });
+  });
+
+  group('normalizeNoiseWord', () {
+    test('folds a typed word the way a filename would be folded', () {
+      expect(normalizeNoiseWord('Björk'), 'bjork');
+      expect(normalizeNoiseWord('  1080P  '), '1080p');
+      expect(normalizeNoiseWord("Girl's"), 'girls');
+    });
+
+    test('multi-word input collapses to its first token', () {
+      // The noise list is checked one token at a time, so a two-word entry
+      // could never fire.
+      expect(normalizeNoiseWord('Big Studio'), 'big');
+      expect(normalizeNoiseWord('MyStudio'), 'my');
+    });
+
+    test('input with nothing usable in it is rejected', () {
+      expect(normalizeNoiseWord('   '), isNull);
+      expect(normalizeNoiseWord('---'), isNull);
+    });
+  });
 }

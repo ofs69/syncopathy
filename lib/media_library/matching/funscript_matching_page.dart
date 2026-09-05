@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
+import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
 import 'package:syncopathy/media_library/matching/fuzzy_matcher.dart';
 import 'package:syncopathy/media_library/matching/match_draft.dart';
@@ -42,11 +43,6 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
   late final FunscriptMatchingSettings _options;
   late final MatchRulesStore _rules;
   late final MatchingSessionModel _session;
-
-  /// Holds keyboard focus for the review shortcuts. The list is meant to be
-  /// worked through without touching the mouse, so the page grabs focus on
-  /// open and takes it back whenever a decision is made from a button.
-  final FocusNode _keyboardFocus = FocusNode(debugLabel: 'match review');
 
   /// Layout width below which the master/detail split stops being readable and
   /// becomes two stacked panes.
@@ -101,12 +97,10 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
     await Future.wait([_options.load(), _rules.load()]);
     if (!mounted) return;
     await _session.scan();
-    if (mounted) _keyboardFocus.requestFocus();
   }
 
   @override
   void dispose() {
-    _keyboardFocus.dispose();
     // An injected session belongs to whoever passed it in.
     if (widget.session == null) _session.dispose();
     _options.dispose();
@@ -115,32 +109,15 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
 
   // --- Actions ---
 
-  /// Runs [action] on the selected proposal and returns focus to the keyboard
-  /// handler, so a decision made by clicking does not end the keyboard rhythm.
-  void _onSelected(void Function(MatchProposal proposal) action) {
-    final proposal = _session.selectedProposal;
-    if (proposal == null) return;
-    action(proposal);
-    _keyboardFocus.requestFocus();
-  }
-
-  void _acceptNth(int index) => _onSelected((proposal) {
-    if (index < proposal.candidates.length) {
-      _session.accept(proposal, proposal.candidates[index].candidateId);
-    }
-  });
-
   Future<void> _openSettings() async {
     await showDialog<void>(
       context: context,
       builder: (context) => MatchingSettingsDialog(session: _session),
     );
-    if (mounted) _keyboardFocus.requestFocus();
   }
 
   void _acceptObvious() {
     final accepted = _session.acceptClearWinners();
-    _keyboardFocus.requestFocus();
     AlertManager.showSuccess(
       accepted == 0
           ? 'Nothing was unambiguous enough to take without a look.'
@@ -170,7 +147,6 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
         '${outcome.invalidated.take(3).join('\n')}',
       );
     }
-    _keyboardFocus.requestFocus();
   }
 
   Future<void> _undoApply() async {
@@ -185,56 +161,20 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.arrowDown): () =>
-            _session.step(1),
-        const SingleActivator(LogicalKeyboardKey.arrowUp): () =>
-            _session.step(-1),
-        const SingleActivator(LogicalKeyboardKey.keyJ): () => _session.step(1),
-        const SingleActivator(LogicalKeyboardKey.keyK): () => _session.step(-1),
-        const SingleActivator(LogicalKeyboardKey.enter): () =>
-            _onSelected(_session.acceptBest),
-        const SingleActivator(LogicalKeyboardKey.keyN): () =>
-            _onSelected(_session.reject),
-        const SingleActivator(LogicalKeyboardKey.keyS): () =>
-            _onSelected(_session.skip),
-        const SingleActivator(LogicalKeyboardKey.keyU): () =>
-            _onSelected(_session.undecide),
-        for (var i = 0; i < 9; i++)
-          SingleActivator(_digitKeys[i]): () => _acceptNth(i),
-      },
-      child: Focus(
-        focusNode: _keyboardFocus,
-        autofocus: true,
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: SignalBuilder(
-            builder: (context) => Column(
-              children: [
-                _buildToolbar(context),
-                const SizedBox(height: 8),
-                Expanded(child: _buildBody(context)),
-                _buildApplyBar(context),
-              ],
-            ),
-          ),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SignalBuilder(
+        builder: (context) => Column(
+          children: [
+            _buildToolbar(context),
+            const SizedBox(height: 8),
+            Expanded(child: _buildBody(context)),
+            _buildApplyBar(context),
+          ],
         ),
       ),
     );
   }
-
-  static const List<LogicalKeyboardKey> _digitKeys = [
-    LogicalKeyboardKey.digit1,
-    LogicalKeyboardKey.digit2,
-    LogicalKeyboardKey.digit3,
-    LogicalKeyboardKey.digit4,
-    LogicalKeyboardKey.digit5,
-    LogicalKeyboardKey.digit6,
-    LogicalKeyboardKey.digit7,
-    LogicalKeyboardKey.digit8,
-    LogicalKeyboardKey.digit9,
-  ];
 
   Widget _buildToolbar(BuildContext context) {
     final theme = Theme.of(context);
@@ -676,11 +616,22 @@ class _ReviewListState extends State<_ReviewList> {
                 decoration: InputDecoration(
                   isDense: true,
                   prefixIcon: const Icon(Icons.search, size: 18),
+                  prefixIconConstraints: denseFieldIconBox,
+                  suffixIconConstraints: denseFieldIconBox,
                   hintText: 'Filter by name',
                   suffixIcon: _search.text.isEmpty
                       ? null
                       : IconButton(
                           icon: const Icon(Icons.close, size: 16),
+                          padding: EdgeInsets.zero,
+                          constraints: denseFieldIconBox,
+                          // The constraints alone are not enough: an
+                          // IconButton pads itself out to a 48px tap target
+                          // regardless, which would make the field jump taller
+                          // the moment this button appears.
+                          style: IconButton.styleFrom(
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                           onPressed: () {
                             _search.clear();
                             session.listSearch.value = '';
@@ -955,87 +906,75 @@ class _DetailPane extends StatelessWidget {
         final decision = draft.decisions.value[proposal.script.funscriptHash];
         final theme = Theme.of(context);
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        return ListView(
+          padding: const EdgeInsets.only(right: 4),
           children: [
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.only(right: 4),
-                children: [
-                  _ScriptHeader(session: session, proposal: proposal),
-                  if (decision != null) ...[
-                    const SizedBox(height: 8),
-                    _DecisionBanner(
-                      decision: decision,
-                      proposal: proposal,
-                      onClear: () => session.undecide(proposal),
-                    ),
-                  ],
-                  if (proposal.hasCandidates) ...[
-                    const SizedBox(height: 8),
-                    _JudgementHint(proposal: proposal),
-                  ],
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const _KindBadge(kind: _FileKind.media),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'which video is this funscript for?',
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                      TextButton.icon(
-                        icon: const Icon(Icons.block, size: 16),
-                        label: const Text('No match'),
-                        onPressed: () => session.reject(proposal),
-                      ),
-                      TextButton.icon(
-                        icon: const Icon(Icons.schedule, size: 16),
-                        label: const Text('Skip'),
-                        onPressed: () => session.skip(proposal),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  if (proposal.candidates.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      child: Text(
-                        'No unmatched video shares a word or an identifier '
-                        'with this name, so there is nothing to suggest. The '
-                        'video may already be linked to another funscript, or '
-                        'it may not be in your library folders at all.',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    )
-                  else
-                    for (var i = 0; i < proposal.candidates.length; i++)
-                      _CandidateCard(
-                        session: session,
-                        candidate: proposal.candidates[i],
-                        rank: i + 1,
-                        script: proposal.script,
-                        isChosen:
-                            decision?.isAccept == true &&
-                            decision?.candidateId ==
-                                proposal.candidates[i].candidateId,
-                        onChoose: () => session.accept(
-                          proposal,
-                          proposal.candidates[i].candidateId,
-                        ),
-                      ),
-                  const SizedBox(height: 16),
-                ],
+            _ScriptHeader(session: session, proposal: proposal),
+            if (decision != null) ...[
+              const SizedBox(height: 8),
+              _DecisionBanner(
+                decision: decision,
+                proposal: proposal,
+                onClear: () => session.undecide(proposal),
               ),
+            ],
+            if (proposal.hasCandidates) ...[
+              const SizedBox(height: 8),
+              _JudgementHint(proposal: proposal),
+            ],
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const _KindBadge(kind: _FileKind.media),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'which video is this funscript for?',
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  icon: const Icon(Icons.block, size: 16),
+                  label: const Text('No match'),
+                  onPressed: () => session.reject(proposal),
+                ),
+                TextButton.icon(
+                  icon: const Icon(Icons.schedule, size: 16),
+                  label: const Text('Skip'),
+                  onPressed: () => session.skip(proposal),
+                ),
+              ],
             ),
-            const _KeyboardHints(),
+            const SizedBox(height: 4),
+            if (proposal.candidates.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Text(
+                  'No unmatched video shares a word or an identifier '
+                  'with this name, so there is nothing to suggest. The '
+                  'video may already be linked to another funscript, or '
+                  'it may not be in your library folders at all.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              )
+            else
+              for (final candidate in proposal.candidates)
+                _CandidateCard(
+                  session: session,
+                  candidate: candidate,
+                  script: proposal.script,
+                  isChosen:
+                      decision?.isAccept == true &&
+                      decision?.candidateId == candidate.candidateId,
+                  onChoose: () =>
+                      session.accept(proposal, candidate.candidateId),
+                ),
+            const SizedBox(height: 16),
           ],
         );
       },
@@ -1238,7 +1177,7 @@ class _DecisionBanner extends StatelessWidget {
           Expanded(
             child: Text(summary, style: theme.textTheme.bodyMedium),
           ),
-          TextButton(onPressed: onClear, child: const Text('Undo (U)')),
+          TextButton(onPressed: onClear, child: const Text('Undo')),
         ],
       ),
     );
@@ -1249,7 +1188,6 @@ class _CandidateCard extends StatelessWidget {
   const _CandidateCard({
     required this.session,
     required this.candidate,
-    required this.rank,
     required this.script,
     required this.isChosen,
     required this.onChoose,
@@ -1257,7 +1195,6 @@ class _CandidateCard extends StatelessWidget {
 
   final MatchingSessionModel session;
   final ScoredCandidate candidate;
-  final int rank;
   final dynamic script;
   final bool isChosen;
   final VoidCallback onChoose;
@@ -1282,11 +1219,6 @@ class _CandidateCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (rank <= 9)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8, top: 2),
-                      child: _RankKey(rank: rank),
-                    ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1465,66 +1397,6 @@ class _HighlightedName extends StatelessWidget {
 }
 
 enum _Emphasis { distinctive, common, none }
-
-/// The number key that accepts this candidate.
-class _RankKey extends StatelessWidget {
-  const _RankKey({required this.rank});
-
-  final int rank;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Tooltip(
-      message: 'Press $rank to choose this video',
-      child: Container(
-        width: 20,
-        height: 20,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          border: Border.all(color: theme.colorScheme.outlineVariant),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(
-          '$rank',
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _KeyboardHints extends StatelessWidget {
-  const _KeyboardHints();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(top: 4, bottom: 2),
-      child: DefaultTextStyle(
-        style:
-            theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ) ??
-            const TextStyle(),
-        child: const Wrap(
-          spacing: 14,
-          children: [
-            Text('↑↓ move'),
-            Text('⏎ accept best'),
-            Text('1–9 pick'),
-            Text('N no match'),
-            Text('S skip'),
-            Text('U undo'),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 enum _FileKind {
   funscript('FUNSCRIPT', Icons.show_chart),

@@ -3,6 +3,8 @@ import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/focus_numeric_input.dart';
 import 'package:syncopathy/media_library/matching/matching_session_model.dart';
 import 'package:syncopathy/media_library/matching/matching_settings.dart';
+import 'package:syncopathy/media_library/matching/name_normalizer.dart';
+import 'package:syncopathy/media_library/matching/noise_words_dialog.dart';
 
 /// How the tool decides what to suggest, configured inside the tool.
 ///
@@ -97,6 +99,7 @@ class _MatchingSettingsDialogState extends State<MatchingSettingsDialog> {
                     _markDirty();
                   },
                 ),
+                _wordFilterRow(theme),
                 const Divider(height: 24),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
@@ -132,6 +135,44 @@ class _MatchingSettingsDialogState extends State<MatchingSettingsDialog> {
         ),
       ],
     );
+  }
+
+  /// Opens the noise-word list. A row rather than an inline list: there are a
+  /// couple of hundred built-in words, and none of them is what someone came
+  /// into this dialog for.
+  Widget _wordFilterRow(ThemeData theme) {
+    final own = _options.extraNoiseWords.value.length;
+    final excused = _options.matchedBuiltinWords.value.length;
+
+    final summary = switch ((own, excused)) {
+      (0, 0) => 'Using the built-in list of ${builtinNoiseWords.length} words.',
+      (final o, 0) => '$o of your own, on top of the built-in list.',
+      (0, final e) => '$e built-in ${e == 1 ? 'word' : 'words'} turned off.',
+      (final o, final e) =>
+        '$o of your own, $e built-in ${e == 1 ? 'word' : 'words'} turned off.',
+    };
+
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      title: const Text('Words to ignore'),
+      subtitle: Text(
+        summary,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: _openWordFilter,
+    );
+  }
+
+  Future<void> _openWordFilter() async {
+    final changed = await showDialog<bool>(
+      context: context,
+      builder: (context) => NoiseWordsDialog(options: _options),
+    );
+    if (changed == true) _markDirty();
   }
 
   Widget _numberRow({

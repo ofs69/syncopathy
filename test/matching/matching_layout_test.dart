@@ -204,6 +204,68 @@ void main() {
     });
   });
 
+  group('the search fields sit on their own centre line', () {
+    /// How far the text baseline block sits off the middle of its field. A
+    /// dense field with default icons is 8px out, because the icons carry a
+    /// 48px minimum the dense text layout knows nothing about — which reads
+    /// as an input box whose text is stuck to the top.
+    double offCentre(WidgetTester tester, Finder field) {
+      final box = tester.getRect(field);
+      final text = tester.getRect(
+        find.descendant(of: field, matching: find.byType(EditableText)),
+      );
+      return text.center.dy - box.center.dy;
+    }
+
+    /// The residual every Material field with an underline has; the bug this
+    /// guards against is four times it.
+    const tolerance = 2.5;
+
+    testWidgets('the review list filter, empty and with a clear button', (
+      tester,
+    ) async {
+      final session = _reviewSession();
+      addTearDown(session.dispose);
+      await pump(tester, session, const Size(1440, 900));
+
+      final field = find.widgetWithText(TextField, 'Filter by name');
+      final empty = tester.getRect(field);
+      expect(offCentre(tester, field), closeTo(0, tolerance));
+
+      // Typing reveals the clear button, which must not resize the field or
+      // shift the text off centre again.
+      await tester.enterText(field, 'alpha');
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.close), findsWidgets);
+      expect(tester.getRect(field).height, empty.height);
+      expect(offCentre(tester, field), closeTo(0, tolerance));
+    });
+
+    testWidgets('the built-in word search', (tester) async {
+      final session = _reviewSession();
+      addTearDown(session.dispose);
+      await pump(tester, session, const Size(1440, 900));
+
+      await tester.tap(find.byTooltip('Matching options'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Words to ignore'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Words to ignore'));
+      await tester.pumpAndSettle();
+
+      final field = find.widgetWithText(TextField, 'Find a word');
+      final empty = tester.getRect(field);
+      expect(offCentre(tester, field), closeTo(0, tolerance));
+
+      await tester.enterText(field, 'quest');
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(field).height, empty.height);
+      expect(offCentre(tester, field), closeTo(0, tolerance));
+    });
+  });
+
   group('the review layout holds', () {
     for (final size in _sizes) {
       testWidgets('at ${size.width.toInt()}x${size.height.toInt()}', (
@@ -264,6 +326,36 @@ void main() {
         expect(_overflows(tester), isEmpty, reason: '$size with options open');
         expect(tester.takeException(), isNull);
 
+        await tester.tap(find.text('Done'));
+        await tester.pumpAndSettle();
+      }
+    });
+
+    testWidgets('with the word list open', (tester) async {
+      final session = _reviewSession();
+      addTearDown(session.dispose);
+
+      for (final size in _sizes) {
+        await pump(tester, session, size);
+        await tester.tap(find.byTooltip('Matching options'));
+        await tester.pumpAndSettle();
+        // The options dialog scrolls at these sizes, so the row has to be
+        // brought into view before it can be tapped.
+        await tester.ensureVisible(find.text('Words to ignore'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Words to ignore'));
+        await tester.pumpAndSettle();
+
+        expect(_overflows(tester), isEmpty, reason: '$size with words open');
+        expect(tester.takeException(), isNull);
+        // Both halves are on screen: the user's own list and the built-in one.
+        expect(find.text('Your words'), findsOneWidget);
+        expect(find.text('Built-in words'), findsOneWidget);
+
+        // Both dialogs are stacked and both say Done; the last one in the
+        // tree is the one on top.
+        await tester.tap(find.text('Done').last);
+        await tester.pumpAndSettle();
         await tester.tap(find.text('Done'));
         await tester.pumpAndSettle();
       }

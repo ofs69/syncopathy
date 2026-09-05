@@ -171,21 +171,6 @@ class MatchingSessionModel {
   void select(MatchProposal proposal) =>
       selectedScriptHash.value = proposal.script.funscriptHash;
 
-  /// Moves the selection by [delta] within the visible list.
-  void step(int delta) {
-    final visible = visibleProposals;
-    if (visible.isEmpty) return;
-
-    final current = selectedScriptHash.value;
-    final index = visible.indexWhere(
-      (p) => p.script.funscriptHash == current,
-    );
-    final next = index < 0
-        ? 0
-        : (index + delta).clamp(0, visible.length - 1);
-    selectedScriptHash.value = visible[next].script.funscriptHash;
-  }
-
   /// Selects the next row still needing review, wrapping to the start.
   ///
   /// Wrapping matters when the list is filtered to `Needs review`: deciding a
@@ -349,14 +334,18 @@ class MatchingSessionModel {
   }
 
   void _rebuildProposals(MatchDiscoveryResult result) {
+    // Read once: the vocabulary is rebuilt from two signals, and a matcher
+    // scoring media under one instance while the scripts were folded under
+    // another would compare names reduced by different rules.
+    final vocabulary = options.noiseVocabulary;
     final matcher = FuzzyMatcher(
-      result.media.map((m) => m.toSnapshot()),
+      result.media.map((m) => m.toSnapshot(vocabulary: vocabulary)),
       options: options.matchingOptions,
       rejectedPairs: rules.rejectedPairs,
     );
 
     final proposals = matcher.proposeAll(
-      result.scripts.map((s) => s.toSnapshot()),
+      result.scripts.map((s) => s.toSnapshot(vocabulary: vocabulary)),
     );
 
     // Unambiguous suggestions first, then the rest by score. The reviewer's

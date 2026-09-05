@@ -63,8 +63,13 @@ enum OrdinalKind { season, episode, scene, part }
 /// Normalizes [basename] (a filename with no extension).
 ///
 /// Pass [stripAxis] for funscript names so a multi-axis companion normalizes to
-/// the same thing as its stroke script.
-NormalizedName normalizeName(String basename, {bool stripAxis = false}) {
+/// the same thing as its stroke script. [vocabulary] decides which words count
+/// as noise; the default is the built-in list with nothing added or excused.
+NormalizedName normalizeName(
+  String basename, {
+  bool stripAxis = false,
+  NoiseVocabulary vocabulary = NoiseVocabulary.standard,
+}) {
   final withoutAxis = stripAxis
       ? stripFunscriptAxisSuffix(basename)
       : basename;
@@ -93,7 +98,7 @@ NormalizedName normalizeName(String basename, {bool stripAxis = false}) {
       continue;
     }
 
-    if (isNoiseToken(token)) {
+    if (vocabulary.isNoise(token)) {
       noiseTokens.add(token);
       continue;
     }
@@ -344,6 +349,17 @@ final RegExp _digitsOnlyPattern = RegExp(r'^\d{2,6}$');
 final RegExp _yearPattern = RegExp(r'^(?:19|20)\d{2}$');
 final RegExp _twoDigitPattern = RegExp(r'^\d{2}$');
 
+/// One named block of [builtinNoiseWords].
+///
+/// The grouping is for the settings UI, which has to present a couple of
+/// hundred words as something a person can find their way around. Nothing in
+/// matching reads [label].
+class NoiseWordGroup {
+  final String label;
+  final List<String> words;
+  const NoiseWordGroup(this.label, this.words);
+}
+
 /// Tokens that describe how a file was encoded or delivered rather than what it
 /// contains. Dropping them is what lets a 4K VR remux match the 1080p web
 /// version of the same scene.
@@ -352,37 +368,56 @@ final RegExp _twoDigitPattern = RegExp(r'^\d{2}$');
 /// domain (`180`, `360`, `5k`) are included: a title that genuinely needs one
 /// still keeps every other token, and leaving them in matched far more wrong
 /// files than right ones.
-const Set<String> _noiseTokens = {
-  // Resolution and quality
-  '360p', '480p', '540p', '576p', '720p', '1080p', '1440p', '2160p', '4320p',
-  'sd', 'hd', 'fhd', 'fullhd', 'uhd', 'hq', 'lq',
-  '2k', '4k', '5k', '6k', '7k', '8k',
-  // Codecs and encoding
-  'h264', 'h265', 'x264', 'x265', 'hevc', 'avc', 'av1', 'vp9', 'xvid', 'divx',
-  'mpeg4', 'mpeg2', '8bit', '10bit', 'hdr', 'hdr10', 'sdr', 'crf', 'cbr', 'vbr',
-  'aac', 'ac3', 'eac3', 'dts', 'opus', 'mp3', 'flac', 'lpcm', '2ch', '6ch',
-  // Source
-  'web', 'webrip', 'webdl', 'dl', 'bluray', 'blueray', 'bdrip', 'brrip', 'bdremux',
-  'remux', 'dvdrip', 'dvd', 'hdrip', 'hdtv', 'cam', 'rip', 'encode', 'reencode',
-  // VR
-  'vr', 'vr180', 'vr360', '180', '360', 'sbs', 'lr', 'tb', 'ou', 'mono',
-  'stereo', 'fisheye', 'mkx200', 'mkx220', 'vrca220', 'rf52', 'f180', 'i180',
-  'lr180', 'sbs180', 'ts180', '180x180', '360x180', '3dh', '3dv', 'oculus',
-  'quest', 'smartphone', 'gearvr', 'psvr',
-  '2d', '3d', 'sidebyside', 'overunder', 'topbottom', 'halfsbs', 'fullsbs',
-  'equirect', 'equirectangular', 'cubemap', 'passthrough', 'fov',
-  'binaural', 'ambisonic', 'ambix', 'spatial',
-  // Frame rate
-  'fps', '24fps', '25fps', '30fps', '50fps', '59fps', '60fps', '90fps',
-  '120fps',
-  // Release bookkeeping
-  'proper', 'repack', 'internal', 'multi', 'dual', 'subbed', 'sub', 'subs',
-  'uncut', 'uncensored', 'censored', 'extended', 'final', 'complete', 'full',
-  'xxx', 'nsfw', 'trailer', 'sample', 'preview',
-  // Container words that survive when the extension was part of the name
-  'mp4', 'mkv', 'avi', 'mov', 'wmv', 'webm', 'm4v',
-  // Script bookkeeping
-  'funscript', 'script', 'scripted',
+///
+/// Every word here is a default, not a rule. A library whose titles genuinely
+/// use one of these can put it back with [NoiseVocabulary.matchedWords].
+const List<NoiseWordGroup> builtinNoiseWordGroups = [
+  NoiseWordGroup('Resolution and quality', [
+    '360p', '480p', '540p', '576p', '720p', '1080p', '1440p', '2160p', '4320p',
+    'sd', 'hd', 'fhd', 'fullhd', 'uhd', 'hq', 'lq',
+    '2k', '4k', '5k', '6k', '7k', '8k',
+  ]),
+  NoiseWordGroup('Codecs and encoding', [
+    'h264', 'h265', 'x264', 'x265', 'hevc', 'avc', 'av1', 'vp9', 'xvid', 'divx',
+    'mpeg4', 'mpeg2', '8bit', '10bit', 'hdr', 'hdr10', 'sdr', 'crf', 'cbr',
+    'vbr', 'aac', 'ac3', 'eac3', 'dts', 'opus', 'mp3', 'flac', 'lpcm', '2ch',
+    '6ch',
+  ]),
+  NoiseWordGroup('Source', [
+    'web', 'webrip', 'webdl', 'dl', 'bluray', 'blueray', 'bdrip', 'brrip',
+    'bdremux', 'remux', 'dvdrip', 'dvd', 'hdrip', 'hdtv', 'cam', 'rip',
+    'encode', 'reencode',
+  ]),
+  NoiseWordGroup('VR and projection', [
+    'vr', 'vr180', 'vr360', '180', '360', 'sbs', 'lr', 'tb', 'ou', 'mono',
+    'stereo', 'fisheye', 'mkx200', 'mkx220', 'vrca220', 'rf52', 'f180', 'i180',
+    'lr180', 'sbs180', 'ts180', '180x180', '360x180', '3dh', '3dv', 'oculus',
+    'quest', 'smartphone', 'gearvr', 'psvr',
+    '2d', '3d', 'sidebyside', 'overunder', 'topbottom', 'halfsbs', 'fullsbs',
+    'equirect', 'equirectangular', 'cubemap', 'passthrough', 'fov',
+    'binaural', 'ambisonic', 'ambix', 'spatial',
+  ]),
+  NoiseWordGroup('Frame rate', [
+    'fps', '24fps', '25fps', '30fps', '50fps', '59fps', '60fps', '90fps',
+    '120fps',
+  ]),
+  NoiseWordGroup('Release bookkeeping', [
+    'proper', 'repack', 'internal', 'multi', 'dual', 'subbed', 'sub', 'subs',
+    'uncut', 'uncensored', 'censored', 'extended', 'final', 'complete', 'full',
+    'xxx', 'nsfw', 'trailer', 'sample', 'preview',
+  ]),
+  // Container words that survive when the extension was part of the name.
+  NoiseWordGroup('File containers', [
+    'mp4', 'mkv', 'avi', 'mov', 'wmv', 'webm', 'm4v',
+  ]),
+  NoiseWordGroup('Script bookkeeping', [
+    'funscript', 'script', 'scripted',
+  ]),
+];
+
+/// Every word of [builtinNoiseWordGroups], flattened for lookup.
+final Set<String> builtinNoiseWords = {
+  for (final group in builtinNoiseWordGroups) ...group.words,
 };
 
 /// Noise that no word list can keep up with.
@@ -424,10 +459,74 @@ final List<RegExp> _noisePatterns = [
   RegExp(r'^(?:mkx|vrca|rf|fisheye|dome|eac|cmp|ts|lr|sbs|ou|tb)\d{2,3}$'),
 ];
 
-/// Whether [token] would be dropped as release noise. Exposed so the review UI
-/// and tests can explain a reduction without reaching into the private set.
-bool isNoiseToken(String token) {
-  final lowered = token.toLowerCase();
-  if (_noiseTokens.contains(lowered)) return true;
-  return _noisePatterns.any((pattern) => pattern.hasMatch(lowered));
+/// Which words a normalization pass throws away.
+///
+/// The built-in list is a good default and a bad rule. Studios name themselves
+/// after headsets, titles contain the word `final`, and no fixed list can know
+/// that a particular library's `web` is a series name rather than a source tag.
+/// Both directions are therefore the user's to set: [extraWords] adds words
+/// this library repeats everywhere, and [matchedWords] takes built-in words
+/// back out so matching can use them again.
+class NoiseVocabulary {
+  /// Words the user added. Dropped on top of the built-in list.
+  final Set<String> extraWords;
+
+  /// Built-in words the user wants matched on after all.
+  ///
+  /// Wins over everything, patterns included — someone who excuses `oculus`
+  /// means the word, so `oculus` survives while `oculusquest3` is still noise.
+  final Set<String> matchedWords;
+
+  const NoiseVocabulary({
+    this.extraWords = const {},
+    this.matchedWords = const {},
+  });
+
+  /// The built-in list, with nothing added and nothing excused.
+  static const NoiseVocabulary standard = NoiseVocabulary();
+
+  bool get isStandard => extraWords.isEmpty && matchedWords.isEmpty;
+
+  /// Whether [token] would be dropped as release noise.
+  bool isNoise(String token) {
+    final lowered = token.toLowerCase();
+    if (matchedWords.contains(lowered)) return false;
+    if (extraWords.contains(lowered)) return true;
+    if (builtinNoiseWords.contains(lowered)) return true;
+    return _noisePatterns.any((pattern) => pattern.hasMatch(lowered));
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is NoiseVocabulary &&
+      _sameWords(extraWords, other.extraWords) &&
+      _sameWords(matchedWords, other.matchedWords);
+
+  @override
+  int get hashCode => Object.hash(extraWords.length, matchedWords.length);
+
+  static bool _sameWords(Set<String> a, Set<String> b) =>
+      a.length == b.length && a.containsAll(b);
+}
+
+/// Whether [token] would be dropped as release noise by the built-in list.
+/// Exposed so the review UI and tests can explain a reduction without reaching
+/// into the private patterns.
+bool isNoiseToken(String token) => NoiseVocabulary.standard.isNoise(token);
+
+/// Reduces a word a user typed to the token form matching compares against, or
+/// null when nothing survives.
+///
+/// The same folding filenames go through: a user who types `Björk`, `BJORK` or
+/// `björk.` has typed the one word matching will ever see. Multi-word input
+/// collapses to its first token, because the noise list is checked one token at
+/// a time and a two-word entry could never fire.
+String? normalizeNoiseWord(String input) {
+  final folded = _foldSeparators(
+    _foldDiacritics(_splitCamelCase(input).toLowerCase()),
+  );
+  for (final token in folded.split(' ')) {
+    if (token.isNotEmpty) return token;
+  }
+  return null;
 }

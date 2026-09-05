@@ -124,27 +124,6 @@ void main() {
   });
 
   group('moving through the list', () {
-    test('stepping stays inside the visible list', () {
-      final session = _threeRowSession();
-      session.listFilter.value = MatchReviewFilter.all;
-      final names = [
-        for (final p in session.visibleProposals) p.script.basename,
-      ];
-
-      session.step(1);
-      expect(session.selectedProposal!.script.basename, names[1]);
-
-      session.step(-1);
-      expect(session.selectedProposal!.script.basename, names[0]);
-
-      // Clamped rather than wrapped: an arrow key held down should stop at the
-      // end, not loop silently back to the top.
-      session.step(-1);
-      expect(session.selectedProposal!.script.basename, names[0]);
-
-      session.dispose();
-    });
-
     test('deciding moves on to the next row that needs review', () {
       final session = _threeRowSession();
       final first = session.visibleProposals.first;
