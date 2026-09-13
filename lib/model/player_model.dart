@@ -48,7 +48,21 @@ class PlayerModel with EffectDispose {
 
   late final Signal<PlayerBackend?> playerBackend;
 
-  final Signal<Funscript?> _currentFunscript = signal(null);
+  /// The open media and the script that goes with it, written as one value.
+  ///
+  /// A pair rather than a computed over two signals on purpose. The script is
+  /// loaded asynchronously after the session reports new media, so for as long
+  /// as that load is in flight the two disagree — and a computed that read both
+  /// would publish the new media paired with the previous script, handing the
+  /// device the wrong timeline for the video now playing. Writing them together,
+  /// once the load resolves, means every value this ever holds is a pair that
+  /// actually belongs together.
+  final Signal<MediaFunscript?> _currentlyOpen = signal(null);
+
+  /// Bumped when a load starts, so one that has been overtaken — the session
+  /// moved on, or closed the media — is dropped instead of publishing a pair
+  /// that is already out of date.
+  int _loadGeneration = 0;
 
   late final ReadonlySignal<MediaFunscript?> currentlyOpen;
 
@@ -79,15 +93,7 @@ class PlayerModel with EffectDispose {
   ) {
     playerBackend = signal(null);
 
-    currentlyOpen = computed(() {
-      final media = untracked(() => _session.value.currentMedia.value);
-      final funscript = _currentFunscript.value;
-
-      if (media != null && funscript != null) {
-        return MediaFunscript(media: media, funscript: funscript);
-      }
-      return null;
-    });
+    currentlyOpen = _currentlyOpen;
 
     if (syncopathySimpleMode) {
       simpleModeEffects();
@@ -214,7 +220,7 @@ class PlayerModel with EffectDispose {
         if (media == null ||
             totalDuration == null ||
             totalDuration < _minValidDurationSeconds) {
-          _currentFunscript.value = null;
+          _currentlyOpen.value = null;
           return;
         }
         try {
@@ -230,7 +236,9 @@ class PlayerModel with EffectDispose {
               );
             });
           }
-          _currentFunscript.value = funscript;
+          _currentlyOpen.value = funscript == null
+              ? null
+              : MediaFunscript(media: media, funscript: funscript);
         } catch (e, st) {
           Logger.error("Failed to process funscript", e, st);
         }
@@ -247,6 +255,10 @@ class PlayerModel with EffectDispose {
         final totalDuration = session.duration.value;
         final buildParams = _snapshotProcessParams(session);
 
+        // Claims the write that follows. Anything already in flight has now
+        // been overtaken and will drop its result rather than overwrite this.
+        final generation = ++_loadGeneration;
+
         final funscriptFile = (media?.funscripts.length ?? 0) > index
             ? media?.funscripts[index]
             : null;
@@ -255,15 +267,19 @@ class PlayerModel with EffectDispose {
             funscriptFile == null ||
             totalDuration == null ||
             totalDuration < _minValidDurationSeconds) {
-          _currentFunscript.value = null;
+          _currentlyOpen.value = null;
           return;
         }
         try {
           Funscript? funscript;
-          final currentFunscript = untracked(() => _currentFunscript.value);
+          final currentFunscript = untracked(
+            () => _currentlyOpen.value?.funscript,
+          );
           if (currentFunscript == null ||
               (currentFunscript.filePath != funscriptFile.path)) {
             funscript = await Funscript.fromFile(funscriptFile.path);
+            // The load took time; the session may have moved on while it ran.
+            if (generation != _loadGeneration) return;
           } else {
             funscript = currentFunscript;
           }
@@ -280,7 +296,9 @@ class PlayerModel with EffectDispose {
               );
             }
           });
-          _currentFunscript.value = funscript;
+          _currentlyOpen.value = funscript == null
+              ? null
+              : MediaFunscript(media: media, funscript: funscript);
         } catch (e, st) {
           Logger.error("Failed to process funscript", e, st);
         }
