@@ -93,8 +93,8 @@ class CustomAppBarState extends State<CustomAppBar> {
 
         if (hasBattery)
           _buildBatteryIndicator(context, batteryModel, chargerConnected),
-        const SizedBox(width: 4.0),
         const HereSphereStatusButton(),
+        const SizedBox(width: 4.0),
         ConnectionButton(),
         const SizedBox(width: 4.0),
 
