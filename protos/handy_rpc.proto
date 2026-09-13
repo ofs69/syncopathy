@@ -1,4 +1,4 @@
-// Auto-generated on 2026-07-10 13:00:28
+// Auto-generated on 2026-09-09 15:54:00
 syntax = "proto3";
 package hdy_rpc;
 import "notifications.proto";
@@ -35,6 +35,10 @@ message Notification{
         NotificationIdleTimeout notification_idle_timeout = 707; //Added in FW4.1.0
         NotificationHampChanged notification_hamp_changed = 720;
         NotificationHdspChanged notification_hdsp_changed = 740;
+        //Sensor - 800
+        NotificationSensorUpdate notification_sensor_update = 800; //Added in FW4.3
+        NotificationSlideDiagData notification_slide_diag_data = 844; //Added in FW4.4 - diag capture stream chunk (see RequestSlideDiagStream)
+        NotificationSpeedStats notification_speed_stats = 851; //Added in FW4.4 - one per averaging window (see RequestSpeedStatsSet)
         NotificationHspThresholdReached notification_hsp_threshold_reached = 860;
         NotificationHspStateChanged notification_hsp_state_changed = 861;
         NotificationHspLooping notification_hsp_looping = 862;
@@ -61,6 +65,7 @@ message Request {
         //Server methods that are public starts with 300
         RequestServerTimeGet request_server_time_get = 300;
         RequestConnectedGet request_connected_get = 301;
+        RequestFwStatusGet request_fw_status_get = 304; //Added in FW4.4 - server-answered firmware verdict
         RequestConnectionKeyGet request_connection_key_get = 606;
         RequestWifiStatusGet request_wifi_status_get = 620;
         RequestWifiSet request_wifi_set = 621;
@@ -80,6 +85,7 @@ message Request {
         RequestStopCurrentMode request_stop_current_mode = 715; //Added in FW4.0.13
         RequestConnectionModeSet request_connection_mode_set = 716; //Added in FW4.0.13
         RequestConnectionModeGet request_connection_mode_get = 717; //Added in FW4.0.13
+        RequestPublicInfoGet request_public_info_get = 718; //Added in FW4.4 - public product identity, see messages.proto
         //HAMP - 720
         RequestHampStart request_hamp_start = 720;
         RequestHampStop request_hamp_stop = 721;
@@ -94,11 +100,26 @@ message Request {
         RequestHdspXpTSet request_hdsp_xp_t_set = 744;
         RequestHdspXaVpSet request_hdsp_xa_vp_set = 745;
         RequestHdspStop request_hdsp_stop = 746;
+        //Sensor - 800
+        RequestSensorNotificationSet request_sensor_notification_set = 800; //Added in FW4.3
+        RequestSensorStateGet request_sensor_state_get = 801; //Added in FW4.3
+        RequestSensorNotificationGet request_sensor_notification_get = 802; //Added in FW4.3
         //SLIDE - 840
         RequestSliderStrokeGet request_slider_stroke_get = 840;
         RequestSliderStrokeSet request_slider_stroke_set = 841;
         RequestSliderStateGet request_slider_state_get = 842;
         RequestSliderCalibrate request_slider_calibrate = 843; //Added in FW4.0.15
+        RequestSlideDiagStart request_slide_diag_start = 844; //Added in FW4.4
+        RequestSlideDiagStatus request_slide_diag_status = 845; //Added in FW4.4
+        RequestSlideDiagRead request_slide_diag_read = 846; //Added in FW4.4
+        RequestSlideDiagStop request_slide_diag_stop = 847; //Added in FW4.4
+        RequestHallCalibrationGet request_hall_calibration_get = 848; //Added in FW4.4
+        RequestSlideDiagStream request_slide_diag_stream = 850; //Added in FW4.4
+        RequestSpeedStatsGet request_speed_stats_get = 851; //Added in FW4.4
+        RequestSpeedStatsSet request_speed_stats_set = 852; //Added in FW4.4
+        RequestSlideSnapshotGet request_slide_snapshot_get = 853; //Added in FW4.4
+        RequestSlideProfileTuningGet request_slide_profile_tuning_get = 855; //Added in FW4.4
+        RequestSlideMaintResultGet request_slide_maint_result_get = 856; //Added in FW4.4 - last maintenance test results (582/583)
         //HSP - 860
         RequestHspSetup request_hsp_setup = 860;
         RequestHspAdd request_hsp_add = 861;
@@ -113,6 +134,8 @@ message Request {
         RequestHspPauseOnStarvingSet request_hsp_pause_on_starving_set = 870; //Added in FW4.0.13
         RequestHspPlaybackRateSet request_hsp_playback_rate_set = 871; //Added in FW4.1.1
         RequestHspLoopSet request_hsp_loop_set = 872; //Added in FW4.1.1
+        RequestHspJitterFilterSet request_hsp_jitter_filter_set = 873; //Added in FW4.4
+        RequestHspScriptSpeedSet request_hsp_script_speed_set = 874; //Added in FW4.4
         //HMI (LED, screen and so on) - 880
         RequestLedOverride request_led_override = 880;
         // HVP (vibration) - 900
@@ -130,6 +153,10 @@ message Request {
         RequestHrppPatternsGet request_hrpp_patterns_get = 926;
         RequestHrppPlaybackRateSet request_hrpp_playback_rate_set = 927; //Added in FW4.2 - Replaces RequestHrppPlaybackSpeedSet
         RequestHrppPause request_hrpp_pause = 928; //Added in FW4.2
+        //Motor tuning (FW4.4): the read-only getters are public; the setters modify the motion profile and are private
+        RequestSettingsRegulatorGet request_settings_regulator_get = 2015; //Added in FW4.4
+        RequestSettingsHallGet request_settings_hall_get = 2017; //Added in FW4.4
+        RequestSlideProfileGet request_slide_profile_get = 2019; //Added in FW4.4
     }
     uint32 id = 2;
 }
@@ -144,6 +171,7 @@ message Response {
         //Server Response that are public starts with 300
         ResponseServerTimeGet response_server_time_get = 300;
         ResponseConnectedGet response_connected_get = 301;
+        ResponseFwStatusGet response_fw_status_get = 304; //Added in FW4.4 - server-answered firmware verdict
         ResponseConnectionKeyGet response_connection_key_get = 606;
         ResponseWifiStatusGet response_wifi_status_get = 620;
         ResponseWifiScanResultsGet response_wifi_scan_results_get = 624;
@@ -156,6 +184,7 @@ message Response {
         ResponseCapabilitiesGet response_capabilities_get = 713;
         ResponseSessionIdsGet response_session_ids_get = 714;
         ResponseConnectionModeGet response_connection_mode_get = 717; //Added in FW4.0.13
+        ResponsePublicInfoGet response_public_info_get = 718; //Added in FW4.4 - public product identity, see messages.proto
         //HAMP - 720
         ResponseHampStart response_hamp_start = 720;
         ResponseHampStop response_hamp_stop = 721;
@@ -164,11 +193,25 @@ message Response {
         ResponseHampZoneSet response_hamp_zone_set = 725; //Added in FW4.0.15
         //HDSP - 740
         //Replies OK or ERROR only
+        //Sensor - 800
+        ResponseSensorNotificationSet response_sensor_notification_set = 800; //Added in FW4.3
+        ResponseSensorStateGet response_sensor_state_get = 801; //Added in FW4.3
+        ResponseSensorNotificationGet response_sensor_notification_get = 802; //Added in FW4.3
         //Slide - 840
         ResponseSliderStrokeGet response_slider_stroke_get = 840;
         ResponseSliderStrokeSet response_slider_stroke_set = 841;
         ResponseSliderStateGet response_slider_state_get = 842;
         ResponseSliderCalibrate response_slider_calibrate = 843; //Added in FW4.0.15
+        ResponseSlideDiagStart response_slide_diag_start = 844; //Added in FW4.4
+        ResponseSlideDiagStatus response_slide_diag_status = 845; //Added in FW4.4
+        ResponseSlideDiagRead response_slide_diag_read = 846; //Added in FW4.4
+        ResponseHallCalibrationGet response_hall_calibration_get = 848; //Added in FW4.4
+        ResponseSlideDiagStream response_slide_diag_stream = 850; //Added in FW4.4
+        ResponseSpeedStatsGet response_speed_stats_get = 851; //Added in FW4.4
+        ResponseSpeedStatsSet response_speed_stats_set = 852; //Added in FW4.4
+        ResponseSlideSnapshotGet response_slide_snapshot_get = 853; //Added in FW4.4
+        ResponseSlideProfileTuningGet response_slide_profile_tuning_get = 855; //Added in FW4.4
+        ResponseSlideMaintResultGet response_slide_maint_result_get = 856; //Added in FW4.4
         //HSP - 860
         ResponseHspSetup response_hsp_setup = 860;
         ResponseHspAdd response_hsp_add = 861;
@@ -183,6 +226,8 @@ message Response {
         ResponseHspPauseOnStarvingSet response_hsp_pause_on_starving_set = 870;
         ResponseHspPlaybackRateSet response_hsp_playback_rate_set = 871;
         ResponseHspLoopSet response_hsp_loop_set = 872; //Added in FW4.1.1
+        ResponseHspJitterFilterSet response_hsp_jitter_filter_set = 873; //Added in FW4.4
+        ResponseHspScriptSpeedSet response_hsp_script_speed_set = 874; //Added in FW4.4
         //HVP - 900 (Vibration)
         ResponseHvpSet response_hvp_set = 900;
         ResponseHvpStop response_hvp_stop = 901;
@@ -198,6 +243,9 @@ message Response {
         ResponseHrppPatternsGet response_hrpp_patterns_get = 926;
         ResponseHrppPlaybackRateSet response_hrpp_playback_rate_set = 927; //Added in FW4.2 - Replaces ResponseHrppPlaybackSpeedSet
         ResponseHrppPause response_hrpp_pause = 928; //Added in FW4.2
+        ResponseSettingsRegulatorGet response_settings_regulator_get = 2015; //Added in FW4.4
+        ResponseSettingsHallGet response_settings_hall_get = 2017; //Added in FW4.4
+        ResponseSlideProfileGet response_slide_profile_get = 2019; //Added in FW4.4
     }
     Error error = 2;
 }

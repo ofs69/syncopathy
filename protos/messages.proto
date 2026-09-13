@@ -1,8 +1,8 @@
-// Auto-generated on 2026-07-10 13:00:28
+// Auto-generated on 2026-09-09 15:54:00
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
-/************   TO SERVER - PUBLIC - 300-499    ************/
+/************   TO SERVER - 300-499    ************/
 //NB! Server messages, never touched by the FW
 //300
 message RequestServerTimeGet {
@@ -15,6 +15,40 @@ message RequestConnectedGet{
 }
 message ResponseConnectedGet{
     bool connected = 1;
+}
+//304 - Added in FW4.4 - The server's firmware verdict for the connected device.
+//SERVER-answered: only the server knows which release is current. This is the
+//same fact the online API serves as fw_status on getDeviceInfo, so a socket
+//session no longer needs a REST call to learn it.
+message RequestFwStatusGet{
+}
+message ResponseFwStatusGet{
+    FirmwareStatus status = 1;
+    string latest_version = 2; //[char[32]] The release the server would serve; empty when it does not say
+}
+// 582 - Mechanical UNIFORMITY test (FW4.4). Async: blank response, then
+// NotificationTestComplete{msg_id, result}; read the detailed result with
+// RequestSlideMaintResultGet (856). OPEN LOOP, independent of the regulator and
+// its tuning (like the hall calibration): a constant-duty pass from each end in
+// each direction, the measured speed binned along the stroke. A uniform
+// mechanism rises monotonically to a plateau; a local bind (dry rail, damaged
+// screw flank, debris) is a DIP at that position, a one-way load is a
+// forward/backward plateau asymmetry. Verdict OK / CHECK (probably wants
+// lubrication) / FAIL. Also for the user: an app can offer it as a device check.
+// result: 0 ok; -1 motion failure; -4 already running; -5 not calibrated (run
+// the endpoint calibration first). Moves the slider for ~10 s. Requires a
+// calibrated slider; the device must be idle.
+message RequestTestUniformity{
+    float duty = 1; // open-loop duty 0-1 (0 = default 0.20). Keep the default unless comparing units at a different duty
+}
+// 583 - MAX SPEED test (FW4.4). Async like 582. The absolute speed the device
+// reaches inside its own stroke at full motor power WITHOUT reaching the ends:
+// the braking distance is measured first (stop from a moderate speed), then
+// each full-power pass brakes when the remaining travel equals 1.5 x the
+// predicted stopping distance plus a margin. result: 0 ok; -1 motion failure;
+// -4 already running; -5 not calibrated; -6 braking constant could not be
+// measured. Moves the slider hard for ~10 s.
+message RequestTestMaxSpeed{
 }
 //606
 message RequestConnectionKeyGet{
@@ -142,6 +176,8 @@ message ResponseCapabilitiesGet{
     BatteryDriver battery_driver = 14; //Battery driver type - Added in FW4.1.0
     uint32 ble_mtu = 15; //Maximum MTU size for BLE communication. Added in FW4.2 - Default this to 512. 512 seems to be a hard cap in BLE.
     uint32 ws_buffer_size = 16; //Buffer size for Websocket communication in bytes. Added in FW4.2 - Default this to 2048. 6kb on PSRAM units after 4.2
+    uint32 sensors = 17; //[uint8]Nr of position sensors in the sensor strip (0 = no sensor) - Added in FW4.3
+    bool usb_voltage_measure = 18; //If the device measures its USB supply voltage (VBUS) and reports it via BatteryGet (usb_voltage + not_supported_charger; battery fields stay zero on battery-less devices) - Added in FW4.3
 }
 //714
 /*
@@ -168,6 +204,20 @@ message RequestConnectionModeGet{
 }
 message ResponseConnectionModeGet{
     ConnectionMode mode = 1;
+}
+//718 - Added in FW4.4 - The PUBLIC subset of RequestPrivateInfoGet: what the device IS (product
+//identity + firmware), never WHICH UNIT it is. Deliberately carries no serial,
+//uid, mac, pcba_version or production_date - those stay private so a client
+//holding only a connection key cannot fingerprint a single device. Every field
+//here is shared by every unit of the same model, and every one of them is
+//already served to third parties by the online API's getDeviceInfo.
+message RequestPublicInfoGet{
+}
+message ResponsePublicInfoGet{
+    uint32 hw_model_number = 1; //Same value as ResponsePrivateInfoGet.hw_model_number
+    uint32 hw_model_variant_number = 2; //Same value as ResponsePrivateInfoGet.hw_model_variant_number
+    string fw_version = 3; //[char[32]] Same value as ResponsePrivateInfoGet.fw_version
+    string fw_feature_flags = 4; //Same value as ResponsePrivateInfoGet.fw_feature_flags
 }
 ///////////////////////// HAMP /////////////////////////
 //720
@@ -244,6 +294,68 @@ message RequestHdspXaVpSet{
 //746
 message RequestHdspStop{
 }
+///////////////////////// Sensor /////////////////////////
+//Sensor (position/pressure sensing, e.g. the S02 IR array) - 800
+//800
+//Subscribe to sensor update notifications (NotificationSensorUpdate).
+//Select exactly which parts each notification carries - unselected parts are
+//omitted from the message entirely, so subscribe only to what you need and
+//the notifications stay small. enabled=false stops the stream.
+//Added in FW4.3
+message RequestSensorNotificationSet{
+    bool enabled = 1; //Master switch for the notification stream
+    bool raw = 2; //Include the raw expander input bytes (SensorRawData)
+    bool bits = 3; //Include the per-sensor occlusion bit field (SensorBits)
+    bool position_abs = 4; //Include absolute positions [mm], master + both sides (SensorPositionAbs)
+    bool position_rel = 5; //Include relative positions 0..1, master + both sides (SensorPositionRel)
+    uint32 min_interval_ms = 6; //ON_CHANGE mode: rate limit - at most one notification per interval,
+                                //0 = every change. Contact changes always send immediately, and the
+                                //latest reading is delivered once the interval expires (trailing
+                                //edge) - the client is never left on stale data.
+                                //ON_INTERVAL mode: the sending period; 0 = as fast as free system
+                                //resources allow.
+    SensorNotificationMode mode = 7; //ON_CHANGE (default) or ON_INTERVAL. Added in FW4.3
+}
+//Echoes the configuration that is now active
+//Added in FW4.3
+message ResponseSensorNotificationSet{
+    bool enabled = 1;
+    bool raw = 2;
+    bool bits = 3;
+    bool position_abs = 4;
+    bool position_rel = 5;
+    uint32 min_interval_ms = 6;
+    SensorNotificationMode mode = 7;
+}
+//801
+//Pull the current sensor state on demand - a fresh hardware read, same data
+//as NotificationSensorUpdate but with ALL parts always included.
+//Added in FW4.3
+message RequestSensorStateGet{
+}
+//Added in FW4.3
+message ResponseSensorStateGet{
+    SensorState state = 1; //All parts included
+}
+//802
+//Read back the active notification subscription without changing it. Meant
+//for clients that lost track of what they set: the device auto-disables the
+//stream when it sees no client connected, so after a reconnect the client's
+//last-known configuration is unreliable.
+//Added in FW4.3
+message RequestSensorNotificationGet{
+}
+//Same shape as ResponseSensorNotificationSet
+//Added in FW4.3
+message ResponseSensorNotificationGet{
+    bool enabled = 1;
+    bool raw = 2;
+    bool bits = 3;
+    bool position_abs = 4;
+    bool position_rel = 5;
+    uint32 min_interval_ms = 6;
+    SensorNotificationMode mode = 7;
+}
 ///////////////////////// Slider /////////////////////////
 //840
 message RequestSliderStrokeGet{
@@ -286,14 +398,227 @@ message RequestSliderCalibrate{
 message ResponseSliderCalibrate{
     bool success = 1; //If the calibration was successful
 }
+///////////////////////// Slide diagnostics (FW4.4) /////////////////////////
+//844 - Arm a diagnostics capture (any channel: hall, regulator or hsp).
+//Buffers are PSRAM-only: non-PSRAM variants answer ERROR_FUNCTION_NOT_SUPPORTED
+//(capability hint: ResponseCapabilitiesGet.external_memory).
+//wrap=true keeps the newest records (rolling ring); wrap=false freezes the
+//capture when it is full. Restarting an armed capture resets it and bumps seq.
+//Added in FW4.4
+message RequestSlideDiagStart{
+    SlideDiagChannel channel = 1;
+    uint32 max_records = 2; //0 = allocate as many as possible; always clamped to the firmware budget (default 1 MB per channel) AND to free PSRAM (50 KB kept in reserve) - read the actual size from capacity_records
+    bool wrap = 3;
+    //REGULATOR channel only: bitmask of record fields to capture, bit N =
+    //field N of the record in struct order (time is always kept). 0 = all
+    //fields. Fewer fields = smaller records = more records in the budget.
+    //Replaces any existing capture on that channel. Added in FW4.4.
+    uint32 field_mask = 4;
+}
+message ResponseSlideDiagStart{
+    uint32 capacity_records = 1; //Granted capacity after clamping
+    uint32 entry_size = 2; //Bytes per packed record
+    uint32 format_version = 3; //Record layout version (hall v1 = 35 B, regulator v1 = 68 B full mask since the FW4.4 term decomposition; layouts in the FW headers)
+    uint32 seq = 4; //Capture generation
+    uint32 field_mask = 5; //Normalized mask in effect (regulator channel). Added in FW4.4
+}
+//845
+//Added in FW4.4
+message RequestSlideDiagStatus{
+    SlideDiagChannel channel = 1;
+}
+message ResponseSlideDiagStatus{
+    SlideDiagState state = 1;
+    bool wrap = 2;
+    bool wrapped = 3; //Oldest records have been overwritten (rolling ring)
+    bool full = 4; //Fill-mode capture reached capacity and froze
+    uint32 entry_size = 5;
+    uint32 format_version = 6;
+    uint32 capacity_records = 7;
+    uint32 used_records = 8;
+    uint32 total_records = 9; //Records offered to this capture (>= used when wrapped)
+    uint32 seq = 10;
+    uint32 field_mask = 11; //Field mask in effect (regulator channel). Added in FW4.4
+}
+//846 - Chronological ranged read of a FROZEN capture (SlideDiagStop first;
+//reading a running capture returns an error). Client recipe: fetch
+//used_records via SlideDiagStatus, then loop first_record += record_count,
+//sizing max_records so record_count * entry_size stays under the transport
+//frame (min(ws_buffer_size, 4096) - 64 bytes on WS, ~400 bytes on BLE).
+//The seq in every response of one download MUST match; if it changes the
+//capture was restarted - discard the data and start over.
+//Added in FW4.4
+message RequestSlideDiagRead{
+    SlideDiagChannel channel = 1;
+    uint32 first_record = 2; //0 = oldest retained record
+    uint32 max_records = 3;
+}
+message ResponseSlideDiagRead{
+    bytes data = 1; //record_count packed records of entry_size bytes each
+    uint32 record_count = 2;
+    uint32 used_records = 3; //Total retained records in the capture
+    uint32 seq = 4;
+}
+//847 - Freeze the capture so it can be read; free=true also releases the
+//buffer. Blank response.
+//Added in FW4.4
+message RequestSlideDiagStop{
+    SlideDiagChannel channel = 1;
+    bool free = 2;
+}
+//848 - Per ring-state Hall distance calibration (6 multipliers).
+//Added in FW4.4
+message RequestHallCalibrationGet{
+}
+message ResponseHallCalibrationGet{
+    repeated float scale = 1; //6 values; all 1.0 = no correction
+    bool stored = 2; //A table is persisted on the device
+}
+//850 - Push-stream a FROZEN capture as NotificationSlideDiagData chunks
+//(SlideDiagStop first). Much faster than looping 846 on high-latency links:
+//the device sends every chunk back to back, in order, only to the transport
+//this request came in on, then the response arrives LAST as the completion
+//summary (mirrors the RequestConsoleCmd chunk flow).
+//CAUTION - accepted design limitation: the device's single RPC handler is
+//busy for the stream's whole duration (seconds on WS, minutes for a large
+//capture on BLE). Every other request queues behind it (dropped if the
+//queue overflows) - including RequestHspAdd, so NEVER stream during live
+//playback or the point feed starves; download while playing with chunked
+//846 reads instead (each read is a quick call that interleaves fine).
+//Intended use: solo tuning sessions, motion stopped, client waiting for
+//the completion response. Chunks carry first_record + record_count,
+//so a lost chunk is a visible hole in the first_record sequence: re-fetch
+//just that range with 846. A capture restart mid-stream (seq change) aborts
+//the stream early - always check response.seq against the chunks'. Records
+//are packed per the channel's field_mask - parse exactly like 846 data.
+//Added in FW4.4
+message RequestSlideDiagStream{
+    SlideDiagChannel channel = 1;
+    uint32 first_record = 2;
+    uint32 max_records = 3; //0 = everything from first_record
+    //Cap on the record payload (data bytes) per NotificationSlideDiagData chunk. The firmware
+    //clamps it to the transport default (BLE 400 B, websocket 3600 B) - a request can only make
+    //chunks SMALLER, never larger. 0 = transport default. Use it when the link is tighter than
+    //the default assumes, above all a BLE connection that negotiated an ATT MTU below the 512
+    //the firmware asks for: a notification larger than MTU-3 arrives TRUNCATED (no error), so
+    //keep max_chunk_bytes + ~45 B of protobuf envelope under MTU-3. Records per chunk =
+    //max_chunk_bytes / entry_size, floored at 1. Added in FW4.4
+    uint32 max_chunk_bytes = 4;
+}
+message ResponseSlideDiagStream{
+    uint32 record_count = 1; //records actually sent in chunks (failed chunks excluded)
+    uint32 chunks = 2; //notification chunks actually sent
+    uint32 entry_size = 3;
+    uint32 format_version = 4;
+    uint32 seq = 5; //capture generation the stream read from
+    uint32 field_mask = 6; //selection the records are packed with
+}
+//851 - Windowed speed/tuning telemetry, split per drive direction (the two
+//directions have separate feedforward/tuning, so these are the per-regulator
+//report cards). Averages cover regulator ticks (~1 kHz) while DRIVING; a
+//bucket with samples == 0 means the slide did not drive that way during the
+//window. seq increments once per completed window - poll Get, or subscribe
+//with 852 to get one NotificationSpeedStats per window.
+//Added in FW4.4
+message RequestSpeedStatsGet{
+}
+message ResponseSpeedStatsGet{
+    SpeedStats stats = 1; //see constants.proto; stats.seq == 0 = nothing measured yet
+    /*
+    Subscription state, returned so a client can render its "stream" toggle
+    truthfully after a reconnect / page reload, when its own memory of what
+    it set is unreliable (same idea as 802 for the sensor stream).
+    How the subscription works on the device:
+        - There is exactly ONE subscriber slot. It records which TRANSPORT
+          (BLE or WebSocket) asked for the stream, not which connection or
+          client. Every client on that transport receives the notifications,
+          and every one of them sees notifications_mine=true.
+        - Ownership is advisory, not enforced. Any client on any transport may
+          call 852 at any time: notifications=true takes the slot over,
+          notifications=false clears it - even if another transport was
+          streaming. The device never refuses, so a slot can never get stuck.
+        - The slot is NOT released on disconnect. If the subscriber vanishes
+          the device drops it after 5 consecutive failed sends, i.e. up to
+          5 windows (5 x window_ms, worst case 5 minutes at the 60 s maximum).
+          Until then a Get from another transport still reports
+          notifications=true / notifications_mine=false.
+    How to use the two flags:
+        notifications=false                         nobody is streaming; toggle OFF
+        notifications=true, notifications_mine=true  my transport is streaming; toggle ON
+        notifications=true, notifications_mine=false another transport is streaming;
+                                                    show that state instead of
+                                                    silently taking the slot -
+                                                    the user should choose.
+    Added in FW4.4
+    */
+    bool notifications = 2; //a subscriber slot is armed, on ANY transport
+    bool notifications_mine = 3; //...and it belongs to the transport this Get arrived on (BLE / WebSocket)
+}
+//852 - Configure the averaging window and/or subscribe to per-window
+//NotificationSpeedStats on THIS transport (the window is also the
+//notification period, so window_ms sets the message rate). window_ms 0
+//keeps the current window; otherwise clamped to 100-60000 ms.
+//One subscriber slot, keyed by transport (see ResponseSpeedStatsGet for
+//the full rules): notifications=true replaces whoever held the slot,
+//notifications=false unsubscribes whoever held it. Neither is refused.
+//Added in FW4.4
+message RequestSpeedStatsSet{
+    uint32 window_ms = 1; //0 = keep current
+    bool notifications = 2;
+}
+message ResponseSpeedStatsSet{
+    uint32 window_ms = 1; //the window now in effect
+    bool notifications = 2;
+}
+//853 - Live regulator snapshot: the most recent control tick's state,
+//available WITHOUT arming any diag capture (a 1-record capture cannot be
+//polled live - reads require a frozen capture). valid=false until the
+//regulator has driven since boot; time_us tells how fresh the tick is.
+//Field meanings match the regulator capture record (see the capture docs).
+//Added in FW4.4
+message RequestSlideSnapshotGet{
+}
+message ResponseSlideSnapshotGet{
+    bool valid = 1;
+    uint64 time_us = 2;
+    float position = 3; //[mm]
+    float speed = 4; //[mm/s]
+    float target_speed = 5; //[mm/s]
+    float trim = 6; //bounded integral trim, output units (RENAMED from integral in FW4.4 pre-release; same number)
+    float output = 7; //output units
+    float motor = 8; //[0-1] duty
+    uint32 phase = 9; //0 run 1 turn_brake 2 turn_reverse_brake 3 turn_fade 4 turn_done 5 overspeed_stop 6 turn_backlash
+    uint32 dir = 10;
+    uint32 target_dir = 11;
+    float target_pos = 12; //[mm] NAN until the first position command
+    uint32 current_time_ms = 13; //script playback clock; 0 = no live script
+    float expected_pos = 14; //[mm] intended trajectory; NAN until the first position command
+    //Controller decomposition (FW4.4): on a run record ff + p_term + d_term + kick + trim = the
+    //output BEFORE the clamps (min/max, soft start, slew, overspeed brake), so output minus that
+    //sum is what the clamps took this tick. All 0 on turn-phase records.
+    float ff = 15; //feedforward line for the target, per direction
+    float p_term = 16; //effective speed error x kp (0 inside the deadband)
+    float d_term = 17; //filtered derivative x kd, after its clamp
+    float kick = 18; //decaying target kick
+    uint32 dt_us = 19; //actual tick period [us] - ticks run on Hall edges or the 30 ms timeout
+    //Per-tick state bits: 1 deadband (P/I/D saw 0), 2 trim frozen at max (anti-windup), 4 trim frozen
+    //at min, 8 soft-start capped the output, 16 slew limiter capped the output, 32 overspeed brake
+    //active (pulled trim AND output), 64 speed from the estimator (timeout tick, no fresh Hall edge),
+    //128 ff+P+D+kick+trim hit the xMin/xMaxSpeedTheoretical clamp.
+    uint32 flags = 20;
+}
 ///////////////////////// HSP /////////////////////////
 //860
 message RequestHspSetup{
     uint32 stream_id = 1; //[Default 0] a stream id to identify the stream.
     // bool loop = 2;       //DEPRECATED -> moved to play. [Default false] If true, the stream will loop.   
+    // bool jitter_filter = 3; //MOVED (before any FW4.4 release) to RequestHspJitterFilterSet (873).
+                               //Setup resets the session options to their defaults:
+                               //jitter_filter OFF, loop false, threshold 0, clock 0.
 }
 message ResponseHspSetup{
     HspState state = 1;
+    // bool jitter_filter = 2; //MOVED (before any FW4.4 release) into HspState field 14 - visible in every state-carrying response
 }
 //861
 message RequestHspAdd{
@@ -383,6 +708,45 @@ message RequestHspLoopSet{
 }
 message ResponseHspLoopSet{
     HspState state = 1;
+}
+//873 - Added in FW4.4
+message RequestHspJitterFilterSet{
+    bool jitter_filter = 1; //[Default FALSE] Swallow consecutive slow points targeting within threshold_mm of
+                            //the current position. Enable for LIVE streamed input (hand jitter would
+                            //otherwise buzz the slide); leave off for scripted playback - every authored
+                            //point is dispatched. Swallowed points appear in the HSP diag capture as
+                            //'filtered' events (event 9). Reset to OFF by RequestHspSetup (860).
+                            //Before FW4.4 the filter was always ON.
+    float threshold_mm = 2; //[Default 0 = firmware default, currently 1.0 mm] the 'close enough
+                            //to swallow' gate, in mm of actual-position error. Two gates must BOTH
+                            //pass for a point to be swallowed: slow (implied speed below the
+                            //device's min speed, ~15 mm/s) AND close (below this threshold). The
+                            //speed gate caps the threshold's reach at minSpeed x point-spacing
+                            //(0.9 mm at 60 ms cadence, 1.5 mm at 10 Hz) - a larger threshold has
+                            //no further effect. Wire x resolution is 1% of stroke (~1.25 mm): at
+                            //the 1 mm default only EXACT-repeat points are swallowed; ~2 mm also
+                            //swallows +-1-unit flicker on streams at <=10 Hz (bounded lag: a slow
+                            //genuine drift dispatches once its accumulated error exceeds the gate).
+}
+message ResponseHspJitterFilterSet{
+    HspState state = 1; //state.jitter_filter/jitter_filter_threshold_mm reflect the values now in effect
+}
+//874 - Added in FW4.4
+message RequestHspScriptSpeedSet{
+    bool script_speed = 1; //[Default FALSE] Command each point at the speed the stream itself implies
+                           //(previous point -> next point over the remaining time) instead of
+                           //re-deriving it from the slide's measured position every point. The
+                           //position-based default feeds tracking error back into the next command:
+                           //a stroke that reaches its reversal a few mm short is followed by a SLOWER
+                           //stroke, which arrives short again (stroke shortening on reversing
+                           //content). With script_speed the authored speed profile is kept and the
+                           //slide arrives a few ms late instead. The slow start after play/resume,
+                           //the post-resync speed cap and the late-point cap still apply. The
+                           //jitter filter (873) is independent and may be combined. Reset to OFF by
+                           //RequestHspSetup (860).
+}
+message ResponseHspScriptSpeedSet{
+    HspState state = 1; //state.script_speed reflects the value now in effect
 }
 ///////////////////////// HMI 880->899 /////////////////////////
 message RequestLedOverride{
@@ -483,4 +847,232 @@ message RequestHrppPause{
 }
 message ResponseHrppPause{
     HrppState state = 1;
+}
+//2015 - Motor regulator tuning. Values are clamped by the firmware; read
+//back after a Set to see what actually applied.
+//Field meanings: see DIAG_TUNING_GUIDE.md in the firmware repo.
+//Added in FW4.4
+message RequestSettingsRegulatorGet{
+}
+message ResponseSettingsRegulatorGet{
+    uint32 profile_id = 1;
+    uint32 design_id = 2;
+    float kp = 3;
+    float ki = 4;
+    float kd = 5;
+    float feedforward_gain = 6;
+    float feedforward_offset = 7;
+    float trim_limit = 8; //Since FW4.4 a FRACTION 0.05-2.0 of x_max_speed (effective ceiling = fraction x xMaxSpeed; default 0.58; range widened from 1.0 to 2.0 on 2026-09-08 - above ~1.33 the ceiling exceeds the 1600 output ceiling and the trim is bounded only by the output clamp, wanted when the trim carries the load with no feedforward). Was absolute output units - old values like 260 clamp to 2.0
+    float overspeed_margin = 9;
+    float overspeed_output_brake = 10;
+    float overspeed_trim_brake = 11;
+    float error_deadband = 12;
+    float derivative_alpha = 13;
+    float target_kick_gain = 14;
+    float target_kick_decay = 15;
+    float anti_windup = 16;
+    float output_rise_rate = 17;
+    float output_fall_rate = 18;
+    float turn_brake_scale = 19;
+    float turn_min_power = 20;
+    float turn_power_scale = 21;
+    float turn_soft_start_scale = 22;
+    float turn_reverse_power = 23;
+    float turn_reverse_speed_threshold = 24;
+    float turn_reverse_min_ms = 25;
+    float turn_reverse_hard_max_ms = 26;
+    float turn_reverse_backtrack_mm = 27;
+    float turn_post_reverse_brake_ms = 28;
+    //RENAMED AGAIN in FW4.4 (is_default -> persisted -> modified, same field
+    //number): true = the live tuning differs from the SELECTED profile's
+    //saved values, i.e. unsaved RAM-only edits exist (lost on reboot or any
+    //profile Apply; keep them with SlideProfileStore 854). Same value as
+    //SlideProfileGet.modified. Per-field comparison: `defaults` below.
+    bool modified = 29;
+    //Per-direction feedforward for the asymmetric drive train (BACKWARD = assisted direction)
+    float feedforward_gain_back = 30; //NEGATIVE = inherit forward; 0 = backward feedforward OFF (literal). Changed 2026-09-03 (was 0 = inherit)
+    float feedforward_offset_back = 31; //NEGATIVE = inherit forward; 0 = zero backward offset (literal). Changed 2026-09-03
+    float turn_power_scale_back = 32;
+    //Backlash take-up stage: after the turn brake, creep at backlash_power until
+    //backlash_mm of motor rotation (or backlash_max_ms), then launch. 0 mm = off.
+    float backlash_mm = 33;
+    float backlash_power = 34;
+    float backlash_max_ms = 35;
+    //Trim handover (FW4.4, settled 2026-09-07). The integral trim is what the SINGLE
+    //feedforward line does not capture (gravity, load, unit variation). trim_handover 0 =
+    //every launch into a direction starts from ZERO trim (legacy default); 1 = per-direction
+    //BANK: the trim a direction has when it ENDS (reversal or stop) is stored as it is (RAM
+    //only, cleared on any tuning or profile change) and restored at the next launch into that
+    //direction - so a loaded unit is not behind after every reversal, and a loop that cannot
+    //converge inside one stroke keeps accumulating across strokes instead of restarting from
+    //zero. No convergence gate or confidence ramp (removed 2026-09-08). Never carried across
+    //directions. effective.trim_bank_*_confidence is 0 until the direction has run once, then 1.
+    //trim_speed_scale is a CONFIGURABLE slope in OUTPUT UNITS PER mm/s (0-3), applied
+    //+forward / -backward against the single line: at a launch trim = bank + s*a*(v - v_ref);
+    //on a same-direction target change trim += s*a*(v2 - v1). 0 = offset bank only. The
+    //measured up/down gain asymmetry on the loaded rig was ~0.46. Expert fields.
+    uint32 trim_handover = 38;
+    float trim_speed_scale = 39;
+    //The trim FLOOR in output units, a NEGATIVE number (default -150) so it reads as the bound
+    //it is. Positive trim may reach trim_limit x x_max_speed (see effective.trim_limit_output);
+    //negative trim stops here, small by design: a large negative trim is integrator windup,
+    //not load compensation. A positive value sent by a client is accepted as a magnitude and
+    //stored negative; 0 = legacy symmetric clamp. Expert field. Draw both bounds on the trim
+    //trace: [effective.trim_neg_limit_output, effective.trim_limit_output].
+    float trim_neg_limit = 40;
+    //The SELECTED profile's baseline value for every field above (one level
+    //deep - defaults.defaults is never set; `modified` inside it is
+    //meaningless). Since FW4.4 `defaults` is the SELECTED profile's saved
+    //values - for a custom slot that is the slot's stored tuning (empty
+    //slot = Balanced), so per-field revert always targets YOUR baseline. Per-field revert UX: show defaults.<field> next to the
+    //live value, render a modified indicator when they differ, and revert by
+    //writing defaults.<field> through SettingsRegulatorSet. Since FW4.4 the
+    //setters accept 0 as a LITERAL value (off where meaningful) - 0 no
+    //longer means "reset to default"; this field replaces that mechanism.
+    ResponseSettingsRegulatorGet defaults = 36; //Added in FW4.4
+    //Read-only DERIVED values the control loop actually uses - the ceilings and compiled
+    //constants behind the tunables, resolved for this unit (OC raises x_max_speed and with it
+    //the trim ceiling). Show these next to the tunables; they are not settable through
+    //SettingsRegulatorSet. Not populated inside `defaults`. Added in FW4.4
+    RegulatorEffective effective = 37;
+}
+message RegulatorEffective{
+    float trim_limit_output = 1; //trim_limit x x_max_speed [output units] - the trim's positive CEILING (and the +-kick ceiling)
+    float derivative_output_limit = 2; //clamp on the D term [output units]
+    float effective_max_output = 3; //x_max_speed_theoretical x motor_max_power - where anti-windup freezes the trim
+    float overspeed_stop_margin = 4; //[mm/s] above target that cuts the motor (phase overspeed_stop)
+    uint32 tick_period_ms = 5; //regulator timeout tick; Hall edges tick sooner
+    float turn_speed_reference = 6; //[mm/s] the turn brake duration and launch power scale against
+    float motor_max_power = 7; //[0-1] per-variant duty cap (e.g. 0.5 on eco)
+    uint32 pwm_freq_hz = 8;
+    uint32 pwm_resolution_bits = 9;
+    uint32 x_max_speed = 10; //[mm/s] commandable max (percent commands scale to this)
+    uint32 x_max_speed_theoretical = 11; //output-unit scale (locked 1600)
+    uint32 x_min_speed_theoretical = 12;
+    float turn_speed = 13; //slide config: turn launch power window ceiling
+    uint32 turn_stop_max_time_ms = 14; //slide config: turn brake duration ceiling
+    uint32 turn_stop_speed_threshold = 15; //slide config
+    //Per-direction trim bank state (FW4.4, trim_handover 1), read-only, RAM-only: the learned
+    //residual [output units] that the single feedforward line does not capture (gravity, load,
+    //friction), the target speed it settled at [mm/s], and the confidence [0-1] a launch would
+    //load it with (0 until ~30 settled ticks, 1 from ~150). Show this in the tuning tool so a
+    //user can SEE what each direction has learned; it resets on any tuning or profile change.
+    float trim_bank_forward = 16;
+    float trim_bank_forward_speed = 17;
+    float trim_bank_forward_confidence = 18;
+    float trim_bank_backward = 19;
+    float trim_bank_backward_speed = 20;
+    float trim_bank_backward_confidence = 21;
+    float trim_neg_limit_output = 22; //the trim FLOOR [output units], negative (from trim_neg_limit; = -trim_limit_output when legacy symmetric)
+}
+//2017 - Hall sensor / speed-estimate tuning. Same semantics as the
+//regulator settings (clamped, `persisted`, guide in DIAG_TUNING_GUIDE.md).
+//Added in FW4.4
+message RequestSettingsHallGet{
+}
+message ResponseSettingsHallGet{
+    uint32 profile_id = 1;
+    float speed_filter_alpha = 2;
+    uint32 reversal_filter_us = 3;
+    uint32 zero_timeout_tick_mult = 4;
+    uint32 zero_timeout_max_ms = 5;
+    uint32 min_dt_us = 6;
+    uint32 max_dt_us = 7;
+    //RENAMED in FW4.4 (was is_default, same field number, INVERTED):
+    //true = stored in NVS and survives a reboot.
+    bool persisted = 8;
+}
+//2019 - The SELECTED profile and its state. Since FW4.4 the profile system
+//is: 5 LOCKED curated profiles + 2 user banks (CUSTOM_1/2). One live tuning
+//exists in RAM; editing fields sets modified=true (RAM-only - a reboot or
+//any profile Apply discards edits); SlideProfileStore (854) is the ONLY way
+//to keep a tuning. Revert baselines: curated = compiled values; a saved
+//slot = its stored values; an empty slot = Balanced.
+//Added in FW4.4
+message RequestSlideProfileGet{
+}
+message ResponseSlideProfileGet{
+    SlideProfile profile = 1; //the SELECTED profile (never SLIDE_PROFILE_CUSTOM)
+    bool modified = 2; //RENAMED from `custom` (same field number): the live tuning differs from the selected profile's saved values - unsaved, lost on reboot/switch
+    bool custom1_stored = 3; //slot has a stored tuning (false = empty, loads Balanced values)
+    bool custom2_stored = 4;
+    SlideProfile boot_profile = 5; //whose SAVED values load on boot
+}
+//855 - Read ANY profile's full tuning WITHOUT applying it: a pure read, no
+//side effects, safe during playback (the app can diff profiles side by side,
+//preview a slot, pre-fill an editor). `tuning` has the same shape as
+//ResponseSettingsRegulatorGet.defaults (one parser); its own `defaults` and
+//`modified` are unset. Values are reported normalized (= what Apply would
+//install). CUSTOM_1/2: stored=false means the slot is empty and the values
+//are the Balanced fallback. ACCURACY (deprecated) answers as SPORT. CUSTOM
+//(4) is rejected. One profile per call - the full set is too large for one
+//frame.
+//Added in FW4.4
+message RequestSlideProfileTuningGet{
+    SlideProfile profile = 1;
+}
+message ResponseSlideProfileTuningGet{
+    SlideProfile profile = 1; //the profile actually read (ACCURACY -> SPORT)
+    ResponseSettingsRegulatorGet tuning = 2;
+    bool stored = 3; //slots only: false = empty slot (Balanced values)
+}
+//856 - Read the LAST results of the FW4.4 maintenance tests (RequestTestUniformity
+//582, RequestTestMaxSpeed 583). Pure read, no motion. A result whose `result`
+//field is nonzero (or whose passes == 0) has not completed successfully since
+//boot - results are RAM only. Show `verdict` to the user; show the bins to a
+//technician / the factory (compare against a fleet template there).
+//Added in FW4.4
+message RequestSlideMaintResultGet{
+}
+enum SlideMaintVerdict{
+    SLIDE_MAINT_OK = 0;
+    SLIDE_MAINT_CHECK = 1; //uniformity: probably wants lubrication / inspection; max speed: a stop overran the travel window
+    SLIDE_MAINT_FAIL = 2;  //uniformity: mechanical fault; max speed: a stop landed inside an end buffer
+}
+message SlideMaintDirResult{
+    repeated float speed = 1; //12 bins along the stroke, mean speed at constant duty [mm/s]; 0 = no data in that bin
+    float plateau = 2;        //mean speed over the last 25 % of travel [mm/s]
+    float rise_ms = 3;        //motion start to 63 % of the pass peak speed [ms] (inertia / damping)
+    float worst_dip_pct = 4;  //largest LOCAL NOTCH: a bin slower than the mean of its two neighbours, after the
+                              //acceleration peak, in travel order [%]. A bind is a notch; a gradient is not
+    uint32 worst_dip_bin = 5; //bin index of that notch, 0 = start of the stroke
+    uint32 passes = 6;        //passes that produced data (2 expected)
+    float mid = 7;            //mean speed over the middle 50 % of the stroke [mm/s] - the same bins for both directions
+    float gradient_pct = 8;   //(last 25 % of travel - middle 50 %) / middle x 100: negative = slower toward the far end
+                              //(an end that is tighter than the middle: dry, worn or bent there)
+}
+message SlideMaintUniformityResult{
+    int32 result = 1;         //0 ok, else the RequestTestUniformity result code
+    float duty = 2;           //open-loop duty used
+    float bin_mm = 3;         //bin width [mm]
+    float lo = 4;             //travel window start [mm] (inside the end buffers)
+    float hi = 5;             //travel window end [mm]
+    SlideMaintDirResult forward = 6;
+    SlideMaintDirResult backward = 7;
+    float asymmetry = 8;      //forward.mid / backward.mid over the SAME middle-of-stroke bins, 1.0 = symmetric (a one-way load moves it)
+    SlideMaintVerdict verdict = 9;
+    float temp_c = 10;        //motor temperature at the start of the run
+    uint32 timestamp_ms = 11; //device time of the run (ms since boot)
+}
+message SlideMaintMaxSpeedResult{
+    int32 result = 1;          //0 ok, else the RequestTestMaxSpeed result code
+    float peak_forward = 2;    //[mm/s]
+    float peak_backward = 3;   //[mm/s]
+    float duty = 4;            //motor power used (the variant's cap, 0-1)
+    float margin_forward = 5;  //travel window left after the stop [mm]; negative = overran the window
+    float margin_backward = 6;
+    bool buffer_hit_forward = 7;  //the stop landed inside the end buffer - too close to the mechanics
+    bool buffer_hit_backward = 8;
+    float brake_k = 9;         //measured braking constant: stop distance = brake_k x v^2 [mm per (mm/s)^2]
+    float brake_cal_speed = 10; //the speed it was measured at [mm/s]
+    float brake_cal_dist = 11;  //and the stop distance it took [mm]
+    uint32 passes = 12;
+    SlideMaintVerdict verdict = 13;
+    float temp_c = 14;
+    uint32 timestamp_ms = 15;
+}
+message ResponseSlideMaintResultGet{
+    SlideMaintUniformityResult uniformity = 1;
+    SlideMaintMaxSpeedResult max_speed = 2;
+    bool running = 3; //a maintenance test is in progress right now
 }

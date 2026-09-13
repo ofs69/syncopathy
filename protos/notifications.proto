@@ -1,4 +1,4 @@
-// Auto-generated on 2026-07-10 13:00:28
+// Auto-generated on 2026-09-09 15:54:00
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
@@ -125,4 +125,34 @@ message NotificationIdleTimeout{
 // Added in FW4.1.0
 message NotificationSettingsChanged{
     SettingType type = 1; //The type of setting that has changed
+}
+//Sensor update - sent per RequestSensorNotificationSet (on change or on
+//interval, coalesced to the latest data). Only the subscribed parts of the
+//state are present; the contact flags and timestamp are always included.
+//Added in FW4.3
+message NotificationSensorUpdate{
+    SensorState state = 1;
+}
+//851 - One per completed averaging window while subscribed via
+//RequestSpeedStatsSet. Same payload as ResponseSpeedStatsGet.
+//Added in FW4.4
+message NotificationSpeedStats{
+    SpeedStats stats = 1; //see constants.proto
+}
+//844 - One chunk of a diag capture stream (see RequestSlideDiagStream in
+//messages.proto for the full flow). All chunks are sent BEFORE the
+//ResponseSlideDiagStream, in order, only to the transport the request came
+//in on. data holds record_count packed records of entry_size bytes each
+//(entry_size/format_version/field_mask from Start/Status/Stream define the
+//layout), starting at first_record. Reassemble by first_record; a hole in
+//that sequence = a lost chunk - re-fetch just that range with
+//RequestSlideDiagRead.
+//Added in FW4.4
+message NotificationSlideDiagData{
+    SlideDiagChannel channel = 1;
+    uint32 seq = 2; //capture generation (mismatch vs the response = capture restarted mid-stream)
+    uint32 chunk = 3; //0-based chunk index
+    uint32 first_record = 4; //index of the first record in data
+    uint32 record_count = 5; //records in data
+    bytes data = 6; //record_count * entry_size bytes
 }

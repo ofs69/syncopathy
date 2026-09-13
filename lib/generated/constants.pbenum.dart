@@ -62,6 +62,11 @@ class HandyErrorCodes extends $pb.ProtobufEnum {
       HandyErrorCodes._(100024, _omitEnumNames ? '' : 'ERROR_OTA_MEM_ERROR');
   static const HandyErrorCodes ERROR_OTA_NOT_STARTED =
       HandyErrorCodes._(100025, _omitEnumNames ? '' : 'ERROR_OTA_NOT_STARTED');
+  static const HandyErrorCodes ERROR_OTA_OFFSET_MISMATCH = HandyErrorCodes._(
+      100039, _omitEnumNames ? '' : 'ERROR_OTA_OFFSET_MISMATCH');
+  static const HandyErrorCodes ERROR_OTA_TOTAL_SIZE_MISMATCH =
+      HandyErrorCodes._(
+          100040, _omitEnumNames ? '' : 'ERROR_OTA_TOTAL_SIZE_MISMATCH');
   static const HandyErrorCodes ERROR_FUNCTION_NOT_SUPPORTED = HandyErrorCodes._(
       100017, _omitEnumNames ? '' : 'ERROR_FUNCTION_NOT_SUPPORTED');
   static const HandyErrorCodes ERROR_RPC_MSG_POOL_FULL = HandyErrorCodes._(
@@ -138,6 +143,8 @@ class HandyErrorCodes extends $pb.ProtobufEnum {
     ERROR_OTA_ERROR,
     ERROR_OTA_MEM_ERROR,
     ERROR_OTA_NOT_STARTED,
+    ERROR_OTA_OFFSET_MISMATCH,
+    ERROR_OTA_TOTAL_SIZE_MISMATCH,
     ERROR_FUNCTION_NOT_SUPPORTED,
     ERROR_RPC_MSG_POOL_FULL,
     ERROR_RPC_FAILED_TO_UNPACK,
@@ -871,6 +878,37 @@ class BatteryDriver extends $pb.ProtobufEnum {
   const BatteryDriver._(super.value, super.name);
 }
 
+/// The SERVER's verdict on the device's firmware: what the device reports,
+/// compared against the release this server would serve. The device itself can
+/// never compute this - it has no notion of "latest".
+/// Values match the online API's FirmwareStatus exactly, so the two surfaces
+/// agree. NB! There is no "unknown" member: 0 is a real verdict, so a client
+/// must decide "the server answered" from the PRESENCE of ResponseFwStatusGet,
+/// never from its value.
+class FirmwareStatus extends $pb.ProtobufEnum {
+  static const FirmwareStatus FIRMWARE_STATUS_UP_TO_DATE =
+      FirmwareStatus._(0, _omitEnumNames ? '' : 'FIRMWARE_STATUS_UP_TO_DATE');
+  static const FirmwareStatus FIRMWARE_STATUS_UPDATE_AVAILABLE =
+      FirmwareStatus._(
+          1, _omitEnumNames ? '' : 'FIRMWARE_STATUS_UPDATE_AVAILABLE');
+  static const FirmwareStatus FIRMWARE_STATUS_UPDATE_REQUIRED =
+      FirmwareStatus._(
+          2, _omitEnumNames ? '' : 'FIRMWARE_STATUS_UPDATE_REQUIRED');
+
+  static const $core.List<FirmwareStatus> values = <FirmwareStatus>[
+    FIRMWARE_STATUS_UP_TO_DATE,
+    FIRMWARE_STATUS_UPDATE_AVAILABLE,
+    FIRMWARE_STATUS_UPDATE_REQUIRED,
+  ];
+
+  static final $core.List<FirmwareStatus?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static FirmwareStatus? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const FirmwareStatus._(super.value, super.name);
+}
+
 ///  The 3 different potential Idle timeout states
 /// Added in FW4.1.0
 class IdleTimeoutState extends $pb.ProtobufEnum {
@@ -914,6 +952,12 @@ class SettingType extends $pb.ProtobufEnum {
       SettingType._(5, _omitEnumNames ? '' : 'SETTINGS_BATTERY');
   static const SettingType SETTINGS_SERVER =
       SettingType._(6, _omitEnumNames ? '' : 'SETTINGS_SERVER');
+  static const SettingType SETTINGS_SENSOR =
+      SettingType._(7, _omitEnumNames ? '' : 'SETTINGS_SENSOR');
+  static const SettingType SETTINGS_REGULATOR =
+      SettingType._(8, _omitEnumNames ? '' : 'SETTINGS_REGULATOR');
+  static const SettingType SETTINGS_HALL =
+      SettingType._(9, _omitEnumNames ? '' : 'SETTINGS_HALL');
 
   static const $core.List<SettingType> values = <SettingType>[
     SETTINGS_NOT_SET,
@@ -923,14 +967,176 @@ class SettingType extends $pb.ProtobufEnum {
     SETTINGS_ERM,
     SETTINGS_BATTERY,
     SETTINGS_SERVER,
+    SETTINGS_SENSOR,
+    SETTINGS_REGULATOR,
+    SETTINGS_HALL,
   ];
 
   static final $core.List<SettingType?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 6);
+      $pb.ProtobufEnum.$_initByValueList(values, 9);
   static SettingType? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const SettingType._(super.value, super.name);
+}
+
+/// Which strip side rules the master position when both are in contact
+/// (RequestSettingsSensorSet). Values match the firmware's hdySensorMaster_t.
+/// Added in FW4.3
+class SensorMasterRule extends $pb.ProtobufEnum {
+  static const SensorMasterRule SENSOR_MASTER_TOP =
+      SensorMasterRule._(0, _omitEnumNames ? '' : 'SENSOR_MASTER_TOP');
+  static const SensorMasterRule SENSOR_MASTER_BOTTOM =
+      SensorMasterRule._(1, _omitEnumNames ? '' : 'SENSOR_MASTER_BOTTOM');
+  static const SensorMasterRule SENSOR_MASTER_AVG =
+      SensorMasterRule._(2, _omitEnumNames ? '' : 'SENSOR_MASTER_AVG');
+
+  static const $core.List<SensorMasterRule> values = <SensorMasterRule>[
+    SENSOR_MASTER_TOP,
+    SENSOR_MASTER_BOTTOM,
+    SENSOR_MASTER_AVG,
+  ];
+
+  static final $core.List<SensorMasterRule?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static SensorMasterRule? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const SensorMasterRule._(super.value, super.name);
+}
+
+/// Slide diagnostics capture channel (RequestSlideDiag*)
+/// Added in FW4.4
+class SlideDiagChannel extends $pb.ProtobufEnum {
+  static const SlideDiagChannel SLIDE_DIAG_CHANNEL_HALL =
+      SlideDiagChannel._(0, _omitEnumNames ? '' : 'SLIDE_DIAG_CHANNEL_HALL');
+  static const SlideDiagChannel SLIDE_DIAG_CHANNEL_REGULATOR =
+      SlideDiagChannel._(
+          1, _omitEnumNames ? '' : 'SLIDE_DIAG_CHANNEL_REGULATOR');
+  static const SlideDiagChannel SLIDE_DIAG_CHANNEL_HSP =
+      SlideDiagChannel._(2, _omitEnumNames ? '' : 'SLIDE_DIAG_CHANNEL_HSP');
+
+  static const $core.List<SlideDiagChannel> values = <SlideDiagChannel>[
+    SLIDE_DIAG_CHANNEL_HALL,
+    SLIDE_DIAG_CHANNEL_REGULATOR,
+    SLIDE_DIAG_CHANNEL_HSP,
+  ];
+
+  static final $core.List<SlideDiagChannel?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static SlideDiagChannel? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const SlideDiagChannel._(super.value, super.name);
+}
+
+/// Curated slide tuning profiles (RequestSlideProfileGet/Set). Definitions
+/// live in firmware (hdy_slide_profiles.c); DIAG_TUNING_GUIDE.md mirrors them.
+/// Added in FW4.4
+class SlideProfile extends $pb.ProtobufEnum {
+  static const SlideProfile SLIDE_PROFILE_BALANCED =
+      SlideProfile._(0, _omitEnumNames ? '' : 'SLIDE_PROFILE_BALANCED');
+  static const SlideProfile SLIDE_PROFILE_SILENT =
+      SlideProfile._(1, _omitEnumNames ? '' : 'SLIDE_PROFILE_SILENT');
+  static const SlideProfile SLIDE_PROFILE_SPORT =
+      SlideProfile._(2, _omitEnumNames ? '' : 'SLIDE_PROFILE_SPORT');
+  static const SlideProfile SLIDE_PROFILE_ACCURACY =
+      SlideProfile._(3, _omitEnumNames ? '' : 'SLIDE_PROFILE_ACCURACY');
+  static const SlideProfile SLIDE_PROFILE_CUSTOM =
+      SlideProfile._(4, _omitEnumNames ? '' : 'SLIDE_PROFILE_CUSTOM');
+  static const SlideProfile SLIDE_PROFILE_FLUID =
+      SlideProfile._(5, _omitEnumNames ? '' : 'SLIDE_PROFILE_FLUID');
+
+  /// User banks (FW4.4): store the live tuning with SlideProfileStore (854);
+  /// selecting a slot loads its saved values (an EMPTY slot behaves as
+  /// BALANCED). The curated profiles above are locked - slots are where user
+  /// tunings live.
+  static const SlideProfile SLIDE_PROFILE_CUSTOM_1 =
+      SlideProfile._(6, _omitEnumNames ? '' : 'SLIDE_PROFILE_CUSTOM_1');
+  static const SlideProfile SLIDE_PROFILE_CUSTOM_2 =
+      SlideProfile._(7, _omitEnumNames ? '' : 'SLIDE_PROFILE_CUSTOM_2');
+
+  /// Bare proportional controller (only kp; feedforward/trim/kick/deadband/
+  /// slew and the whole turn pipeline off) - a clean baseline to tune up
+  /// from. Locked curated profile, not a user slot. Added in FW4.4.
+  static const SlideProfile SLIDE_PROFILE_RAW =
+      SlideProfile._(8, _omitEnumNames ? '' : 'SLIDE_PROFILE_RAW');
+
+  /// PURE: open loop as a PRESET of existing fields (feedforward_gain 1, offset 0,
+  /// every correction and turn stage 0) - target speed goes straight to the motor
+  /// with nothing correcting it. The mechanics-only tuning baseline; RAW (bare kp,
+  /// no feedforward) is the loop-only one. Turn staging is independent: set the
+  /// turn_* params to stage reversals. Locked curated profile. Added in FW4.4.
+  static const SlideProfile SLIDE_PROFILE_PURE =
+      SlideProfile._(9, _omitEnumNames ? '' : 'SLIDE_PROFILE_PURE');
+
+  static const $core.List<SlideProfile> values = <SlideProfile>[
+    SLIDE_PROFILE_BALANCED,
+    SLIDE_PROFILE_SILENT,
+    SLIDE_PROFILE_SPORT,
+    SLIDE_PROFILE_ACCURACY,
+    SLIDE_PROFILE_CUSTOM,
+    SLIDE_PROFILE_FLUID,
+    SLIDE_PROFILE_CUSTOM_1,
+    SLIDE_PROFILE_CUSTOM_2,
+    SLIDE_PROFILE_RAW,
+    SLIDE_PROFILE_PURE,
+  ];
+
+  static final $core.List<SlideProfile?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 9);
+  static SlideProfile? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const SlideProfile._(super.value, super.name);
+}
+
+/// Slide diagnostics capture state
+/// Added in FW4.4
+class SlideDiagState extends $pb.ProtobufEnum {
+  static const SlideDiagState SLIDE_DIAG_STATE_DISABLED =
+      SlideDiagState._(0, _omitEnumNames ? '' : 'SLIDE_DIAG_STATE_DISABLED');
+  static const SlideDiagState SLIDE_DIAG_STATE_RUNNING =
+      SlideDiagState._(1, _omitEnumNames ? '' : 'SLIDE_DIAG_STATE_RUNNING');
+  static const SlideDiagState SLIDE_DIAG_STATE_STOPPED =
+      SlideDiagState._(2, _omitEnumNames ? '' : 'SLIDE_DIAG_STATE_STOPPED');
+
+  static const $core.List<SlideDiagState> values = <SlideDiagState>[
+    SLIDE_DIAG_STATE_DISABLED,
+    SLIDE_DIAG_STATE_RUNNING,
+    SLIDE_DIAG_STATE_STOPPED,
+  ];
+
+  static final $core.List<SlideDiagState?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static SlideDiagState? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const SlideDiagState._(super.value, super.name);
+}
+
+/// How sensor update notifications are delivered (RequestSensorNotificationSet)
+/// Added in FW4.3
+class SensorNotificationMode extends $pb.ProtobufEnum {
+  static const SensorNotificationMode SENSOR_NOTIFICATION_MODE_ON_CHANGE =
+      SensorNotificationMode._(
+          0, _omitEnumNames ? '' : 'SENSOR_NOTIFICATION_MODE_ON_CHANGE');
+  static const SensorNotificationMode SENSOR_NOTIFICATION_MODE_ON_INTERVAL =
+      SensorNotificationMode._(
+          1, _omitEnumNames ? '' : 'SENSOR_NOTIFICATION_MODE_ON_INTERVAL');
+
+  static const $core.List<SensorNotificationMode> values =
+      <SensorNotificationMode>[
+    SENSOR_NOTIFICATION_MODE_ON_CHANGE,
+    SENSOR_NOTIFICATION_MODE_ON_INTERVAL,
+  ];
+
+  static final $core.List<SensorNotificationMode?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static SensorNotificationMode? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const SensorNotificationMode._(super.value, super.name);
 }
 
 const $core.bool _omitEnumNames =

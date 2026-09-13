@@ -12,6 +12,7 @@
 
 import 'dart:core' as $core;
 
+import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'constants.pbenum.dart';
@@ -440,6 +441,9 @@ class HspState extends $pb.GeneratedMessage {
     $core.int? tailPointStreamIndex,
     $core.int? tailPointStreamIndexThreshold,
     $core.bool? pauseOnStarving,
+    $core.bool? jitterFilter,
+    $core.double? jitterFilterThresholdMm,
+    $core.bool? scriptSpeed,
   }) {
     final result = create();
     if (playState != null) result.playState = playState;
@@ -457,6 +461,10 @@ class HspState extends $pb.GeneratedMessage {
     if (tailPointStreamIndexThreshold != null)
       result.tailPointStreamIndexThreshold = tailPointStreamIndexThreshold;
     if (pauseOnStarving != null) result.pauseOnStarving = pauseOnStarving;
+    if (jitterFilter != null) result.jitterFilter = jitterFilter;
+    if (jitterFilterThresholdMm != null)
+      result.jitterFilterThresholdMm = jitterFilterThresholdMm;
+    if (scriptSpeed != null) result.scriptSpeed = scriptSpeed;
     return result;
   }
 
@@ -491,6 +499,10 @@ class HspState extends $pb.GeneratedMessage {
     ..aI(12, _omitFieldNames ? '' : 'tailPointStreamIndexThreshold',
         fieldType: $pb.PbFieldType.OU3)
     ..aOB(13, _omitFieldNames ? '' : 'pauseOnStarving')
+    ..aOB(14, _omitFieldNames ? '' : 'jitterFilter')
+    ..aD(15, _omitFieldNames ? '' : 'jitterFilterThresholdMm',
+        fieldType: $pb.PbFieldType.OF)
+    ..aOB(16, _omitFieldNames ? '' : 'scriptSpeed')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -628,6 +640,33 @@ class HspState extends $pb.GeneratedMessage {
   $core.bool hasPauseOnStarving() => $_has(12);
   @$pb.TagNumber(13)
   void clearPauseOnStarving() => $_clearField(13);
+
+  @$pb.TagNumber(14)
+  $core.bool get jitterFilter => $_getBF(13);
+  @$pb.TagNumber(14)
+  set jitterFilter($core.bool value) => $_setBool(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasJitterFilter() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearJitterFilter() => $_clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.double get jitterFilterThresholdMm => $_getN(14);
+  @$pb.TagNumber(15)
+  set jitterFilterThresholdMm($core.double value) => $_setFloat(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasJitterFilterThresholdMm() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearJitterFilterThresholdMm() => $_clearField(15);
+
+  @$pb.TagNumber(16)
+  $core.bool get scriptSpeed => $_getBF(15);
+  @$pb.TagNumber(16)
+  set scriptSpeed($core.bool value) => $_setBool(15, value);
+  @$pb.TagNumber(16)
+  $core.bool hasScriptSpeed() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearScriptSpeed() => $_clearField(16);
 }
 
 class HvpState extends $pb.GeneratedMessage {
@@ -782,6 +821,252 @@ class Point extends $pb.GeneratedMessage {
   $core.bool hasX() => $_has(1);
   @$pb.TagNumber(2)
   void clearX() => $_clearField(2);
+}
+
+///
+/// Windowed speed/tuning telemetry, split per drive direction (the two
+/// directions have separate feedforward/tuning). Averages cover regulator
+/// ticks (~1 kHz) while DRIVING; samples == 0 = the slide did not drive that
+/// way during the window. Shared by ResponseSpeedStatsGet and
+/// NotificationSpeedStats. Added in FW4.4.
+class SpeedStatsBucket extends $pb.GeneratedMessage {
+  factory SpeedStatsBucket({
+    $core.int? samples,
+    $core.double? avgSpeed,
+    $core.double? avgTargetSpeed,
+    $core.double? avgMotor,
+    $core.double? avgTrim,
+    $core.double? avgAbsSpeedError,
+  }) {
+    final result = create();
+    if (samples != null) result.samples = samples;
+    if (avgSpeed != null) result.avgSpeed = avgSpeed;
+    if (avgTargetSpeed != null) result.avgTargetSpeed = avgTargetSpeed;
+    if (avgMotor != null) result.avgMotor = avgMotor;
+    if (avgTrim != null) result.avgTrim = avgTrim;
+    if (avgAbsSpeedError != null) result.avgAbsSpeedError = avgAbsSpeedError;
+    return result;
+  }
+
+  SpeedStatsBucket._();
+
+  factory SpeedStatsBucket.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SpeedStatsBucket.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SpeedStatsBucket',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'samples', fieldType: $pb.PbFieldType.OU3)
+    ..aD(2, _omitFieldNames ? '' : 'avgSpeed', fieldType: $pb.PbFieldType.OF)
+    ..aD(3, _omitFieldNames ? '' : 'avgTargetSpeed',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(4, _omitFieldNames ? '' : 'avgMotor', fieldType: $pb.PbFieldType.OF)
+    ..aD(5, _omitFieldNames ? '' : 'avgTrim', fieldType: $pb.PbFieldType.OF)
+    ..aD(6, _omitFieldNames ? '' : 'avgAbsSpeedError',
+        fieldType: $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SpeedStatsBucket clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SpeedStatsBucket copyWith(void Function(SpeedStatsBucket) updates) =>
+      super.copyWith((message) => updates(message as SpeedStatsBucket))
+          as SpeedStatsBucket;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SpeedStatsBucket create() => SpeedStatsBucket._();
+  @$core.override
+  SpeedStatsBucket createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SpeedStatsBucket getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SpeedStatsBucket>(create);
+  static SpeedStatsBucket? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get samples => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set samples($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSamples() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSamples() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.double get avgSpeed => $_getN(1);
+  @$pb.TagNumber(2)
+  set avgSpeed($core.double value) => $_setFloat(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasAvgSpeed() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearAvgSpeed() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get avgTargetSpeed => $_getN(2);
+  @$pb.TagNumber(3)
+  set avgTargetSpeed($core.double value) => $_setFloat(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasAvgTargetSpeed() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearAvgTargetSpeed() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.double get avgMotor => $_getN(3);
+  @$pb.TagNumber(4)
+  set avgMotor($core.double value) => $_setFloat(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasAvgMotor() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearAvgMotor() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.double get avgTrim => $_getN(4);
+  @$pb.TagNumber(5)
+  set avgTrim($core.double value) => $_setFloat(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasAvgTrim() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearAvgTrim() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.double get avgAbsSpeedError => $_getN(5);
+  @$pb.TagNumber(6)
+  set avgAbsSpeedError($core.double value) => $_setFloat(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasAvgAbsSpeedError() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearAvgAbsSpeedError() => $_clearField(6);
+}
+
+class SpeedStats extends $pb.GeneratedMessage {
+  factory SpeedStats({
+    $core.int? seq,
+    $core.int? windowMs,
+    $fixnum.Int64? endTimeUs,
+    SpeedStatsBucket? backward,
+    SpeedStatsBucket? forward,
+    SpeedStatsBucket? combined,
+  }) {
+    final result = create();
+    if (seq != null) result.seq = seq;
+    if (windowMs != null) result.windowMs = windowMs;
+    if (endTimeUs != null) result.endTimeUs = endTimeUs;
+    if (backward != null) result.backward = backward;
+    if (forward != null) result.forward = forward;
+    if (combined != null) result.combined = combined;
+    return result;
+  }
+
+  SpeedStats._();
+
+  factory SpeedStats.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SpeedStats.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SpeedStats',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'seq', fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'windowMs', fieldType: $pb.PbFieldType.OU3)
+    ..a<$fixnum.Int64>(
+        3, _omitFieldNames ? '' : 'endTimeUs', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOM<SpeedStatsBucket>(4, _omitFieldNames ? '' : 'backward',
+        subBuilder: SpeedStatsBucket.create)
+    ..aOM<SpeedStatsBucket>(5, _omitFieldNames ? '' : 'forward',
+        subBuilder: SpeedStatsBucket.create)
+    ..aOM<SpeedStatsBucket>(6, _omitFieldNames ? '' : 'combined',
+        subBuilder: SpeedStatsBucket.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SpeedStats clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SpeedStats copyWith(void Function(SpeedStats) updates) =>
+      super.copyWith((message) => updates(message as SpeedStats)) as SpeedStats;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SpeedStats create() => SpeedStats._();
+  @$core.override
+  SpeedStats createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SpeedStats getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SpeedStats>(create);
+  static SpeedStats? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get seq => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set seq($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSeq() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSeq() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get windowMs => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set windowMs($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasWindowMs() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearWindowMs() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get endTimeUs => $_getI64(2);
+  @$pb.TagNumber(3)
+  set endTimeUs($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasEndTimeUs() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearEndTimeUs() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  SpeedStatsBucket get backward => $_getN(3);
+  @$pb.TagNumber(4)
+  set backward(SpeedStatsBucket value) => $_setField(4, value);
+  @$pb.TagNumber(4)
+  $core.bool hasBackward() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearBackward() => $_clearField(4);
+  @$pb.TagNumber(4)
+  SpeedStatsBucket ensureBackward() => $_ensure(3);
+
+  @$pb.TagNumber(5)
+  SpeedStatsBucket get forward => $_getN(4);
+  @$pb.TagNumber(5)
+  set forward(SpeedStatsBucket value) => $_setField(5, value);
+  @$pb.TagNumber(5)
+  $core.bool hasForward() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearForward() => $_clearField(5);
+  @$pb.TagNumber(5)
+  SpeedStatsBucket ensureForward() => $_ensure(4);
+
+  @$pb.TagNumber(6)
+  SpeedStatsBucket get combined => $_getN(5);
+  @$pb.TagNumber(6)
+  set combined(SpeedStatsBucket value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasCombined() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearCombined() => $_clearField(6);
+  @$pb.TagNumber(6)
+  SpeedStatsBucket ensureCombined() => $_ensure(5);
 }
 
 ///
@@ -1204,6 +1489,463 @@ class BatteryState extends $pb.GeneratedMessage {
   $core.bool hasLowVoltageDetected() => $_has(18);
   @$pb.TagNumber(19)
   void clearLowVoltageDetected() => $_clearField(19);
+}
+
+/// Sensor data parts for NotificationSensorUpdate. Each part is only present in
+/// the notification if subscribed to via RequestSensorNotificationSet.
+/// The sensor strip is one bendable array folded over the top of the holder:
+/// side A rises from position 0 to the top, side B falls from the top back to 0.
+/// Added in FW4.3
+class SensorRawData extends $pb.GeneratedMessage {
+  factory SensorRawData({
+    $core.List<$core.int>? ports,
+  }) {
+    final result = create();
+    if (ports != null) result.ports = ports;
+    return result;
+  }
+
+  SensorRawData._();
+
+  factory SensorRawData.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SensorRawData.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SensorRawData',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(
+        1, _omitFieldNames ? '' : 'ports', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SensorRawData clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SensorRawData copyWith(void Function(SensorRawData) updates) =>
+      super.copyWith((message) => updates(message as SensorRawData))
+          as SensorRawData;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SensorRawData create() => SensorRawData._();
+  @$core.override
+  SensorRawData createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SensorRawData getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SensorRawData>(create);
+  static SensorRawData? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get ports => $_getN(0);
+  @$pb.TagNumber(1)
+  set ports($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPorts() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPorts() => $_clearField(1);
+}
+
+/// Absolute positions [mm] above position 0 (the strip ends); 0 when no contact
+/// Added in FW4.3
+class SensorPositionAbs extends $pb.GeneratedMessage {
+  factory SensorPositionAbs({
+    $core.double? master,
+    $core.double? sideA,
+    $core.double? sideB,
+  }) {
+    final result = create();
+    if (master != null) result.master = master;
+    if (sideA != null) result.sideA = sideA;
+    if (sideB != null) result.sideB = sideB;
+    return result;
+  }
+
+  SensorPositionAbs._();
+
+  factory SensorPositionAbs.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SensorPositionAbs.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SensorPositionAbs',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aD(1, _omitFieldNames ? '' : 'master', fieldType: $pb.PbFieldType.OF)
+    ..aD(2, _omitFieldNames ? '' : 'sideA', fieldType: $pb.PbFieldType.OF)
+    ..aD(3, _omitFieldNames ? '' : 'sideB', fieldType: $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SensorPositionAbs clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SensorPositionAbs copyWith(void Function(SensorPositionAbs) updates) =>
+      super.copyWith((message) => updates(message as SensorPositionAbs))
+          as SensorPositionAbs;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SensorPositionAbs create() => SensorPositionAbs._();
+  @$core.override
+  SensorPositionAbs createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SensorPositionAbs getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SensorPositionAbs>(create);
+  static SensorPositionAbs? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.double get master => $_getN(0);
+  @$pb.TagNumber(1)
+  set master($core.double value) => $_setFloat(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasMaster() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMaster() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.double get sideA => $_getN(1);
+  @$pb.TagNumber(2)
+  set sideA($core.double value) => $_setFloat(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSideA() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSideA() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get sideB => $_getN(2);
+  @$pb.TagNumber(3)
+  set sideB($core.double value) => $_setFloat(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasSideB() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearSideB() => $_clearField(3);
+}
+
+/// Relative positions 0..1 of the side span (0 = bottom, 1 = top/fold); 0 when no contact
+/// Added in FW4.3
+class SensorPositionRel extends $pb.GeneratedMessage {
+  factory SensorPositionRel({
+    $core.double? master,
+    $core.double? sideA,
+    $core.double? sideB,
+  }) {
+    final result = create();
+    if (master != null) result.master = master;
+    if (sideA != null) result.sideA = sideA;
+    if (sideB != null) result.sideB = sideB;
+    return result;
+  }
+
+  SensorPositionRel._();
+
+  factory SensorPositionRel.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SensorPositionRel.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SensorPositionRel',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aD(1, _omitFieldNames ? '' : 'master', fieldType: $pb.PbFieldType.OF)
+    ..aD(2, _omitFieldNames ? '' : 'sideA', fieldType: $pb.PbFieldType.OF)
+    ..aD(3, _omitFieldNames ? '' : 'sideB', fieldType: $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SensorPositionRel clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SensorPositionRel copyWith(void Function(SensorPositionRel) updates) =>
+      super.copyWith((message) => updates(message as SensorPositionRel))
+          as SensorPositionRel;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SensorPositionRel create() => SensorPositionRel._();
+  @$core.override
+  SensorPositionRel createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SensorPositionRel getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SensorPositionRel>(create);
+  static SensorPositionRel? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.double get master => $_getN(0);
+  @$pb.TagNumber(1)
+  set master($core.double value) => $_setFloat(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasMaster() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMaster() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.double get sideA => $_getN(1);
+  @$pb.TagNumber(2)
+  set sideA($core.double value) => $_setFloat(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSideA() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSideA() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get sideB => $_getN(2);
+  @$pb.TagNumber(3)
+  set sideB($core.double value) => $_setFloat(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasSideB() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearSideB() => $_clearField(3);
+}
+
+/// The full sensor state - one shared shape for both the notification stream
+/// (NotificationSensorUpdate carries only the subscribed parts) and the
+/// on-demand pull (ResponseSensorStateGet carries all parts). An absent part
+/// is omitted from the wire message entirely (bits, a scalar, reads 0 when
+/// not subscribed).
+/// Added in FW4.3
+class SensorState extends $pb.GeneratedMessage {
+  factory SensorState({
+    SensorRawData? raw,
+    $fixnum.Int64? bits,
+    SensorPositionAbs? positionAbs,
+    SensorPositionRel? positionRel,
+    $core.bool? contactSideA,
+    $core.bool? contactSideB,
+    $core.int? timestampMs,
+    $core.bool? sleeping,
+  }) {
+    final result = create();
+    if (raw != null) result.raw = raw;
+    if (bits != null) result.bits = bits;
+    if (positionAbs != null) result.positionAbs = positionAbs;
+    if (positionRel != null) result.positionRel = positionRel;
+    if (contactSideA != null) result.contactSideA = contactSideA;
+    if (contactSideB != null) result.contactSideB = contactSideB;
+    if (timestampMs != null) result.timestampMs = timestampMs;
+    if (sleeping != null) result.sleeping = sleeping;
+    return result;
+  }
+
+  SensorState._();
+
+  factory SensorState.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SensorState.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SensorState',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<SensorRawData>(1, _omitFieldNames ? '' : 'raw',
+        subBuilder: SensorRawData.create)
+    ..a<$fixnum.Int64>(2, _omitFieldNames ? '' : 'bits', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOM<SensorPositionAbs>(3, _omitFieldNames ? '' : 'positionAbs',
+        subBuilder: SensorPositionAbs.create)
+    ..aOM<SensorPositionRel>(4, _omitFieldNames ? '' : 'positionRel',
+        subBuilder: SensorPositionRel.create)
+    ..aOB(5, _omitFieldNames ? '' : 'contactSideA')
+    ..aOB(6, _omitFieldNames ? '' : 'contactSideB')
+    ..aI(7, _omitFieldNames ? '' : 'timestampMs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aOB(8, _omitFieldNames ? '' : 'sleeping')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SensorState clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SensorState copyWith(void Function(SensorState) updates) =>
+      super.copyWith((message) => updates(message as SensorState))
+          as SensorState;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SensorState create() => SensorState._();
+  @$core.override
+  SensorState createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SensorState getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SensorState>(create);
+  static SensorState? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  SensorRawData get raw => $_getN(0);
+  @$pb.TagNumber(1)
+  set raw(SensorRawData value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasRaw() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRaw() => $_clearField(1);
+  @$pb.TagNumber(1)
+  SensorRawData ensureRaw() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get bits => $_getI64(1);
+  @$pb.TagNumber(2)
+  set bits($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasBits() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearBits() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  SensorPositionAbs get positionAbs => $_getN(2);
+  @$pb.TagNumber(3)
+  set positionAbs(SensorPositionAbs value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasPositionAbs() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearPositionAbs() => $_clearField(3);
+  @$pb.TagNumber(3)
+  SensorPositionAbs ensurePositionAbs() => $_ensure(2);
+
+  @$pb.TagNumber(4)
+  SensorPositionRel get positionRel => $_getN(3);
+  @$pb.TagNumber(4)
+  set positionRel(SensorPositionRel value) => $_setField(4, value);
+  @$pb.TagNumber(4)
+  $core.bool hasPositionRel() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearPositionRel() => $_clearField(4);
+  @$pb.TagNumber(4)
+  SensorPositionRel ensurePositionRel() => $_ensure(3);
+
+  @$pb.TagNumber(5)
+  $core.bool get contactSideA => $_getBF(4);
+  @$pb.TagNumber(5)
+  set contactSideA($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasContactSideA() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearContactSideA() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.bool get contactSideB => $_getBF(5);
+  @$pb.TagNumber(6)
+  set contactSideB($core.bool value) => $_setBool(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasContactSideB() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearContactSideB() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.int get timestampMs => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set timestampMs($core.int value) => $_setUnsignedInt32(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasTimestampMs() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearTimestampMs() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.bool get sleeping => $_getBF(7);
+  @$pb.TagNumber(8)
+  set sleeping($core.bool value) => $_setBool(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasSleeping() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearSleeping() => $_clearField(8);
+}
+
+/// A device currently connected to the server. NB! Server only - never built or
+/// parsed by the FW. Shared by ResponseDeviceListGet (302) and
+/// NotificationDeviceListChanged (301).
+class ConnectedDevice extends $pb.GeneratedMessage {
+  factory ConnectedDevice({
+    $core.String? key,
+    $core.int? serial,
+    $core.int? hwModelNumber,
+  }) {
+    final result = create();
+    if (key != null) result.key = key;
+    if (serial != null) result.serial = serial;
+    if (hwModelNumber != null) result.hwModelNumber = hwModelNumber;
+    return result;
+  }
+
+  ConnectedDevice._();
+
+  factory ConnectedDevice.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ConnectedDevice.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ConnectedDevice',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'key')
+    ..aI(2, _omitFieldNames ? '' : 'serial', fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'hwModelNumber',
+        fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ConnectedDevice clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ConnectedDevice copyWith(void Function(ConnectedDevice) updates) =>
+      super.copyWith((message) => updates(message as ConnectedDevice))
+          as ConnectedDevice;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ConnectedDevice create() => ConnectedDevice._();
+  @$core.override
+  ConnectedDevice createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ConnectedDevice getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ConnectedDevice>(create);
+  static ConnectedDevice? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get key => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set key($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasKey() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearKey() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get serial => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set serial($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSerial() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSerial() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get hwModelNumber => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set hwModelNumber($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasHwModelNumber() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearHwModelNumber() => $_clearField(3);
 }
 
 const $core.bool _omitFieldNames =

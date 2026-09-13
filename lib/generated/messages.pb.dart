@@ -16,8 +16,11 @@ import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'constants.pb.dart' as $0;
+import 'messages.pbenum.dart';
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
+
+export 'messages.pbenum.dart';
 
 /// NB! Server messages, never touched by the FW
 /// 300
@@ -206,6 +209,227 @@ class ResponseConnectedGet extends $pb.GeneratedMessage {
   $core.bool hasConnected() => $_has(0);
   @$pb.TagNumber(1)
   void clearConnected() => $_clearField(1);
+}
+
+/// 304 - Added in FW4.4 - The server's firmware verdict for the connected device.
+/// SERVER-answered: only the server knows which release is current. This is the
+/// same fact the online API serves as fw_status on getDeviceInfo, so a socket
+/// session no longer needs a REST call to learn it.
+class RequestFwStatusGet extends $pb.GeneratedMessage {
+  factory RequestFwStatusGet() => create();
+
+  RequestFwStatusGet._();
+
+  factory RequestFwStatusGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestFwStatusGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestFwStatusGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestFwStatusGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestFwStatusGet copyWith(void Function(RequestFwStatusGet) updates) =>
+      super.copyWith((message) => updates(message as RequestFwStatusGet))
+          as RequestFwStatusGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestFwStatusGet create() => RequestFwStatusGet._();
+  @$core.override
+  RequestFwStatusGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestFwStatusGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestFwStatusGet>(create);
+  static RequestFwStatusGet? _defaultInstance;
+}
+
+class ResponseFwStatusGet extends $pb.GeneratedMessage {
+  factory ResponseFwStatusGet({
+    $0.FirmwareStatus? status,
+    $core.String? latestVersion,
+  }) {
+    final result = create();
+    if (status != null) result.status = status;
+    if (latestVersion != null) result.latestVersion = latestVersion;
+    return result;
+  }
+
+  ResponseFwStatusGet._();
+
+  factory ResponseFwStatusGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseFwStatusGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseFwStatusGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aE<$0.FirmwareStatus>(1, _omitFieldNames ? '' : 'status',
+        enumValues: $0.FirmwareStatus.values)
+    ..aOS(2, _omitFieldNames ? '' : 'latestVersion')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseFwStatusGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseFwStatusGet copyWith(void Function(ResponseFwStatusGet) updates) =>
+      super.copyWith((message) => updates(message as ResponseFwStatusGet))
+          as ResponseFwStatusGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseFwStatusGet create() => ResponseFwStatusGet._();
+  @$core.override
+  ResponseFwStatusGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseFwStatusGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseFwStatusGet>(create);
+  static ResponseFwStatusGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.FirmwareStatus get status => $_getN(0);
+  @$pb.TagNumber(1)
+  set status($0.FirmwareStatus value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasStatus() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearStatus() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get latestVersion => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set latestVersion($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasLatestVersion() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearLatestVersion() => $_clearField(2);
+}
+
+/// 582 - Mechanical UNIFORMITY test (FW4.4). Async: blank response, then
+/// NotificationTestComplete{msg_id, result}; read the detailed result with
+/// RequestSlideMaintResultGet (856). OPEN LOOP, independent of the regulator and
+/// its tuning (like the hall calibration): a constant-duty pass from each end in
+/// each direction, the measured speed binned along the stroke. A uniform
+/// mechanism rises monotonically to a plateau; a local bind (dry rail, damaged
+/// screw flank, debris) is a DIP at that position, a one-way load is a
+/// forward/backward plateau asymmetry. Verdict OK / CHECK (probably wants
+/// lubrication) / FAIL. Also for the user: an app can offer it as a device check.
+/// result: 0 ok; -1 motion failure; -4 already running; -5 not calibrated (run
+/// the endpoint calibration first). Moves the slider for ~10 s. Requires a
+/// calibrated slider; the device must be idle.
+class RequestTestUniformity extends $pb.GeneratedMessage {
+  factory RequestTestUniformity({
+    $core.double? duty,
+  }) {
+    final result = create();
+    if (duty != null) result.duty = duty;
+    return result;
+  }
+
+  RequestTestUniformity._();
+
+  factory RequestTestUniformity.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestTestUniformity.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestTestUniformity',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aD(1, _omitFieldNames ? '' : 'duty', fieldType: $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestTestUniformity clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestTestUniformity copyWith(
+          void Function(RequestTestUniformity) updates) =>
+      super.copyWith((message) => updates(message as RequestTestUniformity))
+          as RequestTestUniformity;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestTestUniformity create() => RequestTestUniformity._();
+  @$core.override
+  RequestTestUniformity createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestTestUniformity getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestTestUniformity>(create);
+  static RequestTestUniformity? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.double get duty => $_getN(0);
+  @$pb.TagNumber(1)
+  set duty($core.double value) => $_setFloat(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasDuty() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearDuty() => $_clearField(1);
+}
+
+/// 583 - MAX SPEED test (FW4.4). Async like 582. The absolute speed the device
+/// reaches inside its own stroke at full motor power WITHOUT reaching the ends:
+/// the braking distance is measured first (stop from a moderate speed), then
+/// each full-power pass brakes when the remaining travel equals 1.5 x the
+/// predicted stopping distance plus a margin. result: 0 ok; -1 motion failure;
+/// -4 already running; -5 not calibrated; -6 braking constant could not be
+/// measured. Moves the slider hard for ~10 s.
+class RequestTestMaxSpeed extends $pb.GeneratedMessage {
+  factory RequestTestMaxSpeed() => create();
+
+  RequestTestMaxSpeed._();
+
+  factory RequestTestMaxSpeed.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestTestMaxSpeed.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestTestMaxSpeed',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestTestMaxSpeed clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestTestMaxSpeed copyWith(void Function(RequestTestMaxSpeed) updates) =>
+      super.copyWith((message) => updates(message as RequestTestMaxSpeed))
+          as RequestTestMaxSpeed;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestTestMaxSpeed create() => RequestTestMaxSpeed._();
+  @$core.override
+  RequestTestMaxSpeed createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestTestMaxSpeed getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestTestMaxSpeed>(create);
+  static RequestTestMaxSpeed? _defaultInstance;
 }
 
 /// 606
@@ -1635,6 +1859,8 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
     $0.BatteryDriver? batteryDriver,
     $core.int? bleMtu,
     $core.int? wsBufferSize,
+    $core.int? sensors,
+    $core.bool? usbVoltageMeasure,
   }) {
     final result = create();
     if (vulvaOriented != null) result.vulvaOriented = vulvaOriented;
@@ -1653,6 +1879,8 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
     if (batteryDriver != null) result.batteryDriver = batteryDriver;
     if (bleMtu != null) result.bleMtu = bleMtu;
     if (wsBufferSize != null) result.wsBufferSize = wsBufferSize;
+    if (sensors != null) result.sensors = sensors;
+    if (usbVoltageMeasure != null) result.usbVoltageMeasure = usbVoltageMeasure;
     return result;
   }
 
@@ -1691,6 +1919,8 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
     ..aI(15, _omitFieldNames ? '' : 'bleMtu', fieldType: $pb.PbFieldType.OU3)
     ..aI(16, _omitFieldNames ? '' : 'wsBufferSize',
         fieldType: $pb.PbFieldType.OU3)
+    ..aI(17, _omitFieldNames ? '' : 'sensors', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(18, _omitFieldNames ? '' : 'usbVoltageMeasure')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1856,6 +2086,24 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
   $core.bool hasWsBufferSize() => $_has(15);
   @$pb.TagNumber(16)
   void clearWsBufferSize() => $_clearField(16);
+
+  @$pb.TagNumber(17)
+  $core.int get sensors => $_getIZ(16);
+  @$pb.TagNumber(17)
+  set sensors($core.int value) => $_setUnsignedInt32(16, value);
+  @$pb.TagNumber(17)
+  $core.bool hasSensors() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearSensors() => $_clearField(17);
+
+  @$pb.TagNumber(18)
+  $core.bool get usbVoltageMeasure => $_getBF(17);
+  @$pb.TagNumber(18)
+  set usbVoltageMeasure($core.bool value) => $_setBool(17, value);
+  @$pb.TagNumber(18)
+  $core.bool hasUsbVoltageMeasure() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearUsbVoltageMeasure() => $_clearField(18);
 }
 
 ///
@@ -2173,6 +2421,144 @@ class ResponseConnectionModeGet extends $pb.GeneratedMessage {
   $core.bool hasMode() => $_has(0);
   @$pb.TagNumber(1)
   void clearMode() => $_clearField(1);
+}
+
+/// 718 - Added in FW4.4 - The PUBLIC subset of RequestPrivateInfoGet: what the device IS (product
+/// identity + firmware), never WHICH UNIT it is. Deliberately carries no serial,
+/// uid, mac, pcba_version or production_date - those stay private so a client
+/// holding only a connection key cannot fingerprint a single device. Every field
+/// here is shared by every unit of the same model, and every one of them is
+/// already served to third parties by the online API's getDeviceInfo.
+class RequestPublicInfoGet extends $pb.GeneratedMessage {
+  factory RequestPublicInfoGet() => create();
+
+  RequestPublicInfoGet._();
+
+  factory RequestPublicInfoGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestPublicInfoGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestPublicInfoGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestPublicInfoGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestPublicInfoGet copyWith(void Function(RequestPublicInfoGet) updates) =>
+      super.copyWith((message) => updates(message as RequestPublicInfoGet))
+          as RequestPublicInfoGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestPublicInfoGet create() => RequestPublicInfoGet._();
+  @$core.override
+  RequestPublicInfoGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestPublicInfoGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestPublicInfoGet>(create);
+  static RequestPublicInfoGet? _defaultInstance;
+}
+
+class ResponsePublicInfoGet extends $pb.GeneratedMessage {
+  factory ResponsePublicInfoGet({
+    $core.int? hwModelNumber,
+    $core.int? hwModelVariantNumber,
+    $core.String? fwVersion,
+    $core.String? fwFeatureFlags,
+  }) {
+    final result = create();
+    if (hwModelNumber != null) result.hwModelNumber = hwModelNumber;
+    if (hwModelVariantNumber != null)
+      result.hwModelVariantNumber = hwModelVariantNumber;
+    if (fwVersion != null) result.fwVersion = fwVersion;
+    if (fwFeatureFlags != null) result.fwFeatureFlags = fwFeatureFlags;
+    return result;
+  }
+
+  ResponsePublicInfoGet._();
+
+  factory ResponsePublicInfoGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponsePublicInfoGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponsePublicInfoGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'hwModelNumber',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'hwModelVariantNumber',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aOS(3, _omitFieldNames ? '' : 'fwVersion')
+    ..aOS(4, _omitFieldNames ? '' : 'fwFeatureFlags')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponsePublicInfoGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponsePublicInfoGet copyWith(
+          void Function(ResponsePublicInfoGet) updates) =>
+      super.copyWith((message) => updates(message as ResponsePublicInfoGet))
+          as ResponsePublicInfoGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponsePublicInfoGet create() => ResponsePublicInfoGet._();
+  @$core.override
+  ResponsePublicInfoGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponsePublicInfoGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponsePublicInfoGet>(create);
+  static ResponsePublicInfoGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get hwModelNumber => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set hwModelNumber($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasHwModelNumber() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearHwModelNumber() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get hwModelVariantNumber => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set hwModelVariantNumber($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasHwModelVariantNumber() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearHwModelVariantNumber() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get fwVersion => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set fwVersion($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasFwVersion() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearFwVersion() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get fwFeatureFlags => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set fwFeatureFlags($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasFwFeatureFlags() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearFwFeatureFlags() => $_clearField(4);
 }
 
 /// /////////////////////// HAMP /////////////////////////
@@ -3217,6 +3603,565 @@ class RequestHdspStop extends $pb.GeneratedMessage {
   static RequestHdspStop? _defaultInstance;
 }
 
+/// /////////////////////// Sensor /////////////////////////
+/// Sensor (position/pressure sensing, e.g. the S02 IR array) - 800
+/// 800
+/// Subscribe to sensor update notifications (NotificationSensorUpdate).
+/// Select exactly which parts each notification carries - unselected parts are
+/// omitted from the message entirely, so subscribe only to what you need and
+/// the notifications stay small. enabled=false stops the stream.
+/// Added in FW4.3
+class RequestSensorNotificationSet extends $pb.GeneratedMessage {
+  factory RequestSensorNotificationSet({
+    $core.bool? enabled,
+    $core.bool? raw,
+    $core.bool? bits,
+    $core.bool? positionAbs,
+    $core.bool? positionRel,
+    $core.int? minIntervalMs,
+    $0.SensorNotificationMode? mode,
+  }) {
+    final result = create();
+    if (enabled != null) result.enabled = enabled;
+    if (raw != null) result.raw = raw;
+    if (bits != null) result.bits = bits;
+    if (positionAbs != null) result.positionAbs = positionAbs;
+    if (positionRel != null) result.positionRel = positionRel;
+    if (minIntervalMs != null) result.minIntervalMs = minIntervalMs;
+    if (mode != null) result.mode = mode;
+    return result;
+  }
+
+  RequestSensorNotificationSet._();
+
+  factory RequestSensorNotificationSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSensorNotificationSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSensorNotificationSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'enabled')
+    ..aOB(2, _omitFieldNames ? '' : 'raw')
+    ..aOB(3, _omitFieldNames ? '' : 'bits')
+    ..aOB(4, _omitFieldNames ? '' : 'positionAbs')
+    ..aOB(5, _omitFieldNames ? '' : 'positionRel')
+    ..aI(6, _omitFieldNames ? '' : 'minIntervalMs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aE<$0.SensorNotificationMode>(7, _omitFieldNames ? '' : 'mode',
+        enumValues: $0.SensorNotificationMode.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSensorNotificationSet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSensorNotificationSet copyWith(
+          void Function(RequestSensorNotificationSet) updates) =>
+      super.copyWith(
+              (message) => updates(message as RequestSensorNotificationSet))
+          as RequestSensorNotificationSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSensorNotificationSet create() =>
+      RequestSensorNotificationSet._();
+  @$core.override
+  RequestSensorNotificationSet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSensorNotificationSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSensorNotificationSet>(create);
+  static RequestSensorNotificationSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get enabled => $_getBF(0);
+  @$pb.TagNumber(1)
+  set enabled($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasEnabled() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearEnabled() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get raw => $_getBF(1);
+  @$pb.TagNumber(2)
+  set raw($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRaw() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRaw() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get bits => $_getBF(2);
+  @$pb.TagNumber(3)
+  set bits($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasBits() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearBits() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get positionAbs => $_getBF(3);
+  @$pb.TagNumber(4)
+  set positionAbs($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasPositionAbs() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearPositionAbs() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get positionRel => $_getBF(4);
+  @$pb.TagNumber(5)
+  set positionRel($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasPositionRel() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearPositionRel() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get minIntervalMs => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set minIntervalMs($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasMinIntervalMs() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearMinIntervalMs() => $_clearField(6);
+
+  /// 0 = every change. Contact changes always send immediately, and the
+  /// latest reading is delivered once the interval expires (trailing
+  /// edge) - the client is never left on stale data.
+  /// ON_INTERVAL mode: the sending period; 0 = as fast as free system
+  /// resources allow.
+  @$pb.TagNumber(7)
+  $0.SensorNotificationMode get mode => $_getN(6);
+  @$pb.TagNumber(7)
+  set mode($0.SensorNotificationMode value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasMode() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearMode() => $_clearField(7);
+}
+
+/// Echoes the configuration that is now active
+/// Added in FW4.3
+class ResponseSensorNotificationSet extends $pb.GeneratedMessage {
+  factory ResponseSensorNotificationSet({
+    $core.bool? enabled,
+    $core.bool? raw,
+    $core.bool? bits,
+    $core.bool? positionAbs,
+    $core.bool? positionRel,
+    $core.int? minIntervalMs,
+    $0.SensorNotificationMode? mode,
+  }) {
+    final result = create();
+    if (enabled != null) result.enabled = enabled;
+    if (raw != null) result.raw = raw;
+    if (bits != null) result.bits = bits;
+    if (positionAbs != null) result.positionAbs = positionAbs;
+    if (positionRel != null) result.positionRel = positionRel;
+    if (minIntervalMs != null) result.minIntervalMs = minIntervalMs;
+    if (mode != null) result.mode = mode;
+    return result;
+  }
+
+  ResponseSensorNotificationSet._();
+
+  factory ResponseSensorNotificationSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSensorNotificationSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSensorNotificationSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'enabled')
+    ..aOB(2, _omitFieldNames ? '' : 'raw')
+    ..aOB(3, _omitFieldNames ? '' : 'bits')
+    ..aOB(4, _omitFieldNames ? '' : 'positionAbs')
+    ..aOB(5, _omitFieldNames ? '' : 'positionRel')
+    ..aI(6, _omitFieldNames ? '' : 'minIntervalMs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aE<$0.SensorNotificationMode>(7, _omitFieldNames ? '' : 'mode',
+        enumValues: $0.SensorNotificationMode.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSensorNotificationSet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSensorNotificationSet copyWith(
+          void Function(ResponseSensorNotificationSet) updates) =>
+      super.copyWith(
+              (message) => updates(message as ResponseSensorNotificationSet))
+          as ResponseSensorNotificationSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSensorNotificationSet create() =>
+      ResponseSensorNotificationSet._();
+  @$core.override
+  ResponseSensorNotificationSet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSensorNotificationSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSensorNotificationSet>(create);
+  static ResponseSensorNotificationSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get enabled => $_getBF(0);
+  @$pb.TagNumber(1)
+  set enabled($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasEnabled() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearEnabled() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get raw => $_getBF(1);
+  @$pb.TagNumber(2)
+  set raw($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRaw() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRaw() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get bits => $_getBF(2);
+  @$pb.TagNumber(3)
+  set bits($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasBits() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearBits() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get positionAbs => $_getBF(3);
+  @$pb.TagNumber(4)
+  set positionAbs($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasPositionAbs() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearPositionAbs() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get positionRel => $_getBF(4);
+  @$pb.TagNumber(5)
+  set positionRel($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasPositionRel() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearPositionRel() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get minIntervalMs => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set minIntervalMs($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasMinIntervalMs() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearMinIntervalMs() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $0.SensorNotificationMode get mode => $_getN(6);
+  @$pb.TagNumber(7)
+  set mode($0.SensorNotificationMode value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasMode() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearMode() => $_clearField(7);
+}
+
+/// 801
+/// Pull the current sensor state on demand - a fresh hardware read, same data
+/// as NotificationSensorUpdate but with ALL parts always included.
+/// Added in FW4.3
+class RequestSensorStateGet extends $pb.GeneratedMessage {
+  factory RequestSensorStateGet() => create();
+
+  RequestSensorStateGet._();
+
+  factory RequestSensorStateGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSensorStateGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSensorStateGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSensorStateGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSensorStateGet copyWith(
+          void Function(RequestSensorStateGet) updates) =>
+      super.copyWith((message) => updates(message as RequestSensorStateGet))
+          as RequestSensorStateGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSensorStateGet create() => RequestSensorStateGet._();
+  @$core.override
+  RequestSensorStateGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSensorStateGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSensorStateGet>(create);
+  static RequestSensorStateGet? _defaultInstance;
+}
+
+/// Added in FW4.3
+class ResponseSensorStateGet extends $pb.GeneratedMessage {
+  factory ResponseSensorStateGet({
+    $0.SensorState? state,
+  }) {
+    final result = create();
+    if (state != null) result.state = state;
+    return result;
+  }
+
+  ResponseSensorStateGet._();
+
+  factory ResponseSensorStateGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSensorStateGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSensorStateGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<$0.SensorState>(1, _omitFieldNames ? '' : 'state',
+        subBuilder: $0.SensorState.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSensorStateGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSensorStateGet copyWith(
+          void Function(ResponseSensorStateGet) updates) =>
+      super.copyWith((message) => updates(message as ResponseSensorStateGet))
+          as ResponseSensorStateGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSensorStateGet create() => ResponseSensorStateGet._();
+  @$core.override
+  ResponseSensorStateGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSensorStateGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSensorStateGet>(create);
+  static ResponseSensorStateGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SensorState get state => $_getN(0);
+  @$pb.TagNumber(1)
+  set state($0.SensorState value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasState() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearState() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $0.SensorState ensureState() => $_ensure(0);
+}
+
+/// 802
+/// Read back the active notification subscription without changing it. Meant
+/// for clients that lost track of what they set: the device auto-disables the
+/// stream when it sees no client connected, so after a reconnect the client's
+/// last-known configuration is unreliable.
+/// Added in FW4.3
+class RequestSensorNotificationGet extends $pb.GeneratedMessage {
+  factory RequestSensorNotificationGet() => create();
+
+  RequestSensorNotificationGet._();
+
+  factory RequestSensorNotificationGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSensorNotificationGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSensorNotificationGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSensorNotificationGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSensorNotificationGet copyWith(
+          void Function(RequestSensorNotificationGet) updates) =>
+      super.copyWith(
+              (message) => updates(message as RequestSensorNotificationGet))
+          as RequestSensorNotificationGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSensorNotificationGet create() =>
+      RequestSensorNotificationGet._();
+  @$core.override
+  RequestSensorNotificationGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSensorNotificationGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSensorNotificationGet>(create);
+  static RequestSensorNotificationGet? _defaultInstance;
+}
+
+/// Same shape as ResponseSensorNotificationSet
+/// Added in FW4.3
+class ResponseSensorNotificationGet extends $pb.GeneratedMessage {
+  factory ResponseSensorNotificationGet({
+    $core.bool? enabled,
+    $core.bool? raw,
+    $core.bool? bits,
+    $core.bool? positionAbs,
+    $core.bool? positionRel,
+    $core.int? minIntervalMs,
+    $0.SensorNotificationMode? mode,
+  }) {
+    final result = create();
+    if (enabled != null) result.enabled = enabled;
+    if (raw != null) result.raw = raw;
+    if (bits != null) result.bits = bits;
+    if (positionAbs != null) result.positionAbs = positionAbs;
+    if (positionRel != null) result.positionRel = positionRel;
+    if (minIntervalMs != null) result.minIntervalMs = minIntervalMs;
+    if (mode != null) result.mode = mode;
+    return result;
+  }
+
+  ResponseSensorNotificationGet._();
+
+  factory ResponseSensorNotificationGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSensorNotificationGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSensorNotificationGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'enabled')
+    ..aOB(2, _omitFieldNames ? '' : 'raw')
+    ..aOB(3, _omitFieldNames ? '' : 'bits')
+    ..aOB(4, _omitFieldNames ? '' : 'positionAbs')
+    ..aOB(5, _omitFieldNames ? '' : 'positionRel')
+    ..aI(6, _omitFieldNames ? '' : 'minIntervalMs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aE<$0.SensorNotificationMode>(7, _omitFieldNames ? '' : 'mode',
+        enumValues: $0.SensorNotificationMode.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSensorNotificationGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSensorNotificationGet copyWith(
+          void Function(ResponseSensorNotificationGet) updates) =>
+      super.copyWith(
+              (message) => updates(message as ResponseSensorNotificationGet))
+          as ResponseSensorNotificationGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSensorNotificationGet create() =>
+      ResponseSensorNotificationGet._();
+  @$core.override
+  ResponseSensorNotificationGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSensorNotificationGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSensorNotificationGet>(create);
+  static ResponseSensorNotificationGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get enabled => $_getBF(0);
+  @$pb.TagNumber(1)
+  set enabled($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasEnabled() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearEnabled() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get raw => $_getBF(1);
+  @$pb.TagNumber(2)
+  set raw($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRaw() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRaw() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get bits => $_getBF(2);
+  @$pb.TagNumber(3)
+  set bits($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasBits() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearBits() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get positionAbs => $_getBF(3);
+  @$pb.TagNumber(4)
+  set positionAbs($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasPositionAbs() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearPositionAbs() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get positionRel => $_getBF(4);
+  @$pb.TagNumber(5)
+  set positionRel($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasPositionRel() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearPositionRel() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get minIntervalMs => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set minIntervalMs($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasMinIntervalMs() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearMinIntervalMs() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $0.SensorNotificationMode get mode => $_getN(6);
+  @$pb.TagNumber(7)
+  set mode($0.SensorNotificationMode value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasMode() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearMode() => $_clearField(7);
+}
+
 /// /////////////////////// Slider /////////////////////////
 /// 840
 class RequestSliderStrokeGet extends $pb.GeneratedMessage {
@@ -3790,6 +4735,1675 @@ class ResponseSliderCalibrate extends $pb.GeneratedMessage {
   $core.bool hasSuccess() => $_has(0);
   @$pb.TagNumber(1)
   void clearSuccess() => $_clearField(1);
+}
+
+/// /////////////////////// Slide diagnostics (FW4.4) /////////////////////////
+/// 844 - Arm a diagnostics capture (any channel: hall, regulator or hsp).
+/// Buffers are PSRAM-only: non-PSRAM variants answer ERROR_FUNCTION_NOT_SUPPORTED
+/// (capability hint: ResponseCapabilitiesGet.external_memory).
+/// wrap=true keeps the newest records (rolling ring); wrap=false freezes the
+/// capture when it is full. Restarting an armed capture resets it and bumps seq.
+/// Added in FW4.4
+class RequestSlideDiagStart extends $pb.GeneratedMessage {
+  factory RequestSlideDiagStart({
+    $0.SlideDiagChannel? channel,
+    $core.int? maxRecords,
+    $core.bool? wrap,
+    $core.int? fieldMask,
+  }) {
+    final result = create();
+    if (channel != null) result.channel = channel;
+    if (maxRecords != null) result.maxRecords = maxRecords;
+    if (wrap != null) result.wrap = wrap;
+    if (fieldMask != null) result.fieldMask = fieldMask;
+    return result;
+  }
+
+  RequestSlideDiagStart._();
+
+  factory RequestSlideDiagStart.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSlideDiagStart.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSlideDiagStart',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aE<$0.SlideDiagChannel>(1, _omitFieldNames ? '' : 'channel',
+        enumValues: $0.SlideDiagChannel.values)
+    ..aI(2, _omitFieldNames ? '' : 'maxRecords', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(3, _omitFieldNames ? '' : 'wrap')
+    ..aI(4, _omitFieldNames ? '' : 'fieldMask', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideDiagStart clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideDiagStart copyWith(
+          void Function(RequestSlideDiagStart) updates) =>
+      super.copyWith((message) => updates(message as RequestSlideDiagStart))
+          as RequestSlideDiagStart;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideDiagStart create() => RequestSlideDiagStart._();
+  @$core.override
+  RequestSlideDiagStart createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideDiagStart getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSlideDiagStart>(create);
+  static RequestSlideDiagStart? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SlideDiagChannel get channel => $_getN(0);
+  @$pb.TagNumber(1)
+  set channel($0.SlideDiagChannel value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChannel() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChannel() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get maxRecords => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set maxRecords($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasMaxRecords() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearMaxRecords() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get wrap => $_getBF(2);
+  @$pb.TagNumber(3)
+  set wrap($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasWrap() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearWrap() => $_clearField(3);
+
+  /// REGULATOR channel only: bitmask of record fields to capture, bit N =
+  /// field N of the record in struct order (time is always kept). 0 = all
+  /// fields. Fewer fields = smaller records = more records in the budget.
+  /// Replaces any existing capture on that channel. Added in FW4.4.
+  @$pb.TagNumber(4)
+  $core.int get fieldMask => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set fieldMask($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasFieldMask() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearFieldMask() => $_clearField(4);
+}
+
+class ResponseSlideDiagStart extends $pb.GeneratedMessage {
+  factory ResponseSlideDiagStart({
+    $core.int? capacityRecords,
+    $core.int? entrySize,
+    $core.int? formatVersion,
+    $core.int? seq,
+    $core.int? fieldMask,
+  }) {
+    final result = create();
+    if (capacityRecords != null) result.capacityRecords = capacityRecords;
+    if (entrySize != null) result.entrySize = entrySize;
+    if (formatVersion != null) result.formatVersion = formatVersion;
+    if (seq != null) result.seq = seq;
+    if (fieldMask != null) result.fieldMask = fieldMask;
+    return result;
+  }
+
+  ResponseSlideDiagStart._();
+
+  factory ResponseSlideDiagStart.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSlideDiagStart.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSlideDiagStart',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'capacityRecords',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'entrySize', fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'formatVersion',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'seq', fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'fieldMask', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideDiagStart clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideDiagStart copyWith(
+          void Function(ResponseSlideDiagStart) updates) =>
+      super.copyWith((message) => updates(message as ResponseSlideDiagStart))
+          as ResponseSlideDiagStart;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideDiagStart create() => ResponseSlideDiagStart._();
+  @$core.override
+  ResponseSlideDiagStart createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideDiagStart getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSlideDiagStart>(create);
+  static ResponseSlideDiagStart? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get capacityRecords => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set capacityRecords($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasCapacityRecords() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCapacityRecords() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get entrySize => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set entrySize($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasEntrySize() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearEntrySize() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get formatVersion => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set formatVersion($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasFormatVersion() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearFormatVersion() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get seq => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set seq($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasSeq() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearSeq() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get fieldMask => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set fieldMask($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasFieldMask() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearFieldMask() => $_clearField(5);
+}
+
+/// 845
+/// Added in FW4.4
+class RequestSlideDiagStatus extends $pb.GeneratedMessage {
+  factory RequestSlideDiagStatus({
+    $0.SlideDiagChannel? channel,
+  }) {
+    final result = create();
+    if (channel != null) result.channel = channel;
+    return result;
+  }
+
+  RequestSlideDiagStatus._();
+
+  factory RequestSlideDiagStatus.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSlideDiagStatus.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSlideDiagStatus',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aE<$0.SlideDiagChannel>(1, _omitFieldNames ? '' : 'channel',
+        enumValues: $0.SlideDiagChannel.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideDiagStatus clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideDiagStatus copyWith(
+          void Function(RequestSlideDiagStatus) updates) =>
+      super.copyWith((message) => updates(message as RequestSlideDiagStatus))
+          as RequestSlideDiagStatus;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideDiagStatus create() => RequestSlideDiagStatus._();
+  @$core.override
+  RequestSlideDiagStatus createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideDiagStatus getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSlideDiagStatus>(create);
+  static RequestSlideDiagStatus? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SlideDiagChannel get channel => $_getN(0);
+  @$pb.TagNumber(1)
+  set channel($0.SlideDiagChannel value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChannel() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChannel() => $_clearField(1);
+}
+
+class ResponseSlideDiagStatus extends $pb.GeneratedMessage {
+  factory ResponseSlideDiagStatus({
+    $0.SlideDiagState? state,
+    $core.bool? wrap,
+    $core.bool? wrapped,
+    $core.bool? full,
+    $core.int? entrySize,
+    $core.int? formatVersion,
+    $core.int? capacityRecords,
+    $core.int? usedRecords,
+    $core.int? totalRecords,
+    $core.int? seq,
+    $core.int? fieldMask,
+  }) {
+    final result = create();
+    if (state != null) result.state = state;
+    if (wrap != null) result.wrap = wrap;
+    if (wrapped != null) result.wrapped = wrapped;
+    if (full != null) result.full = full;
+    if (entrySize != null) result.entrySize = entrySize;
+    if (formatVersion != null) result.formatVersion = formatVersion;
+    if (capacityRecords != null) result.capacityRecords = capacityRecords;
+    if (usedRecords != null) result.usedRecords = usedRecords;
+    if (totalRecords != null) result.totalRecords = totalRecords;
+    if (seq != null) result.seq = seq;
+    if (fieldMask != null) result.fieldMask = fieldMask;
+    return result;
+  }
+
+  ResponseSlideDiagStatus._();
+
+  factory ResponseSlideDiagStatus.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSlideDiagStatus.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSlideDiagStatus',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aE<$0.SlideDiagState>(1, _omitFieldNames ? '' : 'state',
+        enumValues: $0.SlideDiagState.values)
+    ..aOB(2, _omitFieldNames ? '' : 'wrap')
+    ..aOB(3, _omitFieldNames ? '' : 'wrapped')
+    ..aOB(4, _omitFieldNames ? '' : 'full')
+    ..aI(5, _omitFieldNames ? '' : 'entrySize', fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'formatVersion',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(7, _omitFieldNames ? '' : 'capacityRecords',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(8, _omitFieldNames ? '' : 'usedRecords',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(9, _omitFieldNames ? '' : 'totalRecords',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(10, _omitFieldNames ? '' : 'seq', fieldType: $pb.PbFieldType.OU3)
+    ..aI(11, _omitFieldNames ? '' : 'fieldMask', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideDiagStatus clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideDiagStatus copyWith(
+          void Function(ResponseSlideDiagStatus) updates) =>
+      super.copyWith((message) => updates(message as ResponseSlideDiagStatus))
+          as ResponseSlideDiagStatus;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideDiagStatus create() => ResponseSlideDiagStatus._();
+  @$core.override
+  ResponseSlideDiagStatus createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideDiagStatus getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSlideDiagStatus>(create);
+  static ResponseSlideDiagStatus? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SlideDiagState get state => $_getN(0);
+  @$pb.TagNumber(1)
+  set state($0.SlideDiagState value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasState() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearState() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get wrap => $_getBF(1);
+  @$pb.TagNumber(2)
+  set wrap($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasWrap() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearWrap() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get wrapped => $_getBF(2);
+  @$pb.TagNumber(3)
+  set wrapped($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasWrapped() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearWrapped() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get full => $_getBF(3);
+  @$pb.TagNumber(4)
+  set full($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasFull() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearFull() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get entrySize => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set entrySize($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasEntrySize() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearEntrySize() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get formatVersion => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set formatVersion($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasFormatVersion() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearFormatVersion() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.int get capacityRecords => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set capacityRecords($core.int value) => $_setUnsignedInt32(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasCapacityRecords() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearCapacityRecords() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.int get usedRecords => $_getIZ(7);
+  @$pb.TagNumber(8)
+  set usedRecords($core.int value) => $_setUnsignedInt32(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasUsedRecords() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearUsedRecords() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.int get totalRecords => $_getIZ(8);
+  @$pb.TagNumber(9)
+  set totalRecords($core.int value) => $_setUnsignedInt32(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasTotalRecords() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearTotalRecords() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.int get seq => $_getIZ(9);
+  @$pb.TagNumber(10)
+  set seq($core.int value) => $_setUnsignedInt32(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasSeq() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearSeq() => $_clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.int get fieldMask => $_getIZ(10);
+  @$pb.TagNumber(11)
+  set fieldMask($core.int value) => $_setUnsignedInt32(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasFieldMask() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearFieldMask() => $_clearField(11);
+}
+
+/// 846 - Chronological ranged read of a FROZEN capture (SlideDiagStop first;
+/// reading a running capture returns an error). Client recipe: fetch
+/// used_records via SlideDiagStatus, then loop first_record += record_count,
+/// sizing max_records so record_count * entry_size stays under the transport
+/// frame (min(ws_buffer_size, 4096) - 64 bytes on WS, ~400 bytes on BLE).
+/// The seq in every response of one download MUST match; if it changes the
+/// capture was restarted - discard the data and start over.
+/// Added in FW4.4
+class RequestSlideDiagRead extends $pb.GeneratedMessage {
+  factory RequestSlideDiagRead({
+    $0.SlideDiagChannel? channel,
+    $core.int? firstRecord,
+    $core.int? maxRecords,
+  }) {
+    final result = create();
+    if (channel != null) result.channel = channel;
+    if (firstRecord != null) result.firstRecord = firstRecord;
+    if (maxRecords != null) result.maxRecords = maxRecords;
+    return result;
+  }
+
+  RequestSlideDiagRead._();
+
+  factory RequestSlideDiagRead.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSlideDiagRead.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSlideDiagRead',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aE<$0.SlideDiagChannel>(1, _omitFieldNames ? '' : 'channel',
+        enumValues: $0.SlideDiagChannel.values)
+    ..aI(2, _omitFieldNames ? '' : 'firstRecord',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'maxRecords', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideDiagRead clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideDiagRead copyWith(void Function(RequestSlideDiagRead) updates) =>
+      super.copyWith((message) => updates(message as RequestSlideDiagRead))
+          as RequestSlideDiagRead;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideDiagRead create() => RequestSlideDiagRead._();
+  @$core.override
+  RequestSlideDiagRead createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideDiagRead getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSlideDiagRead>(create);
+  static RequestSlideDiagRead? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SlideDiagChannel get channel => $_getN(0);
+  @$pb.TagNumber(1)
+  set channel($0.SlideDiagChannel value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChannel() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChannel() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get firstRecord => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set firstRecord($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasFirstRecord() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearFirstRecord() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get maxRecords => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set maxRecords($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasMaxRecords() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearMaxRecords() => $_clearField(3);
+}
+
+class ResponseSlideDiagRead extends $pb.GeneratedMessage {
+  factory ResponseSlideDiagRead({
+    $core.List<$core.int>? data,
+    $core.int? recordCount,
+    $core.int? usedRecords,
+    $core.int? seq,
+  }) {
+    final result = create();
+    if (data != null) result.data = data;
+    if (recordCount != null) result.recordCount = recordCount;
+    if (usedRecords != null) result.usedRecords = usedRecords;
+    if (seq != null) result.seq = seq;
+    return result;
+  }
+
+  ResponseSlideDiagRead._();
+
+  factory ResponseSlideDiagRead.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSlideDiagRead.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSlideDiagRead',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(
+        1, _omitFieldNames ? '' : 'data', $pb.PbFieldType.OY)
+    ..aI(2, _omitFieldNames ? '' : 'recordCount',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'usedRecords',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'seq', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideDiagRead clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideDiagRead copyWith(
+          void Function(ResponseSlideDiagRead) updates) =>
+      super.copyWith((message) => updates(message as ResponseSlideDiagRead))
+          as ResponseSlideDiagRead;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideDiagRead create() => ResponseSlideDiagRead._();
+  @$core.override
+  ResponseSlideDiagRead createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideDiagRead getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSlideDiagRead>(create);
+  static ResponseSlideDiagRead? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get data => $_getN(0);
+  @$pb.TagNumber(1)
+  set data($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasData() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearData() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get recordCount => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set recordCount($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRecordCount() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRecordCount() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get usedRecords => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set usedRecords($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasUsedRecords() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearUsedRecords() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get seq => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set seq($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasSeq() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearSeq() => $_clearField(4);
+}
+
+/// 847 - Freeze the capture so it can be read; free=true also releases the
+/// buffer. Blank response.
+/// Added in FW4.4
+class RequestSlideDiagStop extends $pb.GeneratedMessage {
+  factory RequestSlideDiagStop({
+    $0.SlideDiagChannel? channel,
+    $core.bool? free,
+  }) {
+    final result = create();
+    if (channel != null) result.channel = channel;
+    if (free != null) result.free = free;
+    return result;
+  }
+
+  RequestSlideDiagStop._();
+
+  factory RequestSlideDiagStop.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSlideDiagStop.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSlideDiagStop',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aE<$0.SlideDiagChannel>(1, _omitFieldNames ? '' : 'channel',
+        enumValues: $0.SlideDiagChannel.values)
+    ..aOB(2, _omitFieldNames ? '' : 'free')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideDiagStop clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideDiagStop copyWith(void Function(RequestSlideDiagStop) updates) =>
+      super.copyWith((message) => updates(message as RequestSlideDiagStop))
+          as RequestSlideDiagStop;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideDiagStop create() => RequestSlideDiagStop._();
+  @$core.override
+  RequestSlideDiagStop createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideDiagStop getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSlideDiagStop>(create);
+  static RequestSlideDiagStop? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SlideDiagChannel get channel => $_getN(0);
+  @$pb.TagNumber(1)
+  set channel($0.SlideDiagChannel value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChannel() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChannel() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get free => $_getBF(1);
+  @$pb.TagNumber(2)
+  set free($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasFree() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearFree() => $_clearField(2);
+}
+
+/// 848 - Per ring-state Hall distance calibration (6 multipliers).
+/// Added in FW4.4
+class RequestHallCalibrationGet extends $pb.GeneratedMessage {
+  factory RequestHallCalibrationGet() => create();
+
+  RequestHallCalibrationGet._();
+
+  factory RequestHallCalibrationGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestHallCalibrationGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestHallCalibrationGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHallCalibrationGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHallCalibrationGet copyWith(
+          void Function(RequestHallCalibrationGet) updates) =>
+      super.copyWith((message) => updates(message as RequestHallCalibrationGet))
+          as RequestHallCalibrationGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestHallCalibrationGet create() => RequestHallCalibrationGet._();
+  @$core.override
+  RequestHallCalibrationGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestHallCalibrationGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestHallCalibrationGet>(create);
+  static RequestHallCalibrationGet? _defaultInstance;
+}
+
+class ResponseHallCalibrationGet extends $pb.GeneratedMessage {
+  factory ResponseHallCalibrationGet({
+    $core.Iterable<$core.double>? scale,
+    $core.bool? stored,
+  }) {
+    final result = create();
+    if (scale != null) result.scale.addAll(scale);
+    if (stored != null) result.stored = stored;
+    return result;
+  }
+
+  ResponseHallCalibrationGet._();
+
+  factory ResponseHallCalibrationGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseHallCalibrationGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseHallCalibrationGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..p<$core.double>(1, _omitFieldNames ? '' : 'scale', $pb.PbFieldType.KF)
+    ..aOB(2, _omitFieldNames ? '' : 'stored')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHallCalibrationGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHallCalibrationGet copyWith(
+          void Function(ResponseHallCalibrationGet) updates) =>
+      super.copyWith(
+              (message) => updates(message as ResponseHallCalibrationGet))
+          as ResponseHallCalibrationGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseHallCalibrationGet create() => ResponseHallCalibrationGet._();
+  @$core.override
+  ResponseHallCalibrationGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseHallCalibrationGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseHallCalibrationGet>(create);
+  static ResponseHallCalibrationGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.double> get scale => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $core.bool get stored => $_getBF(1);
+  @$pb.TagNumber(2)
+  set stored($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasStored() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearStored() => $_clearField(2);
+}
+
+/// 850 - Push-stream a FROZEN capture as NotificationSlideDiagData chunks
+/// (SlideDiagStop first). Much faster than looping 846 on high-latency links:
+/// the device sends every chunk back to back, in order, only to the transport
+/// this request came in on, then the response arrives LAST as the completion
+/// summary (mirrors the RequestConsoleCmd chunk flow).
+/// CAUTION - accepted design limitation: the device's single RPC handler is
+/// busy for the stream's whole duration (seconds on WS, minutes for a large
+/// capture on BLE). Every other request queues behind it (dropped if the
+/// queue overflows) - including RequestHspAdd, so NEVER stream during live
+/// playback or the point feed starves; download while playing with chunked
+/// 846 reads instead (each read is a quick call that interleaves fine).
+/// Intended use: solo tuning sessions, motion stopped, client waiting for
+/// the completion response. Chunks carry first_record + record_count,
+/// so a lost chunk is a visible hole in the first_record sequence: re-fetch
+/// just that range with 846. A capture restart mid-stream (seq change) aborts
+/// the stream early - always check response.seq against the chunks'. Records
+/// are packed per the channel's field_mask - parse exactly like 846 data.
+/// Added in FW4.4
+class RequestSlideDiagStream extends $pb.GeneratedMessage {
+  factory RequestSlideDiagStream({
+    $0.SlideDiagChannel? channel,
+    $core.int? firstRecord,
+    $core.int? maxRecords,
+    $core.int? maxChunkBytes,
+  }) {
+    final result = create();
+    if (channel != null) result.channel = channel;
+    if (firstRecord != null) result.firstRecord = firstRecord;
+    if (maxRecords != null) result.maxRecords = maxRecords;
+    if (maxChunkBytes != null) result.maxChunkBytes = maxChunkBytes;
+    return result;
+  }
+
+  RequestSlideDiagStream._();
+
+  factory RequestSlideDiagStream.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSlideDiagStream.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSlideDiagStream',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aE<$0.SlideDiagChannel>(1, _omitFieldNames ? '' : 'channel',
+        enumValues: $0.SlideDiagChannel.values)
+    ..aI(2, _omitFieldNames ? '' : 'firstRecord',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'maxRecords', fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'maxChunkBytes',
+        fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideDiagStream clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideDiagStream copyWith(
+          void Function(RequestSlideDiagStream) updates) =>
+      super.copyWith((message) => updates(message as RequestSlideDiagStream))
+          as RequestSlideDiagStream;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideDiagStream create() => RequestSlideDiagStream._();
+  @$core.override
+  RequestSlideDiagStream createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideDiagStream getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSlideDiagStream>(create);
+  static RequestSlideDiagStream? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SlideDiagChannel get channel => $_getN(0);
+  @$pb.TagNumber(1)
+  set channel($0.SlideDiagChannel value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChannel() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChannel() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get firstRecord => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set firstRecord($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasFirstRecord() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearFirstRecord() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get maxRecords => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set maxRecords($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasMaxRecords() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearMaxRecords() => $_clearField(3);
+
+  /// Cap on the record payload (data bytes) per NotificationSlideDiagData chunk. The firmware
+  /// clamps it to the transport default (BLE 400 B, websocket 3600 B) - a request can only make
+  /// chunks SMALLER, never larger. 0 = transport default. Use it when the link is tighter than
+  /// the default assumes, above all a BLE connection that negotiated an ATT MTU below the 512
+  /// the firmware asks for: a notification larger than MTU-3 arrives TRUNCATED (no error), so
+  /// keep max_chunk_bytes + ~45 B of protobuf envelope under MTU-3. Records per chunk =
+  /// max_chunk_bytes / entry_size, floored at 1. Added in FW4.4
+  @$pb.TagNumber(4)
+  $core.int get maxChunkBytes => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set maxChunkBytes($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasMaxChunkBytes() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearMaxChunkBytes() => $_clearField(4);
+}
+
+class ResponseSlideDiagStream extends $pb.GeneratedMessage {
+  factory ResponseSlideDiagStream({
+    $core.int? recordCount,
+    $core.int? chunks,
+    $core.int? entrySize,
+    $core.int? formatVersion,
+    $core.int? seq,
+    $core.int? fieldMask,
+  }) {
+    final result = create();
+    if (recordCount != null) result.recordCount = recordCount;
+    if (chunks != null) result.chunks = chunks;
+    if (entrySize != null) result.entrySize = entrySize;
+    if (formatVersion != null) result.formatVersion = formatVersion;
+    if (seq != null) result.seq = seq;
+    if (fieldMask != null) result.fieldMask = fieldMask;
+    return result;
+  }
+
+  ResponseSlideDiagStream._();
+
+  factory ResponseSlideDiagStream.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSlideDiagStream.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSlideDiagStream',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'recordCount',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'chunks', fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'entrySize', fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'formatVersion',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'seq', fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'fieldMask', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideDiagStream clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideDiagStream copyWith(
+          void Function(ResponseSlideDiagStream) updates) =>
+      super.copyWith((message) => updates(message as ResponseSlideDiagStream))
+          as ResponseSlideDiagStream;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideDiagStream create() => ResponseSlideDiagStream._();
+  @$core.override
+  ResponseSlideDiagStream createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideDiagStream getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSlideDiagStream>(create);
+  static ResponseSlideDiagStream? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get recordCount => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set recordCount($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasRecordCount() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRecordCount() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get chunks => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set chunks($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasChunks() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearChunks() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get entrySize => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set entrySize($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasEntrySize() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearEntrySize() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get formatVersion => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set formatVersion($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasFormatVersion() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearFormatVersion() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get seq => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set seq($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasSeq() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearSeq() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get fieldMask => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set fieldMask($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasFieldMask() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearFieldMask() => $_clearField(6);
+}
+
+/// 851 - Windowed speed/tuning telemetry, split per drive direction (the two
+/// directions have separate feedforward/tuning, so these are the per-regulator
+/// report cards). Averages cover regulator ticks (~1 kHz) while DRIVING; a
+/// bucket with samples == 0 means the slide did not drive that way during the
+/// window. seq increments once per completed window - poll Get, or subscribe
+/// with 852 to get one NotificationSpeedStats per window.
+/// Added in FW4.4
+class RequestSpeedStatsGet extends $pb.GeneratedMessage {
+  factory RequestSpeedStatsGet() => create();
+
+  RequestSpeedStatsGet._();
+
+  factory RequestSpeedStatsGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSpeedStatsGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSpeedStatsGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSpeedStatsGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSpeedStatsGet copyWith(void Function(RequestSpeedStatsGet) updates) =>
+      super.copyWith((message) => updates(message as RequestSpeedStatsGet))
+          as RequestSpeedStatsGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSpeedStatsGet create() => RequestSpeedStatsGet._();
+  @$core.override
+  RequestSpeedStatsGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSpeedStatsGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSpeedStatsGet>(create);
+  static RequestSpeedStatsGet? _defaultInstance;
+}
+
+class ResponseSpeedStatsGet extends $pb.GeneratedMessage {
+  factory ResponseSpeedStatsGet({
+    $0.SpeedStats? stats,
+    $core.bool? notifications,
+    $core.bool? notificationsMine,
+  }) {
+    final result = create();
+    if (stats != null) result.stats = stats;
+    if (notifications != null) result.notifications = notifications;
+    if (notificationsMine != null) result.notificationsMine = notificationsMine;
+    return result;
+  }
+
+  ResponseSpeedStatsGet._();
+
+  factory ResponseSpeedStatsGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSpeedStatsGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSpeedStatsGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<$0.SpeedStats>(1, _omitFieldNames ? '' : 'stats',
+        subBuilder: $0.SpeedStats.create)
+    ..aOB(2, _omitFieldNames ? '' : 'notifications')
+    ..aOB(3, _omitFieldNames ? '' : 'notificationsMine')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSpeedStatsGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSpeedStatsGet copyWith(
+          void Function(ResponseSpeedStatsGet) updates) =>
+      super.copyWith((message) => updates(message as ResponseSpeedStatsGet))
+          as ResponseSpeedStatsGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSpeedStatsGet create() => ResponseSpeedStatsGet._();
+  @$core.override
+  ResponseSpeedStatsGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSpeedStatsGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSpeedStatsGet>(create);
+  static ResponseSpeedStatsGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SpeedStats get stats => $_getN(0);
+  @$pb.TagNumber(1)
+  set stats($0.SpeedStats value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasStats() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearStats() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $0.SpeedStats ensureStats() => $_ensure(0);
+
+  ///
+  /// Subscription state, returned so a client can render its "stream" toggle
+  /// truthfully after a reconnect / page reload, when its own memory of what
+  /// it set is unreliable (same idea as 802 for the sensor stream).
+  /// How the subscription works on the device:
+  /// - There is exactly ONE subscriber slot. It records which TRANSPORT
+  /// (BLE or WebSocket) asked for the stream, not which connection or
+  /// client. Every client on that transport receives the notifications,
+  /// and every one of them sees notifications_mine=true.
+  /// - Ownership is advisory, not enforced. Any client on any transport may
+  /// call 852 at any time: notifications=true takes the slot over,
+  /// notifications=false clears it - even if another transport was
+  /// streaming. The device never refuses, so a slot can never get stuck.
+  /// - The slot is NOT released on disconnect. If the subscriber vanishes
+  /// the device drops it after 5 consecutive failed sends, i.e. up to
+  /// 5 windows (5 x window_ms, worst case 5 minutes at the 60 s maximum).
+  /// Until then a Get from another transport still reports
+  /// notifications=true / notifications_mine=false.
+  /// How to use the two flags:
+  /// notifications=false                         nobody is streaming; toggle OFF
+  /// notifications=true, notifications_mine=true  my transport is streaming; toggle ON
+  /// notifications=true, notifications_mine=false another transport is streaming;
+  /// show that state instead of
+  /// silently taking the slot -
+  /// the user should choose.
+  /// Added in FW4.4
+  @$pb.TagNumber(2)
+  $core.bool get notifications => $_getBF(1);
+  @$pb.TagNumber(2)
+  set notifications($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasNotifications() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearNotifications() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get notificationsMine => $_getBF(2);
+  @$pb.TagNumber(3)
+  set notificationsMine($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasNotificationsMine() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearNotificationsMine() => $_clearField(3);
+}
+
+/// 852 - Configure the averaging window and/or subscribe to per-window
+/// NotificationSpeedStats on THIS transport (the window is also the
+/// notification period, so window_ms sets the message rate). window_ms 0
+/// keeps the current window; otherwise clamped to 100-60000 ms.
+/// One subscriber slot, keyed by transport (see ResponseSpeedStatsGet for
+/// the full rules): notifications=true replaces whoever held the slot,
+/// notifications=false unsubscribes whoever held it. Neither is refused.
+/// Added in FW4.4
+class RequestSpeedStatsSet extends $pb.GeneratedMessage {
+  factory RequestSpeedStatsSet({
+    $core.int? windowMs,
+    $core.bool? notifications,
+  }) {
+    final result = create();
+    if (windowMs != null) result.windowMs = windowMs;
+    if (notifications != null) result.notifications = notifications;
+    return result;
+  }
+
+  RequestSpeedStatsSet._();
+
+  factory RequestSpeedStatsSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSpeedStatsSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSpeedStatsSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'windowMs', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(2, _omitFieldNames ? '' : 'notifications')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSpeedStatsSet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSpeedStatsSet copyWith(void Function(RequestSpeedStatsSet) updates) =>
+      super.copyWith((message) => updates(message as RequestSpeedStatsSet))
+          as RequestSpeedStatsSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSpeedStatsSet create() => RequestSpeedStatsSet._();
+  @$core.override
+  RequestSpeedStatsSet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSpeedStatsSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSpeedStatsSet>(create);
+  static RequestSpeedStatsSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get windowMs => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set windowMs($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasWindowMs() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearWindowMs() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get notifications => $_getBF(1);
+  @$pb.TagNumber(2)
+  set notifications($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasNotifications() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearNotifications() => $_clearField(2);
+}
+
+class ResponseSpeedStatsSet extends $pb.GeneratedMessage {
+  factory ResponseSpeedStatsSet({
+    $core.int? windowMs,
+    $core.bool? notifications,
+  }) {
+    final result = create();
+    if (windowMs != null) result.windowMs = windowMs;
+    if (notifications != null) result.notifications = notifications;
+    return result;
+  }
+
+  ResponseSpeedStatsSet._();
+
+  factory ResponseSpeedStatsSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSpeedStatsSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSpeedStatsSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'windowMs', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(2, _omitFieldNames ? '' : 'notifications')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSpeedStatsSet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSpeedStatsSet copyWith(
+          void Function(ResponseSpeedStatsSet) updates) =>
+      super.copyWith((message) => updates(message as ResponseSpeedStatsSet))
+          as ResponseSpeedStatsSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSpeedStatsSet create() => ResponseSpeedStatsSet._();
+  @$core.override
+  ResponseSpeedStatsSet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSpeedStatsSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSpeedStatsSet>(create);
+  static ResponseSpeedStatsSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get windowMs => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set windowMs($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasWindowMs() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearWindowMs() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get notifications => $_getBF(1);
+  @$pb.TagNumber(2)
+  set notifications($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasNotifications() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearNotifications() => $_clearField(2);
+}
+
+/// 853 - Live regulator snapshot: the most recent control tick's state,
+/// available WITHOUT arming any diag capture (a 1-record capture cannot be
+/// polled live - reads require a frozen capture). valid=false until the
+/// regulator has driven since boot; time_us tells how fresh the tick is.
+/// Field meanings match the regulator capture record (see the capture docs).
+/// Added in FW4.4
+class RequestSlideSnapshotGet extends $pb.GeneratedMessage {
+  factory RequestSlideSnapshotGet() => create();
+
+  RequestSlideSnapshotGet._();
+
+  factory RequestSlideSnapshotGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSlideSnapshotGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSlideSnapshotGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideSnapshotGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideSnapshotGet copyWith(
+          void Function(RequestSlideSnapshotGet) updates) =>
+      super.copyWith((message) => updates(message as RequestSlideSnapshotGet))
+          as RequestSlideSnapshotGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideSnapshotGet create() => RequestSlideSnapshotGet._();
+  @$core.override
+  RequestSlideSnapshotGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideSnapshotGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSlideSnapshotGet>(create);
+  static RequestSlideSnapshotGet? _defaultInstance;
+}
+
+class ResponseSlideSnapshotGet extends $pb.GeneratedMessage {
+  factory ResponseSlideSnapshotGet({
+    $core.bool? valid,
+    $fixnum.Int64? timeUs,
+    $core.double? position,
+    $core.double? speed,
+    $core.double? targetSpeed,
+    $core.double? trim,
+    $core.double? output,
+    $core.double? motor,
+    $core.int? phase,
+    $core.int? dir,
+    $core.int? targetDir,
+    $core.double? targetPos,
+    $core.int? currentTimeMs,
+    $core.double? expectedPos,
+    $core.double? ff,
+    $core.double? pTerm,
+    $core.double? dTerm,
+    $core.double? kick,
+    $core.int? dtUs,
+    $core.int? flags,
+  }) {
+    final result = create();
+    if (valid != null) result.valid = valid;
+    if (timeUs != null) result.timeUs = timeUs;
+    if (position != null) result.position = position;
+    if (speed != null) result.speed = speed;
+    if (targetSpeed != null) result.targetSpeed = targetSpeed;
+    if (trim != null) result.trim = trim;
+    if (output != null) result.output = output;
+    if (motor != null) result.motor = motor;
+    if (phase != null) result.phase = phase;
+    if (dir != null) result.dir = dir;
+    if (targetDir != null) result.targetDir = targetDir;
+    if (targetPos != null) result.targetPos = targetPos;
+    if (currentTimeMs != null) result.currentTimeMs = currentTimeMs;
+    if (expectedPos != null) result.expectedPos = expectedPos;
+    if (ff != null) result.ff = ff;
+    if (pTerm != null) result.pTerm = pTerm;
+    if (dTerm != null) result.dTerm = dTerm;
+    if (kick != null) result.kick = kick;
+    if (dtUs != null) result.dtUs = dtUs;
+    if (flags != null) result.flags = flags;
+    return result;
+  }
+
+  ResponseSlideSnapshotGet._();
+
+  factory ResponseSlideSnapshotGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSlideSnapshotGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSlideSnapshotGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'valid')
+    ..a<$fixnum.Int64>(2, _omitFieldNames ? '' : 'timeUs', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aD(3, _omitFieldNames ? '' : 'position', fieldType: $pb.PbFieldType.OF)
+    ..aD(4, _omitFieldNames ? '' : 'speed', fieldType: $pb.PbFieldType.OF)
+    ..aD(5, _omitFieldNames ? '' : 'targetSpeed', fieldType: $pb.PbFieldType.OF)
+    ..aD(6, _omitFieldNames ? '' : 'trim', fieldType: $pb.PbFieldType.OF)
+    ..aD(7, _omitFieldNames ? '' : 'output', fieldType: $pb.PbFieldType.OF)
+    ..aD(8, _omitFieldNames ? '' : 'motor', fieldType: $pb.PbFieldType.OF)
+    ..aI(9, _omitFieldNames ? '' : 'phase', fieldType: $pb.PbFieldType.OU3)
+    ..aI(10, _omitFieldNames ? '' : 'dir', fieldType: $pb.PbFieldType.OU3)
+    ..aI(11, _omitFieldNames ? '' : 'targetDir', fieldType: $pb.PbFieldType.OU3)
+    ..aD(12, _omitFieldNames ? '' : 'targetPos', fieldType: $pb.PbFieldType.OF)
+    ..aI(13, _omitFieldNames ? '' : 'currentTimeMs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aD(14, _omitFieldNames ? '' : 'expectedPos',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(15, _omitFieldNames ? '' : 'ff', fieldType: $pb.PbFieldType.OF)
+    ..aD(16, _omitFieldNames ? '' : 'pTerm', fieldType: $pb.PbFieldType.OF)
+    ..aD(17, _omitFieldNames ? '' : 'dTerm', fieldType: $pb.PbFieldType.OF)
+    ..aD(18, _omitFieldNames ? '' : 'kick', fieldType: $pb.PbFieldType.OF)
+    ..aI(19, _omitFieldNames ? '' : 'dtUs', fieldType: $pb.PbFieldType.OU3)
+    ..aI(20, _omitFieldNames ? '' : 'flags', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideSnapshotGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideSnapshotGet copyWith(
+          void Function(ResponseSlideSnapshotGet) updates) =>
+      super.copyWith((message) => updates(message as ResponseSlideSnapshotGet))
+          as ResponseSlideSnapshotGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideSnapshotGet create() => ResponseSlideSnapshotGet._();
+  @$core.override
+  ResponseSlideSnapshotGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideSnapshotGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSlideSnapshotGet>(create);
+  static ResponseSlideSnapshotGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get valid => $_getBF(0);
+  @$pb.TagNumber(1)
+  set valid($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasValid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearValid() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get timeUs => $_getI64(1);
+  @$pb.TagNumber(2)
+  set timeUs($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasTimeUs() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTimeUs() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get position => $_getN(2);
+  @$pb.TagNumber(3)
+  set position($core.double value) => $_setFloat(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasPosition() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearPosition() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.double get speed => $_getN(3);
+  @$pb.TagNumber(4)
+  set speed($core.double value) => $_setFloat(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasSpeed() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearSpeed() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.double get targetSpeed => $_getN(4);
+  @$pb.TagNumber(5)
+  set targetSpeed($core.double value) => $_setFloat(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasTargetSpeed() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearTargetSpeed() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.double get trim => $_getN(5);
+  @$pb.TagNumber(6)
+  set trim($core.double value) => $_setFloat(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasTrim() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearTrim() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.double get output => $_getN(6);
+  @$pb.TagNumber(7)
+  set output($core.double value) => $_setFloat(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasOutput() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearOutput() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.double get motor => $_getN(7);
+  @$pb.TagNumber(8)
+  set motor($core.double value) => $_setFloat(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasMotor() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearMotor() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.int get phase => $_getIZ(8);
+  @$pb.TagNumber(9)
+  set phase($core.int value) => $_setUnsignedInt32(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasPhase() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearPhase() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.int get dir => $_getIZ(9);
+  @$pb.TagNumber(10)
+  set dir($core.int value) => $_setUnsignedInt32(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasDir() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearDir() => $_clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.int get targetDir => $_getIZ(10);
+  @$pb.TagNumber(11)
+  set targetDir($core.int value) => $_setUnsignedInt32(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasTargetDir() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearTargetDir() => $_clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.double get targetPos => $_getN(11);
+  @$pb.TagNumber(12)
+  set targetPos($core.double value) => $_setFloat(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasTargetPos() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearTargetPos() => $_clearField(12);
+
+  @$pb.TagNumber(13)
+  $core.int get currentTimeMs => $_getIZ(12);
+  @$pb.TagNumber(13)
+  set currentTimeMs($core.int value) => $_setUnsignedInt32(12, value);
+  @$pb.TagNumber(13)
+  $core.bool hasCurrentTimeMs() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearCurrentTimeMs() => $_clearField(13);
+
+  @$pb.TagNumber(14)
+  $core.double get expectedPos => $_getN(13);
+  @$pb.TagNumber(14)
+  set expectedPos($core.double value) => $_setFloat(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasExpectedPos() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearExpectedPos() => $_clearField(14);
+
+  /// Controller decomposition (FW4.4): on a run record ff + p_term + d_term + kick + trim = the
+  /// output BEFORE the clamps (min/max, soft start, slew, overspeed brake), so output minus that
+  /// sum is what the clamps took this tick. All 0 on turn-phase records.
+  @$pb.TagNumber(15)
+  $core.double get ff => $_getN(14);
+  @$pb.TagNumber(15)
+  set ff($core.double value) => $_setFloat(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasFf() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearFf() => $_clearField(15);
+
+  @$pb.TagNumber(16)
+  $core.double get pTerm => $_getN(15);
+  @$pb.TagNumber(16)
+  set pTerm($core.double value) => $_setFloat(15, value);
+  @$pb.TagNumber(16)
+  $core.bool hasPTerm() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearPTerm() => $_clearField(16);
+
+  @$pb.TagNumber(17)
+  $core.double get dTerm => $_getN(16);
+  @$pb.TagNumber(17)
+  set dTerm($core.double value) => $_setFloat(16, value);
+  @$pb.TagNumber(17)
+  $core.bool hasDTerm() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearDTerm() => $_clearField(17);
+
+  @$pb.TagNumber(18)
+  $core.double get kick => $_getN(17);
+  @$pb.TagNumber(18)
+  set kick($core.double value) => $_setFloat(17, value);
+  @$pb.TagNumber(18)
+  $core.bool hasKick() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearKick() => $_clearField(18);
+
+  @$pb.TagNumber(19)
+  $core.int get dtUs => $_getIZ(18);
+  @$pb.TagNumber(19)
+  set dtUs($core.int value) => $_setUnsignedInt32(18, value);
+  @$pb.TagNumber(19)
+  $core.bool hasDtUs() => $_has(18);
+  @$pb.TagNumber(19)
+  void clearDtUs() => $_clearField(19);
+
+  /// Per-tick state bits: 1 deadband (P/I/D saw 0), 2 trim frozen at max (anti-windup), 4 trim frozen
+  /// at min, 8 soft-start capped the output, 16 slew limiter capped the output, 32 overspeed brake
+  /// active (pulled trim AND output), 64 speed from the estimator (timeout tick, no fresh Hall edge),
+  /// 128 ff+P+D+kick+trim hit the xMin/xMaxSpeedTheoretical clamp.
+  @$pb.TagNumber(20)
+  $core.int get flags => $_getIZ(19);
+  @$pb.TagNumber(20)
+  set flags($core.int value) => $_setUnsignedInt32(19, value);
+  @$pb.TagNumber(20)
+  $core.bool hasFlags() => $_has(19);
+  @$pb.TagNumber(20)
+  void clearFlags() => $_clearField(20);
 }
 
 /// /////////////////////// HSP /////////////////////////
@@ -5313,6 +7927,252 @@ class ResponseHspLoopSet extends $pb.GeneratedMessage {
   $0.HspState ensureState() => $_ensure(0);
 }
 
+/// 873 - Added in FW4.4
+class RequestHspJitterFilterSet extends $pb.GeneratedMessage {
+  factory RequestHspJitterFilterSet({
+    $core.bool? jitterFilter,
+    $core.double? thresholdMm,
+  }) {
+    final result = create();
+    if (jitterFilter != null) result.jitterFilter = jitterFilter;
+    if (thresholdMm != null) result.thresholdMm = thresholdMm;
+    return result;
+  }
+
+  RequestHspJitterFilterSet._();
+
+  factory RequestHspJitterFilterSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestHspJitterFilterSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestHspJitterFilterSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'jitterFilter')
+    ..aD(2, _omitFieldNames ? '' : 'thresholdMm', fieldType: $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHspJitterFilterSet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHspJitterFilterSet copyWith(
+          void Function(RequestHspJitterFilterSet) updates) =>
+      super.copyWith((message) => updates(message as RequestHspJitterFilterSet))
+          as RequestHspJitterFilterSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestHspJitterFilterSet create() => RequestHspJitterFilterSet._();
+  @$core.override
+  RequestHspJitterFilterSet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestHspJitterFilterSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestHspJitterFilterSet>(create);
+  static RequestHspJitterFilterSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get jitterFilter => $_getBF(0);
+  @$pb.TagNumber(1)
+  set jitterFilter($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasJitterFilter() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearJitterFilter() => $_clearField(1);
+
+  /// the current position. Enable for LIVE streamed input (hand jitter would
+  /// otherwise buzz the slide); leave off for scripted playback - every authored
+  /// point is dispatched. Swallowed points appear in the HSP diag capture as
+  /// 'filtered' events (event 9). Reset to OFF by RequestHspSetup (860).
+  /// Before FW4.4 the filter was always ON.
+  @$pb.TagNumber(2)
+  $core.double get thresholdMm => $_getN(1);
+  @$pb.TagNumber(2)
+  set thresholdMm($core.double value) => $_setFloat(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasThresholdMm() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearThresholdMm() => $_clearField(2);
+}
+
+class ResponseHspJitterFilterSet extends $pb.GeneratedMessage {
+  factory ResponseHspJitterFilterSet({
+    $0.HspState? state,
+  }) {
+    final result = create();
+    if (state != null) result.state = state;
+    return result;
+  }
+
+  ResponseHspJitterFilterSet._();
+
+  factory ResponseHspJitterFilterSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseHspJitterFilterSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseHspJitterFilterSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<$0.HspState>(1, _omitFieldNames ? '' : 'state',
+        subBuilder: $0.HspState.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHspJitterFilterSet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHspJitterFilterSet copyWith(
+          void Function(ResponseHspJitterFilterSet) updates) =>
+      super.copyWith(
+              (message) => updates(message as ResponseHspJitterFilterSet))
+          as ResponseHspJitterFilterSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseHspJitterFilterSet create() => ResponseHspJitterFilterSet._();
+  @$core.override
+  ResponseHspJitterFilterSet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseHspJitterFilterSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseHspJitterFilterSet>(create);
+  static ResponseHspJitterFilterSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.HspState get state => $_getN(0);
+  @$pb.TagNumber(1)
+  set state($0.HspState value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasState() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearState() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $0.HspState ensureState() => $_ensure(0);
+}
+
+/// 874 - Added in FW4.4
+class RequestHspScriptSpeedSet extends $pb.GeneratedMessage {
+  factory RequestHspScriptSpeedSet({
+    $core.bool? scriptSpeed,
+  }) {
+    final result = create();
+    if (scriptSpeed != null) result.scriptSpeed = scriptSpeed;
+    return result;
+  }
+
+  RequestHspScriptSpeedSet._();
+
+  factory RequestHspScriptSpeedSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestHspScriptSpeedSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestHspScriptSpeedSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'scriptSpeed')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHspScriptSpeedSet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestHspScriptSpeedSet copyWith(
+          void Function(RequestHspScriptSpeedSet) updates) =>
+      super.copyWith((message) => updates(message as RequestHspScriptSpeedSet))
+          as RequestHspScriptSpeedSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestHspScriptSpeedSet create() => RequestHspScriptSpeedSet._();
+  @$core.override
+  RequestHspScriptSpeedSet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestHspScriptSpeedSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestHspScriptSpeedSet>(create);
+  static RequestHspScriptSpeedSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get scriptSpeed => $_getBF(0);
+  @$pb.TagNumber(1)
+  set scriptSpeed($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasScriptSpeed() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearScriptSpeed() => $_clearField(1);
+}
+
+class ResponseHspScriptSpeedSet extends $pb.GeneratedMessage {
+  factory ResponseHspScriptSpeedSet({
+    $0.HspState? state,
+  }) {
+    final result = create();
+    if (state != null) result.state = state;
+    return result;
+  }
+
+  ResponseHspScriptSpeedSet._();
+
+  factory ResponseHspScriptSpeedSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseHspScriptSpeedSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseHspScriptSpeedSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<$0.HspState>(1, _omitFieldNames ? '' : 'state',
+        subBuilder: $0.HspState.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHspScriptSpeedSet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseHspScriptSpeedSet copyWith(
+          void Function(ResponseHspScriptSpeedSet) updates) =>
+      super.copyWith((message) => updates(message as ResponseHspScriptSpeedSet))
+          as ResponseHspScriptSpeedSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseHspScriptSpeedSet create() => ResponseHspScriptSpeedSet._();
+  @$core.override
+  ResponseHspScriptSpeedSet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseHspScriptSpeedSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseHspScriptSpeedSet>(create);
+  static ResponseHspScriptSpeedSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.HspState get state => $_getN(0);
+  @$pb.TagNumber(1)
+  set state($0.HspState value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasState() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearState() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $0.HspState ensureState() => $_ensure(0);
+}
+
 /// /////////////////////// HMI 880->899 /////////////////////////
 class RequestLedOverride extends $pb.GeneratedMessage {
   factory RequestLedOverride({
@@ -6683,6 +9543,2177 @@ class ResponseHrppPause extends $pb.GeneratedMessage {
   void clearState() => $_clearField(1);
   @$pb.TagNumber(1)
   $0.HrppState ensureState() => $_ensure(0);
+}
+
+/// 2015 - Motor regulator tuning. Values are clamped by the firmware; read
+/// back after a Set to see what actually applied.
+/// Field meanings: see DIAG_TUNING_GUIDE.md in the firmware repo.
+/// Added in FW4.4
+class RequestSettingsRegulatorGet extends $pb.GeneratedMessage {
+  factory RequestSettingsRegulatorGet() => create();
+
+  RequestSettingsRegulatorGet._();
+
+  factory RequestSettingsRegulatorGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSettingsRegulatorGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSettingsRegulatorGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSettingsRegulatorGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSettingsRegulatorGet copyWith(
+          void Function(RequestSettingsRegulatorGet) updates) =>
+      super.copyWith(
+              (message) => updates(message as RequestSettingsRegulatorGet))
+          as RequestSettingsRegulatorGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSettingsRegulatorGet create() =>
+      RequestSettingsRegulatorGet._();
+  @$core.override
+  RequestSettingsRegulatorGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSettingsRegulatorGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSettingsRegulatorGet>(create);
+  static RequestSettingsRegulatorGet? _defaultInstance;
+}
+
+class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
+  factory ResponseSettingsRegulatorGet({
+    $core.int? profileId,
+    $core.int? designId,
+    $core.double? kp,
+    $core.double? ki,
+    $core.double? kd,
+    $core.double? feedforwardGain,
+    $core.double? feedforwardOffset,
+    $core.double? trimLimit,
+    $core.double? overspeedMargin,
+    $core.double? overspeedOutputBrake,
+    $core.double? overspeedTrimBrake,
+    $core.double? errorDeadband,
+    $core.double? derivativeAlpha,
+    $core.double? targetKickGain,
+    $core.double? targetKickDecay,
+    $core.double? antiWindup,
+    $core.double? outputRiseRate,
+    $core.double? outputFallRate,
+    $core.double? turnBrakeScale,
+    $core.double? turnMinPower,
+    $core.double? turnPowerScale,
+    $core.double? turnSoftStartScale,
+    $core.double? turnReversePower,
+    $core.double? turnReverseSpeedThreshold,
+    $core.double? turnReverseMinMs,
+    $core.double? turnReverseHardMaxMs,
+    $core.double? turnReverseBacktrackMm,
+    $core.double? turnPostReverseBrakeMs,
+    $core.bool? modified,
+    $core.double? feedforwardGainBack,
+    $core.double? feedforwardOffsetBack,
+    $core.double? turnPowerScaleBack,
+    $core.double? backlashMm,
+    $core.double? backlashPower,
+    $core.double? backlashMaxMs,
+    ResponseSettingsRegulatorGet? defaults,
+    RegulatorEffective? effective,
+    $core.int? trimHandover,
+    $core.double? trimSpeedScale,
+    $core.double? trimNegLimit,
+  }) {
+    final result = create();
+    if (profileId != null) result.profileId = profileId;
+    if (designId != null) result.designId = designId;
+    if (kp != null) result.kp = kp;
+    if (ki != null) result.ki = ki;
+    if (kd != null) result.kd = kd;
+    if (feedforwardGain != null) result.feedforwardGain = feedforwardGain;
+    if (feedforwardOffset != null) result.feedforwardOffset = feedforwardOffset;
+    if (trimLimit != null) result.trimLimit = trimLimit;
+    if (overspeedMargin != null) result.overspeedMargin = overspeedMargin;
+    if (overspeedOutputBrake != null)
+      result.overspeedOutputBrake = overspeedOutputBrake;
+    if (overspeedTrimBrake != null)
+      result.overspeedTrimBrake = overspeedTrimBrake;
+    if (errorDeadband != null) result.errorDeadband = errorDeadband;
+    if (derivativeAlpha != null) result.derivativeAlpha = derivativeAlpha;
+    if (targetKickGain != null) result.targetKickGain = targetKickGain;
+    if (targetKickDecay != null) result.targetKickDecay = targetKickDecay;
+    if (antiWindup != null) result.antiWindup = antiWindup;
+    if (outputRiseRate != null) result.outputRiseRate = outputRiseRate;
+    if (outputFallRate != null) result.outputFallRate = outputFallRate;
+    if (turnBrakeScale != null) result.turnBrakeScale = turnBrakeScale;
+    if (turnMinPower != null) result.turnMinPower = turnMinPower;
+    if (turnPowerScale != null) result.turnPowerScale = turnPowerScale;
+    if (turnSoftStartScale != null)
+      result.turnSoftStartScale = turnSoftStartScale;
+    if (turnReversePower != null) result.turnReversePower = turnReversePower;
+    if (turnReverseSpeedThreshold != null)
+      result.turnReverseSpeedThreshold = turnReverseSpeedThreshold;
+    if (turnReverseMinMs != null) result.turnReverseMinMs = turnReverseMinMs;
+    if (turnReverseHardMaxMs != null)
+      result.turnReverseHardMaxMs = turnReverseHardMaxMs;
+    if (turnReverseBacktrackMm != null)
+      result.turnReverseBacktrackMm = turnReverseBacktrackMm;
+    if (turnPostReverseBrakeMs != null)
+      result.turnPostReverseBrakeMs = turnPostReverseBrakeMs;
+    if (modified != null) result.modified = modified;
+    if (feedforwardGainBack != null)
+      result.feedforwardGainBack = feedforwardGainBack;
+    if (feedforwardOffsetBack != null)
+      result.feedforwardOffsetBack = feedforwardOffsetBack;
+    if (turnPowerScaleBack != null)
+      result.turnPowerScaleBack = turnPowerScaleBack;
+    if (backlashMm != null) result.backlashMm = backlashMm;
+    if (backlashPower != null) result.backlashPower = backlashPower;
+    if (backlashMaxMs != null) result.backlashMaxMs = backlashMaxMs;
+    if (defaults != null) result.defaults = defaults;
+    if (effective != null) result.effective = effective;
+    if (trimHandover != null) result.trimHandover = trimHandover;
+    if (trimSpeedScale != null) result.trimSpeedScale = trimSpeedScale;
+    if (trimNegLimit != null) result.trimNegLimit = trimNegLimit;
+    return result;
+  }
+
+  ResponseSettingsRegulatorGet._();
+
+  factory ResponseSettingsRegulatorGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSettingsRegulatorGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSettingsRegulatorGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'profileId', fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'designId', fieldType: $pb.PbFieldType.OU3)
+    ..aD(3, _omitFieldNames ? '' : 'kp', fieldType: $pb.PbFieldType.OF)
+    ..aD(4, _omitFieldNames ? '' : 'ki', fieldType: $pb.PbFieldType.OF)
+    ..aD(5, _omitFieldNames ? '' : 'kd', fieldType: $pb.PbFieldType.OF)
+    ..aD(6, _omitFieldNames ? '' : 'feedforwardGain',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(7, _omitFieldNames ? '' : 'feedforwardOffset',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(8, _omitFieldNames ? '' : 'trimLimit', fieldType: $pb.PbFieldType.OF)
+    ..aD(9, _omitFieldNames ? '' : 'overspeedMargin',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(10, _omitFieldNames ? '' : 'overspeedOutputBrake',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(11, _omitFieldNames ? '' : 'overspeedTrimBrake',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(12, _omitFieldNames ? '' : 'errorDeadband',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(13, _omitFieldNames ? '' : 'derivativeAlpha',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(14, _omitFieldNames ? '' : 'targetKickGain',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(15, _omitFieldNames ? '' : 'targetKickDecay',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(16, _omitFieldNames ? '' : 'antiWindup', fieldType: $pb.PbFieldType.OF)
+    ..aD(17, _omitFieldNames ? '' : 'outputRiseRate',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(18, _omitFieldNames ? '' : 'outputFallRate',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(19, _omitFieldNames ? '' : 'turnBrakeScale',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(20, _omitFieldNames ? '' : 'turnMinPower',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(21, _omitFieldNames ? '' : 'turnPowerScale',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(22, _omitFieldNames ? '' : 'turnSoftStartScale',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(23, _omitFieldNames ? '' : 'turnReversePower',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(24, _omitFieldNames ? '' : 'turnReverseSpeedThreshold',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(25, _omitFieldNames ? '' : 'turnReverseMinMs',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(26, _omitFieldNames ? '' : 'turnReverseHardMaxMs',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(27, _omitFieldNames ? '' : 'turnReverseBacktrackMm',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(28, _omitFieldNames ? '' : 'turnPostReverseBrakeMs',
+        fieldType: $pb.PbFieldType.OF)
+    ..aOB(29, _omitFieldNames ? '' : 'modified')
+    ..aD(30, _omitFieldNames ? '' : 'feedforwardGainBack',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(31, _omitFieldNames ? '' : 'feedforwardOffsetBack',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(32, _omitFieldNames ? '' : 'turnPowerScaleBack',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(33, _omitFieldNames ? '' : 'backlashMm', fieldType: $pb.PbFieldType.OF)
+    ..aD(34, _omitFieldNames ? '' : 'backlashPower',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(35, _omitFieldNames ? '' : 'backlashMaxMs',
+        fieldType: $pb.PbFieldType.OF)
+    ..aOM<ResponseSettingsRegulatorGet>(36, _omitFieldNames ? '' : 'defaults',
+        subBuilder: ResponseSettingsRegulatorGet.create)
+    ..aOM<RegulatorEffective>(37, _omitFieldNames ? '' : 'effective',
+        subBuilder: RegulatorEffective.create)
+    ..aI(38, _omitFieldNames ? '' : 'trimHandover',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aD(39, _omitFieldNames ? '' : 'trimSpeedScale',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(40, _omitFieldNames ? '' : 'trimNegLimit',
+        fieldType: $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSettingsRegulatorGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSettingsRegulatorGet copyWith(
+          void Function(ResponseSettingsRegulatorGet) updates) =>
+      super.copyWith(
+              (message) => updates(message as ResponseSettingsRegulatorGet))
+          as ResponseSettingsRegulatorGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSettingsRegulatorGet create() =>
+      ResponseSettingsRegulatorGet._();
+  @$core.override
+  ResponseSettingsRegulatorGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSettingsRegulatorGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSettingsRegulatorGet>(create);
+  static ResponseSettingsRegulatorGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get profileId => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set profileId($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasProfileId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearProfileId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get designId => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set designId($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasDesignId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearDesignId() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get kp => $_getN(2);
+  @$pb.TagNumber(3)
+  set kp($core.double value) => $_setFloat(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasKp() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearKp() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.double get ki => $_getN(3);
+  @$pb.TagNumber(4)
+  set ki($core.double value) => $_setFloat(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasKi() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearKi() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.double get kd => $_getN(4);
+  @$pb.TagNumber(5)
+  set kd($core.double value) => $_setFloat(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasKd() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearKd() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.double get feedforwardGain => $_getN(5);
+  @$pb.TagNumber(6)
+  set feedforwardGain($core.double value) => $_setFloat(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasFeedforwardGain() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearFeedforwardGain() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.double get feedforwardOffset => $_getN(6);
+  @$pb.TagNumber(7)
+  set feedforwardOffset($core.double value) => $_setFloat(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasFeedforwardOffset() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearFeedforwardOffset() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.double get trimLimit => $_getN(7);
+  @$pb.TagNumber(8)
+  set trimLimit($core.double value) => $_setFloat(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasTrimLimit() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearTrimLimit() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.double get overspeedMargin => $_getN(8);
+  @$pb.TagNumber(9)
+  set overspeedMargin($core.double value) => $_setFloat(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasOverspeedMargin() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearOverspeedMargin() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.double get overspeedOutputBrake => $_getN(9);
+  @$pb.TagNumber(10)
+  set overspeedOutputBrake($core.double value) => $_setFloat(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasOverspeedOutputBrake() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearOverspeedOutputBrake() => $_clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.double get overspeedTrimBrake => $_getN(10);
+  @$pb.TagNumber(11)
+  set overspeedTrimBrake($core.double value) => $_setFloat(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasOverspeedTrimBrake() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearOverspeedTrimBrake() => $_clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.double get errorDeadband => $_getN(11);
+  @$pb.TagNumber(12)
+  set errorDeadband($core.double value) => $_setFloat(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasErrorDeadband() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearErrorDeadband() => $_clearField(12);
+
+  @$pb.TagNumber(13)
+  $core.double get derivativeAlpha => $_getN(12);
+  @$pb.TagNumber(13)
+  set derivativeAlpha($core.double value) => $_setFloat(12, value);
+  @$pb.TagNumber(13)
+  $core.bool hasDerivativeAlpha() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearDerivativeAlpha() => $_clearField(13);
+
+  @$pb.TagNumber(14)
+  $core.double get targetKickGain => $_getN(13);
+  @$pb.TagNumber(14)
+  set targetKickGain($core.double value) => $_setFloat(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasTargetKickGain() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearTargetKickGain() => $_clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.double get targetKickDecay => $_getN(14);
+  @$pb.TagNumber(15)
+  set targetKickDecay($core.double value) => $_setFloat(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasTargetKickDecay() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearTargetKickDecay() => $_clearField(15);
+
+  @$pb.TagNumber(16)
+  $core.double get antiWindup => $_getN(15);
+  @$pb.TagNumber(16)
+  set antiWindup($core.double value) => $_setFloat(15, value);
+  @$pb.TagNumber(16)
+  $core.bool hasAntiWindup() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearAntiWindup() => $_clearField(16);
+
+  @$pb.TagNumber(17)
+  $core.double get outputRiseRate => $_getN(16);
+  @$pb.TagNumber(17)
+  set outputRiseRate($core.double value) => $_setFloat(16, value);
+  @$pb.TagNumber(17)
+  $core.bool hasOutputRiseRate() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearOutputRiseRate() => $_clearField(17);
+
+  @$pb.TagNumber(18)
+  $core.double get outputFallRate => $_getN(17);
+  @$pb.TagNumber(18)
+  set outputFallRate($core.double value) => $_setFloat(17, value);
+  @$pb.TagNumber(18)
+  $core.bool hasOutputFallRate() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearOutputFallRate() => $_clearField(18);
+
+  @$pb.TagNumber(19)
+  $core.double get turnBrakeScale => $_getN(18);
+  @$pb.TagNumber(19)
+  set turnBrakeScale($core.double value) => $_setFloat(18, value);
+  @$pb.TagNumber(19)
+  $core.bool hasTurnBrakeScale() => $_has(18);
+  @$pb.TagNumber(19)
+  void clearTurnBrakeScale() => $_clearField(19);
+
+  @$pb.TagNumber(20)
+  $core.double get turnMinPower => $_getN(19);
+  @$pb.TagNumber(20)
+  set turnMinPower($core.double value) => $_setFloat(19, value);
+  @$pb.TagNumber(20)
+  $core.bool hasTurnMinPower() => $_has(19);
+  @$pb.TagNumber(20)
+  void clearTurnMinPower() => $_clearField(20);
+
+  @$pb.TagNumber(21)
+  $core.double get turnPowerScale => $_getN(20);
+  @$pb.TagNumber(21)
+  set turnPowerScale($core.double value) => $_setFloat(20, value);
+  @$pb.TagNumber(21)
+  $core.bool hasTurnPowerScale() => $_has(20);
+  @$pb.TagNumber(21)
+  void clearTurnPowerScale() => $_clearField(21);
+
+  @$pb.TagNumber(22)
+  $core.double get turnSoftStartScale => $_getN(21);
+  @$pb.TagNumber(22)
+  set turnSoftStartScale($core.double value) => $_setFloat(21, value);
+  @$pb.TagNumber(22)
+  $core.bool hasTurnSoftStartScale() => $_has(21);
+  @$pb.TagNumber(22)
+  void clearTurnSoftStartScale() => $_clearField(22);
+
+  @$pb.TagNumber(23)
+  $core.double get turnReversePower => $_getN(22);
+  @$pb.TagNumber(23)
+  set turnReversePower($core.double value) => $_setFloat(22, value);
+  @$pb.TagNumber(23)
+  $core.bool hasTurnReversePower() => $_has(22);
+  @$pb.TagNumber(23)
+  void clearTurnReversePower() => $_clearField(23);
+
+  @$pb.TagNumber(24)
+  $core.double get turnReverseSpeedThreshold => $_getN(23);
+  @$pb.TagNumber(24)
+  set turnReverseSpeedThreshold($core.double value) => $_setFloat(23, value);
+  @$pb.TagNumber(24)
+  $core.bool hasTurnReverseSpeedThreshold() => $_has(23);
+  @$pb.TagNumber(24)
+  void clearTurnReverseSpeedThreshold() => $_clearField(24);
+
+  @$pb.TagNumber(25)
+  $core.double get turnReverseMinMs => $_getN(24);
+  @$pb.TagNumber(25)
+  set turnReverseMinMs($core.double value) => $_setFloat(24, value);
+  @$pb.TagNumber(25)
+  $core.bool hasTurnReverseMinMs() => $_has(24);
+  @$pb.TagNumber(25)
+  void clearTurnReverseMinMs() => $_clearField(25);
+
+  @$pb.TagNumber(26)
+  $core.double get turnReverseHardMaxMs => $_getN(25);
+  @$pb.TagNumber(26)
+  set turnReverseHardMaxMs($core.double value) => $_setFloat(25, value);
+  @$pb.TagNumber(26)
+  $core.bool hasTurnReverseHardMaxMs() => $_has(25);
+  @$pb.TagNumber(26)
+  void clearTurnReverseHardMaxMs() => $_clearField(26);
+
+  @$pb.TagNumber(27)
+  $core.double get turnReverseBacktrackMm => $_getN(26);
+  @$pb.TagNumber(27)
+  set turnReverseBacktrackMm($core.double value) => $_setFloat(26, value);
+  @$pb.TagNumber(27)
+  $core.bool hasTurnReverseBacktrackMm() => $_has(26);
+  @$pb.TagNumber(27)
+  void clearTurnReverseBacktrackMm() => $_clearField(27);
+
+  @$pb.TagNumber(28)
+  $core.double get turnPostReverseBrakeMs => $_getN(27);
+  @$pb.TagNumber(28)
+  set turnPostReverseBrakeMs($core.double value) => $_setFloat(27, value);
+  @$pb.TagNumber(28)
+  $core.bool hasTurnPostReverseBrakeMs() => $_has(27);
+  @$pb.TagNumber(28)
+  void clearTurnPostReverseBrakeMs() => $_clearField(28);
+
+  /// RENAMED AGAIN in FW4.4 (is_default -> persisted -> modified, same field
+  /// number): true = the live tuning differs from the SELECTED profile's
+  /// saved values, i.e. unsaved RAM-only edits exist (lost on reboot or any
+  /// profile Apply; keep them with SlideProfileStore 854). Same value as
+  /// SlideProfileGet.modified. Per-field comparison: `defaults` below.
+  @$pb.TagNumber(29)
+  $core.bool get modified => $_getBF(28);
+  @$pb.TagNumber(29)
+  set modified($core.bool value) => $_setBool(28, value);
+  @$pb.TagNumber(29)
+  $core.bool hasModified() => $_has(28);
+  @$pb.TagNumber(29)
+  void clearModified() => $_clearField(29);
+
+  /// Per-direction feedforward for the asymmetric drive train (BACKWARD = assisted direction)
+  @$pb.TagNumber(30)
+  $core.double get feedforwardGainBack => $_getN(29);
+  @$pb.TagNumber(30)
+  set feedforwardGainBack($core.double value) => $_setFloat(29, value);
+  @$pb.TagNumber(30)
+  $core.bool hasFeedforwardGainBack() => $_has(29);
+  @$pb.TagNumber(30)
+  void clearFeedforwardGainBack() => $_clearField(30);
+
+  @$pb.TagNumber(31)
+  $core.double get feedforwardOffsetBack => $_getN(30);
+  @$pb.TagNumber(31)
+  set feedforwardOffsetBack($core.double value) => $_setFloat(30, value);
+  @$pb.TagNumber(31)
+  $core.bool hasFeedforwardOffsetBack() => $_has(30);
+  @$pb.TagNumber(31)
+  void clearFeedforwardOffsetBack() => $_clearField(31);
+
+  @$pb.TagNumber(32)
+  $core.double get turnPowerScaleBack => $_getN(31);
+  @$pb.TagNumber(32)
+  set turnPowerScaleBack($core.double value) => $_setFloat(31, value);
+  @$pb.TagNumber(32)
+  $core.bool hasTurnPowerScaleBack() => $_has(31);
+  @$pb.TagNumber(32)
+  void clearTurnPowerScaleBack() => $_clearField(32);
+
+  /// Backlash take-up stage: after the turn brake, creep at backlash_power until
+  /// backlash_mm of motor rotation (or backlash_max_ms), then launch. 0 mm = off.
+  @$pb.TagNumber(33)
+  $core.double get backlashMm => $_getN(32);
+  @$pb.TagNumber(33)
+  set backlashMm($core.double value) => $_setFloat(32, value);
+  @$pb.TagNumber(33)
+  $core.bool hasBacklashMm() => $_has(32);
+  @$pb.TagNumber(33)
+  void clearBacklashMm() => $_clearField(33);
+
+  @$pb.TagNumber(34)
+  $core.double get backlashPower => $_getN(33);
+  @$pb.TagNumber(34)
+  set backlashPower($core.double value) => $_setFloat(33, value);
+  @$pb.TagNumber(34)
+  $core.bool hasBacklashPower() => $_has(33);
+  @$pb.TagNumber(34)
+  void clearBacklashPower() => $_clearField(34);
+
+  @$pb.TagNumber(35)
+  $core.double get backlashMaxMs => $_getN(34);
+  @$pb.TagNumber(35)
+  set backlashMaxMs($core.double value) => $_setFloat(34, value);
+  @$pb.TagNumber(35)
+  $core.bool hasBacklashMaxMs() => $_has(34);
+  @$pb.TagNumber(35)
+  void clearBacklashMaxMs() => $_clearField(35);
+
+  /// The SELECTED profile's baseline value for every field above (one level
+  /// deep - defaults.defaults is never set; `modified` inside it is
+  /// meaningless). Since FW4.4 `defaults` is the SELECTED profile's saved
+  /// values - for a custom slot that is the slot's stored tuning (empty
+  /// slot = Balanced), so per-field revert always targets YOUR baseline. Per-field revert UX: show defaults.<field> next to the
+  /// live value, render a modified indicator when they differ, and revert by
+  /// writing defaults.<field> through SettingsRegulatorSet. Since FW4.4 the
+  /// setters accept 0 as a LITERAL value (off where meaningful) - 0 no
+  /// longer means "reset to default"; this field replaces that mechanism.
+  @$pb.TagNumber(36)
+  ResponseSettingsRegulatorGet get defaults => $_getN(35);
+  @$pb.TagNumber(36)
+  set defaults(ResponseSettingsRegulatorGet value) => $_setField(36, value);
+  @$pb.TagNumber(36)
+  $core.bool hasDefaults() => $_has(35);
+  @$pb.TagNumber(36)
+  void clearDefaults() => $_clearField(36);
+  @$pb.TagNumber(36)
+  ResponseSettingsRegulatorGet ensureDefaults() => $_ensure(35);
+
+  /// Read-only DERIVED values the control loop actually uses - the ceilings and compiled
+  /// constants behind the tunables, resolved for this unit (OC raises x_max_speed and with it
+  /// the trim ceiling). Show these next to the tunables; they are not settable through
+  /// SettingsRegulatorSet. Not populated inside `defaults`. Added in FW4.4
+  @$pb.TagNumber(37)
+  RegulatorEffective get effective => $_getN(36);
+  @$pb.TagNumber(37)
+  set effective(RegulatorEffective value) => $_setField(37, value);
+  @$pb.TagNumber(37)
+  $core.bool hasEffective() => $_has(36);
+  @$pb.TagNumber(37)
+  void clearEffective() => $_clearField(37);
+  @$pb.TagNumber(37)
+  RegulatorEffective ensureEffective() => $_ensure(36);
+
+  /// Trim handover (FW4.4, settled 2026-09-07). The integral trim is what the SINGLE
+  /// feedforward line does not capture (gravity, load, unit variation). trim_handover 0 =
+  /// every launch into a direction starts from ZERO trim (legacy default); 1 = per-direction
+  /// BANK: the trim a direction has when it ENDS (reversal or stop) is stored as it is (RAM
+  /// only, cleared on any tuning or profile change) and restored at the next launch into that
+  /// direction - so a loaded unit is not behind after every reversal, and a loop that cannot
+  /// converge inside one stroke keeps accumulating across strokes instead of restarting from
+  /// zero. No convergence gate or confidence ramp (removed 2026-09-08). Never carried across
+  /// directions. effective.trim_bank_*_confidence is 0 until the direction has run once, then 1.
+  /// trim_speed_scale is a CONFIGURABLE slope in OUTPUT UNITS PER mm/s (0-3), applied
+  /// +forward / -backward against the single line: at a launch trim = bank + s*a*(v - v_ref);
+  /// on a same-direction target change trim += s*a*(v2 - v1). 0 = offset bank only. The
+  /// measured up/down gain asymmetry on the loaded rig was ~0.46. Expert fields.
+  @$pb.TagNumber(38)
+  $core.int get trimHandover => $_getIZ(37);
+  @$pb.TagNumber(38)
+  set trimHandover($core.int value) => $_setUnsignedInt32(37, value);
+  @$pb.TagNumber(38)
+  $core.bool hasTrimHandover() => $_has(37);
+  @$pb.TagNumber(38)
+  void clearTrimHandover() => $_clearField(38);
+
+  @$pb.TagNumber(39)
+  $core.double get trimSpeedScale => $_getN(38);
+  @$pb.TagNumber(39)
+  set trimSpeedScale($core.double value) => $_setFloat(38, value);
+  @$pb.TagNumber(39)
+  $core.bool hasTrimSpeedScale() => $_has(38);
+  @$pb.TagNumber(39)
+  void clearTrimSpeedScale() => $_clearField(39);
+
+  /// The trim FLOOR in output units, a NEGATIVE number (default -150) so it reads as the bound
+  /// it is. Positive trim may reach trim_limit x x_max_speed (see effective.trim_limit_output);
+  /// negative trim stops here, small by design: a large negative trim is integrator windup,
+  /// not load compensation. A positive value sent by a client is accepted as a magnitude and
+  /// stored negative; 0 = legacy symmetric clamp. Expert field. Draw both bounds on the trim
+  /// trace: [effective.trim_neg_limit_output, effective.trim_limit_output].
+  @$pb.TagNumber(40)
+  $core.double get trimNegLimit => $_getN(39);
+  @$pb.TagNumber(40)
+  set trimNegLimit($core.double value) => $_setFloat(39, value);
+  @$pb.TagNumber(40)
+  $core.bool hasTrimNegLimit() => $_has(39);
+  @$pb.TagNumber(40)
+  void clearTrimNegLimit() => $_clearField(40);
+}
+
+class RegulatorEffective extends $pb.GeneratedMessage {
+  factory RegulatorEffective({
+    $core.double? trimLimitOutput,
+    $core.double? derivativeOutputLimit,
+    $core.double? effectiveMaxOutput,
+    $core.double? overspeedStopMargin,
+    $core.int? tickPeriodMs,
+    $core.double? turnSpeedReference,
+    $core.double? motorMaxPower,
+    $core.int? pwmFreqHz,
+    $core.int? pwmResolutionBits,
+    $core.int? xMaxSpeed,
+    $core.int? xMaxSpeedTheoretical,
+    $core.int? xMinSpeedTheoretical,
+    $core.double? turnSpeed,
+    $core.int? turnStopMaxTimeMs,
+    $core.int? turnStopSpeedThreshold,
+    $core.double? trimBankForward,
+    $core.double? trimBankForwardSpeed,
+    $core.double? trimBankForwardConfidence,
+    $core.double? trimBankBackward,
+    $core.double? trimBankBackwardSpeed,
+    $core.double? trimBankBackwardConfidence,
+    $core.double? trimNegLimitOutput,
+  }) {
+    final result = create();
+    if (trimLimitOutput != null) result.trimLimitOutput = trimLimitOutput;
+    if (derivativeOutputLimit != null)
+      result.derivativeOutputLimit = derivativeOutputLimit;
+    if (effectiveMaxOutput != null)
+      result.effectiveMaxOutput = effectiveMaxOutput;
+    if (overspeedStopMargin != null)
+      result.overspeedStopMargin = overspeedStopMargin;
+    if (tickPeriodMs != null) result.tickPeriodMs = tickPeriodMs;
+    if (turnSpeedReference != null)
+      result.turnSpeedReference = turnSpeedReference;
+    if (motorMaxPower != null) result.motorMaxPower = motorMaxPower;
+    if (pwmFreqHz != null) result.pwmFreqHz = pwmFreqHz;
+    if (pwmResolutionBits != null) result.pwmResolutionBits = pwmResolutionBits;
+    if (xMaxSpeed != null) result.xMaxSpeed = xMaxSpeed;
+    if (xMaxSpeedTheoretical != null)
+      result.xMaxSpeedTheoretical = xMaxSpeedTheoretical;
+    if (xMinSpeedTheoretical != null)
+      result.xMinSpeedTheoretical = xMinSpeedTheoretical;
+    if (turnSpeed != null) result.turnSpeed = turnSpeed;
+    if (turnStopMaxTimeMs != null) result.turnStopMaxTimeMs = turnStopMaxTimeMs;
+    if (turnStopSpeedThreshold != null)
+      result.turnStopSpeedThreshold = turnStopSpeedThreshold;
+    if (trimBankForward != null) result.trimBankForward = trimBankForward;
+    if (trimBankForwardSpeed != null)
+      result.trimBankForwardSpeed = trimBankForwardSpeed;
+    if (trimBankForwardConfidence != null)
+      result.trimBankForwardConfidence = trimBankForwardConfidence;
+    if (trimBankBackward != null) result.trimBankBackward = trimBankBackward;
+    if (trimBankBackwardSpeed != null)
+      result.trimBankBackwardSpeed = trimBankBackwardSpeed;
+    if (trimBankBackwardConfidence != null)
+      result.trimBankBackwardConfidence = trimBankBackwardConfidence;
+    if (trimNegLimitOutput != null)
+      result.trimNegLimitOutput = trimNegLimitOutput;
+    return result;
+  }
+
+  RegulatorEffective._();
+
+  factory RegulatorEffective.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RegulatorEffective.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RegulatorEffective',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aD(1, _omitFieldNames ? '' : 'trimLimitOutput',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(2, _omitFieldNames ? '' : 'derivativeOutputLimit',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(3, _omitFieldNames ? '' : 'effectiveMaxOutput',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(4, _omitFieldNames ? '' : 'overspeedStopMargin',
+        fieldType: $pb.PbFieldType.OF)
+    ..aI(5, _omitFieldNames ? '' : 'tickPeriodMs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aD(6, _omitFieldNames ? '' : 'turnSpeedReference',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(7, _omitFieldNames ? '' : 'motorMaxPower',
+        fieldType: $pb.PbFieldType.OF)
+    ..aI(8, _omitFieldNames ? '' : 'pwmFreqHz', fieldType: $pb.PbFieldType.OU3)
+    ..aI(9, _omitFieldNames ? '' : 'pwmResolutionBits',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(10, _omitFieldNames ? '' : 'xMaxSpeed', fieldType: $pb.PbFieldType.OU3)
+    ..aI(11, _omitFieldNames ? '' : 'xMaxSpeedTheoretical',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(12, _omitFieldNames ? '' : 'xMinSpeedTheoretical',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aD(13, _omitFieldNames ? '' : 'turnSpeed', fieldType: $pb.PbFieldType.OF)
+    ..aI(14, _omitFieldNames ? '' : 'turnStopMaxTimeMs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(15, _omitFieldNames ? '' : 'turnStopSpeedThreshold',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aD(16, _omitFieldNames ? '' : 'trimBankForward',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(17, _omitFieldNames ? '' : 'trimBankForwardSpeed',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(18, _omitFieldNames ? '' : 'trimBankForwardConfidence',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(19, _omitFieldNames ? '' : 'trimBankBackward',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(20, _omitFieldNames ? '' : 'trimBankBackwardSpeed',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(21, _omitFieldNames ? '' : 'trimBankBackwardConfidence',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(22, _omitFieldNames ? '' : 'trimNegLimitOutput',
+        fieldType: $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RegulatorEffective clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RegulatorEffective copyWith(void Function(RegulatorEffective) updates) =>
+      super.copyWith((message) => updates(message as RegulatorEffective))
+          as RegulatorEffective;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RegulatorEffective create() => RegulatorEffective._();
+  @$core.override
+  RegulatorEffective createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RegulatorEffective getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RegulatorEffective>(create);
+  static RegulatorEffective? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.double get trimLimitOutput => $_getN(0);
+  @$pb.TagNumber(1)
+  set trimLimitOutput($core.double value) => $_setFloat(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTrimLimitOutput() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTrimLimitOutput() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.double get derivativeOutputLimit => $_getN(1);
+  @$pb.TagNumber(2)
+  set derivativeOutputLimit($core.double value) => $_setFloat(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasDerivativeOutputLimit() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearDerivativeOutputLimit() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get effectiveMaxOutput => $_getN(2);
+  @$pb.TagNumber(3)
+  set effectiveMaxOutput($core.double value) => $_setFloat(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasEffectiveMaxOutput() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearEffectiveMaxOutput() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.double get overspeedStopMargin => $_getN(3);
+  @$pb.TagNumber(4)
+  set overspeedStopMargin($core.double value) => $_setFloat(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasOverspeedStopMargin() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearOverspeedStopMargin() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get tickPeriodMs => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set tickPeriodMs($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasTickPeriodMs() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearTickPeriodMs() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.double get turnSpeedReference => $_getN(5);
+  @$pb.TagNumber(6)
+  set turnSpeedReference($core.double value) => $_setFloat(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasTurnSpeedReference() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearTurnSpeedReference() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.double get motorMaxPower => $_getN(6);
+  @$pb.TagNumber(7)
+  set motorMaxPower($core.double value) => $_setFloat(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasMotorMaxPower() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearMotorMaxPower() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.int get pwmFreqHz => $_getIZ(7);
+  @$pb.TagNumber(8)
+  set pwmFreqHz($core.int value) => $_setUnsignedInt32(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasPwmFreqHz() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearPwmFreqHz() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.int get pwmResolutionBits => $_getIZ(8);
+  @$pb.TagNumber(9)
+  set pwmResolutionBits($core.int value) => $_setUnsignedInt32(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasPwmResolutionBits() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearPwmResolutionBits() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.int get xMaxSpeed => $_getIZ(9);
+  @$pb.TagNumber(10)
+  set xMaxSpeed($core.int value) => $_setUnsignedInt32(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasXMaxSpeed() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearXMaxSpeed() => $_clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.int get xMaxSpeedTheoretical => $_getIZ(10);
+  @$pb.TagNumber(11)
+  set xMaxSpeedTheoretical($core.int value) => $_setUnsignedInt32(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasXMaxSpeedTheoretical() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearXMaxSpeedTheoretical() => $_clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.int get xMinSpeedTheoretical => $_getIZ(11);
+  @$pb.TagNumber(12)
+  set xMinSpeedTheoretical($core.int value) => $_setUnsignedInt32(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasXMinSpeedTheoretical() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearXMinSpeedTheoretical() => $_clearField(12);
+
+  @$pb.TagNumber(13)
+  $core.double get turnSpeed => $_getN(12);
+  @$pb.TagNumber(13)
+  set turnSpeed($core.double value) => $_setFloat(12, value);
+  @$pb.TagNumber(13)
+  $core.bool hasTurnSpeed() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearTurnSpeed() => $_clearField(13);
+
+  @$pb.TagNumber(14)
+  $core.int get turnStopMaxTimeMs => $_getIZ(13);
+  @$pb.TagNumber(14)
+  set turnStopMaxTimeMs($core.int value) => $_setUnsignedInt32(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasTurnStopMaxTimeMs() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearTurnStopMaxTimeMs() => $_clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.int get turnStopSpeedThreshold => $_getIZ(14);
+  @$pb.TagNumber(15)
+  set turnStopSpeedThreshold($core.int value) => $_setUnsignedInt32(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasTurnStopSpeedThreshold() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearTurnStopSpeedThreshold() => $_clearField(15);
+
+  /// Per-direction trim bank state (FW4.4, trim_handover 1), read-only, RAM-only: the learned
+  /// residual [output units] that the single feedforward line does not capture (gravity, load,
+  /// friction), the target speed it settled at [mm/s], and the confidence [0-1] a launch would
+  /// load it with (0 until ~30 settled ticks, 1 from ~150). Show this in the tuning tool so a
+  /// user can SEE what each direction has learned; it resets on any tuning or profile change.
+  @$pb.TagNumber(16)
+  $core.double get trimBankForward => $_getN(15);
+  @$pb.TagNumber(16)
+  set trimBankForward($core.double value) => $_setFloat(15, value);
+  @$pb.TagNumber(16)
+  $core.bool hasTrimBankForward() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearTrimBankForward() => $_clearField(16);
+
+  @$pb.TagNumber(17)
+  $core.double get trimBankForwardSpeed => $_getN(16);
+  @$pb.TagNumber(17)
+  set trimBankForwardSpeed($core.double value) => $_setFloat(16, value);
+  @$pb.TagNumber(17)
+  $core.bool hasTrimBankForwardSpeed() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearTrimBankForwardSpeed() => $_clearField(17);
+
+  @$pb.TagNumber(18)
+  $core.double get trimBankForwardConfidence => $_getN(17);
+  @$pb.TagNumber(18)
+  set trimBankForwardConfidence($core.double value) => $_setFloat(17, value);
+  @$pb.TagNumber(18)
+  $core.bool hasTrimBankForwardConfidence() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearTrimBankForwardConfidence() => $_clearField(18);
+
+  @$pb.TagNumber(19)
+  $core.double get trimBankBackward => $_getN(18);
+  @$pb.TagNumber(19)
+  set trimBankBackward($core.double value) => $_setFloat(18, value);
+  @$pb.TagNumber(19)
+  $core.bool hasTrimBankBackward() => $_has(18);
+  @$pb.TagNumber(19)
+  void clearTrimBankBackward() => $_clearField(19);
+
+  @$pb.TagNumber(20)
+  $core.double get trimBankBackwardSpeed => $_getN(19);
+  @$pb.TagNumber(20)
+  set trimBankBackwardSpeed($core.double value) => $_setFloat(19, value);
+  @$pb.TagNumber(20)
+  $core.bool hasTrimBankBackwardSpeed() => $_has(19);
+  @$pb.TagNumber(20)
+  void clearTrimBankBackwardSpeed() => $_clearField(20);
+
+  @$pb.TagNumber(21)
+  $core.double get trimBankBackwardConfidence => $_getN(20);
+  @$pb.TagNumber(21)
+  set trimBankBackwardConfidence($core.double value) => $_setFloat(20, value);
+  @$pb.TagNumber(21)
+  $core.bool hasTrimBankBackwardConfidence() => $_has(20);
+  @$pb.TagNumber(21)
+  void clearTrimBankBackwardConfidence() => $_clearField(21);
+
+  @$pb.TagNumber(22)
+  $core.double get trimNegLimitOutput => $_getN(21);
+  @$pb.TagNumber(22)
+  set trimNegLimitOutput($core.double value) => $_setFloat(21, value);
+  @$pb.TagNumber(22)
+  $core.bool hasTrimNegLimitOutput() => $_has(21);
+  @$pb.TagNumber(22)
+  void clearTrimNegLimitOutput() => $_clearField(22);
+}
+
+/// 2017 - Hall sensor / speed-estimate tuning. Same semantics as the
+/// regulator settings (clamped, `persisted`, guide in DIAG_TUNING_GUIDE.md).
+/// Added in FW4.4
+class RequestSettingsHallGet extends $pb.GeneratedMessage {
+  factory RequestSettingsHallGet() => create();
+
+  RequestSettingsHallGet._();
+
+  factory RequestSettingsHallGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSettingsHallGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSettingsHallGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSettingsHallGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSettingsHallGet copyWith(
+          void Function(RequestSettingsHallGet) updates) =>
+      super.copyWith((message) => updates(message as RequestSettingsHallGet))
+          as RequestSettingsHallGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSettingsHallGet create() => RequestSettingsHallGet._();
+  @$core.override
+  RequestSettingsHallGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSettingsHallGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSettingsHallGet>(create);
+  static RequestSettingsHallGet? _defaultInstance;
+}
+
+class ResponseSettingsHallGet extends $pb.GeneratedMessage {
+  factory ResponseSettingsHallGet({
+    $core.int? profileId,
+    $core.double? speedFilterAlpha,
+    $core.int? reversalFilterUs,
+    $core.int? zeroTimeoutTickMult,
+    $core.int? zeroTimeoutMaxMs,
+    $core.int? minDtUs,
+    $core.int? maxDtUs,
+    $core.bool? persisted,
+  }) {
+    final result = create();
+    if (profileId != null) result.profileId = profileId;
+    if (speedFilterAlpha != null) result.speedFilterAlpha = speedFilterAlpha;
+    if (reversalFilterUs != null) result.reversalFilterUs = reversalFilterUs;
+    if (zeroTimeoutTickMult != null)
+      result.zeroTimeoutTickMult = zeroTimeoutTickMult;
+    if (zeroTimeoutMaxMs != null) result.zeroTimeoutMaxMs = zeroTimeoutMaxMs;
+    if (minDtUs != null) result.minDtUs = minDtUs;
+    if (maxDtUs != null) result.maxDtUs = maxDtUs;
+    if (persisted != null) result.persisted = persisted;
+    return result;
+  }
+
+  ResponseSettingsHallGet._();
+
+  factory ResponseSettingsHallGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSettingsHallGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSettingsHallGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'profileId', fieldType: $pb.PbFieldType.OU3)
+    ..aD(2, _omitFieldNames ? '' : 'speedFilterAlpha',
+        fieldType: $pb.PbFieldType.OF)
+    ..aI(3, _omitFieldNames ? '' : 'reversalFilterUs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'zeroTimeoutTickMult',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'zeroTimeoutMaxMs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'minDtUs', fieldType: $pb.PbFieldType.OU3)
+    ..aI(7, _omitFieldNames ? '' : 'maxDtUs', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(8, _omitFieldNames ? '' : 'persisted')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSettingsHallGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSettingsHallGet copyWith(
+          void Function(ResponseSettingsHallGet) updates) =>
+      super.copyWith((message) => updates(message as ResponseSettingsHallGet))
+          as ResponseSettingsHallGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSettingsHallGet create() => ResponseSettingsHallGet._();
+  @$core.override
+  ResponseSettingsHallGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSettingsHallGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSettingsHallGet>(create);
+  static ResponseSettingsHallGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get profileId => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set profileId($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasProfileId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearProfileId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.double get speedFilterAlpha => $_getN(1);
+  @$pb.TagNumber(2)
+  set speedFilterAlpha($core.double value) => $_setFloat(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSpeedFilterAlpha() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSpeedFilterAlpha() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get reversalFilterUs => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set reversalFilterUs($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasReversalFilterUs() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearReversalFilterUs() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get zeroTimeoutTickMult => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set zeroTimeoutTickMult($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasZeroTimeoutTickMult() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearZeroTimeoutTickMult() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get zeroTimeoutMaxMs => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set zeroTimeoutMaxMs($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasZeroTimeoutMaxMs() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearZeroTimeoutMaxMs() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get minDtUs => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set minDtUs($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasMinDtUs() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearMinDtUs() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.int get maxDtUs => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set maxDtUs($core.int value) => $_setUnsignedInt32(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasMaxDtUs() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearMaxDtUs() => $_clearField(7);
+
+  /// RENAMED in FW4.4 (was is_default, same field number, INVERTED):
+  /// true = stored in NVS and survives a reboot.
+  @$pb.TagNumber(8)
+  $core.bool get persisted => $_getBF(7);
+  @$pb.TagNumber(8)
+  set persisted($core.bool value) => $_setBool(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasPersisted() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearPersisted() => $_clearField(8);
+}
+
+/// 2019 - The SELECTED profile and its state. Since FW4.4 the profile system
+/// is: 5 LOCKED curated profiles + 2 user banks (CUSTOM_1/2). One live tuning
+/// exists in RAM; editing fields sets modified=true (RAM-only - a reboot or
+/// any profile Apply discards edits); SlideProfileStore (854) is the ONLY way
+/// to keep a tuning. Revert baselines: curated = compiled values; a saved
+/// slot = its stored values; an empty slot = Balanced.
+/// Added in FW4.4
+class RequestSlideProfileGet extends $pb.GeneratedMessage {
+  factory RequestSlideProfileGet() => create();
+
+  RequestSlideProfileGet._();
+
+  factory RequestSlideProfileGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSlideProfileGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSlideProfileGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideProfileGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideProfileGet copyWith(
+          void Function(RequestSlideProfileGet) updates) =>
+      super.copyWith((message) => updates(message as RequestSlideProfileGet))
+          as RequestSlideProfileGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideProfileGet create() => RequestSlideProfileGet._();
+  @$core.override
+  RequestSlideProfileGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideProfileGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSlideProfileGet>(create);
+  static RequestSlideProfileGet? _defaultInstance;
+}
+
+class ResponseSlideProfileGet extends $pb.GeneratedMessage {
+  factory ResponseSlideProfileGet({
+    $0.SlideProfile? profile,
+    $core.bool? modified,
+    $core.bool? custom1Stored,
+    $core.bool? custom2Stored,
+    $0.SlideProfile? bootProfile,
+  }) {
+    final result = create();
+    if (profile != null) result.profile = profile;
+    if (modified != null) result.modified = modified;
+    if (custom1Stored != null) result.custom1Stored = custom1Stored;
+    if (custom2Stored != null) result.custom2Stored = custom2Stored;
+    if (bootProfile != null) result.bootProfile = bootProfile;
+    return result;
+  }
+
+  ResponseSlideProfileGet._();
+
+  factory ResponseSlideProfileGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSlideProfileGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSlideProfileGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aE<$0.SlideProfile>(1, _omitFieldNames ? '' : 'profile',
+        enumValues: $0.SlideProfile.values)
+    ..aOB(2, _omitFieldNames ? '' : 'modified')
+    ..aOB(3, _omitFieldNames ? '' : 'custom1Stored')
+    ..aOB(4, _omitFieldNames ? '' : 'custom2Stored')
+    ..aE<$0.SlideProfile>(5, _omitFieldNames ? '' : 'bootProfile',
+        enumValues: $0.SlideProfile.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideProfileGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideProfileGet copyWith(
+          void Function(ResponseSlideProfileGet) updates) =>
+      super.copyWith((message) => updates(message as ResponseSlideProfileGet))
+          as ResponseSlideProfileGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideProfileGet create() => ResponseSlideProfileGet._();
+  @$core.override
+  ResponseSlideProfileGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideProfileGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSlideProfileGet>(create);
+  static ResponseSlideProfileGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SlideProfile get profile => $_getN(0);
+  @$pb.TagNumber(1)
+  set profile($0.SlideProfile value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasProfile() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearProfile() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get modified => $_getBF(1);
+  @$pb.TagNumber(2)
+  set modified($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasModified() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearModified() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get custom1Stored => $_getBF(2);
+  @$pb.TagNumber(3)
+  set custom1Stored($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasCustom1Stored() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearCustom1Stored() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get custom2Stored => $_getBF(3);
+  @$pb.TagNumber(4)
+  set custom2Stored($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasCustom2Stored() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearCustom2Stored() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $0.SlideProfile get bootProfile => $_getN(4);
+  @$pb.TagNumber(5)
+  set bootProfile($0.SlideProfile value) => $_setField(5, value);
+  @$pb.TagNumber(5)
+  $core.bool hasBootProfile() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearBootProfile() => $_clearField(5);
+}
+
+/// 855 - Read ANY profile's full tuning WITHOUT applying it: a pure read, no
+/// side effects, safe during playback (the app can diff profiles side by side,
+/// preview a slot, pre-fill an editor). `tuning` has the same shape as
+/// ResponseSettingsRegulatorGet.defaults (one parser); its own `defaults` and
+/// `modified` are unset. Values are reported normalized (= what Apply would
+/// install). CUSTOM_1/2: stored=false means the slot is empty and the values
+/// are the Balanced fallback. ACCURACY (deprecated) answers as SPORT. CUSTOM
+/// (4) is rejected. One profile per call - the full set is too large for one
+/// frame.
+/// Added in FW4.4
+class RequestSlideProfileTuningGet extends $pb.GeneratedMessage {
+  factory RequestSlideProfileTuningGet({
+    $0.SlideProfile? profile,
+  }) {
+    final result = create();
+    if (profile != null) result.profile = profile;
+    return result;
+  }
+
+  RequestSlideProfileTuningGet._();
+
+  factory RequestSlideProfileTuningGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSlideProfileTuningGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSlideProfileTuningGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aE<$0.SlideProfile>(1, _omitFieldNames ? '' : 'profile',
+        enumValues: $0.SlideProfile.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideProfileTuningGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideProfileTuningGet copyWith(
+          void Function(RequestSlideProfileTuningGet) updates) =>
+      super.copyWith(
+              (message) => updates(message as RequestSlideProfileTuningGet))
+          as RequestSlideProfileTuningGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideProfileTuningGet create() =>
+      RequestSlideProfileTuningGet._();
+  @$core.override
+  RequestSlideProfileTuningGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideProfileTuningGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSlideProfileTuningGet>(create);
+  static RequestSlideProfileTuningGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SlideProfile get profile => $_getN(0);
+  @$pb.TagNumber(1)
+  set profile($0.SlideProfile value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasProfile() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearProfile() => $_clearField(1);
+}
+
+class ResponseSlideProfileTuningGet extends $pb.GeneratedMessage {
+  factory ResponseSlideProfileTuningGet({
+    $0.SlideProfile? profile,
+    ResponseSettingsRegulatorGet? tuning,
+    $core.bool? stored,
+  }) {
+    final result = create();
+    if (profile != null) result.profile = profile;
+    if (tuning != null) result.tuning = tuning;
+    if (stored != null) result.stored = stored;
+    return result;
+  }
+
+  ResponseSlideProfileTuningGet._();
+
+  factory ResponseSlideProfileTuningGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSlideProfileTuningGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSlideProfileTuningGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aE<$0.SlideProfile>(1, _omitFieldNames ? '' : 'profile',
+        enumValues: $0.SlideProfile.values)
+    ..aOM<ResponseSettingsRegulatorGet>(2, _omitFieldNames ? '' : 'tuning',
+        subBuilder: ResponseSettingsRegulatorGet.create)
+    ..aOB(3, _omitFieldNames ? '' : 'stored')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideProfileTuningGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideProfileTuningGet copyWith(
+          void Function(ResponseSlideProfileTuningGet) updates) =>
+      super.copyWith(
+              (message) => updates(message as ResponseSlideProfileTuningGet))
+          as ResponseSlideProfileTuningGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideProfileTuningGet create() =>
+      ResponseSlideProfileTuningGet._();
+  @$core.override
+  ResponseSlideProfileTuningGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideProfileTuningGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSlideProfileTuningGet>(create);
+  static ResponseSlideProfileTuningGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SlideProfile get profile => $_getN(0);
+  @$pb.TagNumber(1)
+  set profile($0.SlideProfile value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasProfile() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearProfile() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  ResponseSettingsRegulatorGet get tuning => $_getN(1);
+  @$pb.TagNumber(2)
+  set tuning(ResponseSettingsRegulatorGet value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasTuning() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTuning() => $_clearField(2);
+  @$pb.TagNumber(2)
+  ResponseSettingsRegulatorGet ensureTuning() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  $core.bool get stored => $_getBF(2);
+  @$pb.TagNumber(3)
+  set stored($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasStored() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearStored() => $_clearField(3);
+}
+
+/// 856 - Read the LAST results of the FW4.4 maintenance tests (RequestTestUniformity
+/// 582, RequestTestMaxSpeed 583). Pure read, no motion. A result whose `result`
+/// field is nonzero (or whose passes == 0) has not completed successfully since
+/// boot - results are RAM only. Show `verdict` to the user; show the bins to a
+/// technician / the factory (compare against a fleet template there).
+/// Added in FW4.4
+class RequestSlideMaintResultGet extends $pb.GeneratedMessage {
+  factory RequestSlideMaintResultGet() => create();
+
+  RequestSlideMaintResultGet._();
+
+  factory RequestSlideMaintResultGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSlideMaintResultGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSlideMaintResultGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideMaintResultGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSlideMaintResultGet copyWith(
+          void Function(RequestSlideMaintResultGet) updates) =>
+      super.copyWith(
+              (message) => updates(message as RequestSlideMaintResultGet))
+          as RequestSlideMaintResultGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideMaintResultGet create() => RequestSlideMaintResultGet._();
+  @$core.override
+  RequestSlideMaintResultGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSlideMaintResultGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSlideMaintResultGet>(create);
+  static RequestSlideMaintResultGet? _defaultInstance;
+}
+
+class SlideMaintDirResult extends $pb.GeneratedMessage {
+  factory SlideMaintDirResult({
+    $core.Iterable<$core.double>? speed,
+    $core.double? plateau,
+    $core.double? riseMs,
+    $core.double? worstDipPct,
+    $core.int? worstDipBin,
+    $core.int? passes,
+    $core.double? mid,
+    $core.double? gradientPct,
+  }) {
+    final result = create();
+    if (speed != null) result.speed.addAll(speed);
+    if (plateau != null) result.plateau = plateau;
+    if (riseMs != null) result.riseMs = riseMs;
+    if (worstDipPct != null) result.worstDipPct = worstDipPct;
+    if (worstDipBin != null) result.worstDipBin = worstDipBin;
+    if (passes != null) result.passes = passes;
+    if (mid != null) result.mid = mid;
+    if (gradientPct != null) result.gradientPct = gradientPct;
+    return result;
+  }
+
+  SlideMaintDirResult._();
+
+  factory SlideMaintDirResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SlideMaintDirResult.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SlideMaintDirResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..p<$core.double>(1, _omitFieldNames ? '' : 'speed', $pb.PbFieldType.KF)
+    ..aD(2, _omitFieldNames ? '' : 'plateau', fieldType: $pb.PbFieldType.OF)
+    ..aD(3, _omitFieldNames ? '' : 'riseMs', fieldType: $pb.PbFieldType.OF)
+    ..aD(4, _omitFieldNames ? '' : 'worstDipPct', fieldType: $pb.PbFieldType.OF)
+    ..aI(5, _omitFieldNames ? '' : 'worstDipBin',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'passes', fieldType: $pb.PbFieldType.OU3)
+    ..aD(7, _omitFieldNames ? '' : 'mid', fieldType: $pb.PbFieldType.OF)
+    ..aD(8, _omitFieldNames ? '' : 'gradientPct', fieldType: $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SlideMaintDirResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SlideMaintDirResult copyWith(void Function(SlideMaintDirResult) updates) =>
+      super.copyWith((message) => updates(message as SlideMaintDirResult))
+          as SlideMaintDirResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SlideMaintDirResult create() => SlideMaintDirResult._();
+  @$core.override
+  SlideMaintDirResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SlideMaintDirResult getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SlideMaintDirResult>(create);
+  static SlideMaintDirResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.double> get speed => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $core.double get plateau => $_getN(1);
+  @$pb.TagNumber(2)
+  set plateau($core.double value) => $_setFloat(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasPlateau() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPlateau() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get riseMs => $_getN(2);
+  @$pb.TagNumber(3)
+  set riseMs($core.double value) => $_setFloat(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasRiseMs() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearRiseMs() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.double get worstDipPct => $_getN(3);
+  @$pb.TagNumber(4)
+  set worstDipPct($core.double value) => $_setFloat(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasWorstDipPct() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearWorstDipPct() => $_clearField(4);
+
+  /// acceleration peak, in travel order [%]. A bind is a notch; a gradient is not
+  @$pb.TagNumber(5)
+  $core.int get worstDipBin => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set worstDipBin($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasWorstDipBin() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearWorstDipBin() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get passes => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set passes($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasPasses() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearPasses() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.double get mid => $_getN(6);
+  @$pb.TagNumber(7)
+  set mid($core.double value) => $_setFloat(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasMid() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearMid() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.double get gradientPct => $_getN(7);
+  @$pb.TagNumber(8)
+  set gradientPct($core.double value) => $_setFloat(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasGradientPct() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearGradientPct() => $_clearField(8);
+}
+
+class SlideMaintUniformityResult extends $pb.GeneratedMessage {
+  factory SlideMaintUniformityResult({
+    $core.int? result,
+    $core.double? duty,
+    $core.double? binMm,
+    $core.double? lo,
+    $core.double? hi,
+    SlideMaintDirResult? forward,
+    SlideMaintDirResult? backward,
+    $core.double? asymmetry,
+    SlideMaintVerdict? verdict,
+    $core.double? tempC,
+    $core.int? timestampMs,
+  }) {
+    final result$ = create();
+    if (result != null) result$.result = result;
+    if (duty != null) result$.duty = duty;
+    if (binMm != null) result$.binMm = binMm;
+    if (lo != null) result$.lo = lo;
+    if (hi != null) result$.hi = hi;
+    if (forward != null) result$.forward = forward;
+    if (backward != null) result$.backward = backward;
+    if (asymmetry != null) result$.asymmetry = asymmetry;
+    if (verdict != null) result$.verdict = verdict;
+    if (tempC != null) result$.tempC = tempC;
+    if (timestampMs != null) result$.timestampMs = timestampMs;
+    return result$;
+  }
+
+  SlideMaintUniformityResult._();
+
+  factory SlideMaintUniformityResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SlideMaintUniformityResult.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SlideMaintUniformityResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'result')
+    ..aD(2, _omitFieldNames ? '' : 'duty', fieldType: $pb.PbFieldType.OF)
+    ..aD(3, _omitFieldNames ? '' : 'binMm', fieldType: $pb.PbFieldType.OF)
+    ..aD(4, _omitFieldNames ? '' : 'lo', fieldType: $pb.PbFieldType.OF)
+    ..aD(5, _omitFieldNames ? '' : 'hi', fieldType: $pb.PbFieldType.OF)
+    ..aOM<SlideMaintDirResult>(6, _omitFieldNames ? '' : 'forward',
+        subBuilder: SlideMaintDirResult.create)
+    ..aOM<SlideMaintDirResult>(7, _omitFieldNames ? '' : 'backward',
+        subBuilder: SlideMaintDirResult.create)
+    ..aD(8, _omitFieldNames ? '' : 'asymmetry', fieldType: $pb.PbFieldType.OF)
+    ..aE<SlideMaintVerdict>(9, _omitFieldNames ? '' : 'verdict',
+        enumValues: SlideMaintVerdict.values)
+    ..aD(10, _omitFieldNames ? '' : 'tempC', fieldType: $pb.PbFieldType.OF)
+    ..aI(11, _omitFieldNames ? '' : 'timestampMs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SlideMaintUniformityResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SlideMaintUniformityResult copyWith(
+          void Function(SlideMaintUniformityResult) updates) =>
+      super.copyWith(
+              (message) => updates(message as SlideMaintUniformityResult))
+          as SlideMaintUniformityResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SlideMaintUniformityResult create() => SlideMaintUniformityResult._();
+  @$core.override
+  SlideMaintUniformityResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SlideMaintUniformityResult getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SlideMaintUniformityResult>(create);
+  static SlideMaintUniformityResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get result => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set result($core.int value) => $_setSignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasResult() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearResult() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.double get duty => $_getN(1);
+  @$pb.TagNumber(2)
+  set duty($core.double value) => $_setFloat(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasDuty() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearDuty() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get binMm => $_getN(2);
+  @$pb.TagNumber(3)
+  set binMm($core.double value) => $_setFloat(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasBinMm() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearBinMm() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.double get lo => $_getN(3);
+  @$pb.TagNumber(4)
+  set lo($core.double value) => $_setFloat(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasLo() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearLo() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.double get hi => $_getN(4);
+  @$pb.TagNumber(5)
+  set hi($core.double value) => $_setFloat(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasHi() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearHi() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  SlideMaintDirResult get forward => $_getN(5);
+  @$pb.TagNumber(6)
+  set forward(SlideMaintDirResult value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasForward() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearForward() => $_clearField(6);
+  @$pb.TagNumber(6)
+  SlideMaintDirResult ensureForward() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  SlideMaintDirResult get backward => $_getN(6);
+  @$pb.TagNumber(7)
+  set backward(SlideMaintDirResult value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasBackward() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearBackward() => $_clearField(7);
+  @$pb.TagNumber(7)
+  SlideMaintDirResult ensureBackward() => $_ensure(6);
+
+  @$pb.TagNumber(8)
+  $core.double get asymmetry => $_getN(7);
+  @$pb.TagNumber(8)
+  set asymmetry($core.double value) => $_setFloat(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasAsymmetry() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearAsymmetry() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  SlideMaintVerdict get verdict => $_getN(8);
+  @$pb.TagNumber(9)
+  set verdict(SlideMaintVerdict value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasVerdict() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearVerdict() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.double get tempC => $_getN(9);
+  @$pb.TagNumber(10)
+  set tempC($core.double value) => $_setFloat(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasTempC() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearTempC() => $_clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.int get timestampMs => $_getIZ(10);
+  @$pb.TagNumber(11)
+  set timestampMs($core.int value) => $_setUnsignedInt32(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasTimestampMs() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearTimestampMs() => $_clearField(11);
+}
+
+class SlideMaintMaxSpeedResult extends $pb.GeneratedMessage {
+  factory SlideMaintMaxSpeedResult({
+    $core.int? result,
+    $core.double? peakForward,
+    $core.double? peakBackward,
+    $core.double? duty,
+    $core.double? marginForward,
+    $core.double? marginBackward,
+    $core.bool? bufferHitForward,
+    $core.bool? bufferHitBackward,
+    $core.double? brakeK,
+    $core.double? brakeCalSpeed,
+    $core.double? brakeCalDist,
+    $core.int? passes,
+    SlideMaintVerdict? verdict,
+    $core.double? tempC,
+    $core.int? timestampMs,
+  }) {
+    final result$ = create();
+    if (result != null) result$.result = result;
+    if (peakForward != null) result$.peakForward = peakForward;
+    if (peakBackward != null) result$.peakBackward = peakBackward;
+    if (duty != null) result$.duty = duty;
+    if (marginForward != null) result$.marginForward = marginForward;
+    if (marginBackward != null) result$.marginBackward = marginBackward;
+    if (bufferHitForward != null) result$.bufferHitForward = bufferHitForward;
+    if (bufferHitBackward != null)
+      result$.bufferHitBackward = bufferHitBackward;
+    if (brakeK != null) result$.brakeK = brakeK;
+    if (brakeCalSpeed != null) result$.brakeCalSpeed = brakeCalSpeed;
+    if (brakeCalDist != null) result$.brakeCalDist = brakeCalDist;
+    if (passes != null) result$.passes = passes;
+    if (verdict != null) result$.verdict = verdict;
+    if (tempC != null) result$.tempC = tempC;
+    if (timestampMs != null) result$.timestampMs = timestampMs;
+    return result$;
+  }
+
+  SlideMaintMaxSpeedResult._();
+
+  factory SlideMaintMaxSpeedResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SlideMaintMaxSpeedResult.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SlideMaintMaxSpeedResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'result')
+    ..aD(2, _omitFieldNames ? '' : 'peakForward', fieldType: $pb.PbFieldType.OF)
+    ..aD(3, _omitFieldNames ? '' : 'peakBackward',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(4, _omitFieldNames ? '' : 'duty', fieldType: $pb.PbFieldType.OF)
+    ..aD(5, _omitFieldNames ? '' : 'marginForward',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(6, _omitFieldNames ? '' : 'marginBackward',
+        fieldType: $pb.PbFieldType.OF)
+    ..aOB(7, _omitFieldNames ? '' : 'bufferHitForward')
+    ..aOB(8, _omitFieldNames ? '' : 'bufferHitBackward')
+    ..aD(9, _omitFieldNames ? '' : 'brakeK', fieldType: $pb.PbFieldType.OF)
+    ..aD(10, _omitFieldNames ? '' : 'brakeCalSpeed',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(11, _omitFieldNames ? '' : 'brakeCalDist',
+        fieldType: $pb.PbFieldType.OF)
+    ..aI(12, _omitFieldNames ? '' : 'passes', fieldType: $pb.PbFieldType.OU3)
+    ..aE<SlideMaintVerdict>(13, _omitFieldNames ? '' : 'verdict',
+        enumValues: SlideMaintVerdict.values)
+    ..aD(14, _omitFieldNames ? '' : 'tempC', fieldType: $pb.PbFieldType.OF)
+    ..aI(15, _omitFieldNames ? '' : 'timestampMs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SlideMaintMaxSpeedResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SlideMaintMaxSpeedResult copyWith(
+          void Function(SlideMaintMaxSpeedResult) updates) =>
+      super.copyWith((message) => updates(message as SlideMaintMaxSpeedResult))
+          as SlideMaintMaxSpeedResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SlideMaintMaxSpeedResult create() => SlideMaintMaxSpeedResult._();
+  @$core.override
+  SlideMaintMaxSpeedResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SlideMaintMaxSpeedResult getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SlideMaintMaxSpeedResult>(create);
+  static SlideMaintMaxSpeedResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get result => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set result($core.int value) => $_setSignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasResult() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearResult() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.double get peakForward => $_getN(1);
+  @$pb.TagNumber(2)
+  set peakForward($core.double value) => $_setFloat(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasPeakForward() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPeakForward() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get peakBackward => $_getN(2);
+  @$pb.TagNumber(3)
+  set peakBackward($core.double value) => $_setFloat(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasPeakBackward() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearPeakBackward() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.double get duty => $_getN(3);
+  @$pb.TagNumber(4)
+  set duty($core.double value) => $_setFloat(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasDuty() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDuty() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.double get marginForward => $_getN(4);
+  @$pb.TagNumber(5)
+  set marginForward($core.double value) => $_setFloat(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasMarginForward() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearMarginForward() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.double get marginBackward => $_getN(5);
+  @$pb.TagNumber(6)
+  set marginBackward($core.double value) => $_setFloat(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasMarginBackward() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearMarginBackward() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.bool get bufferHitForward => $_getBF(6);
+  @$pb.TagNumber(7)
+  set bufferHitForward($core.bool value) => $_setBool(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasBufferHitForward() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearBufferHitForward() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.bool get bufferHitBackward => $_getBF(7);
+  @$pb.TagNumber(8)
+  set bufferHitBackward($core.bool value) => $_setBool(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasBufferHitBackward() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearBufferHitBackward() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.double get brakeK => $_getN(8);
+  @$pb.TagNumber(9)
+  set brakeK($core.double value) => $_setFloat(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasBrakeK() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearBrakeK() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.double get brakeCalSpeed => $_getN(9);
+  @$pb.TagNumber(10)
+  set brakeCalSpeed($core.double value) => $_setFloat(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasBrakeCalSpeed() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearBrakeCalSpeed() => $_clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.double get brakeCalDist => $_getN(10);
+  @$pb.TagNumber(11)
+  set brakeCalDist($core.double value) => $_setFloat(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasBrakeCalDist() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearBrakeCalDist() => $_clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.int get passes => $_getIZ(11);
+  @$pb.TagNumber(12)
+  set passes($core.int value) => $_setUnsignedInt32(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasPasses() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearPasses() => $_clearField(12);
+
+  @$pb.TagNumber(13)
+  SlideMaintVerdict get verdict => $_getN(12);
+  @$pb.TagNumber(13)
+  set verdict(SlideMaintVerdict value) => $_setField(13, value);
+  @$pb.TagNumber(13)
+  $core.bool hasVerdict() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearVerdict() => $_clearField(13);
+
+  @$pb.TagNumber(14)
+  $core.double get tempC => $_getN(13);
+  @$pb.TagNumber(14)
+  set tempC($core.double value) => $_setFloat(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasTempC() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearTempC() => $_clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.int get timestampMs => $_getIZ(14);
+  @$pb.TagNumber(15)
+  set timestampMs($core.int value) => $_setUnsignedInt32(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasTimestampMs() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearTimestampMs() => $_clearField(15);
+}
+
+class ResponseSlideMaintResultGet extends $pb.GeneratedMessage {
+  factory ResponseSlideMaintResultGet({
+    SlideMaintUniformityResult? uniformity,
+    SlideMaintMaxSpeedResult? maxSpeed,
+    $core.bool? running,
+  }) {
+    final result = create();
+    if (uniformity != null) result.uniformity = uniformity;
+    if (maxSpeed != null) result.maxSpeed = maxSpeed;
+    if (running != null) result.running = running;
+    return result;
+  }
+
+  ResponseSlideMaintResultGet._();
+
+  factory ResponseSlideMaintResultGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseSlideMaintResultGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseSlideMaintResultGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<SlideMaintUniformityResult>(1, _omitFieldNames ? '' : 'uniformity',
+        subBuilder: SlideMaintUniformityResult.create)
+    ..aOM<SlideMaintMaxSpeedResult>(2, _omitFieldNames ? '' : 'maxSpeed',
+        subBuilder: SlideMaintMaxSpeedResult.create)
+    ..aOB(3, _omitFieldNames ? '' : 'running')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideMaintResultGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseSlideMaintResultGet copyWith(
+          void Function(ResponseSlideMaintResultGet) updates) =>
+      super.copyWith(
+              (message) => updates(message as ResponseSlideMaintResultGet))
+          as ResponseSlideMaintResultGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideMaintResultGet create() =>
+      ResponseSlideMaintResultGet._();
+  @$core.override
+  ResponseSlideMaintResultGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseSlideMaintResultGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseSlideMaintResultGet>(create);
+  static ResponseSlideMaintResultGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  SlideMaintUniformityResult get uniformity => $_getN(0);
+  @$pb.TagNumber(1)
+  set uniformity(SlideMaintUniformityResult value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUniformity() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUniformity() => $_clearField(1);
+  @$pb.TagNumber(1)
+  SlideMaintUniformityResult ensureUniformity() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  SlideMaintMaxSpeedResult get maxSpeed => $_getN(1);
+  @$pb.TagNumber(2)
+  set maxSpeed(SlideMaintMaxSpeedResult value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasMaxSpeed() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearMaxSpeed() => $_clearField(2);
+  @$pb.TagNumber(2)
+  SlideMaintMaxSpeedResult ensureMaxSpeed() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  $core.bool get running => $_getBF(2);
+  @$pb.TagNumber(3)
+  set running($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasRunning() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearRunning() => $_clearField(3);
 }
 
 const $core.bool _omitFieldNames =

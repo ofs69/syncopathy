@@ -1,4 +1,4 @@
-// Auto-generated on 2026-07-10 13:00:28
+// Auto-generated on 2026-09-09 15:54:00
 syntax = "proto3";
 package hdy_rpc;
 //NB! The codes are not in order, but in groups
@@ -23,6 +23,8 @@ enum HandyErrorCodes{
     ERROR_OTA_ERROR = 100016; //OTA error (any error)
     ERROR_OTA_MEM_ERROR = 100024; //Failed to allocate memory for OTA chunk
     ERROR_OTA_NOT_STARTED = 100025; //OTA has not started -> OTA is not allowed to proceed
+    ERROR_OTA_OFFSET_MISMATCH = 100039; //An OtaBinary chunk arrived with an offset other than the next one expected - a chunk was lost, duplicated or re-sent. The device writes chunks in arrival order and cannot seek, so there is no repairing the image: stop the session (RequestOtaStop) and upload again from offset 0. Added in FW4.3
+    ERROR_OTA_TOTAL_SIZE_MISMATCH = 100040; //An OtaBinary chunk declared a different total_size than the chunk that opened the session - the client switched image mid-upload without restarting the session. Same recovery as ERROR_OTA_OFFSET_MISMATCH: stop the session (RequestOtaStop) and upload again from offset 0. Added in FW4.3
     ERROR_FUNCTION_NOT_SUPPORTED = 100017; //Function not supported (Ex: Slider function calls on a LRA product)
     ERROR_RPC_MSG_POOL_FULL = 100019; //RPC message pool is full
     ERROR_RPC_FAILED_TO_UNPACK = 100020; //Failed to unpack the RPC message
@@ -165,6 +167,9 @@ message HspState{
     int32 tail_point_stream_index = 11; //the current point playing - will be -1 when playingAbsoluteIndex
     uint32 tail_point_stream_index_threshold = 12; //When to trigger a threshold notification
     bool pause_on_starving = 13; //[Default false] If true, the stream will pause when the buffer is empty. When data is added the stream will resume without time adjustments
+    bool jitter_filter = 14; //The jitter filter now in effect (set via RequestHspJitterFilterSet 873). Added in FW4.4
+    float jitter_filter_threshold_mm = 15; //the swallow gate now in effect [mm]. Added in FW4.4
+    bool script_speed = 16; //Script-speed mode now in effect (set via RequestHspScriptSpeedSet 874). Added in FW4.4
 }
 message HvpState{
     bool enabled = 1; //If the vibration is started/active
@@ -174,7 +179,33 @@ message HvpState{
 }
 message Point{
     uint32 t = 1;
-    uint32 x = 2; //uint8 0-255 max!
+    uint32 x = 2; //position 0-100 (percent of stroke). NB the old "0-255 max"
+                  //comment was wrong: firmware maps x=100 to full stroke and
+                  //values above 100 clamp at the end. Resolution is 1% of
+                  //stroke (~1.25 mm on a standard unit).
+}
+/*
+Windowed speed/tuning telemetry, split per drive direction (the two
+directions have separate feedforward/tuning). Averages cover regulator
+ticks (~1 kHz) while DRIVING; samples == 0 = the slide did not drive that
+way during the window. Shared by ResponseSpeedStatsGet and
+NotificationSpeedStats. Added in FW4.4.
+*/
+message SpeedStatsBucket{
+    uint32 samples = 1; //regulator ticks in this bucket
+    float avg_speed = 2; //[mm/s] measured
+    float avg_target_speed = 3; //[mm/s] commanded
+    float avg_motor = 4; //[0-1] average duty
+    float avg_trim = 5; //[output units] integral trim - persistent nonzero = feedforward mismatch for THIS direction
+    float avg_abs_speed_error = 6; //[mm/s] mean |target - measured|
+}
+message SpeedStats{
+    uint32 seq = 1; //completed-window counter; 0 = nothing measured yet
+    uint32 window_ms = 2; //window the averages cover (also the notification period)
+    uint64 end_time_us = 3; //device clock at window end (joins diag captures)
+    SpeedStatsBucket backward = 4;
+    SpeedStatsBucket forward = 5;
+    SpeedStatsBucket combined = 6;
 }
 ///////////////////////// Button constants /////////////////////////
 enum Button{
@@ -363,6 +394,18 @@ enum BatteryDriver{
     BATTERY_DRIVER_OH = 1; //Oh
     BATTERY_DRIVER_H2 = 2; //Handy 2
 }
+//The SERVER's verdict on the device's firmware: what the device reports,
+//compared against the release this server would serve. The device itself can
+//never compute this - it has no notion of "latest".
+//Values match the online API's FirmwareStatus exactly, so the two surfaces
+//agree. NB! There is no "unknown" member: 0 is a real verdict, so a client
+//must decide "the server answered" from the PRESENCE of ResponseFwStatusGet,
+//never from its value.
+enum FirmwareStatus{
+    FIRMWARE_STATUS_UP_TO_DATE = 0;
+    FIRMWARE_STATUS_UPDATE_AVAILABLE = 1;
+    FIRMWARE_STATUS_UPDATE_REQUIRED = 2;
+}
 message BatteryState{
     uint32 level = 1; //0-100
     bool charger_connected = 2;
@@ -401,4 +444,109 @@ enum SettingType{
     SETTINGS_ERM = 4;
     SETTINGS_BATTERY = 5;
     SETTINGS_SERVER = 6;
+    SETTINGS_SENSOR = 7; //Added in FW4.3
+    SETTINGS_REGULATOR = 8; //Added in FW4.4
+    SETTINGS_HALL = 9; //Added in FW4.4
+}
+//Which strip side rules the master position when both are in contact
+//(RequestSettingsSensorSet). Values match the firmware's hdySensorMaster_t.
+//Added in FW4.3
+enum SensorMasterRule{
+    SENSOR_MASTER_TOP = 0; //Highest side wins
+    SENSOR_MASTER_BOTTOM = 1; //Lowest side wins
+    SENSOR_MASTER_AVG = 2; //Average of the two sides
+}
+//Slide diagnostics capture channel (RequestSlideDiag*)
+//Added in FW4.4
+enum SlideDiagChannel{
+    SLIDE_DIAG_CHANNEL_HALL = 0;
+    SLIDE_DIAG_CHANNEL_REGULATOR = 1;
+    SLIDE_DIAG_CHANNEL_HSP = 2; //script playback events + clock mapping. Added in FW4.4
+}
+//Curated slide tuning profiles (RequestSlideProfileGet/Set). Definitions
+//live in firmware (hdy_slide_profiles.c); DIAG_TUNING_GUIDE.md mirrors them.
+//Added in FW4.4
+enum SlideProfile{
+    SLIDE_PROFILE_BALANCED = 0; //compiled defaults
+    SLIDE_PROFILE_SILENT = 1;
+    SLIDE_PROFILE_SPORT = 2;
+    SLIDE_PROFILE_ACCURACY = 3; //DEPRECATED since FW4.4 (2026-09-03): merged into SPORT. Set with it applies SPORT (never returned by Get)
+    SLIDE_PROFILE_CUSTOM = 4; //DEPRECATED since FW4.4 - never returned or accepted; SlideProfileGet reports the SELECTED profile plus a `modified` flag instead
+    SLIDE_PROFILE_FLUID = 5; //FW3-like organic motion (ramped output, coast turns)
+    //User banks (FW4.4): store the live tuning with SlideProfileStore (854);
+    //selecting a slot loads its saved values (an EMPTY slot behaves as
+    //BALANCED). The curated profiles above are locked - slots are where user
+    //tunings live.
+    SLIDE_PROFILE_CUSTOM_1 = 6;
+    SLIDE_PROFILE_CUSTOM_2 = 7;
+    //Bare proportional controller (only kp; feedforward/trim/kick/deadband/
+    //slew and the whole turn pipeline off) - a clean baseline to tune up
+    //from. Locked curated profile, not a user slot. Added in FW4.4.
+    SLIDE_PROFILE_RAW = 8;
+    //PURE: open loop as a PRESET of existing fields (feedforward_gain 1, offset 0,
+    //every correction and turn stage 0) - target speed goes straight to the motor
+    //with nothing correcting it. The mechanics-only tuning baseline; RAW (bare kp,
+    //no feedforward) is the loop-only one. Turn staging is independent: set the
+    //turn_* params to stage reversals. Locked curated profile. Added in FW4.4.
+    SLIDE_PROFILE_PURE = 9;
+}
+//Slide diagnostics capture state
+//Added in FW4.4
+enum SlideDiagState{
+    SLIDE_DIAG_STATE_DISABLED = 0; //No buffer allocated
+    SLIDE_DIAG_STATE_RUNNING = 1; //Capturing; reads not allowed
+    SLIDE_DIAG_STATE_STOPPED = 2; //Frozen; readable
+}
+//How sensor update notifications are delivered (RequestSensorNotificationSet)
+//Added in FW4.3
+enum SensorNotificationMode{
+    SENSOR_NOTIFICATION_MODE_ON_CHANGE = 0; //Send when the sensor state changes; min_interval_ms rate-limits
+    SENSOR_NOTIFICATION_MODE_ON_INTERVAL = 1; //Send the current state every min_interval_ms regardless of change;
+                                              //0 = as fast as free system resources allow (low-priority stream)
+}
+//Sensor data parts for NotificationSensorUpdate. Each part is only present in
+//the notification if subscribed to via RequestSensorNotificationSet.
+//The sensor strip is one bendable array folded over the top of the holder:
+//side A rises from position 0 to the top, side B falls from the top back to 0.
+//Added in FW4.3
+message SensorRawData{
+    bytes ports = 1; //Raw expander input bytes: device 0 port 0, device 0 port 1, device 1 port 0, ...
+}
+//Absolute positions [mm] above position 0 (the strip ends); 0 when no contact
+//Added in FW4.3
+message SensorPositionAbs{
+    float master = 1; //Combined per the configured master rule (top/bottom/avg)
+    float side_a = 2;
+    float side_b = 3;
+}
+//Relative positions 0..1 of the side span (0 = bottom, 1 = top/fold); 0 when no contact
+//Added in FW4.3
+message SensorPositionRel{
+    float master = 1; //Combined per the configured master rule (top/bottom/avg)
+    float side_a = 2;
+    float side_b = 3;
+}
+//The full sensor state - one shared shape for both the notification stream
+//(NotificationSensorUpdate carries only the subscribed parts) and the
+//on-demand pull (ResponseSensorStateGet carries all parts). An absent part
+//is omitted from the wire message entirely (bits, a scalar, reads 0 when
+//not subscribed).
+//Added in FW4.3
+message SensorState{
+    SensorRawData raw = 1;
+    uint64 bits = 2; //Bit i = sensor i occluded (1 = beam blocked); bit 0 = strip start. Valid bit count = "sensors" in ResponseCapabilitiesGet
+    SensorPositionAbs position_abs = 3;
+    SensorPositionRel position_rel = 4;
+    bool contact_side_a = 5;
+    bool contact_side_b = 6;
+    uint32 timestamp_ms = 7; //Device time of the reading [ms]
+    bool sleeping = 8; //IR power save active: emitters unpowered, positions frozen at the pre-sleep state; the strip is only checked for change periodically. A transition sends one NotificationSensorUpdate. Always included. Added in FW4.3
+}
+//A device currently connected to the server. NB! Server only - never built or
+//parsed by the FW. Shared by ResponseDeviceListGet (302) and
+//NotificationDeviceListChanged (301).
+message ConnectedDevice{
+    string key = 1; //Connection key the device connected with
+    uint32 serial = 2;
+    uint32 hw_model_number = 3;
 }

@@ -1737,6 +1737,257 @@ class NotificationSettingsChanged extends $pb.GeneratedMessage {
   void clearType() => $_clearField(1);
 }
 
+/// Sensor update - sent per RequestSensorNotificationSet (on change or on
+/// interval, coalesced to the latest data). Only the subscribed parts of the
+/// state are present; the contact flags and timestamp are always included.
+/// Added in FW4.3
+class NotificationSensorUpdate extends $pb.GeneratedMessage {
+  factory NotificationSensorUpdate({
+    $0.SensorState? state,
+  }) {
+    final result = create();
+    if (state != null) result.state = state;
+    return result;
+  }
+
+  NotificationSensorUpdate._();
+
+  factory NotificationSensorUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory NotificationSensorUpdate.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'NotificationSensorUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<$0.SensorState>(1, _omitFieldNames ? '' : 'state',
+        subBuilder: $0.SensorState.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationSensorUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationSensorUpdate copyWith(
+          void Function(NotificationSensorUpdate) updates) =>
+      super.copyWith((message) => updates(message as NotificationSensorUpdate))
+          as NotificationSensorUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static NotificationSensorUpdate create() => NotificationSensorUpdate._();
+  @$core.override
+  NotificationSensorUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static NotificationSensorUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<NotificationSensorUpdate>(create);
+  static NotificationSensorUpdate? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SensorState get state => $_getN(0);
+  @$pb.TagNumber(1)
+  set state($0.SensorState value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasState() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearState() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $0.SensorState ensureState() => $_ensure(0);
+}
+
+/// 851 - One per completed averaging window while subscribed via
+/// RequestSpeedStatsSet. Same payload as ResponseSpeedStatsGet.
+/// Added in FW4.4
+class NotificationSpeedStats extends $pb.GeneratedMessage {
+  factory NotificationSpeedStats({
+    $0.SpeedStats? stats,
+  }) {
+    final result = create();
+    if (stats != null) result.stats = stats;
+    return result;
+  }
+
+  NotificationSpeedStats._();
+
+  factory NotificationSpeedStats.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory NotificationSpeedStats.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'NotificationSpeedStats',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<$0.SpeedStats>(1, _omitFieldNames ? '' : 'stats',
+        subBuilder: $0.SpeedStats.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationSpeedStats clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationSpeedStats copyWith(
+          void Function(NotificationSpeedStats) updates) =>
+      super.copyWith((message) => updates(message as NotificationSpeedStats))
+          as NotificationSpeedStats;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static NotificationSpeedStats create() => NotificationSpeedStats._();
+  @$core.override
+  NotificationSpeedStats createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static NotificationSpeedStats getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<NotificationSpeedStats>(create);
+  static NotificationSpeedStats? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SpeedStats get stats => $_getN(0);
+  @$pb.TagNumber(1)
+  set stats($0.SpeedStats value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasStats() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearStats() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $0.SpeedStats ensureStats() => $_ensure(0);
+}
+
+/// 844 - One chunk of a diag capture stream (see RequestSlideDiagStream in
+/// messages.proto for the full flow). All chunks are sent BEFORE the
+/// ResponseSlideDiagStream, in order, only to the transport the request came
+/// in on. data holds record_count packed records of entry_size bytes each
+/// (entry_size/format_version/field_mask from Start/Status/Stream define the
+/// layout), starting at first_record. Reassemble by first_record; a hole in
+/// that sequence = a lost chunk - re-fetch just that range with
+/// RequestSlideDiagRead.
+/// Added in FW4.4
+class NotificationSlideDiagData extends $pb.GeneratedMessage {
+  factory NotificationSlideDiagData({
+    $0.SlideDiagChannel? channel,
+    $core.int? seq,
+    $core.int? chunk,
+    $core.int? firstRecord,
+    $core.int? recordCount,
+    $core.List<$core.int>? data,
+  }) {
+    final result = create();
+    if (channel != null) result.channel = channel;
+    if (seq != null) result.seq = seq;
+    if (chunk != null) result.chunk = chunk;
+    if (firstRecord != null) result.firstRecord = firstRecord;
+    if (recordCount != null) result.recordCount = recordCount;
+    if (data != null) result.data = data;
+    return result;
+  }
+
+  NotificationSlideDiagData._();
+
+  factory NotificationSlideDiagData.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory NotificationSlideDiagData.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'NotificationSlideDiagData',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aE<$0.SlideDiagChannel>(1, _omitFieldNames ? '' : 'channel',
+        enumValues: $0.SlideDiagChannel.values)
+    ..aI(2, _omitFieldNames ? '' : 'seq', fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'chunk', fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'firstRecord',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'recordCount',
+        fieldType: $pb.PbFieldType.OU3)
+    ..a<$core.List<$core.int>>(
+        6, _omitFieldNames ? '' : 'data', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationSlideDiagData clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationSlideDiagData copyWith(
+          void Function(NotificationSlideDiagData) updates) =>
+      super.copyWith((message) => updates(message as NotificationSlideDiagData))
+          as NotificationSlideDiagData;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static NotificationSlideDiagData create() => NotificationSlideDiagData._();
+  @$core.override
+  NotificationSlideDiagData createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static NotificationSlideDiagData getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<NotificationSlideDiagData>(create);
+  static NotificationSlideDiagData? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.SlideDiagChannel get channel => $_getN(0);
+  @$pb.TagNumber(1)
+  set channel($0.SlideDiagChannel value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChannel() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChannel() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get seq => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set seq($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSeq() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSeq() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get chunk => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set chunk($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasChunk() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearChunk() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get firstRecord => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set firstRecord($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasFirstRecord() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearFirstRecord() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get recordCount => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set recordCount($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasRecordCount() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearRecordCount() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.List<$core.int> get data => $_getN(5);
+  @$pb.TagNumber(6)
+  set data($core.List<$core.int> value) => $_setBytes(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasData() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearData() => $_clearField(6);
+}
+
 const $core.bool _omitFieldNames =
     $core.bool.fromEnvironment('protobuf.omit_field_names');
 const $core.bool _omitMessageNames =

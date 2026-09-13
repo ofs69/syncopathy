@@ -538,3 +538,72 @@ final $typed_data.Uint8List notificationSettingsChangedDescriptor =
     $convert.base64Decode(
         'ChtOb3RpZmljYXRpb25TZXR0aW5nc0NoYW5nZWQSKAoEdHlwZRgBIAEoDjIULmhkeV9ycGMuU2'
         'V0dGluZ1R5cGVSBHR5cGU=');
+
+@$core.Deprecated('Use notificationSensorUpdateDescriptor instead')
+const NotificationSensorUpdate$json = {
+  '1': 'NotificationSensorUpdate',
+  '2': [
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.SensorState',
+      '10': 'state'
+    },
+  ],
+};
+
+/// Descriptor for `NotificationSensorUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List notificationSensorUpdateDescriptor =
+    $convert.base64Decode(
+        'ChhOb3RpZmljYXRpb25TZW5zb3JVcGRhdGUSKgoFc3RhdGUYASABKAsyFC5oZHlfcnBjLlNlbn'
+        'NvclN0YXRlUgVzdGF0ZQ==');
+
+@$core.Deprecated('Use notificationSpeedStatsDescriptor instead')
+const NotificationSpeedStats$json = {
+  '1': 'NotificationSpeedStats',
+  '2': [
+    {
+      '1': 'stats',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.SpeedStats',
+      '10': 'stats'
+    },
+  ],
+};
+
+/// Descriptor for `NotificationSpeedStats`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List notificationSpeedStatsDescriptor =
+    $convert.base64Decode(
+        'ChZOb3RpZmljYXRpb25TcGVlZFN0YXRzEikKBXN0YXRzGAEgASgLMhMuaGR5X3JwYy5TcGVlZF'
+        'N0YXRzUgVzdGF0cw==');
+
+@$core.Deprecated('Use notificationSlideDiagDataDescriptor instead')
+const NotificationSlideDiagData$json = {
+  '1': 'NotificationSlideDiagData',
+  '2': [
+    {
+      '1': 'channel',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.SlideDiagChannel',
+      '10': 'channel'
+    },
+    {'1': 'seq', '3': 2, '4': 1, '5': 13, '10': 'seq'},
+    {'1': 'chunk', '3': 3, '4': 1, '5': 13, '10': 'chunk'},
+    {'1': 'first_record', '3': 4, '4': 1, '5': 13, '10': 'firstRecord'},
+    {'1': 'record_count', '3': 5, '4': 1, '5': 13, '10': 'recordCount'},
+    {'1': 'data', '3': 6, '4': 1, '5': 12, '10': 'data'},
+  ],
+};
+
+/// Descriptor for `NotificationSlideDiagData`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List notificationSlideDiagDataDescriptor = $convert.base64Decode(
+    'ChlOb3RpZmljYXRpb25TbGlkZURpYWdEYXRhEjMKB2NoYW5uZWwYASABKA4yGS5oZHlfcnBjLl'
+    'NsaWRlRGlhZ0NoYW5uZWxSB2NoYW5uZWwSEAoDc2VxGAIgASgNUgNzZXESFAoFY2h1bmsYAyAB'
+    'KA1SBWNodW5rEiEKDGZpcnN0X3JlY29yZBgEIAEoDVILZmlyc3RSZWNvcmQSIQoMcmVjb3JkX2'
+    'NvdW50GAUgASgNUgtyZWNvcmRDb3VudBISCgRkYXRhGAYgASgMUgRkYXRh');
