@@ -8,6 +8,7 @@ import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/model/funscript.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';
 import 'package:syncopathy/model/json/handyV3/handy_response.dart';
+import 'package:syncopathy/player/hsp_stream_guard.dart';
 import 'package:syncopathy/player/player_backend.dart';
 
 enum HspStateAdapterPlayState {
@@ -338,7 +339,12 @@ class InternalActionBuffer {
   }
 }
 
-mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
+mixin HandyNativeHspMixin
+    on
+        IHandyHspBase,
+        ICommandBackendBase,
+        PlayerBackend,
+        HandyHspCommandDelegation {
   final _internalActionBuffer = InternalActionBuffer();
   bool _internalHandyPlaying = false;
   final _internalHandyPlayStateDebouncer = Debouncer(milliseconds: 200);
@@ -355,6 +361,10 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   // for predictability I'm counting stream IDs up instead of random ones
   int _currentStreamId = 0;
   int get _nextStreamId => _currentStreamId + 1;
+
+  /// Separates a report that predates a setup still in flight from a device
+  /// left on a stream we never established.
+  final _streamGuard = HspStreamGuard();
 
   final _loopChangeDebouncer = Debouncer(milliseconds: 200);
 
@@ -477,9 +487,27 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
       _lastState = hspState.playState;
     }
 
-    if (hspState.streamId != _currentStreamId) {
-      // Ignore old states from old streams
-      return;
+    switch (_streamGuard.inspect(
+      ours: _currentStreamId,
+      reported: hspState.streamId,
+    )) {
+      case HspStreamVerdict.current:
+        break;
+      case HspStreamVerdict.stale:
+        // Ignore old states from old streams
+        return;
+      case HspStreamVerdict.resync:
+        // The device has settled on a stream we never established — it kept one
+        // from an earlier run, or a setup was dropped on its way out. Nothing
+        // below this line runs while the two disagree, so re-establish the
+        // stream here rather than leave the backend wedged until some unrelated
+        // path happens to call hspSetup.
+        Logger.warning(
+          'Handy is on HSP stream ${hspState.streamId}, expected '
+          '$_currentStreamId; setting the stream up again',
+        );
+        hspSetup();
+        return;
     }
 
     final currentTimeMs = timesource.currentRawMs;
@@ -745,7 +773,15 @@ mixin HandyNativeHspMixin on IHandyHspBase, ICommandBackendBase, PlayerBackend {
   @override
   void hspSetup({int? streamId}) {
     _resetInternalState(false);
+    // A setup the transport never receives must not advance the local stream
+    // id. The device would go on reporting the stream it still has, and every
+    // handler keyed on the pair would reject its state — including the ones
+    // that would have set it up again.
+    if (hspCommandTarget == null) return;
     _currentStreamId = _nextStreamId;
+    // The echo window starts here: reports from before this setup are the ones
+    // the guard is meant to tolerate.
+    _streamGuard.reset();
     super.hspSetup(streamId: _currentStreamId);
   }
 
