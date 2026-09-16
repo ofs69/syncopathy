@@ -12,6 +12,7 @@
 
 import 'dart:core' as $core;
 
+import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'constants.pb.dart' as $0;
@@ -19,13 +20,31 @@ import 'constants.pb.dart' as $0;
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 /// ******* NOTIFICATIONS *********/
-/// 300 - NB! Not used by FW - internal server notification
+/// 300 - NB! Not used by FW - internal server notification.
+/// Pushed when a device attaches to or leaves the server, AND once to a client
+/// right after THAT CLIENT attaches - so a client that connected after the device
+/// learns the current state instead of discovering it by polling
+/// RequestConnectedGet (301).
+/// This is the socket's counterpart to the online API's device_status /
+/// device_connected / device_disconnected SSE events, and carries the same facts.
 class NotificationConnectedChanged extends $pb.GeneratedMessage {
   factory NotificationConnectedChanged({
     $core.bool? connected,
+    $core.int? sessionId,
+    $0.ConnectedDeviceInfo? info,
+    $core.String? sessionUlid,
+    $core.String? reason,
+    $core.String? description,
+    $fixnum.Int64? timestamp,
   }) {
     final result = create();
     if (connected != null) result.connected = connected;
+    if (sessionId != null) result.sessionId = sessionId;
+    if (info != null) result.info = info;
+    if (sessionUlid != null) result.sessionUlid = sessionUlid;
+    if (reason != null) result.reason = reason;
+    if (description != null) result.description = description;
+    if (timestamp != null) result.timestamp = timestamp;
     return result;
   }
 
@@ -43,6 +62,15 @@ class NotificationConnectedChanged extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'connected')
+    ..aI(2, _omitFieldNames ? '' : 'sessionId', fieldType: $pb.PbFieldType.OU3)
+    ..aOM<$0.ConnectedDeviceInfo>(3, _omitFieldNames ? '' : 'info',
+        subBuilder: $0.ConnectedDeviceInfo.create)
+    ..aOS(4, _omitFieldNames ? '' : 'sessionUlid')
+    ..aOS(5, _omitFieldNames ? '' : 'reason')
+    ..aOS(6, _omitFieldNames ? '' : 'description')
+    ..a<$fixnum.Int64>(
+        7, _omitFieldNames ? '' : 'timestamp', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -75,6 +103,70 @@ class NotificationConnectedChanged extends $pb.GeneratedMessage {
   $core.bool hasConnected() => $_has(0);
   @$pb.TagNumber(1)
   void clearConnected() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get sessionId => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set sessionId($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSessionId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSessionId() => $_clearField(2);
+
+  /// Everything below is SERVER-filled. Added in FW4.4
+  @$pb.TagNumber(3)
+  $0.ConnectedDeviceInfo get info => $_getN(2);
+  @$pb.TagNumber(3)
+  set info($0.ConnectedDeviceInfo value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasInfo() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearInfo() => $_clearField(3);
+  @$pb.TagNumber(3)
+  $0.ConnectedDeviceInfo ensureInfo() => $_ensure(2);
+
+  /// disconnect and while the server has not learned it yet
+  @$pb.TagNumber(4)
+  $core.String get sessionUlid => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set sessionUlid($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasSessionUlid() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearSessionUlid() => $_clearField(4);
+
+  /// online API serves as DeviceInfo.session_id. Two things this buys:
+  /// ULIDs are lexically time-ordered, so a disconnect for an OLDER
+  /// session (one that raced a newer connect) can be recognised and
+  /// dropped; and a socket client and an SSE client can tell they are
+  /// watching one session. Empty when the server does not set it
+  @$pb.TagNumber(5)
+  $core.String get reason => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set reason($core.String value) => $_setString(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasReason() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearReason() => $_clearField(5);
+
+  /// as text, ...). Empty on connect, and when the server does not say
+  @$pb.TagNumber(6)
+  $core.String get description => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set description($core.String value) => $_setString(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasDescription() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearDescription() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $fixnum.Int64 get timestamp => $_getI64(6);
+  @$pb.TagNumber(7)
+  set timestamp($fixnum.Int64 value) => $_setInt64(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasTimestamp() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearTimestamp() => $_clearField(7);
 }
 
 /// 601 - wifi

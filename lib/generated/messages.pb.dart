@@ -160,9 +160,11 @@ class RequestConnectedGet extends $pb.GeneratedMessage {
 class ResponseConnectedGet extends $pb.GeneratedMessage {
   factory ResponseConnectedGet({
     $core.bool? connected,
+    $core.int? sessionId,
   }) {
     final result = create();
     if (connected != null) result.connected = connected;
+    if (sessionId != null) result.sessionId = sessionId;
     return result;
   }
 
@@ -180,6 +182,7 @@ class ResponseConnectedGet extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'connected')
+    ..aI(2, _omitFieldNames ? '' : 'sessionId', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -209,6 +212,15 @@ class ResponseConnectedGet extends $pb.GeneratedMessage {
   $core.bool hasConnected() => $_has(0);
   @$pb.TagNumber(1)
   void clearConnected() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get sessionId => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set sessionId($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSessionId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSessionId() => $_clearField(2);
 }
 
 /// 304 - Added in FW4.4 - The server's firmware verdict for the connected device.
@@ -1861,6 +1873,7 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
     $core.int? wsBufferSize,
     $core.int? sensors,
     $core.bool? usbVoltageMeasure,
+    $core.bool? batteryTemperatureMeasure,
   }) {
     final result = create();
     if (vulvaOriented != null) result.vulvaOriented = vulvaOriented;
@@ -1881,6 +1894,8 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
     if (wsBufferSize != null) result.wsBufferSize = wsBufferSize;
     if (sensors != null) result.sensors = sensors;
     if (usbVoltageMeasure != null) result.usbVoltageMeasure = usbVoltageMeasure;
+    if (batteryTemperatureMeasure != null)
+      result.batteryTemperatureMeasure = batteryTemperatureMeasure;
     return result;
   }
 
@@ -1921,6 +1936,7 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
         fieldType: $pb.PbFieldType.OU3)
     ..aI(17, _omitFieldNames ? '' : 'sensors', fieldType: $pb.PbFieldType.OU3)
     ..aOB(18, _omitFieldNames ? '' : 'usbVoltageMeasure')
+    ..aOB(19, _omitFieldNames ? '' : 'batteryTemperatureMeasure')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2104,6 +2120,15 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
   $core.bool hasUsbVoltageMeasure() => $_has(17);
   @$pb.TagNumber(18)
   void clearUsbVoltageMeasure() => $_clearField(18);
+
+  @$pb.TagNumber(19)
+  $core.bool get batteryTemperatureMeasure => $_getBF(18);
+  @$pb.TagNumber(19)
+  set batteryTemperatureMeasure($core.bool value) => $_setBool(18, value);
+  @$pb.TagNumber(19)
+  $core.bool hasBatteryTemperatureMeasure() => $_has(18);
+  @$pb.TagNumber(19)
+  void clearBatteryTemperatureMeasure() => $_clearField(19);
 }
 
 ///
@@ -4750,12 +4775,14 @@ class RequestSlideDiagStart extends $pb.GeneratedMessage {
     $core.int? maxRecords,
     $core.bool? wrap,
     $core.int? fieldMask,
+    $core.int? minIntervalMs,
   }) {
     final result = create();
     if (channel != null) result.channel = channel;
     if (maxRecords != null) result.maxRecords = maxRecords;
     if (wrap != null) result.wrap = wrap;
     if (fieldMask != null) result.fieldMask = fieldMask;
+    if (minIntervalMs != null) result.minIntervalMs = minIntervalMs;
     return result;
   }
 
@@ -4777,6 +4804,8 @@ class RequestSlideDiagStart extends $pb.GeneratedMessage {
     ..aI(2, _omitFieldNames ? '' : 'maxRecords', fieldType: $pb.PbFieldType.OU3)
     ..aOB(3, _omitFieldNames ? '' : 'wrap')
     ..aI(4, _omitFieldNames ? '' : 'fieldMask', fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'minIntervalMs',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4838,6 +4867,27 @@ class RequestSlideDiagStart extends $pb.GeneratedMessage {
   $core.bool hasFieldMask() => $_has(3);
   @$pb.TagNumber(4)
   void clearFieldMask() => $_clearField(4);
+
+  /// Rate reduction (2026-09-11). 0 = store every record (default). N > 0 = store the
+  /// "plain" records at most once per N ms: on the REGULATOR channel a plain record is a
+  /// run-phase tick that follows another run-phase tick; on the HALL channel a plain
+  /// edge in the same direction as the previous one. Everything else is ALWAYS stored
+  /// regardless of N: every turn-phase regulator record (coast brake, reverse brake,
+  /// backlash creep, launch, turn done, overspeed stop), the FIRST run record after a
+  /// turn (the launch tick), every hall record that is not a plain edge, and every hall
+  /// direction flip. What dropped regulator ticks did is not lost: their trim_adjust
+  /// values are summed into and their flags OR-ed into the next stored record. The
+  /// hall sequence number exposes dropped edges. Ignored on the HSP channel. Status
+  /// reports the interval and the dropped count. Use it to make a capture (and its
+  /// download) cover N-10x more time at the cost of run-phase resolution.
+  @$pb.TagNumber(5)
+  $core.int get minIntervalMs => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set minIntervalMs($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasMinIntervalMs() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearMinIntervalMs() => $_clearField(5);
 }
 
 class ResponseSlideDiagStart extends $pb.GeneratedMessage {
@@ -4847,6 +4897,7 @@ class ResponseSlideDiagStart extends $pb.GeneratedMessage {
     $core.int? formatVersion,
     $core.int? seq,
     $core.int? fieldMask,
+    $core.int? minIntervalMs,
   }) {
     final result = create();
     if (capacityRecords != null) result.capacityRecords = capacityRecords;
@@ -4854,6 +4905,7 @@ class ResponseSlideDiagStart extends $pb.GeneratedMessage {
     if (formatVersion != null) result.formatVersion = formatVersion;
     if (seq != null) result.seq = seq;
     if (fieldMask != null) result.fieldMask = fieldMask;
+    if (minIntervalMs != null) result.minIntervalMs = minIntervalMs;
     return result;
   }
 
@@ -4877,6 +4929,8 @@ class ResponseSlideDiagStart extends $pb.GeneratedMessage {
         fieldType: $pb.PbFieldType.OU3)
     ..aI(4, _omitFieldNames ? '' : 'seq', fieldType: $pb.PbFieldType.OU3)
     ..aI(5, _omitFieldNames ? '' : 'fieldMask', fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'minIntervalMs',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4943,6 +4997,15 @@ class ResponseSlideDiagStart extends $pb.GeneratedMessage {
   $core.bool hasFieldMask() => $_has(4);
   @$pb.TagNumber(5)
   void clearFieldMask() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get minIntervalMs => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set minIntervalMs($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasMinIntervalMs() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearMinIntervalMs() => $_clearField(6);
 }
 
 /// 845
@@ -5016,6 +5079,8 @@ class ResponseSlideDiagStatus extends $pb.GeneratedMessage {
     $core.int? totalRecords,
     $core.int? seq,
     $core.int? fieldMask,
+    $core.int? minIntervalMs,
+    $core.int? droppedRecords,
   }) {
     final result = create();
     if (state != null) result.state = state;
@@ -5029,6 +5094,8 @@ class ResponseSlideDiagStatus extends $pb.GeneratedMessage {
     if (totalRecords != null) result.totalRecords = totalRecords;
     if (seq != null) result.seq = seq;
     if (fieldMask != null) result.fieldMask = fieldMask;
+    if (minIntervalMs != null) result.minIntervalMs = minIntervalMs;
+    if (droppedRecords != null) result.droppedRecords = droppedRecords;
     return result;
   }
 
@@ -5061,6 +5128,10 @@ class ResponseSlideDiagStatus extends $pb.GeneratedMessage {
         fieldType: $pb.PbFieldType.OU3)
     ..aI(10, _omitFieldNames ? '' : 'seq', fieldType: $pb.PbFieldType.OU3)
     ..aI(11, _omitFieldNames ? '' : 'fieldMask', fieldType: $pb.PbFieldType.OU3)
+    ..aI(12, _omitFieldNames ? '' : 'minIntervalMs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(13, _omitFieldNames ? '' : 'droppedRecords',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5181,6 +5252,24 @@ class ResponseSlideDiagStatus extends $pb.GeneratedMessage {
   $core.bool hasFieldMask() => $_has(10);
   @$pb.TagNumber(11)
   void clearFieldMask() => $_clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.int get minIntervalMs => $_getIZ(11);
+  @$pb.TagNumber(12)
+  set minIntervalMs($core.int value) => $_setUnsignedInt32(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasMinIntervalMs() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearMinIntervalMs() => $_clearField(12);
+
+  @$pb.TagNumber(13)
+  $core.int get droppedRecords => $_getIZ(12);
+  @$pb.TagNumber(13)
+  set droppedRecords($core.int value) => $_setUnsignedInt32(12, value);
+  @$pb.TagNumber(13)
+  $core.bool hasDroppedRecords() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearDroppedRecords() => $_clearField(13);
 }
 
 /// 846 - Chronological ranged read of a FROZEN capture (SlideDiagStop first;
@@ -9601,19 +9690,11 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
     $core.double? feedforwardOffset,
     $core.double? trimLimit,
     $core.double? overspeedMargin,
-    $core.double? overspeedOutputBrake,
-    $core.double? overspeedTrimBrake,
     $core.double? errorDeadband,
     $core.double? derivativeAlpha,
-    $core.double? targetKickGain,
-    $core.double? targetKickDecay,
-    $core.double? antiWindup,
-    $core.double? outputRiseRate,
-    $core.double? outputFallRate,
     $core.double? turnBrakeScale,
     $core.double? turnMinPower,
     $core.double? turnPowerScale,
-    $core.double? turnSoftStartScale,
     $core.double? turnReversePower,
     $core.double? turnReverseSpeedThreshold,
     $core.double? turnReverseMinMs,
@@ -9621,8 +9702,6 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
     $core.double? turnReverseBacktrackMm,
     $core.double? turnPostReverseBrakeMs,
     $core.bool? modified,
-    $core.double? feedforwardGainBack,
-    $core.double? feedforwardOffsetBack,
     $core.double? turnPowerScaleBack,
     $core.double? backlashMm,
     $core.double? backlashPower,
@@ -9630,8 +9709,13 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
     ResponseSettingsRegulatorGet? defaults,
     RegulatorEffective? effective,
     $core.int? trimHandover,
-    $core.double? trimSpeedScale,
     $core.double? trimNegLimit,
+    $core.double? feedforwardGainDelta,
+    $core.double? feedforwardOffsetDelta,
+    $core.double? overspeedGain,
+    $core.double? underspeedMargin,
+    $core.double? underspeedGain,
+    $core.double? turnFadeMs,
   }) {
     final result = create();
     if (profileId != null) result.profileId = profileId;
@@ -9643,22 +9727,11 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
     if (feedforwardOffset != null) result.feedforwardOffset = feedforwardOffset;
     if (trimLimit != null) result.trimLimit = trimLimit;
     if (overspeedMargin != null) result.overspeedMargin = overspeedMargin;
-    if (overspeedOutputBrake != null)
-      result.overspeedOutputBrake = overspeedOutputBrake;
-    if (overspeedTrimBrake != null)
-      result.overspeedTrimBrake = overspeedTrimBrake;
     if (errorDeadband != null) result.errorDeadband = errorDeadband;
     if (derivativeAlpha != null) result.derivativeAlpha = derivativeAlpha;
-    if (targetKickGain != null) result.targetKickGain = targetKickGain;
-    if (targetKickDecay != null) result.targetKickDecay = targetKickDecay;
-    if (antiWindup != null) result.antiWindup = antiWindup;
-    if (outputRiseRate != null) result.outputRiseRate = outputRiseRate;
-    if (outputFallRate != null) result.outputFallRate = outputFallRate;
     if (turnBrakeScale != null) result.turnBrakeScale = turnBrakeScale;
     if (turnMinPower != null) result.turnMinPower = turnMinPower;
     if (turnPowerScale != null) result.turnPowerScale = turnPowerScale;
-    if (turnSoftStartScale != null)
-      result.turnSoftStartScale = turnSoftStartScale;
     if (turnReversePower != null) result.turnReversePower = turnReversePower;
     if (turnReverseSpeedThreshold != null)
       result.turnReverseSpeedThreshold = turnReverseSpeedThreshold;
@@ -9670,10 +9743,6 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
     if (turnPostReverseBrakeMs != null)
       result.turnPostReverseBrakeMs = turnPostReverseBrakeMs;
     if (modified != null) result.modified = modified;
-    if (feedforwardGainBack != null)
-      result.feedforwardGainBack = feedforwardGainBack;
-    if (feedforwardOffsetBack != null)
-      result.feedforwardOffsetBack = feedforwardOffsetBack;
     if (turnPowerScaleBack != null)
       result.turnPowerScaleBack = turnPowerScaleBack;
     if (backlashMm != null) result.backlashMm = backlashMm;
@@ -9682,8 +9751,15 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
     if (defaults != null) result.defaults = defaults;
     if (effective != null) result.effective = effective;
     if (trimHandover != null) result.trimHandover = trimHandover;
-    if (trimSpeedScale != null) result.trimSpeedScale = trimSpeedScale;
     if (trimNegLimit != null) result.trimNegLimit = trimNegLimit;
+    if (feedforwardGainDelta != null)
+      result.feedforwardGainDelta = feedforwardGainDelta;
+    if (feedforwardOffsetDelta != null)
+      result.feedforwardOffsetDelta = feedforwardOffsetDelta;
+    if (overspeedGain != null) result.overspeedGain = overspeedGain;
+    if (underspeedMargin != null) result.underspeedMargin = underspeedMargin;
+    if (underspeedGain != null) result.underspeedGain = underspeedGain;
+    if (turnFadeMs != null) result.turnFadeMs = turnFadeMs;
     return result;
   }
 
@@ -9712,30 +9788,15 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
     ..aD(8, _omitFieldNames ? '' : 'trimLimit', fieldType: $pb.PbFieldType.OF)
     ..aD(9, _omitFieldNames ? '' : 'overspeedMargin',
         fieldType: $pb.PbFieldType.OF)
-    ..aD(10, _omitFieldNames ? '' : 'overspeedOutputBrake',
-        fieldType: $pb.PbFieldType.OF)
-    ..aD(11, _omitFieldNames ? '' : 'overspeedTrimBrake',
-        fieldType: $pb.PbFieldType.OF)
     ..aD(12, _omitFieldNames ? '' : 'errorDeadband',
         fieldType: $pb.PbFieldType.OF)
     ..aD(13, _omitFieldNames ? '' : 'derivativeAlpha',
-        fieldType: $pb.PbFieldType.OF)
-    ..aD(14, _omitFieldNames ? '' : 'targetKickGain',
-        fieldType: $pb.PbFieldType.OF)
-    ..aD(15, _omitFieldNames ? '' : 'targetKickDecay',
-        fieldType: $pb.PbFieldType.OF)
-    ..aD(16, _omitFieldNames ? '' : 'antiWindup', fieldType: $pb.PbFieldType.OF)
-    ..aD(17, _omitFieldNames ? '' : 'outputRiseRate',
-        fieldType: $pb.PbFieldType.OF)
-    ..aD(18, _omitFieldNames ? '' : 'outputFallRate',
         fieldType: $pb.PbFieldType.OF)
     ..aD(19, _omitFieldNames ? '' : 'turnBrakeScale',
         fieldType: $pb.PbFieldType.OF)
     ..aD(20, _omitFieldNames ? '' : 'turnMinPower',
         fieldType: $pb.PbFieldType.OF)
     ..aD(21, _omitFieldNames ? '' : 'turnPowerScale',
-        fieldType: $pb.PbFieldType.OF)
-    ..aD(22, _omitFieldNames ? '' : 'turnSoftStartScale',
         fieldType: $pb.PbFieldType.OF)
     ..aD(23, _omitFieldNames ? '' : 'turnReversePower',
         fieldType: $pb.PbFieldType.OF)
@@ -9750,10 +9811,6 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
     ..aD(28, _omitFieldNames ? '' : 'turnPostReverseBrakeMs',
         fieldType: $pb.PbFieldType.OF)
     ..aOB(29, _omitFieldNames ? '' : 'modified')
-    ..aD(30, _omitFieldNames ? '' : 'feedforwardGainBack',
-        fieldType: $pb.PbFieldType.OF)
-    ..aD(31, _omitFieldNames ? '' : 'feedforwardOffsetBack',
-        fieldType: $pb.PbFieldType.OF)
     ..aD(32, _omitFieldNames ? '' : 'turnPowerScaleBack',
         fieldType: $pb.PbFieldType.OF)
     ..aD(33, _omitFieldNames ? '' : 'backlashMm', fieldType: $pb.PbFieldType.OF)
@@ -9767,10 +9824,19 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
         subBuilder: RegulatorEffective.create)
     ..aI(38, _omitFieldNames ? '' : 'trimHandover',
         fieldType: $pb.PbFieldType.OU3)
-    ..aD(39, _omitFieldNames ? '' : 'trimSpeedScale',
-        fieldType: $pb.PbFieldType.OF)
     ..aD(40, _omitFieldNames ? '' : 'trimNegLimit',
         fieldType: $pb.PbFieldType.OF)
+    ..aD(41, _omitFieldNames ? '' : 'feedforwardGainDelta',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(42, _omitFieldNames ? '' : 'feedforwardOffsetDelta',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(43, _omitFieldNames ? '' : 'overspeedGain',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(44, _omitFieldNames ? '' : 'underspeedMargin',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(45, _omitFieldNames ? '' : 'underspeedGain',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(46, _omitFieldNames ? '' : 'turnFadeMs', fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -9867,6 +9933,11 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   void clearTrimLimit() => $_clearField(8);
 
+  /// Speed correction pair (2026-09-15) - ONE UI card, two rows (overspeed / underspeed), each a
+  /// TRIGGER in mm/s beyond the target (0 = no dead zone) and a MULTIPLIER in output units per mm/s
+  /// beyond the trigger (0 = that side off). Overspeed pulls output (and bleeds trim); underspeed
+  /// adds output. Continuous at the trigger. Independent of the +180 hard stop (never disabled).
+  /// NB semantics change: before 2026-09-15 overspeed_margin 0 meant OFF; off is now overspeed_gain 0.
   @$pb.TagNumber(9)
   $core.double get overspeedMargin => $_getN(8);
   @$pb.TagNumber(9)
@@ -9876,174 +9947,102 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   void clearOverspeedMargin() => $_clearField(9);
 
-  @$pb.TagNumber(10)
-  $core.double get overspeedOutputBrake => $_getN(9);
-  @$pb.TagNumber(10)
-  set overspeedOutputBrake($core.double value) => $_setFloat(9, value);
-  @$pb.TagNumber(10)
-  $core.bool hasOverspeedOutputBrake() => $_has(9);
-  @$pb.TagNumber(10)
-  void clearOverspeedOutputBrake() => $_clearField(10);
-
-  @$pb.TagNumber(11)
-  $core.double get overspeedTrimBrake => $_getN(10);
-  @$pb.TagNumber(11)
-  set overspeedTrimBrake($core.double value) => $_setFloat(10, value);
-  @$pb.TagNumber(11)
-  $core.bool hasOverspeedTrimBrake() => $_has(10);
-  @$pb.TagNumber(11)
-  void clearOverspeedTrimBrake() => $_clearField(11);
-
   @$pb.TagNumber(12)
-  $core.double get errorDeadband => $_getN(11);
+  $core.double get errorDeadband => $_getN(9);
   @$pb.TagNumber(12)
-  set errorDeadband($core.double value) => $_setFloat(11, value);
+  set errorDeadband($core.double value) => $_setFloat(9, value);
   @$pb.TagNumber(12)
-  $core.bool hasErrorDeadband() => $_has(11);
+  $core.bool hasErrorDeadband() => $_has(9);
   @$pb.TagNumber(12)
   void clearErrorDeadband() => $_clearField(12);
 
   @$pb.TagNumber(13)
-  $core.double get derivativeAlpha => $_getN(12);
+  $core.double get derivativeAlpha => $_getN(10);
   @$pb.TagNumber(13)
-  set derivativeAlpha($core.double value) => $_setFloat(12, value);
+  set derivativeAlpha($core.double value) => $_setFloat(10, value);
   @$pb.TagNumber(13)
-  $core.bool hasDerivativeAlpha() => $_has(12);
+  $core.bool hasDerivativeAlpha() => $_has(10);
   @$pb.TagNumber(13)
   void clearDerivativeAlpha() => $_clearField(13);
 
-  @$pb.TagNumber(14)
-  $core.double get targetKickGain => $_getN(13);
-  @$pb.TagNumber(14)
-  set targetKickGain($core.double value) => $_setFloat(13, value);
-  @$pb.TagNumber(14)
-  $core.bool hasTargetKickGain() => $_has(13);
-  @$pb.TagNumber(14)
-  void clearTargetKickGain() => $_clearField(14);
-
-  @$pb.TagNumber(15)
-  $core.double get targetKickDecay => $_getN(14);
-  @$pb.TagNumber(15)
-  set targetKickDecay($core.double value) => $_setFloat(14, value);
-  @$pb.TagNumber(15)
-  $core.bool hasTargetKickDecay() => $_has(14);
-  @$pb.TagNumber(15)
-  void clearTargetKickDecay() => $_clearField(15);
-
-  @$pb.TagNumber(16)
-  $core.double get antiWindup => $_getN(15);
-  @$pb.TagNumber(16)
-  set antiWindup($core.double value) => $_setFloat(15, value);
-  @$pb.TagNumber(16)
-  $core.bool hasAntiWindup() => $_has(15);
-  @$pb.TagNumber(16)
-  void clearAntiWindup() => $_clearField(16);
-
-  @$pb.TagNumber(17)
-  $core.double get outputRiseRate => $_getN(16);
-  @$pb.TagNumber(17)
-  set outputRiseRate($core.double value) => $_setFloat(16, value);
-  @$pb.TagNumber(17)
-  $core.bool hasOutputRiseRate() => $_has(16);
-  @$pb.TagNumber(17)
-  void clearOutputRiseRate() => $_clearField(17);
-
-  @$pb.TagNumber(18)
-  $core.double get outputFallRate => $_getN(17);
-  @$pb.TagNumber(18)
-  set outputFallRate($core.double value) => $_setFloat(17, value);
-  @$pb.TagNumber(18)
-  $core.bool hasOutputFallRate() => $_has(17);
-  @$pb.TagNumber(18)
-  void clearOutputFallRate() => $_clearField(18);
-
   @$pb.TagNumber(19)
-  $core.double get turnBrakeScale => $_getN(18);
+  $core.double get turnBrakeScale => $_getN(11);
   @$pb.TagNumber(19)
-  set turnBrakeScale($core.double value) => $_setFloat(18, value);
+  set turnBrakeScale($core.double value) => $_setFloat(11, value);
   @$pb.TagNumber(19)
-  $core.bool hasTurnBrakeScale() => $_has(18);
+  $core.bool hasTurnBrakeScale() => $_has(11);
   @$pb.TagNumber(19)
   void clearTurnBrakeScale() => $_clearField(19);
 
   @$pb.TagNumber(20)
-  $core.double get turnMinPower => $_getN(19);
+  $core.double get turnMinPower => $_getN(12);
   @$pb.TagNumber(20)
-  set turnMinPower($core.double value) => $_setFloat(19, value);
+  set turnMinPower($core.double value) => $_setFloat(12, value);
   @$pb.TagNumber(20)
-  $core.bool hasTurnMinPower() => $_has(19);
+  $core.bool hasTurnMinPower() => $_has(12);
   @$pb.TagNumber(20)
   void clearTurnMinPower() => $_clearField(20);
 
   @$pb.TagNumber(21)
-  $core.double get turnPowerScale => $_getN(20);
+  $core.double get turnPowerScale => $_getN(13);
   @$pb.TagNumber(21)
-  set turnPowerScale($core.double value) => $_setFloat(20, value);
+  set turnPowerScale($core.double value) => $_setFloat(13, value);
   @$pb.TagNumber(21)
-  $core.bool hasTurnPowerScale() => $_has(20);
+  $core.bool hasTurnPowerScale() => $_has(13);
   @$pb.TagNumber(21)
   void clearTurnPowerScale() => $_clearField(21);
 
-  @$pb.TagNumber(22)
-  $core.double get turnSoftStartScale => $_getN(21);
-  @$pb.TagNumber(22)
-  set turnSoftStartScale($core.double value) => $_setFloat(21, value);
-  @$pb.TagNumber(22)
-  $core.bool hasTurnSoftStartScale() => $_has(21);
-  @$pb.TagNumber(22)
-  void clearTurnSoftStartScale() => $_clearField(22);
-
   @$pb.TagNumber(23)
-  $core.double get turnReversePower => $_getN(22);
+  $core.double get turnReversePower => $_getN(14);
   @$pb.TagNumber(23)
-  set turnReversePower($core.double value) => $_setFloat(22, value);
+  set turnReversePower($core.double value) => $_setFloat(14, value);
   @$pb.TagNumber(23)
-  $core.bool hasTurnReversePower() => $_has(22);
+  $core.bool hasTurnReversePower() => $_has(14);
   @$pb.TagNumber(23)
   void clearTurnReversePower() => $_clearField(23);
 
   @$pb.TagNumber(24)
-  $core.double get turnReverseSpeedThreshold => $_getN(23);
+  $core.double get turnReverseSpeedThreshold => $_getN(15);
   @$pb.TagNumber(24)
-  set turnReverseSpeedThreshold($core.double value) => $_setFloat(23, value);
+  set turnReverseSpeedThreshold($core.double value) => $_setFloat(15, value);
   @$pb.TagNumber(24)
-  $core.bool hasTurnReverseSpeedThreshold() => $_has(23);
+  $core.bool hasTurnReverseSpeedThreshold() => $_has(15);
   @$pb.TagNumber(24)
   void clearTurnReverseSpeedThreshold() => $_clearField(24);
 
   @$pb.TagNumber(25)
-  $core.double get turnReverseMinMs => $_getN(24);
+  $core.double get turnReverseMinMs => $_getN(16);
   @$pb.TagNumber(25)
-  set turnReverseMinMs($core.double value) => $_setFloat(24, value);
+  set turnReverseMinMs($core.double value) => $_setFloat(16, value);
   @$pb.TagNumber(25)
-  $core.bool hasTurnReverseMinMs() => $_has(24);
+  $core.bool hasTurnReverseMinMs() => $_has(16);
   @$pb.TagNumber(25)
   void clearTurnReverseMinMs() => $_clearField(25);
 
   @$pb.TagNumber(26)
-  $core.double get turnReverseHardMaxMs => $_getN(25);
+  $core.double get turnReverseHardMaxMs => $_getN(17);
   @$pb.TagNumber(26)
-  set turnReverseHardMaxMs($core.double value) => $_setFloat(25, value);
+  set turnReverseHardMaxMs($core.double value) => $_setFloat(17, value);
   @$pb.TagNumber(26)
-  $core.bool hasTurnReverseHardMaxMs() => $_has(25);
+  $core.bool hasTurnReverseHardMaxMs() => $_has(17);
   @$pb.TagNumber(26)
   void clearTurnReverseHardMaxMs() => $_clearField(26);
 
   @$pb.TagNumber(27)
-  $core.double get turnReverseBacktrackMm => $_getN(26);
+  $core.double get turnReverseBacktrackMm => $_getN(18);
   @$pb.TagNumber(27)
-  set turnReverseBacktrackMm($core.double value) => $_setFloat(26, value);
+  set turnReverseBacktrackMm($core.double value) => $_setFloat(18, value);
   @$pb.TagNumber(27)
-  $core.bool hasTurnReverseBacktrackMm() => $_has(26);
+  $core.bool hasTurnReverseBacktrackMm() => $_has(18);
   @$pb.TagNumber(27)
   void clearTurnReverseBacktrackMm() => $_clearField(27);
 
   @$pb.TagNumber(28)
-  $core.double get turnPostReverseBrakeMs => $_getN(27);
+  $core.double get turnPostReverseBrakeMs => $_getN(19);
   @$pb.TagNumber(28)
-  set turnPostReverseBrakeMs($core.double value) => $_setFloat(27, value);
+  set turnPostReverseBrakeMs($core.double value) => $_setFloat(19, value);
   @$pb.TagNumber(28)
-  $core.bool hasTurnPostReverseBrakeMs() => $_has(27);
+  $core.bool hasTurnPostReverseBrakeMs() => $_has(19);
   @$pb.TagNumber(28)
   void clearTurnPostReverseBrakeMs() => $_clearField(28);
 
@@ -10053,68 +10052,49 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
   /// profile Apply; keep them with SlideProfileStore 854). Same value as
   /// SlideProfileGet.modified. Per-field comparison: `defaults` below.
   @$pb.TagNumber(29)
-  $core.bool get modified => $_getBF(28);
+  $core.bool get modified => $_getBF(20);
   @$pb.TagNumber(29)
-  set modified($core.bool value) => $_setBool(28, value);
+  set modified($core.bool value) => $_setBool(20, value);
   @$pb.TagNumber(29)
-  $core.bool hasModified() => $_has(28);
+  $core.bool hasModified() => $_has(20);
   @$pb.TagNumber(29)
   void clearModified() => $_clearField(29);
 
-  /// Per-direction feedforward for the asymmetric drive train (BACKWARD = assisted direction)
-  @$pb.TagNumber(30)
-  $core.double get feedforwardGainBack => $_getN(29);
-  @$pb.TagNumber(30)
-  set feedforwardGainBack($core.double value) => $_setFloat(29, value);
-  @$pb.TagNumber(30)
-  $core.bool hasFeedforwardGainBack() => $_has(29);
-  @$pb.TagNumber(30)
-  void clearFeedforwardGainBack() => $_clearField(30);
-
-  @$pb.TagNumber(31)
-  $core.double get feedforwardOffsetBack => $_getN(30);
-  @$pb.TagNumber(31)
-  set feedforwardOffsetBack($core.double value) => $_setFloat(30, value);
-  @$pb.TagNumber(31)
-  $core.bool hasFeedforwardOffsetBack() => $_has(30);
-  @$pb.TagNumber(31)
-  void clearFeedforwardOffsetBack() => $_clearField(31);
-
   @$pb.TagNumber(32)
-  $core.double get turnPowerScaleBack => $_getN(31);
+  $core.double get turnPowerScaleBack => $_getN(21);
   @$pb.TagNumber(32)
-  set turnPowerScaleBack($core.double value) => $_setFloat(31, value);
+  set turnPowerScaleBack($core.double value) => $_setFloat(21, value);
   @$pb.TagNumber(32)
-  $core.bool hasTurnPowerScaleBack() => $_has(31);
+  $core.bool hasTurnPowerScaleBack() => $_has(21);
   @$pb.TagNumber(32)
   void clearTurnPowerScaleBack() => $_clearField(32);
 
   /// Backlash take-up stage: after the turn brake, creep at backlash_power until
   /// backlash_mm of motor rotation (or backlash_max_ms), then launch. 0 mm = off.
   @$pb.TagNumber(33)
-  $core.double get backlashMm => $_getN(32);
+  $core.double get backlashMm => $_getN(22);
   @$pb.TagNumber(33)
-  set backlashMm($core.double value) => $_setFloat(32, value);
+  set backlashMm($core.double value) => $_setFloat(22, value);
   @$pb.TagNumber(33)
-  $core.bool hasBacklashMm() => $_has(32);
+  $core.bool hasBacklashMm() => $_has(22);
   @$pb.TagNumber(33)
   void clearBacklashMm() => $_clearField(33);
 
   @$pb.TagNumber(34)
-  $core.double get backlashPower => $_getN(33);
+  $core.double get backlashPower => $_getN(23);
   @$pb.TagNumber(34)
-  set backlashPower($core.double value) => $_setFloat(33, value);
+  set backlashPower($core.double value) => $_setFloat(23, value);
   @$pb.TagNumber(34)
-  $core.bool hasBacklashPower() => $_has(33);
+  $core.bool hasBacklashPower() => $_has(23);
   @$pb.TagNumber(34)
   void clearBacklashPower() => $_clearField(34);
 
   @$pb.TagNumber(35)
-  $core.double get backlashMaxMs => $_getN(34);
+  $core.double get backlashMaxMs => $_getN(24);
   @$pb.TagNumber(35)
-  set backlashMaxMs($core.double value) => $_setFloat(34, value);
+  set backlashMaxMs($core.double value) => $_setFloat(24, value);
   @$pb.TagNumber(35)
-  $core.bool hasBacklashMaxMs() => $_has(34);
+  $core.bool hasBacklashMaxMs() => $_has(24);
   @$pb.TagNumber(35)
   void clearBacklashMaxMs() => $_clearField(35);
 
@@ -10128,61 +10108,49 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
   /// setters accept 0 as a LITERAL value (off where meaningful) - 0 no
   /// longer means "reset to default"; this field replaces that mechanism.
   @$pb.TagNumber(36)
-  ResponseSettingsRegulatorGet get defaults => $_getN(35);
+  ResponseSettingsRegulatorGet get defaults => $_getN(25);
   @$pb.TagNumber(36)
   set defaults(ResponseSettingsRegulatorGet value) => $_setField(36, value);
   @$pb.TagNumber(36)
-  $core.bool hasDefaults() => $_has(35);
+  $core.bool hasDefaults() => $_has(25);
   @$pb.TagNumber(36)
   void clearDefaults() => $_clearField(36);
   @$pb.TagNumber(36)
-  ResponseSettingsRegulatorGet ensureDefaults() => $_ensure(35);
+  ResponseSettingsRegulatorGet ensureDefaults() => $_ensure(25);
 
   /// Read-only DERIVED values the control loop actually uses - the ceilings and compiled
   /// constants behind the tunables, resolved for this unit (OC raises x_max_speed and with it
   /// the trim ceiling). Show these next to the tunables; they are not settable through
   /// SettingsRegulatorSet. Not populated inside `defaults`. Added in FW4.4
   @$pb.TagNumber(37)
-  RegulatorEffective get effective => $_getN(36);
+  RegulatorEffective get effective => $_getN(26);
   @$pb.TagNumber(37)
   set effective(RegulatorEffective value) => $_setField(37, value);
   @$pb.TagNumber(37)
-  $core.bool hasEffective() => $_has(36);
+  $core.bool hasEffective() => $_has(26);
   @$pb.TagNumber(37)
   void clearEffective() => $_clearField(37);
   @$pb.TagNumber(37)
-  RegulatorEffective ensureEffective() => $_ensure(36);
+  RegulatorEffective ensureEffective() => $_ensure(26);
 
   /// Trim handover (FW4.4, settled 2026-09-07). The integral trim is what the SINGLE
   /// feedforward line does not capture (gravity, load, unit variation). trim_handover 0 =
-  /// every launch into a direction starts from ZERO trim (legacy default); 1 = per-direction
+  /// every launch into a direction starts from ZERO trim (legacy); 1 (DEFAULT since 2026-09-10) = per-direction
   /// BANK: the trim a direction has when it ENDS (reversal or stop) is stored as it is (RAM
   /// only, cleared on any tuning or profile change) and restored at the next launch into that
   /// direction - so a loaded unit is not behind after every reversal, and a loop that cannot
   /// converge inside one stroke keeps accumulating across strokes instead of restarting from
   /// zero. No convergence gate or confidence ramp (removed 2026-09-08). Never carried across
   /// directions. effective.trim_bank_*_confidence is 0 until the direction has run once, then 1.
-  /// trim_speed_scale is a CONFIGURABLE slope in OUTPUT UNITS PER mm/s (0-3), applied
-  /// +forward / -backward against the single line: at a launch trim = bank + s*a*(v - v_ref);
-  /// on a same-direction target change trim += s*a*(v2 - v1). 0 = offset bank only. The
-  /// measured up/down gain asymmetry on the loaded rig was ~0.46. Expert fields.
+  /// Expert field.
   @$pb.TagNumber(38)
-  $core.int get trimHandover => $_getIZ(37);
+  $core.int get trimHandover => $_getIZ(27);
   @$pb.TagNumber(38)
-  set trimHandover($core.int value) => $_setUnsignedInt32(37, value);
+  set trimHandover($core.int value) => $_setUnsignedInt32(27, value);
   @$pb.TagNumber(38)
-  $core.bool hasTrimHandover() => $_has(37);
+  $core.bool hasTrimHandover() => $_has(27);
   @$pb.TagNumber(38)
   void clearTrimHandover() => $_clearField(38);
-
-  @$pb.TagNumber(39)
-  $core.double get trimSpeedScale => $_getN(38);
-  @$pb.TagNumber(39)
-  set trimSpeedScale($core.double value) => $_setFloat(38, value);
-  @$pb.TagNumber(39)
-  $core.bool hasTrimSpeedScale() => $_has(38);
-  @$pb.TagNumber(39)
-  void clearTrimSpeedScale() => $_clearField(39);
 
   /// The trim FLOOR in output units, a NEGATIVE number (default -150) so it reads as the bound
   /// it is. Positive trim may reach trim_limit x x_max_speed (see effective.trim_limit_output);
@@ -10191,13 +10159,74 @@ class ResponseSettingsRegulatorGet extends $pb.GeneratedMessage {
   /// stored negative; 0 = legacy symmetric clamp. Expert field. Draw both bounds on the trim
   /// trace: [effective.trim_neg_limit_output, effective.trim_limit_output].
   @$pb.TagNumber(40)
-  $core.double get trimNegLimit => $_getN(39);
+  $core.double get trimNegLimit => $_getN(28);
   @$pb.TagNumber(40)
-  set trimNegLimit($core.double value) => $_setFloat(39, value);
+  set trimNegLimit($core.double value) => $_setFloat(28, value);
   @$pb.TagNumber(40)
-  $core.bool hasTrimNegLimit() => $_has(39);
+  $core.bool hasTrimNegLimit() => $_has(28);
   @$pb.TagNumber(40)
   void clearTrimNegLimit() => $_clearField(40);
+
+  /// Per-direction feedforward as a SYMMETRIC DELTA around the single line (2026-09-10, replaces
+  /// the back twins 30/31): forward = feedforward_gain + delta, backward = feedforward_gain - delta,
+  /// offset likewise. 0/0 = both directions identical (every built-in profile); positive = the
+  /// forward direction needs more (gravity on an upright unit). EXPERT fields - but the UI should
+  /// still SHOW the resolved forward/backward lines whenever a delta is non-zero, even with the
+  /// expert group hidden: read them from effective.feedforward_*_forward/backward (23-26).
+  /// Clamped on the device: |gain delta| <= feedforward_gain, |offset delta| <= 500.
+  @$pb.TagNumber(41)
+  $core.double get feedforwardGainDelta => $_getN(29);
+  @$pb.TagNumber(41)
+  set feedforwardGainDelta($core.double value) => $_setFloat(29, value);
+  @$pb.TagNumber(41)
+  $core.bool hasFeedforwardGainDelta() => $_has(29);
+  @$pb.TagNumber(41)
+  void clearFeedforwardGainDelta() => $_clearField(41);
+
+  @$pb.TagNumber(42)
+  $core.double get feedforwardOffsetDelta => $_getN(30);
+  @$pb.TagNumber(42)
+  set feedforwardOffsetDelta($core.double value) => $_setFloat(30, value);
+  @$pb.TagNumber(42)
+  $core.bool hasFeedforwardOffsetDelta() => $_has(30);
+  @$pb.TagNumber(42)
+  void clearFeedforwardOffsetDelta() => $_clearField(42);
+
+  @$pb.TagNumber(43)
+  $core.double get overspeedGain => $_getN(31);
+  @$pb.TagNumber(43)
+  set overspeedGain($core.double value) => $_setFloat(31, value);
+  @$pb.TagNumber(43)
+  $core.bool hasOverspeedGain() => $_has(31);
+  @$pb.TagNumber(43)
+  void clearOverspeedGain() => $_clearField(43);
+
+  @$pb.TagNumber(44)
+  $core.double get underspeedMargin => $_getN(32);
+  @$pb.TagNumber(44)
+  set underspeedMargin($core.double value) => $_setFloat(32, value);
+  @$pb.TagNumber(44)
+  $core.bool hasUnderspeedMargin() => $_has(32);
+  @$pb.TagNumber(44)
+  void clearUnderspeedMargin() => $_clearField(44);
+
+  @$pb.TagNumber(45)
+  $core.double get underspeedGain => $_getN(33);
+  @$pb.TagNumber(45)
+  set underspeedGain($core.double value) => $_setFloat(33, value);
+  @$pb.TagNumber(45)
+  $core.bool hasUnderspeedGain() => $_has(33);
+  @$pb.TagNumber(45)
+  void clearUnderspeedGain() => $_clearField(45);
+
+  @$pb.TagNumber(46)
+  $core.double get turnFadeMs => $_getN(34);
+  @$pb.TagNumber(46)
+  set turnFadeMs($core.double value) => $_setFloat(34, value);
+  @$pb.TagNumber(46)
+  $core.bool hasTurnFadeMs() => $_has(34);
+  @$pb.TagNumber(46)
+  void clearTurnFadeMs() => $_clearField(46);
 }
 
 class RegulatorEffective extends $pb.GeneratedMessage {
@@ -10218,12 +10247,14 @@ class RegulatorEffective extends $pb.GeneratedMessage {
     $core.int? turnStopMaxTimeMs,
     $core.int? turnStopSpeedThreshold,
     $core.double? trimBankForward,
-    $core.double? trimBankForwardSpeed,
     $core.double? trimBankForwardConfidence,
     $core.double? trimBankBackward,
-    $core.double? trimBankBackwardSpeed,
     $core.double? trimBankBackwardConfidence,
     $core.double? trimNegLimitOutput,
+    $core.double? feedforwardGainForward,
+    $core.double? feedforwardOffsetForward,
+    $core.double? feedforwardGainBackward,
+    $core.double? feedforwardOffsetBackward,
   }) {
     final result = create();
     if (trimLimitOutput != null) result.trimLimitOutput = trimLimitOutput;
@@ -10249,17 +10280,21 @@ class RegulatorEffective extends $pb.GeneratedMessage {
     if (turnStopSpeedThreshold != null)
       result.turnStopSpeedThreshold = turnStopSpeedThreshold;
     if (trimBankForward != null) result.trimBankForward = trimBankForward;
-    if (trimBankForwardSpeed != null)
-      result.trimBankForwardSpeed = trimBankForwardSpeed;
     if (trimBankForwardConfidence != null)
       result.trimBankForwardConfidence = trimBankForwardConfidence;
     if (trimBankBackward != null) result.trimBankBackward = trimBankBackward;
-    if (trimBankBackwardSpeed != null)
-      result.trimBankBackwardSpeed = trimBankBackwardSpeed;
     if (trimBankBackwardConfidence != null)
       result.trimBankBackwardConfidence = trimBankBackwardConfidence;
     if (trimNegLimitOutput != null)
       result.trimNegLimitOutput = trimNegLimitOutput;
+    if (feedforwardGainForward != null)
+      result.feedforwardGainForward = feedforwardGainForward;
+    if (feedforwardOffsetForward != null)
+      result.feedforwardOffsetForward = feedforwardOffsetForward;
+    if (feedforwardGainBackward != null)
+      result.feedforwardGainBackward = feedforwardGainBackward;
+    if (feedforwardOffsetBackward != null)
+      result.feedforwardOffsetBackward = feedforwardOffsetBackward;
     return result;
   }
 
@@ -10305,17 +10340,21 @@ class RegulatorEffective extends $pb.GeneratedMessage {
         fieldType: $pb.PbFieldType.OU3)
     ..aD(16, _omitFieldNames ? '' : 'trimBankForward',
         fieldType: $pb.PbFieldType.OF)
-    ..aD(17, _omitFieldNames ? '' : 'trimBankForwardSpeed',
-        fieldType: $pb.PbFieldType.OF)
     ..aD(18, _omitFieldNames ? '' : 'trimBankForwardConfidence',
         fieldType: $pb.PbFieldType.OF)
     ..aD(19, _omitFieldNames ? '' : 'trimBankBackward',
         fieldType: $pb.PbFieldType.OF)
-    ..aD(20, _omitFieldNames ? '' : 'trimBankBackwardSpeed',
-        fieldType: $pb.PbFieldType.OF)
     ..aD(21, _omitFieldNames ? '' : 'trimBankBackwardConfidence',
         fieldType: $pb.PbFieldType.OF)
     ..aD(22, _omitFieldNames ? '' : 'trimNegLimitOutput',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(23, _omitFieldNames ? '' : 'feedforwardGainForward',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(24, _omitFieldNames ? '' : 'feedforwardOffsetForward',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(25, _omitFieldNames ? '' : 'feedforwardGainBackward',
+        fieldType: $pb.PbFieldType.OF)
+    ..aD(26, _omitFieldNames ? '' : 'feedforwardOffsetBackward',
         fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
@@ -10487,59 +10526,80 @@ class RegulatorEffective extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   void clearTrimBankForward() => $_clearField(16);
 
-  @$pb.TagNumber(17)
-  $core.double get trimBankForwardSpeed => $_getN(16);
-  @$pb.TagNumber(17)
-  set trimBankForwardSpeed($core.double value) => $_setFloat(16, value);
-  @$pb.TagNumber(17)
-  $core.bool hasTrimBankForwardSpeed() => $_has(16);
-  @$pb.TagNumber(17)
-  void clearTrimBankForwardSpeed() => $_clearField(17);
-
   @$pb.TagNumber(18)
-  $core.double get trimBankForwardConfidence => $_getN(17);
+  $core.double get trimBankForwardConfidence => $_getN(16);
   @$pb.TagNumber(18)
-  set trimBankForwardConfidence($core.double value) => $_setFloat(17, value);
+  set trimBankForwardConfidence($core.double value) => $_setFloat(16, value);
   @$pb.TagNumber(18)
-  $core.bool hasTrimBankForwardConfidence() => $_has(17);
+  $core.bool hasTrimBankForwardConfidence() => $_has(16);
   @$pb.TagNumber(18)
   void clearTrimBankForwardConfidence() => $_clearField(18);
 
   @$pb.TagNumber(19)
-  $core.double get trimBankBackward => $_getN(18);
+  $core.double get trimBankBackward => $_getN(17);
   @$pb.TagNumber(19)
-  set trimBankBackward($core.double value) => $_setFloat(18, value);
+  set trimBankBackward($core.double value) => $_setFloat(17, value);
   @$pb.TagNumber(19)
-  $core.bool hasTrimBankBackward() => $_has(18);
+  $core.bool hasTrimBankBackward() => $_has(17);
   @$pb.TagNumber(19)
   void clearTrimBankBackward() => $_clearField(19);
 
-  @$pb.TagNumber(20)
-  $core.double get trimBankBackwardSpeed => $_getN(19);
-  @$pb.TagNumber(20)
-  set trimBankBackwardSpeed($core.double value) => $_setFloat(19, value);
-  @$pb.TagNumber(20)
-  $core.bool hasTrimBankBackwardSpeed() => $_has(19);
-  @$pb.TagNumber(20)
-  void clearTrimBankBackwardSpeed() => $_clearField(20);
-
   @$pb.TagNumber(21)
-  $core.double get trimBankBackwardConfidence => $_getN(20);
+  $core.double get trimBankBackwardConfidence => $_getN(18);
   @$pb.TagNumber(21)
-  set trimBankBackwardConfidence($core.double value) => $_setFloat(20, value);
+  set trimBankBackwardConfidence($core.double value) => $_setFloat(18, value);
   @$pb.TagNumber(21)
-  $core.bool hasTrimBankBackwardConfidence() => $_has(20);
+  $core.bool hasTrimBankBackwardConfidence() => $_has(18);
   @$pb.TagNumber(21)
   void clearTrimBankBackwardConfidence() => $_clearField(21);
 
   @$pb.TagNumber(22)
-  $core.double get trimNegLimitOutput => $_getN(21);
+  $core.double get trimNegLimitOutput => $_getN(19);
   @$pb.TagNumber(22)
-  set trimNegLimitOutput($core.double value) => $_setFloat(21, value);
+  set trimNegLimitOutput($core.double value) => $_setFloat(19, value);
   @$pb.TagNumber(22)
-  $core.bool hasTrimNegLimitOutput() => $_has(21);
+  $core.bool hasTrimNegLimitOutput() => $_has(19);
   @$pb.TagNumber(22)
   void clearTrimNegLimitOutput() => $_clearField(22);
+
+  /// The RESOLVED per-direction feedforward lines (base +- delta, 2026-09-10). Show these as
+  /// "forward: gain x v + offset / backward: ..." whenever feedforward_gain_delta or
+  /// feedforward_offset_delta is non-zero, even when the expert delta fields themselves are hidden.
+  @$pb.TagNumber(23)
+  $core.double get feedforwardGainForward => $_getN(20);
+  @$pb.TagNumber(23)
+  set feedforwardGainForward($core.double value) => $_setFloat(20, value);
+  @$pb.TagNumber(23)
+  $core.bool hasFeedforwardGainForward() => $_has(20);
+  @$pb.TagNumber(23)
+  void clearFeedforwardGainForward() => $_clearField(23);
+
+  @$pb.TagNumber(24)
+  $core.double get feedforwardOffsetForward => $_getN(21);
+  @$pb.TagNumber(24)
+  set feedforwardOffsetForward($core.double value) => $_setFloat(21, value);
+  @$pb.TagNumber(24)
+  $core.bool hasFeedforwardOffsetForward() => $_has(21);
+  @$pb.TagNumber(24)
+  void clearFeedforwardOffsetForward() => $_clearField(24);
+
+  @$pb.TagNumber(25)
+  $core.double get feedforwardGainBackward => $_getN(22);
+  @$pb.TagNumber(25)
+  set feedforwardGainBackward($core.double value) => $_setFloat(22, value);
+  @$pb.TagNumber(25)
+  $core.bool hasFeedforwardGainBackward() => $_has(22);
+  @$pb.TagNumber(25)
+  void clearFeedforwardGainBackward() => $_clearField(25);
+
+  @$pb.TagNumber(26)
+  $core.double get feedforwardOffsetBackward => $_getN(23);
+  @$pb.TagNumber(26)
+  set feedforwardOffsetBackward($core.double value) => $_setFloat(23, value);
+  @$pb.TagNumber(26)
+  $core.bool hasFeedforwardOffsetBackward() => $_has(23);
+  @$pb.TagNumber(26)
+  void clearFeedforwardOffsetBackward() => $_clearField(26);
 }
 
 /// 2017 - Hall sensor / speed-estimate tuning. Same semantics as the

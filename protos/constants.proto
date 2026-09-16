@@ -1,4 +1,4 @@
-// Auto-generated on 2026-09-09 15:54:00
+// Auto-generated on 2026-09-16 11:04:00
 syntax = "proto3";
 package hdy_rpc;
 //NB! The codes are not in order, but in groups
@@ -393,6 +393,7 @@ enum BatteryDriver{
     BATTERY_DRIVER_NOT_SET = 0;
     BATTERY_DRIVER_OH = 1; //Oh
     BATTERY_DRIVER_H2 = 2; //Handy 2
+    BATTERY_DRIVER_H21 = 3; //Handy 2.1 - same pack and battery semantics as H2, different charger IC (SC8886S on I2C: charge state, faults and charge/discharge current come from registers). NB! Clients older than FW4.4 saw 2.1 report BATTERY_DRIVER_H2. - Added in FW4.4
 }
 //The SERVER's verdict on the device's firmware: what the device reports,
 //compared against the release this server would serve. The device itself can
@@ -405,6 +406,26 @@ enum FirmwareStatus{
     FIRMWARE_STATUS_UP_TO_DATE = 0;
     FIRMWARE_STATUS_UPDATE_AVAILABLE = 1;
     FIRMWARE_STATUS_UPDATE_REQUIRED = 2;
+}
+//The server's view of an ATTACHED device: who it is, and what the server makes
+//of its firmware. Rides on presence (NotificationConnectedChanged 300) so a
+//client learns identity the moment the device attaches, instead of round-tripping
+//RequestPublicInfoGet (718) to a device that may be asleep, busy or mid-reboot.
+//Fields mirror the online API's DeviceInfo one-for-one, so the socket and the
+//SSE stream describe the same device in the same words.
+//SERVER-filled - never emitted by FW. Added in FW4.4
+message ConnectedDeviceInfo{
+    uint32 hw_model_number = 1; //Same value as ResponsePublicInfoGet.hw_model_number
+    uint32 hw_model_variant_number = 2; //Same value as ResponsePublicInfoGet.hw_model_variant_number
+    string fw_version = 3; //[char[32]] Same value as ResponsePublicInfoGet.fw_version
+    string fw_feature_flags = 4; //Same value as ResponsePublicInfoGet.fw_feature_flags
+    //The server's firmware verdict - the same fact as ResponseFwStatusGet (304).
+    //NB! FirmwareStatus has no "unknown" member and 0 is a real verdict
+    //(UP_TO_DATE), so a defaulted fw_status reads as a clean bill of health.
+    //has_fw_status is the ONLY honest way to say "the server did not judge".
+    bool has_fw_status = 5;
+    FirmwareStatus fw_status = 6;
+    string latest_version = 7; //[char[32]] The release the server would serve; empty when it does not say
 }
 message BatteryState{
     uint32 level = 1; //0-100
@@ -472,7 +493,7 @@ enum SlideProfile{
     SLIDE_PROFILE_SPORT = 2;
     SLIDE_PROFILE_ACCURACY = 3; //DEPRECATED since FW4.4 (2026-09-03): merged into SPORT. Set with it applies SPORT (never returned by Get)
     SLIDE_PROFILE_CUSTOM = 4; //DEPRECATED since FW4.4 - never returned or accepted; SlideProfileGet reports the SELECTED profile plus a `modified` flag instead
-    SLIDE_PROFILE_FLUID = 5; //FW3-like organic motion (ramped output, coast turns)
+    SLIDE_PROFILE_FLUID = 5; //FW3-like organic motion: soft slow loop and coasting turns (the output slew that ramped it was removed 2026-09-15)
     //User banks (FW4.4): store the live tuning with SlideProfileStore (854);
     //selecting a slot loads its saved values (an EMPTY slot behaves as
     //BALANCED). The curated profiles above are locked - slots are where user
@@ -482,6 +503,9 @@ enum SlideProfile{
     //Bare proportional controller (only kp; feedforward/trim/kick/deadband/
     //slew and the whole turn pipeline off) - a clean baseline to tune up
     //from. Locked curated profile, not a user slot. Added in FW4.4.
+    //RAW and PURE are BENCH BASELINES, not user profiles (2026-09-15): PURE cannot hold speed
+    //(98 of 278 mm/s at the fast tier, session AH) and RAW runs on kp alone. Keep them out of the
+    //profile picker; they stay on the wire for tuning tools.
     SLIDE_PROFILE_RAW = 8;
     //PURE: open loop as a PRESET of existing fields (feedforward_gain 1, offset 0,
     //every correction and turn stage 0) - target speed goes straight to the motor

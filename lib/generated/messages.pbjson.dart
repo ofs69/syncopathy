@@ -66,12 +66,14 @@ const ResponseConnectedGet$json = {
   '1': 'ResponseConnectedGet',
   '2': [
     {'1': 'connected', '3': 1, '4': 1, '5': 8, '10': 'connected'},
+    {'1': 'session_id', '3': 2, '4': 1, '5': 13, '10': 'sessionId'},
   ],
 };
 
 /// Descriptor for `ResponseConnectedGet`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List responseConnectedGetDescriptor = $convert.base64Decode(
-    'ChRSZXNwb25zZUNvbm5lY3RlZEdldBIcCgljb25uZWN0ZWQYASABKAhSCWNvbm5lY3RlZA==');
+    'ChRSZXNwb25zZUNvbm5lY3RlZEdldBIcCgljb25uZWN0ZWQYASABKAhSCWNvbm5lY3RlZBIdCg'
+    'pzZXNzaW9uX2lkGAIgASgNUglzZXNzaW9uSWQ=');
 
 @$core.Deprecated('Use requestFwStatusGetDescriptor instead')
 const RequestFwStatusGet$json = {
@@ -532,6 +534,13 @@ const ResponseCapabilitiesGet$json = {
       '5': 8,
       '10': 'usbVoltageMeasure'
     },
+    {
+      '1': 'battery_temperature_measure',
+      '3': 19,
+      '4': 1,
+      '5': 8,
+      '10': 'batteryTemperatureMeasure'
+    },
   ],
 };
 
@@ -548,7 +557,9 @@ final $typed_data.Uint8List responseCapabilitiesGetDescriptor = $convert.base64D
     'YXR0ZXJ5Q2FwYWNpdHkSPQoOYmF0dGVyeV9kcml2ZXIYDiABKA4yFi5oZHlfcnBjLkJhdHRlcn'
     'lEcml2ZXJSDWJhdHRlcnlEcml2ZXISFwoHYmxlX210dRgPIAEoDVIGYmxlTXR1EiQKDndzX2J1'
     'ZmZlcl9zaXplGBAgASgNUgx3c0J1ZmZlclNpemUSGAoHc2Vuc29ycxgRIAEoDVIHc2Vuc29ycx'
-    'IuChN1c2Jfdm9sdGFnZV9tZWFzdXJlGBIgASgIUhF1c2JWb2x0YWdlTWVhc3VyZQ==');
+    'IuChN1c2Jfdm9sdGFnZV9tZWFzdXJlGBIgASgIUhF1c2JWb2x0YWdlTWVhc3VyZRI+ChtiYXR0'
+    'ZXJ5X3RlbXBlcmF0dXJlX21lYXN1cmUYEyABKAhSGWJhdHRlcnlUZW1wZXJhdHVyZU1lYXN1cm'
+    'U=');
 
 @$core.Deprecated('Use requestSessionIdsGetDescriptor instead')
 const RequestSessionIdsGet$json = {
@@ -1197,6 +1208,7 @@ const RequestSlideDiagStart$json = {
     {'1': 'max_records', '3': 2, '4': 1, '5': 13, '10': 'maxRecords'},
     {'1': 'wrap', '3': 3, '4': 1, '5': 8, '10': 'wrap'},
     {'1': 'field_mask', '3': 4, '4': 1, '5': 13, '10': 'fieldMask'},
+    {'1': 'min_interval_ms', '3': 5, '4': 1, '5': 13, '10': 'minIntervalMs'},
   ],
 };
 
@@ -1204,7 +1216,8 @@ const RequestSlideDiagStart$json = {
 final $typed_data.Uint8List requestSlideDiagStartDescriptor = $convert.base64Decode(
     'ChVSZXF1ZXN0U2xpZGVEaWFnU3RhcnQSMwoHY2hhbm5lbBgBIAEoDjIZLmhkeV9ycGMuU2xpZG'
     'VEaWFnQ2hhbm5lbFIHY2hhbm5lbBIfCgttYXhfcmVjb3JkcxgCIAEoDVIKbWF4UmVjb3JkcxIS'
-    'CgR3cmFwGAMgASgIUgR3cmFwEh0KCmZpZWxkX21hc2sYBCABKA1SCWZpZWxkTWFzaw==');
+    'CgR3cmFwGAMgASgIUgR3cmFwEh0KCmZpZWxkX21hc2sYBCABKA1SCWZpZWxkTWFzaxImCg9taW'
+    '5faW50ZXJ2YWxfbXMYBSABKA1SDW1pbkludGVydmFsTXM=');
 
 @$core.Deprecated('Use responseSlideDiagStartDescriptor instead')
 const ResponseSlideDiagStart$json = {
@@ -1215,6 +1228,7 @@ const ResponseSlideDiagStart$json = {
     {'1': 'format_version', '3': 3, '4': 1, '5': 13, '10': 'formatVersion'},
     {'1': 'seq', '3': 4, '4': 1, '5': 13, '10': 'seq'},
     {'1': 'field_mask', '3': 5, '4': 1, '5': 13, '10': 'fieldMask'},
+    {'1': 'min_interval_ms', '3': 6, '4': 1, '5': 13, '10': 'minIntervalMs'},
   ],
 };
 
@@ -1223,7 +1237,8 @@ final $typed_data.Uint8List responseSlideDiagStartDescriptor = $convert.base64De
     'ChZSZXNwb25zZVNsaWRlRGlhZ1N0YXJ0EikKEGNhcGFjaXR5X3JlY29yZHMYASABKA1SD2NhcG'
     'FjaXR5UmVjb3JkcxIdCgplbnRyeV9zaXplGAIgASgNUgllbnRyeVNpemUSJQoOZm9ybWF0X3Zl'
     'cnNpb24YAyABKA1SDWZvcm1hdFZlcnNpb24SEAoDc2VxGAQgASgNUgNzZXESHQoKZmllbGRfbW'
-    'FzaxgFIAEoDVIJZmllbGRNYXNr');
+    'FzaxgFIAEoDVIJZmllbGRNYXNrEiYKD21pbl9pbnRlcnZhbF9tcxgGIAEoDVINbWluSW50ZXJ2'
+    'YWxNcw==');
 
 @$core.Deprecated('Use requestSlideDiagStatusDescriptor instead')
 const RequestSlideDiagStatus$json = {
@@ -1268,6 +1283,8 @@ const ResponseSlideDiagStatus$json = {
     {'1': 'total_records', '3': 9, '4': 1, '5': 13, '10': 'totalRecords'},
     {'1': 'seq', '3': 10, '4': 1, '5': 13, '10': 'seq'},
     {'1': 'field_mask', '3': 11, '4': 1, '5': 13, '10': 'fieldMask'},
+    {'1': 'min_interval_ms', '3': 12, '4': 1, '5': 13, '10': 'minIntervalMs'},
+    {'1': 'dropped_records', '3': 13, '4': 1, '5': 13, '10': 'droppedRecords'},
   ],
 };
 
@@ -1279,7 +1296,9 @@ final $typed_data.Uint8List responseSlideDiagStatusDescriptor = $convert.base64D
     'l6ZRIlCg5mb3JtYXRfdmVyc2lvbhgGIAEoDVINZm9ybWF0VmVyc2lvbhIpChBjYXBhY2l0eV9y'
     'ZWNvcmRzGAcgASgNUg9jYXBhY2l0eVJlY29yZHMSIQoMdXNlZF9yZWNvcmRzGAggASgNUgt1c2'
     'VkUmVjb3JkcxIjCg10b3RhbF9yZWNvcmRzGAkgASgNUgx0b3RhbFJlY29yZHMSEAoDc2VxGAog'
-    'ASgNUgNzZXESHQoKZmllbGRfbWFzaxgLIAEoDVIJZmllbGRNYXNr');
+    'ASgNUgNzZXESHQoKZmllbGRfbWFzaxgLIAEoDVIJZmllbGRNYXNrEiYKD21pbl9pbnRlcnZhbF'
+    '9tcxgMIAEoDVINbWluSW50ZXJ2YWxNcxInCg9kcm9wcGVkX3JlY29yZHMYDSABKA1SDmRyb3Bw'
+    'ZWRSZWNvcmRz');
 
 @$core.Deprecated('Use requestSlideDiagReadDescriptor instead')
 const RequestSlideDiagRead$json = {
@@ -2478,43 +2497,11 @@ const ResponseSettingsRegulatorGet$json = {
     },
     {'1': 'trim_limit', '3': 8, '4': 1, '5': 2, '10': 'trimLimit'},
     {'1': 'overspeed_margin', '3': 9, '4': 1, '5': 2, '10': 'overspeedMargin'},
-    {
-      '1': 'overspeed_output_brake',
-      '3': 10,
-      '4': 1,
-      '5': 2,
-      '10': 'overspeedOutputBrake'
-    },
-    {
-      '1': 'overspeed_trim_brake',
-      '3': 11,
-      '4': 1,
-      '5': 2,
-      '10': 'overspeedTrimBrake'
-    },
     {'1': 'error_deadband', '3': 12, '4': 1, '5': 2, '10': 'errorDeadband'},
     {'1': 'derivative_alpha', '3': 13, '4': 1, '5': 2, '10': 'derivativeAlpha'},
-    {'1': 'target_kick_gain', '3': 14, '4': 1, '5': 2, '10': 'targetKickGain'},
-    {
-      '1': 'target_kick_decay',
-      '3': 15,
-      '4': 1,
-      '5': 2,
-      '10': 'targetKickDecay'
-    },
-    {'1': 'anti_windup', '3': 16, '4': 1, '5': 2, '10': 'antiWindup'},
-    {'1': 'output_rise_rate', '3': 17, '4': 1, '5': 2, '10': 'outputRiseRate'},
-    {'1': 'output_fall_rate', '3': 18, '4': 1, '5': 2, '10': 'outputFallRate'},
     {'1': 'turn_brake_scale', '3': 19, '4': 1, '5': 2, '10': 'turnBrakeScale'},
     {'1': 'turn_min_power', '3': 20, '4': 1, '5': 2, '10': 'turnMinPower'},
     {'1': 'turn_power_scale', '3': 21, '4': 1, '5': 2, '10': 'turnPowerScale'},
-    {
-      '1': 'turn_soft_start_scale',
-      '3': 22,
-      '4': 1,
-      '5': 2,
-      '10': 'turnSoftStartScale'
-    },
     {
       '1': 'turn_reverse_power',
       '3': 23,
@@ -2559,20 +2546,6 @@ const ResponseSettingsRegulatorGet$json = {
     },
     {'1': 'modified', '3': 29, '4': 1, '5': 8, '10': 'modified'},
     {
-      '1': 'feedforward_gain_back',
-      '3': 30,
-      '4': 1,
-      '5': 2,
-      '10': 'feedforwardGainBack'
-    },
-    {
-      '1': 'feedforward_offset_back',
-      '3': 31,
-      '4': 1,
-      '5': 2,
-      '10': 'feedforwardOffsetBack'
-    },
-    {
       '1': 'turn_power_scale_back',
       '3': 32,
       '4': 1,
@@ -2583,7 +2556,6 @@ const ResponseSettingsRegulatorGet$json = {
     {'1': 'backlash_power', '3': 34, '4': 1, '5': 2, '10': 'backlashPower'},
     {'1': 'backlash_max_ms', '3': 35, '4': 1, '5': 2, '10': 'backlashMaxMs'},
     {'1': 'trim_handover', '3': 38, '4': 1, '5': 13, '10': 'trimHandover'},
-    {'1': 'trim_speed_scale', '3': 39, '4': 1, '5': 2, '10': 'trimSpeedScale'},
     {'1': 'trim_neg_limit', '3': 40, '4': 1, '5': 2, '10': 'trimNegLimit'},
     {
       '1': 'defaults',
@@ -2601,6 +2573,39 @@ const ResponseSettingsRegulatorGet$json = {
       '6': '.hdy_rpc.RegulatorEffective',
       '10': 'effective'
     },
+    {
+      '1': 'feedforward_gain_delta',
+      '3': 41,
+      '4': 1,
+      '5': 2,
+      '10': 'feedforwardGainDelta'
+    },
+    {
+      '1': 'feedforward_offset_delta',
+      '3': 42,
+      '4': 1,
+      '5': 2,
+      '10': 'feedforwardOffsetDelta'
+    },
+    {'1': 'overspeed_gain', '3': 43, '4': 1, '5': 2, '10': 'overspeedGain'},
+    {
+      '1': 'underspeed_margin',
+      '3': 44,
+      '4': 1,
+      '5': 2,
+      '10': 'underspeedMargin'
+    },
+    {'1': 'underspeed_gain', '3': 45, '4': 1, '5': 2, '10': 'underspeedGain'},
+    {'1': 'turn_fade_ms', '3': 46, '4': 1, '5': 2, '10': 'turnFadeMs'},
+  ],
+  '9': [
+    {'1': 10, '2': 11},
+    {'1': 11, '2': 12},
+    {'1': 14, '2': 19},
+    {'1': 22, '2': 23},
+    {'1': 30, '2': 31},
+    {'1': 31, '2': 32},
+    {'1': 39, '2': 40},
   ],
 };
 
@@ -2611,33 +2616,29 @@ final $typed_data.Uint8List responseSettingsRegulatorGetDescriptor = $convert.ba
     'aRgEIAEoAlICa2kSDgoCa2QYBSABKAJSAmtkEikKEGZlZWRmb3J3YXJkX2dhaW4YBiABKAJSD2'
     'ZlZWRmb3J3YXJkR2FpbhItChJmZWVkZm9yd2FyZF9vZmZzZXQYByABKAJSEWZlZWRmb3J3YXJk'
     'T2Zmc2V0Eh0KCnRyaW1fbGltaXQYCCABKAJSCXRyaW1MaW1pdBIpChBvdmVyc3BlZWRfbWFyZ2'
-    'luGAkgASgCUg9vdmVyc3BlZWRNYXJnaW4SNAoWb3ZlcnNwZWVkX291dHB1dF9icmFrZRgKIAEo'
-    'AlIUb3ZlcnNwZWVkT3V0cHV0QnJha2USMAoUb3ZlcnNwZWVkX3RyaW1fYnJha2UYCyABKAJSEm'
-    '92ZXJzcGVlZFRyaW1CcmFrZRIlCg5lcnJvcl9kZWFkYmFuZBgMIAEoAlINZXJyb3JEZWFkYmFu'
-    'ZBIpChBkZXJpdmF0aXZlX2FscGhhGA0gASgCUg9kZXJpdmF0aXZlQWxwaGESKAoQdGFyZ2V0X2'
-    'tpY2tfZ2FpbhgOIAEoAlIOdGFyZ2V0S2lja0dhaW4SKgoRdGFyZ2V0X2tpY2tfZGVjYXkYDyAB'
-    'KAJSD3RhcmdldEtpY2tEZWNheRIfCgthbnRpX3dpbmR1cBgQIAEoAlIKYW50aVdpbmR1cBIoCh'
-    'BvdXRwdXRfcmlzZV9yYXRlGBEgASgCUg5vdXRwdXRSaXNlUmF0ZRIoChBvdXRwdXRfZmFsbF9y'
-    'YXRlGBIgASgCUg5vdXRwdXRGYWxsUmF0ZRIoChB0dXJuX2JyYWtlX3NjYWxlGBMgASgCUg50dX'
-    'JuQnJha2VTY2FsZRIkCg50dXJuX21pbl9wb3dlchgUIAEoAlIMdHVybk1pblBvd2VyEigKEHR1'
-    'cm5fcG93ZXJfc2NhbGUYFSABKAJSDnR1cm5Qb3dlclNjYWxlEjEKFXR1cm5fc29mdF9zdGFydF'
-    '9zY2FsZRgWIAEoAlISdHVyblNvZnRTdGFydFNjYWxlEiwKEnR1cm5fcmV2ZXJzZV9wb3dlchgX'
-    'IAEoAlIQdHVyblJldmVyc2VQb3dlchI/Chx0dXJuX3JldmVyc2Vfc3BlZWRfdGhyZXNob2xkGB'
-    'ggASgCUhl0dXJuUmV2ZXJzZVNwZWVkVGhyZXNob2xkEi0KE3R1cm5fcmV2ZXJzZV9taW5fbXMY'
-    'GSABKAJSEHR1cm5SZXZlcnNlTWluTXMSNgoYdHVybl9yZXZlcnNlX2hhcmRfbWF4X21zGBogAS'
-    'gCUhR0dXJuUmV2ZXJzZUhhcmRNYXhNcxI5Chl0dXJuX3JldmVyc2VfYmFja3RyYWNrX21tGBsg'
-    'ASgCUhZ0dXJuUmV2ZXJzZUJhY2t0cmFja01tEjoKGnR1cm5fcG9zdF9yZXZlcnNlX2JyYWtlX2'
-    '1zGBwgASgCUhZ0dXJuUG9zdFJldmVyc2VCcmFrZU1zEhoKCG1vZGlmaWVkGB0gASgIUghtb2Rp'
-    'ZmllZBIyChVmZWVkZm9yd2FyZF9nYWluX2JhY2sYHiABKAJSE2ZlZWRmb3J3YXJkR2FpbkJhY2'
-    'sSNgoXZmVlZGZvcndhcmRfb2Zmc2V0X2JhY2sYHyABKAJSFWZlZWRmb3J3YXJkT2Zmc2V0QmFj'
-    'axIxChV0dXJuX3Bvd2VyX3NjYWxlX2JhY2sYICABKAJSEnR1cm5Qb3dlclNjYWxlQmFjaxIfCg'
-    'tiYWNrbGFzaF9tbRghIAEoAlIKYmFja2xhc2hNbRIlCg5iYWNrbGFzaF9wb3dlchgiIAEoAlIN'
-    'YmFja2xhc2hQb3dlchImCg9iYWNrbGFzaF9tYXhfbXMYIyABKAJSDWJhY2tsYXNoTWF4TXMSIw'
-    'oNdHJpbV9oYW5kb3ZlchgmIAEoDVIMdHJpbUhhbmRvdmVyEigKEHRyaW1fc3BlZWRfc2NhbGUY'
-    'JyABKAJSDnRyaW1TcGVlZFNjYWxlEiQKDnRyaW1fbmVnX2xpbWl0GCggASgCUgx0cmltTmVnTG'
-    'ltaXQSQQoIZGVmYXVsdHMYJCABKAsyJS5oZHlfcnBjLlJlc3BvbnNlU2V0dGluZ3NSZWd1bGF0'
-    'b3JHZXRSCGRlZmF1bHRzEjkKCWVmZmVjdGl2ZRglIAEoCzIbLmhkeV9ycGMuUmVndWxhdG9yRW'
-    'ZmZWN0aXZlUgllZmZlY3RpdmU=');
+    'luGAkgASgCUg9vdmVyc3BlZWRNYXJnaW4SJQoOZXJyb3JfZGVhZGJhbmQYDCABKAJSDWVycm9y'
+    'RGVhZGJhbmQSKQoQZGVyaXZhdGl2ZV9hbHBoYRgNIAEoAlIPZGVyaXZhdGl2ZUFscGhhEigKEH'
+    'R1cm5fYnJha2Vfc2NhbGUYEyABKAJSDnR1cm5CcmFrZVNjYWxlEiQKDnR1cm5fbWluX3Bvd2Vy'
+    'GBQgASgCUgx0dXJuTWluUG93ZXISKAoQdHVybl9wb3dlcl9zY2FsZRgVIAEoAlIOdHVyblBvd2'
+    'VyU2NhbGUSLAoSdHVybl9yZXZlcnNlX3Bvd2VyGBcgASgCUhB0dXJuUmV2ZXJzZVBvd2VyEj8K'
+    'HHR1cm5fcmV2ZXJzZV9zcGVlZF90aHJlc2hvbGQYGCABKAJSGXR1cm5SZXZlcnNlU3BlZWRUaH'
+    'Jlc2hvbGQSLQoTdHVybl9yZXZlcnNlX21pbl9tcxgZIAEoAlIQdHVyblJldmVyc2VNaW5NcxI2'
+    'Chh0dXJuX3JldmVyc2VfaGFyZF9tYXhfbXMYGiABKAJSFHR1cm5SZXZlcnNlSGFyZE1heE1zEj'
+    'kKGXR1cm5fcmV2ZXJzZV9iYWNrdHJhY2tfbW0YGyABKAJSFnR1cm5SZXZlcnNlQmFja3RyYWNr'
+    'TW0SOgoadHVybl9wb3N0X3JldmVyc2VfYnJha2VfbXMYHCABKAJSFnR1cm5Qb3N0UmV2ZXJzZU'
+    'JyYWtlTXMSGgoIbW9kaWZpZWQYHSABKAhSCG1vZGlmaWVkEjEKFXR1cm5fcG93ZXJfc2NhbGVf'
+    'YmFjaxggIAEoAlISdHVyblBvd2VyU2NhbGVCYWNrEh8KC2JhY2tsYXNoX21tGCEgASgCUgpiYW'
+    'NrbGFzaE1tEiUKDmJhY2tsYXNoX3Bvd2VyGCIgASgCUg1iYWNrbGFzaFBvd2VyEiYKD2JhY2ts'
+    'YXNoX21heF9tcxgjIAEoAlINYmFja2xhc2hNYXhNcxIjCg10cmltX2hhbmRvdmVyGCYgASgNUg'
+    'x0cmltSGFuZG92ZXISJAoOdHJpbV9uZWdfbGltaXQYKCABKAJSDHRyaW1OZWdMaW1pdBJBCghk'
+    'ZWZhdWx0cxgkIAEoCzIlLmhkeV9ycGMuUmVzcG9uc2VTZXR0aW5nc1JlZ3VsYXRvckdldFIIZG'
+    'VmYXVsdHMSOQoJZWZmZWN0aXZlGCUgASgLMhsuaGR5X3JwYy5SZWd1bGF0b3JFZmZlY3RpdmVS'
+    'CWVmZmVjdGl2ZRI0ChZmZWVkZm9yd2FyZF9nYWluX2RlbHRhGCkgASgCUhRmZWVkZm9yd2FyZE'
+    'dhaW5EZWx0YRI4ChhmZWVkZm9yd2FyZF9vZmZzZXRfZGVsdGEYKiABKAJSFmZlZWRmb3J3YXJk'
+    'T2Zmc2V0RGVsdGESJQoOb3ZlcnNwZWVkX2dhaW4YKyABKAJSDW92ZXJzcGVlZEdhaW4SKwoRdW'
+    '5kZXJzcGVlZF9tYXJnaW4YLCABKAJSEHVuZGVyc3BlZWRNYXJnaW4SJwoPdW5kZXJzcGVlZF9n'
+    'YWluGC0gASgCUg51bmRlcnNwZWVkR2FpbhIgCgx0dXJuX2ZhZGVfbXMYLiABKAJSCnR1cm5GYW'
+    'RlTXNKBAgKEAtKBAgLEAxKBAgOEBNKBAgWEBdKBAgeEB9KBAgfECBKBAgnECg=');
 
 @$core.Deprecated('Use regulatorEffectiveDescriptor instead')
 const RegulatorEffective$json = {
@@ -2720,13 +2721,6 @@ const RegulatorEffective$json = {
       '10': 'trimBankForward'
     },
     {
-      '1': 'trim_bank_forward_speed',
-      '3': 17,
-      '4': 1,
-      '5': 2,
-      '10': 'trimBankForwardSpeed'
-    },
-    {
       '1': 'trim_bank_forward_confidence',
       '3': 18,
       '4': 1,
@@ -2739,13 +2733,6 @@ const RegulatorEffective$json = {
       '4': 1,
       '5': 2,
       '10': 'trimBankBackward'
-    },
-    {
-      '1': 'trim_bank_backward_speed',
-      '3': 20,
-      '4': 1,
-      '5': 2,
-      '10': 'trimBankBackwardSpeed'
     },
     {
       '1': 'trim_bank_backward_confidence',
@@ -2761,6 +2748,38 @@ const RegulatorEffective$json = {
       '5': 2,
       '10': 'trimNegLimitOutput'
     },
+    {
+      '1': 'feedforward_gain_forward',
+      '3': 23,
+      '4': 1,
+      '5': 2,
+      '10': 'feedforwardGainForward'
+    },
+    {
+      '1': 'feedforward_offset_forward',
+      '3': 24,
+      '4': 1,
+      '5': 2,
+      '10': 'feedforwardOffsetForward'
+    },
+    {
+      '1': 'feedforward_gain_backward',
+      '3': 25,
+      '4': 1,
+      '5': 2,
+      '10': 'feedforwardGainBackward'
+    },
+    {
+      '1': 'feedforward_offset_backward',
+      '3': 26,
+      '4': 1,
+      '5': 2,
+      '10': 'feedforwardOffsetBackward'
+    },
+  ],
+  '9': [
+    {'1': 17, '2': 18},
+    {'1': 20, '2': 21},
   ],
 };
 
@@ -2779,13 +2798,16 @@ final $typed_data.Uint8List regulatorEffectiveDescriptor = $convert.base64Decode
     'blNwZWVkVGhlb3JldGljYWwSHQoKdHVybl9zcGVlZBgNIAEoAlIJdHVyblNwZWVkEjAKFXR1cm'
     '5fc3RvcF9tYXhfdGltZV9tcxgOIAEoDVIRdHVyblN0b3BNYXhUaW1lTXMSOQoZdHVybl9zdG9w'
     'X3NwZWVkX3RocmVzaG9sZBgPIAEoDVIWdHVyblN0b3BTcGVlZFRocmVzaG9sZBIqChF0cmltX2'
-    'JhbmtfZm9yd2FyZBgQIAEoAlIPdHJpbUJhbmtGb3J3YXJkEjUKF3RyaW1fYmFua19mb3J3YXJk'
-    'X3NwZWVkGBEgASgCUhR0cmltQmFua0ZvcndhcmRTcGVlZBI/Chx0cmltX2JhbmtfZm9yd2FyZF'
-    '9jb25maWRlbmNlGBIgASgCUhl0cmltQmFua0ZvcndhcmRDb25maWRlbmNlEiwKEnRyaW1fYmFu'
-    'a19iYWNrd2FyZBgTIAEoAlIQdHJpbUJhbmtCYWNrd2FyZBI3Chh0cmltX2JhbmtfYmFja3dhcm'
-    'Rfc3BlZWQYFCABKAJSFXRyaW1CYW5rQmFja3dhcmRTcGVlZBJBCh10cmltX2JhbmtfYmFja3dh'
-    'cmRfY29uZmlkZW5jZRgVIAEoAlIadHJpbUJhbmtCYWNrd2FyZENvbmZpZGVuY2USMQoVdHJpbV'
-    '9uZWdfbGltaXRfb3V0cHV0GBYgASgCUhJ0cmltTmVnTGltaXRPdXRwdXQ=');
+    'JhbmtfZm9yd2FyZBgQIAEoAlIPdHJpbUJhbmtGb3J3YXJkEj8KHHRyaW1fYmFua19mb3J3YXJk'
+    'X2NvbmZpZGVuY2UYEiABKAJSGXRyaW1CYW5rRm9yd2FyZENvbmZpZGVuY2USLAoSdHJpbV9iYW'
+    '5rX2JhY2t3YXJkGBMgASgCUhB0cmltQmFua0JhY2t3YXJkEkEKHXRyaW1fYmFua19iYWNrd2Fy'
+    'ZF9jb25maWRlbmNlGBUgASgCUhp0cmltQmFua0JhY2t3YXJkQ29uZmlkZW5jZRIxChV0cmltX2'
+    '5lZ19saW1pdF9vdXRwdXQYFiABKAJSEnRyaW1OZWdMaW1pdE91dHB1dBI4ChhmZWVkZm9yd2Fy'
+    'ZF9nYWluX2ZvcndhcmQYFyABKAJSFmZlZWRmb3J3YXJkR2FpbkZvcndhcmQSPAoaZmVlZGZvcn'
+    'dhcmRfb2Zmc2V0X2ZvcndhcmQYGCABKAJSGGZlZWRmb3J3YXJkT2Zmc2V0Rm9yd2FyZBI6Chlm'
+    'ZWVkZm9yd2FyZF9nYWluX2JhY2t3YXJkGBkgASgCUhdmZWVkZm9yd2FyZEdhaW5CYWNrd2FyZB'
+    'I+ChtmZWVkZm9yd2FyZF9vZmZzZXRfYmFja3dhcmQYGiABKAJSGWZlZWRmb3J3YXJkT2Zmc2V0'
+    'QmFja3dhcmRKBAgREBJKBAgUEBU=');
 
 @$core.Deprecated('Use requestSettingsHallGetDescriptor instead')
 const RequestSettingsHallGet$json = {

@@ -1,4 +1,4 @@
-// Auto-generated on 2026-09-09 15:54:00
+// Auto-generated on 2026-09-16 11:04:00
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
@@ -15,6 +15,7 @@ message RequestConnectedGet{
 }
 message ResponseConnectedGet{
     bool connected = 1;
+    uint32 session_id = 2; //Optional session ID associated with the connection
 }
 //304 - Added in FW4.4 - The server's firmware verdict for the connected device.
 //SERVER-answered: only the server knows which release is current. This is the
@@ -177,7 +178,8 @@ message ResponseCapabilitiesGet{
     uint32 ble_mtu = 15; //Maximum MTU size for BLE communication. Added in FW4.2 - Default this to 512. 512 seems to be a hard cap in BLE.
     uint32 ws_buffer_size = 16; //Buffer size for Websocket communication in bytes. Added in FW4.2 - Default this to 2048. 6kb on PSRAM units after 4.2
     uint32 sensors = 17; //[uint8]Nr of position sensors in the sensor strip (0 = no sensor) - Added in FW4.3
-    bool usb_voltage_measure = 18; //If the device measures its USB supply voltage (VBUS) and reports it via BatteryGet (usb_voltage + not_supported_charger; battery fields stay zero on battery-less devices) - Added in FW4.3
+    bool usb_voltage_measure = 18; //If the device measures its USB supply voltage (VBUS) and reports it via BatteryGet.usb_voltage. True on Oh, Handy 2, Handy 2.1 and eco; false on Handy 1 / 1.1. On battery-less devices (eco) the battery fields stay zero and not_supported_charger comes from the boot supply check. NB! FW4.3 reported true on eco ONLY - from FW4.4 it is true on every device with a VBUS reading. - Added in FW4.3
+    bool battery_temperature_measure = 19; //If the device has a battery temperature sensor. False on boards with no pack NTC (Handy 2.1) - there BatteryGet.battery_temperature and .battery_temperature_adc_value are always 0 and SettingsBattery.battery_temp_offset does nothing, so hide them rather than showing a made-up number. Do NOT infer this from battery_driver. - Added in FW4.4
 }
 //714
 /*
@@ -414,6 +416,19 @@ message RequestSlideDiagStart{
     //fields. Fewer fields = smaller records = more records in the budget.
     //Replaces any existing capture on that channel. Added in FW4.4.
     uint32 field_mask = 4;
+    //Rate reduction (2026-09-11). 0 = store every record (default). N > 0 = store the
+    //"plain" records at most once per N ms: on the REGULATOR channel a plain record is a
+    //run-phase tick that follows another run-phase tick; on the HALL channel a plain
+    //edge in the same direction as the previous one. Everything else is ALWAYS stored
+    //regardless of N: every turn-phase regulator record (coast brake, reverse brake,
+    //backlash creep, launch, turn done, overspeed stop), the FIRST run record after a
+    //turn (the launch tick), every hall record that is not a plain edge, and every hall
+    //direction flip. What dropped regulator ticks did is not lost: their trim_adjust
+    //values are summed into and their flags OR-ed into the next stored record. The
+    //hall sequence number exposes dropped edges. Ignored on the HSP channel. Status
+    //reports the interval and the dropped count. Use it to make a capture (and its
+    //download) cover N-10x more time at the cost of run-phase resolution.
+    uint32 min_interval_ms = 5;
 }
 message ResponseSlideDiagStart{
     uint32 capacity_records = 1; //Granted capacity after clamping
@@ -421,6 +436,7 @@ message ResponseSlideDiagStart{
     uint32 format_version = 3; //Record layout version (hall v1 = 35 B, regulator v1 = 68 B full mask since the FW4.4 term decomposition; layouts in the FW headers)
     uint32 seq = 4; //Capture generation
     uint32 field_mask = 5; //Normalized mask in effect (regulator channel). Added in FW4.4
+    uint32 min_interval_ms = 6; //Rate reduction in effect (0 = every record). Added 2026-09-11
 }
 //845
 //Added in FW4.4
@@ -439,6 +455,8 @@ message ResponseSlideDiagStatus{
     uint32 total_records = 9; //Records offered to this capture (>= used when wrapped)
     uint32 seq = 10;
     uint32 field_mask = 11; //Field mask in effect (regulator channel). Added in FW4.4
+    uint32 min_interval_ms = 12; //Rate reduction in effect (0 = every record). Added 2026-09-11
+    uint32 dropped_records = 13; //Plain records NOT stored because of min_interval_ms, this capture. total_records counts stored records only. Added 2026-09-11
 }
 //846 - Chronological ranged read of a FROZEN capture (SlideDiagStop first;
 //reading a running capture returns an error). Client recipe: fetch
@@ -471,7 +489,7 @@ message RequestSlideDiagStop{
 message RequestHallCalibrationGet{
 }
 message ResponseHallCalibrationGet{
-    repeated float scale = 1; //6 values; all 1.0 = no correction
+    repeated float scale = 1; //6 values, each within 0.5..1.5 (the device clamps every source to that range); all 1.0 = no correction
     bool stored = 2; //A table is persisted on the device
 }
 //850 - Push-stream a FROZEN capture as NotificationSlideDiagData chunks
@@ -863,20 +881,20 @@ message ResponseSettingsRegulatorGet{
     float feedforward_gain = 6;
     float feedforward_offset = 7;
     float trim_limit = 8; //Since FW4.4 a FRACTION 0.05-2.0 of x_max_speed (effective ceiling = fraction x xMaxSpeed; default 0.58; range widened from 1.0 to 2.0 on 2026-09-08 - above ~1.33 the ceiling exceeds the 1600 output ceiling and the trim is bounded only by the output clamp, wanted when the trim carries the load with no feedforward). Was absolute output units - old values like 260 clamp to 2.0
-    float overspeed_margin = 9;
-    float overspeed_output_brake = 10;
-    float overspeed_trim_brake = 11;
+    //Speed correction pair (2026-09-15) - ONE UI card, two rows (overspeed / underspeed), each a
+    //TRIGGER in mm/s beyond the target (0 = no dead zone) and a MULTIPLIER in output units per mm/s
+    //beyond the trigger (0 = that side off). Overspeed pulls output (and bleeds trim); underspeed
+    //adds output. Continuous at the trigger. Independent of the +180 hard stop (never disabled).
+    //NB semantics change: before 2026-09-15 overspeed_margin 0 meant OFF; off is now overspeed_gain 0.
+    float overspeed_margin = 9;   //[mm/s] trigger above target, default 50 (was 5)
+    reserved 10, 11; //overspeed_output_brake / overspeed_trim_brake (removed 2026-09-15; the output gain returned the same day as overspeed_gain = 43, the trim bleed stays compile-time)
     float error_deadband = 12;
     float derivative_alpha = 13;
-    float target_kick_gain = 14;
-    float target_kick_decay = 15;
-    float anti_windup = 16;
-    float output_rise_rate = 17;
-    float output_fall_rate = 18;
+    reserved 14 to 18; //target_kick_gain/decay, anti_windup, output_rise_rate/fall_rate (removed 2026-09-15: kick and slew gone, anti-windup hard-wired)
     float turn_brake_scale = 19;
     float turn_min_power = 20;
     float turn_power_scale = 21;
-    float turn_soft_start_scale = 22;
+    reserved 22; //turn_soft_start_scale (removed 2026-09-15: dead code)
     float turn_reverse_power = 23;
     float turn_reverse_speed_threshold = 24;
     float turn_reverse_min_ms = 25;
@@ -889,9 +907,7 @@ message ResponseSettingsRegulatorGet{
     //profile Apply; keep them with SlideProfileStore 854). Same value as
     //SlideProfileGet.modified. Per-field comparison: `defaults` below.
     bool modified = 29;
-    //Per-direction feedforward for the asymmetric drive train (BACKWARD = assisted direction)
-    float feedforward_gain_back = 30; //NEGATIVE = inherit forward; 0 = backward feedforward OFF (literal). Changed 2026-09-03 (was 0 = inherit)
-    float feedforward_offset_back = 31; //NEGATIVE = inherit forward; 0 = zero backward offset (literal). Changed 2026-09-03
+    reserved 30, 31; //feedforward_gain_back / feedforward_offset_back (removed 2026-09-10, replaced by the delta form: fields 41/42)
     float turn_power_scale_back = 32;
     //Backlash take-up stage: after the turn brake, creep at backlash_power until
     //backlash_mm of motor rotation (or backlash_max_ms), then launch. 0 mm = off.
@@ -900,19 +916,16 @@ message ResponseSettingsRegulatorGet{
     float backlash_max_ms = 35;
     //Trim handover (FW4.4, settled 2026-09-07). The integral trim is what the SINGLE
     //feedforward line does not capture (gravity, load, unit variation). trim_handover 0 =
-    //every launch into a direction starts from ZERO trim (legacy default); 1 = per-direction
+    //every launch into a direction starts from ZERO trim (legacy); 1 (DEFAULT since 2026-09-10) = per-direction
     //BANK: the trim a direction has when it ENDS (reversal or stop) is stored as it is (RAM
     //only, cleared on any tuning or profile change) and restored at the next launch into that
     //direction - so a loaded unit is not behind after every reversal, and a loop that cannot
     //converge inside one stroke keeps accumulating across strokes instead of restarting from
     //zero. No convergence gate or confidence ramp (removed 2026-09-08). Never carried across
     //directions. effective.trim_bank_*_confidence is 0 until the direction has run once, then 1.
-    //trim_speed_scale is a CONFIGURABLE slope in OUTPUT UNITS PER mm/s (0-3), applied
-    //+forward / -backward against the single line: at a launch trim = bank + s*a*(v - v_ref);
-    //on a same-direction target change trim += s*a*(v2 - v1). 0 = offset bank only. The
-    //measured up/down gain asymmetry on the loaded rig was ~0.46. Expert fields.
+    //Expert field.
     uint32 trim_handover = 38;
-    float trim_speed_scale = 39;
+    reserved 39; //trim_speed_scale (removed 2026-09-15: the bank carries the trim as it is)
     //The trim FLOOR in output units, a NEGATIVE number (default -150) so it reads as the bound
     //it is. Positive trim may reach trim_limit x x_max_speed (see effective.trim_limit_output);
     //negative trim stops here, small by design: a large negative trim is integrator windup,
@@ -935,6 +948,19 @@ message ResponseSettingsRegulatorGet{
     //the trim ceiling). Show these next to the tunables; they are not settable through
     //SettingsRegulatorSet. Not populated inside `defaults`. Added in FW4.4
     RegulatorEffective effective = 37;
+    //Per-direction feedforward as a SYMMETRIC DELTA around the single line (2026-09-10, replaces
+    //the back twins 30/31): forward = feedforward_gain + delta, backward = feedforward_gain - delta,
+    //offset likewise. 0/0 = both directions identical (every built-in profile); positive = the
+    //forward direction needs more (gravity on an upright unit). EXPERT fields - but the UI should
+    //still SHOW the resolved forward/backward lines whenever a delta is non-zero, even with the
+    //expert group hidden: read them from effective.feedforward_*_forward/backward (23-26).
+    //Clamped on the device: |gain delta| <= feedforward_gain, |offset delta| <= 500.
+    float feedforward_gain_delta = 41;
+    float feedforward_offset_delta = 42;
+    float overspeed_gain = 43;    //multiplier, default 4.2, 0 = overspeed side off. Added 2026-09-15
+    float underspeed_margin = 44; //[mm/s] trigger below target, default 50. Added 2026-09-15
+    float underspeed_gain = 45;   //multiplier, default 0 = underspeed side off (Sport 1.0). Added 2026-09-15
+    float turn_fade_ms = 46;      //[ms] launch duty ramp at a turn (hardware fade), 0 = instant step (default). The pre-4.4 "fade" as a profile setting; 0-500. Added 2026-09-15
 }
 message RegulatorEffective{
     float trim_limit_output = 1; //trim_limit x x_max_speed [output units] - the trim's positive CEILING (and the +-kick ceiling)
@@ -947,7 +973,7 @@ message RegulatorEffective{
     uint32 pwm_freq_hz = 8;
     uint32 pwm_resolution_bits = 9;
     uint32 x_max_speed = 10; //[mm/s] commandable max (percent commands scale to this)
-    uint32 x_max_speed_theoretical = 11; //output-unit scale (locked 1600)
+    uint32 x_max_speed_theoretical = 11; //output-unit scale (default 1600; settable via SettingsSliderSet since 2026-09-10)
     uint32 x_min_speed_theoretical = 12;
     float turn_speed = 13; //slide config: turn launch power window ceiling
     uint32 turn_stop_max_time_ms = 14; //slide config: turn brake duration ceiling
@@ -958,12 +984,19 @@ message RegulatorEffective{
     //load it with (0 until ~30 settled ticks, 1 from ~150). Show this in the tuning tool so a
     //user can SEE what each direction has learned; it resets on any tuning or profile change.
     float trim_bank_forward = 16;
-    float trim_bank_forward_speed = 17;
+    reserved 17; //trim_bank_forward_speed (removed 2026-09-15 with trim_speed_scale)
     float trim_bank_forward_confidence = 18;
     float trim_bank_backward = 19;
-    float trim_bank_backward_speed = 20;
+    reserved 20; //trim_bank_backward_speed (removed 2026-09-15 with trim_speed_scale)
     float trim_bank_backward_confidence = 21;
     float trim_neg_limit_output = 22; //the trim FLOOR [output units], negative (from trim_neg_limit; = -trim_limit_output when legacy symmetric)
+    //The RESOLVED per-direction feedforward lines (base +- delta, 2026-09-10). Show these as
+    //"forward: gain x v + offset / backward: ..." whenever feedforward_gain_delta or
+    //feedforward_offset_delta is non-zero, even when the expert delta fields themselves are hidden.
+    float feedforward_gain_forward = 23;
+    float feedforward_offset_forward = 24;
+    float feedforward_gain_backward = 25;
+    float feedforward_offset_backward = 26;
 }
 //2017 - Hall sensor / speed-estimate tuning. Same semantics as the
 //regulator settings (clamped, `persisted`, guide in DIAG_TUNING_GUIDE.md).

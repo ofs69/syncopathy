@@ -863,15 +863,18 @@ class BatteryDriver extends $pb.ProtobufEnum {
       BatteryDriver._(1, _omitEnumNames ? '' : 'BATTERY_DRIVER_OH');
   static const BatteryDriver BATTERY_DRIVER_H2 =
       BatteryDriver._(2, _omitEnumNames ? '' : 'BATTERY_DRIVER_H2');
+  static const BatteryDriver BATTERY_DRIVER_H21 =
+      BatteryDriver._(3, _omitEnumNames ? '' : 'BATTERY_DRIVER_H21');
 
   static const $core.List<BatteryDriver> values = <BatteryDriver>[
     BATTERY_DRIVER_NOT_SET,
     BATTERY_DRIVER_OH,
     BATTERY_DRIVER_H2,
+    BATTERY_DRIVER_H21,
   ];
 
   static final $core.List<BatteryDriver?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 2);
+      $pb.ProtobufEnum.$_initByValueList(values, 3);
   static BatteryDriver? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
@@ -1059,6 +1062,9 @@ class SlideProfile extends $pb.ProtobufEnum {
   /// Bare proportional controller (only kp; feedforward/trim/kick/deadband/
   /// slew and the whole turn pipeline off) - a clean baseline to tune up
   /// from. Locked curated profile, not a user slot. Added in FW4.4.
+  /// RAW and PURE are BENCH BASELINES, not user profiles (2026-09-15): PURE cannot hold speed
+  /// (98 of 278 mm/s at the fast tier, session AH) and RAW runs on kp alone. Keep them out of the
+  /// profile picker; they stay on the wire for tuning tools.
   static const SlideProfile SLIDE_PROFILE_RAW =
       SlideProfile._(8, _omitEnumNames ? '' : 'SLIDE_PROFILE_RAW');
 

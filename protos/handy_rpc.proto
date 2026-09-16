@@ -1,4 +1,4 @@
-// Auto-generated on 2026-09-09 15:54:00
+// Auto-generated on 2026-09-16 11:04:00
 syntax = "proto3";
 package hdy_rpc;
 import "notifications.proto";

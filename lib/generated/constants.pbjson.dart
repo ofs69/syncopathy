@@ -486,13 +486,15 @@ const BatteryDriver$json = {
     {'1': 'BATTERY_DRIVER_NOT_SET', '2': 0},
     {'1': 'BATTERY_DRIVER_OH', '2': 1},
     {'1': 'BATTERY_DRIVER_H2', '2': 2},
+    {'1': 'BATTERY_DRIVER_H21', '2': 3},
   ],
 };
 
 /// Descriptor for `BatteryDriver`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List batteryDriverDescriptor = $convert.base64Decode(
     'Cg1CYXR0ZXJ5RHJpdmVyEhoKFkJBVFRFUllfRFJJVkVSX05PVF9TRVQQABIVChFCQVRURVJZX0'
-    'RSSVZFUl9PSBABEhUKEUJBVFRFUllfRFJJVkVSX0gyEAI=');
+    'RSSVZFUl9PSBABEhUKEUJBVFRFUllfRFJJVkVSX0gyEAISFgoSQkFUVEVSWV9EUklWRVJfSDIx'
+    'EAM=');
 
 @$core.Deprecated('Use firmwareStatusDescriptor instead')
 const FirmwareStatus$json = {
@@ -932,6 +934,42 @@ final $typed_data.Uint8List apInfoDescriptor = $convert.base64Decode(
     'CgZBcEluZm8SEgoEc3NpZBgBIAEoCVIEc3NpZBIUCgVic3NpZBgCIAEoCVIFYnNzaWQSGAoHY2'
     'hhbm5lbBgDIAEoDVIHY2hhbm5lbBIuCghhdXRobW9kZRgEIAEoDjISLmhkeV9ycGMuQXV0aE1v'
     'ZGVzUghhdXRobW9kZRISCgRyc3NpGAUgASgFUgRyc3NpEg4KAmlwGAYgASgJUgJpcA==');
+
+@$core.Deprecated('Use connectedDeviceInfoDescriptor instead')
+const ConnectedDeviceInfo$json = {
+  '1': 'ConnectedDeviceInfo',
+  '2': [
+    {'1': 'hw_model_number', '3': 1, '4': 1, '5': 13, '10': 'hwModelNumber'},
+    {
+      '1': 'hw_model_variant_number',
+      '3': 2,
+      '4': 1,
+      '5': 13,
+      '10': 'hwModelVariantNumber'
+    },
+    {'1': 'fw_version', '3': 3, '4': 1, '5': 9, '10': 'fwVersion'},
+    {'1': 'fw_feature_flags', '3': 4, '4': 1, '5': 9, '10': 'fwFeatureFlags'},
+    {'1': 'has_fw_status', '3': 5, '4': 1, '5': 8, '10': 'hasFwStatus'},
+    {
+      '1': 'fw_status',
+      '3': 6,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.FirmwareStatus',
+      '10': 'fwStatus'
+    },
+    {'1': 'latest_version', '3': 7, '4': 1, '5': 9, '10': 'latestVersion'},
+  ],
+};
+
+/// Descriptor for `ConnectedDeviceInfo`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List connectedDeviceInfoDescriptor = $convert.base64Decode(
+    'ChNDb25uZWN0ZWREZXZpY2VJbmZvEiYKD2h3X21vZGVsX251bWJlchgBIAEoDVINaHdNb2RlbE'
+    '51bWJlchI1Chdod19tb2RlbF92YXJpYW50X251bWJlchgCIAEoDVIUaHdNb2RlbFZhcmlhbnRO'
+    'dW1iZXISHQoKZndfdmVyc2lvbhgDIAEoCVIJZndWZXJzaW9uEigKEGZ3X2ZlYXR1cmVfZmxhZ3'
+    'MYBCABKAlSDmZ3RmVhdHVyZUZsYWdzEiIKDWhhc19md19zdGF0dXMYBSABKAhSC2hhc0Z3U3Rh'
+    'dHVzEjQKCWZ3X3N0YXR1cxgGIAEoDjIXLmhkeV9ycGMuRmlybXdhcmVTdGF0dXNSCGZ3U3RhdH'
+    'VzEiUKDmxhdGVzdF92ZXJzaW9uGAcgASgJUg1sYXRlc3RWZXJzaW9u');
 
 @$core.Deprecated('Use batteryStateDescriptor instead')
 const BatteryState$json = {

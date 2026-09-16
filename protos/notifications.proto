@@ -1,11 +1,32 @@
-// Auto-generated on 2026-09-09 15:54:00
+// Auto-generated on 2026-09-16 11:04:00
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
 //******* NOTIFICATIONS *********/
-//300 - NB! Not used by FW - internal server notification
+//300 - NB! Not used by FW - internal server notification.
+//Pushed when a device attaches to or leaves the server, AND once to a client
+//right after THAT CLIENT attaches - so a client that connected after the device
+//learns the current state instead of discovering it by polling
+//RequestConnectedGet (301).
+//This is the socket's counterpart to the online API's device_status /
+//device_connected / device_disconnected SSE events, and carries the same facts.
 message NotificationConnectedChanged{
     bool connected = 1;
+    uint32 session_id = 2; //Optional session ID associated with the connection
+    //Everything below is SERVER-filled. Added in FW4.4
+    ConnectedDeviceInfo info = 3; //Device identity. Present while connected; absent on a
+                                  //disconnect and while the server has not learned it yet
+    string session_ulid = 4; //[char[26]] The same attachment session_id names, as the ULID the
+                             //online API serves as DeviceInfo.session_id. Two things this buys:
+                             //ULIDs are lexically time-ordered, so a disconnect for an OLDER
+                             //session (one that raced a newer connect) can be recognised and
+                             //dropped; and a socket client and an SSE client can tell they are
+                             //watching one session. Empty when the server does not set it
+    string reason = 5; //DISCONNECT only: why the device left ("io error", a websocket close code
+                       //as text, ...). Empty on connect, and when the server does not say
+    string description = 6; //DISCONNECT only: free-text detail for reason. Often empty
+    uint64 timestamp = 7; //[ms since UNIX epoch] When the SERVER observed the change. 0 = not set.
+                          //NB! server time, not the device clock - do not mix the two
 }
 //601 - wifi
 message NotificationWifiStatusChanged{

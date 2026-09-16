@@ -1207,6 +1207,147 @@ class ApInfo extends $pb.GeneratedMessage {
   void clearIp() => $_clearField(6);
 }
 
+/// The server's view of an ATTACHED device: who it is, and what the server makes
+/// of its firmware. Rides on presence (NotificationConnectedChanged 300) so a
+/// client learns identity the moment the device attaches, instead of round-tripping
+/// RequestPublicInfoGet (718) to a device that may be asleep, busy or mid-reboot.
+/// Fields mirror the online API's DeviceInfo one-for-one, so the socket and the
+/// SSE stream describe the same device in the same words.
+/// SERVER-filled - never emitted by FW. Added in FW4.4
+class ConnectedDeviceInfo extends $pb.GeneratedMessage {
+  factory ConnectedDeviceInfo({
+    $core.int? hwModelNumber,
+    $core.int? hwModelVariantNumber,
+    $core.String? fwVersion,
+    $core.String? fwFeatureFlags,
+    $core.bool? hasFwStatus,
+    FirmwareStatus? fwStatus_6,
+    $core.String? latestVersion,
+  }) {
+    final result = create();
+    if (hwModelNumber != null) result.hwModelNumber = hwModelNumber;
+    if (hwModelVariantNumber != null)
+      result.hwModelVariantNumber = hwModelVariantNumber;
+    if (fwVersion != null) result.fwVersion = fwVersion;
+    if (fwFeatureFlags != null) result.fwFeatureFlags = fwFeatureFlags;
+    if (hasFwStatus != null) result.hasFwStatus = hasFwStatus;
+    if (fwStatus_6 != null) result.fwStatus_6 = fwStatus_6;
+    if (latestVersion != null) result.latestVersion = latestVersion;
+    return result;
+  }
+
+  ConnectedDeviceInfo._();
+
+  factory ConnectedDeviceInfo.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ConnectedDeviceInfo.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ConnectedDeviceInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'hwModelNumber',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'hwModelVariantNumber',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aOS(3, _omitFieldNames ? '' : 'fwVersion')
+    ..aOS(4, _omitFieldNames ? '' : 'fwFeatureFlags')
+    ..aOB(5, _omitFieldNames ? '' : 'hasFwStatus')
+    ..aE<FirmwareStatus>(6, _omitFieldNames ? '' : 'fwStatus',
+        enumValues: FirmwareStatus.values)
+    ..aOS(7, _omitFieldNames ? '' : 'latestVersion')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ConnectedDeviceInfo clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ConnectedDeviceInfo copyWith(void Function(ConnectedDeviceInfo) updates) =>
+      super.copyWith((message) => updates(message as ConnectedDeviceInfo))
+          as ConnectedDeviceInfo;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ConnectedDeviceInfo create() => ConnectedDeviceInfo._();
+  @$core.override
+  ConnectedDeviceInfo createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ConnectedDeviceInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ConnectedDeviceInfo>(create);
+  static ConnectedDeviceInfo? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get hwModelNumber => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set hwModelNumber($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasHwModelNumber() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearHwModelNumber() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get hwModelVariantNumber => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set hwModelVariantNumber($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasHwModelVariantNumber() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearHwModelVariantNumber() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get fwVersion => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set fwVersion($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasFwVersion() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearFwVersion() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get fwFeatureFlags => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set fwFeatureFlags($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasFwFeatureFlags() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearFwFeatureFlags() => $_clearField(4);
+
+  /// The server's firmware verdict - the same fact as ResponseFwStatusGet (304).
+  /// NB! FirmwareStatus has no "unknown" member and 0 is a real verdict
+  /// (UP_TO_DATE), so a defaulted fw_status reads as a clean bill of health.
+  /// has_fw_status is the ONLY honest way to say "the server did not judge".
+  @$pb.TagNumber(5)
+  $core.bool get hasFwStatus => $_getBF(4);
+  @$pb.TagNumber(5)
+  set hasFwStatus($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasHasFwStatus() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearHasFwStatus() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  FirmwareStatus get fwStatus_6 => $_getN(5);
+  @$pb.TagNumber(6)
+  set fwStatus_6(FirmwareStatus value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasFwStatus_6() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearFwStatus_6() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get latestVersion => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set latestVersion($core.String value) => $_setString(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasLatestVersion() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearLatestVersion() => $_clearField(7);
+}
+
 class BatteryState extends $pb.GeneratedMessage {
   factory BatteryState({
     $core.int? level,
