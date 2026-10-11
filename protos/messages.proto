@@ -1,4 +1,4 @@
-// Auto-generated on 2026-09-16 11:04:00
+// Auto-generated on 2026-10-10 12:08:16
 syntax = "proto3";
 package hdy_rpc;
 import "constants.proto";
@@ -13,9 +13,23 @@ message ResponseServerTimeGet {
 //301
 message RequestConnectedGet{
 }
+//The PULL counterpart of NotificationConnectedChanged (300): the same presence
+//STATE, on demand. A client that missed the push - or that wants to re-verify
+//after a suspend, a heartbeat miss or a reconnect - asks for it here instead of
+//tearing the socket down and rebuilding it to be told again.
+//NB! State only. The transition detail on 300 (disconnect, timestamp) is
+//deliberately NOT mirrored here: those describe an EVENT that happened, and a
+//client asking "is a device attached right now" cannot tell a current fact from
+//a historical one. Why the last device left is 300's to say, not this one's.
 message ResponseConnectedGet{
     bool connected = 1;
-    uint32 session_id = 2; //Optional session ID associated with the connection
+    //Both SERVER-filled, and carrying exactly what 300 puts in the fields of the
+    //same name. Added in FW4.4
+    string session_id = 2; //[char[26]] The id for the CURRENT attachment - the same string 300
+                           //carries and the online API serves as DeviceInfo.session_id. Empty
+                           //while no device is attached
+    ConnectedDeviceInfo info = 3; //Device identity. Absent while disconnected, and while the
+                                  //server has not learned it yet
 }
 //304 - Added in FW4.4 - The server's firmware verdict for the connected device.
 //SERVER-answered: only the server knows which release is current. This is the
@@ -177,9 +191,11 @@ message ResponseCapabilitiesGet{
     BatteryDriver battery_driver = 14; //Battery driver type - Added in FW4.1.0
     uint32 ble_mtu = 15; //Maximum MTU size for BLE communication. Added in FW4.2 - Default this to 512. 512 seems to be a hard cap in BLE.
     uint32 ws_buffer_size = 16; //Buffer size for Websocket communication in bytes. Added in FW4.2 - Default this to 2048. 6kb on PSRAM units after 4.2
-    uint32 sensors = 17; //[uint8]Nr of position sensors in the sensor strip (0 = no sensor) - Added in FW4.3
+    uint32 sensors = 17; //[uint8]Nr of position sensors in the sensor strip (0 = no sensor): IR beam-break sensors (S02) or MEMS force cells (S01; counted since 2026-10-06, a MEMS build reported 0 before) - Added in FW4.3
     bool usb_voltage_measure = 18; //If the device measures its USB supply voltage (VBUS) and reports it via BatteryGet.usb_voltage. True on Oh, Handy 2, Handy 2.1 and eco; false on Handy 1 / 1.1. On battery-less devices (eco) the battery fields stay zero and not_supported_charger comes from the boot supply check. NB! FW4.3 reported true on eco ONLY - from FW4.4 it is true on every device with a VBUS reading. - Added in FW4.3
     bool battery_temperature_measure = 19; //If the device has a battery temperature sensor. False on boards with no pack NTC (Handy 2.1) - there BatteryGet.battery_temperature and .battery_temperature_adc_value are always 0 and SettingsBattery.battery_temp_offset does nothing, so hide them rather than showing a made-up number. Do NOT infer this from battery_driver. - Added in FW4.4
+    bool sensor_force = 20; //If the sensor strip measures FORCE per cell (the S01 MEMS ribcage): SensorState.force is available (subscribe with RequestSensorNotificationSet.force), the mems_* fields of SettingsSensor apply and 810-818 answer. Show the force map only when true; on IR strips (S02) it is false and only bits/positions exist. Added in FW4.4 - WORK IN PROGRESS, not finalized
+    uint32 sensor_sides = 21; //[uint8]Strip sides that measure the same axis: 2 = the folded IR strip (S02: side A rises from position 0 to the fold, side B falls back down, SensorState's master combines them per the master rule), 1 = ONE line (S01 MEMS ribcage: the strip is the master; position_abs/position_rel.side_a and contact_side_a mirror it for older clients, side_b and contact_side_b are always 0/false) - hide the side fields when 1. 0 = no sensor strip. Added in FW4.4
 }
 //714
 /*
@@ -317,6 +333,7 @@ message RequestSensorNotificationSet{
                                 //ON_INTERVAL mode: the sending period; 0 = as fast as free system
                                 //resources allow.
     SensorNotificationMode mode = 7; //ON_CHANGE (default) or ON_INTERVAL. Added in FW4.3
+    bool force = 8; //Include per-sensor MEMS force (SensorForce); ON_CHANGE sends on force changes too. MEMS builds only. Added in FW4.4 - WORK IN PROGRESS, not finalized
 }
 //Echoes the configuration that is now active
 //Added in FW4.3
@@ -328,6 +345,7 @@ message ResponseSensorNotificationSet{
     bool position_rel = 5;
     uint32 min_interval_ms = 6;
     SensorNotificationMode mode = 7;
+    bool force = 8; //Added in FW4.4 - WORK IN PROGRESS, not finalized
 }
 //801
 //Pull the current sensor state on demand - a fresh hardware read, same data
@@ -357,7 +375,118 @@ message ResponseSensorNotificationGet{
     bool position_rel = 5;
     uint32 min_interval_ms = 6;
     SensorNotificationMode mode = 7;
+    bool force = 8; //Added in FW4.4 - WORK IN PROGRESS, not finalized
 }
+/////////////////////////////////////////////////////////////////////////////
+//810-818 MEMS force strip (ZSFS1001, S01 ribcage) - WORK IN PROGRESS.
+//NOT FINALIZED: ids, fields and behaviour may still change or be removed.
+//Nothing here is a committed API yet (public since 2026-10-08). Types live
+//in constants.proto.
+//
+//- Builds without the MEMS backend answer ERROR_FUNCTION_NOT_SUPPORTED.
+//- Sensor indexes are PHYSICAL: 0 = the sensor at the I2C base address (the
+//  connector end). SensorForce in the sensor stream is LOGICAL order instead.
+//- sensor_mask: bit i = physical sensor i; 0 = every present sensor. Absent
+//  sensors in a mask are skipped (reset is the exception: it re-probes them).
+//- While a test runs (817), every request here except 810 and 818 is rejected
+//  with ESP_ERR_INVALID_STATE (259).
+//Added in FW4.4
+/////////////////////////////////////////////////////////////////////////////
+//810 - Strip and per-sensor status (no I2C traffic). Allowed during a test.
+message RequestMemsStatusGet{
+}
+message ResponseMemsStatusGet{
+    uint32 count = 1; //Sensor slots on the strip
+    uint32 present_mask = 2; //Bit i = physical sensor i present
+    uint32 base_address = 3; //I2C address of physical sensor 0
+    bool reversed = 4; //Logical order flipped (settings reversed)
+    uint32 threshold = 5; //Press threshold [force codes] (settings mems_threshold)
+    uint32 poll_ms = 6; //Sweep interval (settings mems_poll_ms)
+    uint32 read_failures = 7; //Failed sweep reads since boot
+    bool test_running = 8; //Sensing paused for a test (817)
+    repeated MemsSensorInfo sensors = 9; //Every slot, present or not
+    bool inverted = 10; //Force sign flipped: a press drives the raw code down on this mount (settings mems_inverted). Added 2026-10-07
+}
+//811 - Fresh read of the selected sensors (raw + force)
+message RequestMemsRead{
+    uint32 sensor_mask = 1;
+}
+message ResponseMemsRead{
+    uint32 timestamp_ms = 1; //Device time of the read [ms]
+    repeated MemsReading readings = 2;
+}
+//812 - Re-zero the selected sensors. Press nothing while it runs.
+message RequestMemsTare{
+    uint32 sensor_mask = 1;
+}
+message ResponseMemsTare{
+    repeated MemsSensorResult results = 1;
+}
+//813 - Die temperature of the selected sensors (~60 ms)
+message RequestMemsTempGet{
+    uint32 sensor_mask = 1;
+}
+message ResponseMemsTempGet{
+    repeated MemsTemperature temperatures = 1;
+}
+//814 - Soft reset + re-init (default config) + tare. Absent sensors in the
+//mask are re-probed, so a re-seated strip can come back without a reboot.
+//Press nothing while it runs.
+message RequestMemsReset{
+    uint32 sensor_mask = 1;
+}
+message ResponseMemsReset{
+    uint32 present_mask = 1; //After the reset
+    repeated MemsSensorResult results = 2;
+}
+//815 - Raw register access: read, or write then read back. Bench/debug use -
+//a bad write can stop a sensor until a reset (814).
+message RequestMemsRegister{
+    uint32 index = 1; //PHYSICAL index, must be present
+    uint32 reg = 2; //0x00-0xFF
+    bool write = 3;
+    uint32 value = 4; //0x00-0xFF, used when write
+}
+message ResponseMemsRegister{
+    uint32 index = 1;
+    uint32 reg = 2;
+    uint32 value = 3; //Read back after the optional write
+}
+//816 - Change the sampling configuration of the selected sensors (partial
+//update via has_ flags), then tare them (press nothing). RAM only: a reboot or
+//a reset (814) returns to the default (1000 sps, LPF on, cutoff code 2 = 21 Hz).
+//Read the applied config back with 810.
+message RequestMemsConfigSet{
+    uint32 sensor_mask = 1;
+    bool has_rate_sps = 2;
+    uint32 rate_sps = 3; //1000, 2000, 4000 or 8000
+    bool has_lpf_enabled = 4;
+    bool lpf_enabled = 5;
+    bool has_lpf_cutoff = 6;
+    uint32 lpf_cutoff = 7; //0-7, see MemsSensorConfig.lpf_cutoff
+}
+message ResponseMemsConfigSet{
+    repeated MemsSensorResult results = 1;
+}
+//817 - Start a test in the background. Sensing (positions, force, contact)
+//pauses until it ends; poll 818 for the result. One test at a time.
+message RequestMemsTestStart{
+    MemsTestType type = 1;
+    uint32 sensor_mask = 2;
+    uint32 sweeps = 3; //BENCH: 1-100000, 0 = 500
+    uint32 duration_ms = 4; //FIFO: 100-10000, 0 = 2000
+    uint32 rate_sps = 5; //FIFO: 1000, 2000, 4000 or 8000; 0 = 1000
+}
+message ResponseMemsTestStart{
+    MemsTestResult result = 1; //state RUNNING, parameters as applied
+}
+//818 - Result of the running or last test. Allowed during a test.
+message RequestMemsTestResultGet{
+}
+message ResponseMemsTestResultGet{
+    MemsTestResult result = 1;
+}
+//End of 810-818 (WORK IN PROGRESS)
 ///////////////////////// Slider /////////////////////////
 //840
 message RequestSliderStrokeGet{
@@ -1108,4 +1237,18 @@ message ResponseSlideMaintResultGet{
     SlideMaintUniformityResult uniformity = 1;
     SlideMaintMaxSpeedResult max_speed = 2;
     bool running = 3; //a maintenance test is in progress right now
+}
+//857 - Park the carriage at a PHYSICAL end (absolute bottom/top), e.g. so the
+//user can adjust the sleeve. Accepted in any motion mode (HAMP, HSP, HRPP, HDSP,
+//HVP, idle) and it does NOT change the mode: whatever is running is STOPPED first
+//(the mode and its settings stay; HSP/HRPP have to be played again), then the
+//slide crawls to the end at a fixed low speed with the end guard off for this
+//move only, and stops on contact (the position frame is kept - the contact is
+//intended). Blank response; completion = NotificationSliderEndReached. Any later
+//motion command cancels the move (then no notification). To continue, the app
+//starts the mode's activity again (hamp start, hsp play, hrpp start, ...).
+//Refused (ERROR_WRONG_MODE) in maintenance, OTA and disabled mode.
+//Added in FW4.4
+message RequestSliderEndMove{
+    bool top = 1; //true = top end (xLimitStop side), false = bottom end (xLimitStart side)
 }

@@ -121,6 +121,9 @@ class HandyErrorCodes extends $pb.ProtobufEnum {
   static const HandyErrorCodes ERROR_OTA_ERR_NEW_OTA_SAME_AS_CURRENT =
       HandyErrorCodes._(200005,
           _omitEnumNames ? '' : 'ERROR_OTA_ERR_NEW_OTA_SAME_AS_CURRENT');
+  static const HandyErrorCodes ERROR_OTA_ERR_WRONG_FLASH_ENCRYPTION =
+      HandyErrorCodes._(
+          200006, _omitEnumNames ? '' : 'ERROR_OTA_ERR_WRONG_FLASH_ENCRYPTION');
 
   static const $core.List<HandyErrorCodes> values = <HandyErrorCodes>[
     HANDY_ERROR_CODE_PROTO2_LEGACY_COMP_DO_NOT_USE,
@@ -165,6 +168,7 @@ class HandyErrorCodes extends $pb.ProtobufEnum {
     ERROR_OTA_ERR_INVALID_PARAM,
     ERROR_OTA_ERR_NEW_OTA_HAS_PREVIOUSLY_FAILED,
     ERROR_OTA_ERR_NEW_OTA_SAME_AS_CURRENT,
+    ERROR_OTA_ERR_WRONG_FLASH_ENCRYPTION,
   ];
 
   static final $core.Map<$core.int, HandyErrorCodes> _byValue =
@@ -1018,15 +1022,18 @@ class SlideDiagChannel extends $pb.ProtobufEnum {
           1, _omitEnumNames ? '' : 'SLIDE_DIAG_CHANNEL_REGULATOR');
   static const SlideDiagChannel SLIDE_DIAG_CHANNEL_HSP =
       SlideDiagChannel._(2, _omitEnumNames ? '' : 'SLIDE_DIAG_CHANNEL_HSP');
+  static const SlideDiagChannel SLIDE_DIAG_CHANNEL_SENSOR =
+      SlideDiagChannel._(3, _omitEnumNames ? '' : 'SLIDE_DIAG_CHANNEL_SENSOR');
 
   static const $core.List<SlideDiagChannel> values = <SlideDiagChannel>[
     SLIDE_DIAG_CHANNEL_HALL,
     SLIDE_DIAG_CHANNEL_REGULATOR,
     SLIDE_DIAG_CHANNEL_HSP,
+    SLIDE_DIAG_CHANNEL_SENSOR,
   ];
 
   static final $core.List<SlideDiagChannel?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 2);
+      $pb.ProtobufEnum.$_initByValueList(values, 3);
   static SlideDiagChannel? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
@@ -1143,6 +1150,91 @@ class SensorNotificationMode extends $pb.ProtobufEnum {
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const SensorNotificationMode._(super.value, super.name);
+}
+
+/// ///////////////////////////////////////////////////////////////////////////
+/// MEMS force strip (ZSFS1001, S01 ribcage) - WORK IN PROGRESS.
+/// NOT FINALIZED: everything from here to the end of the MEMS section (and the
+/// MEMS requests 810-818 in messages.proto) may still change or be removed.
+/// Nothing here is a committed API yet. Added in FW4.4; public since 2026-10-08
+/// ///////////////////////////////////////////////////////////////////////////
+/// How the MEMS backend reduces the per-cell force vector to the ONE position
+/// SensorState reports (position_abs/position_rel master = side A). Values match
+/// the firmware's hdySensorMethod_t. EVERY method is computed every sweep and
+/// published in SensorForce.candidate_rel, so a client can compare them live;
+/// settings mems_method (2014) picks the one that feeds the position fields.
+/// All methods share one mapping from a cell coordinate x (x = h means "at cell
+/// h"): rel = (x+1)/count, mm = (offset_um + x*pitch_um)/1000 - so HIGHEST
+/// reproduces the IR numbers and switching methods never shifts a reading by a
+/// fraction of a pitch. Added 2026-10-06
+class MemsPositionMethod extends $pb.ProtobufEnum {
+  static const MemsPositionMethod MEMS_POSITION_HIGHEST =
+      MemsPositionMethod._(0, _omitEnumNames ? '' : 'MEMS_POSITION_HIGHEST');
+  static const MemsPositionMethod MEMS_POSITION_HIGHEST_INTERP =
+      MemsPositionMethod._(
+          1, _omitEnumNames ? '' : 'MEMS_POSITION_HIGHEST_INTERP');
+  static const MemsPositionMethod MEMS_POSITION_CENTROID =
+      MemsPositionMethod._(2, _omitEnumNames ? '' : 'MEMS_POSITION_CENTROID');
+  static const MemsPositionMethod MEMS_POSITION_PEAK =
+      MemsPositionMethod._(3, _omitEnumNames ? '' : 'MEMS_POSITION_PEAK');
+
+  static const $core.List<MemsPositionMethod> values = <MemsPositionMethod>[
+    MEMS_POSITION_HIGHEST,
+    MEMS_POSITION_HIGHEST_INTERP,
+    MEMS_POSITION_CENTROID,
+    MEMS_POSITION_PEAK,
+  ];
+
+  static final $core.List<MemsPositionMethod?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 3);
+  static MemsPositionMethod? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const MemsPositionMethod._(super.value, super.name);
+}
+
+class MemsTestType extends $pb.ProtobufEnum {
+  static const MemsTestType MEMS_TEST_BENCH =
+      MemsTestType._(0, _omitEnumNames ? '' : 'MEMS_TEST_BENCH');
+  static const MemsTestType MEMS_TEST_FIFO =
+      MemsTestType._(1, _omitEnumNames ? '' : 'MEMS_TEST_FIFO');
+
+  static const $core.List<MemsTestType> values = <MemsTestType>[
+    MEMS_TEST_BENCH,
+    MEMS_TEST_FIFO,
+  ];
+
+  static final $core.List<MemsTestType?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static MemsTestType? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const MemsTestType._(super.value, super.name);
+}
+
+class MemsTestState extends $pb.ProtobufEnum {
+  static const MemsTestState MEMS_TEST_STATE_IDLE =
+      MemsTestState._(0, _omitEnumNames ? '' : 'MEMS_TEST_STATE_IDLE');
+  static const MemsTestState MEMS_TEST_STATE_RUNNING =
+      MemsTestState._(1, _omitEnumNames ? '' : 'MEMS_TEST_STATE_RUNNING');
+  static const MemsTestState MEMS_TEST_STATE_DONE =
+      MemsTestState._(2, _omitEnumNames ? '' : 'MEMS_TEST_STATE_DONE');
+  static const MemsTestState MEMS_TEST_STATE_FAILED =
+      MemsTestState._(3, _omitEnumNames ? '' : 'MEMS_TEST_STATE_FAILED');
+
+  static const $core.List<MemsTestState> values = <MemsTestState>[
+    MEMS_TEST_STATE_IDLE,
+    MEMS_TEST_STATE_RUNNING,
+    MEMS_TEST_STATE_DONE,
+    MEMS_TEST_STATE_FAILED,
+  ];
+
+  static final $core.List<MemsTestState?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 3);
+  static MemsTestState? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const MemsTestState._(super.value, super.name);
 }
 
 const $core.bool _omitEnumNames =

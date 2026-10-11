@@ -1,4 +1,4 @@
-// Auto-generated on 2026-09-16 11:04:00
+// Auto-generated on 2026-10-10 12:08:16
 syntax = "proto3";
 package hdy_rpc;
 //NB! The codes are not in order, but in groups
@@ -46,6 +46,7 @@ enum HandyErrorCodes{
     ERROR_OTA_ERR_INVALID_PARAM = 200003;
     ERROR_OTA_ERR_NEW_OTA_HAS_PREVIOUSLY_FAILED = 200004; //The OTA has been successfull, but during the new FW failed to boot correctly the first boot and has been flagged as invalid
     ERROR_OTA_ERR_NEW_OTA_SAME_AS_CURRENT = 200005; //The new OTA is the same as the current running FW
+    ERROR_OTA_ERR_WRONG_FLASH_ENCRYPTION = 200006; //The image is built for the other flash-encryption mode (an unencrypted-build image on a flash-encrypted device, or the reverse). Refused before it can boot - running it would wipe the device's NVS - and the slot is erased. Use the image matching DeviceInfo.secure_version (0 = unencrypted, 1 = encrypted). Also returned by OtaImageFlip when the other slot holds such an image. Added in FW4.4
 }
 ///////////////////////// Mode related constants /////////////////////////
 enum Mode{
@@ -427,6 +428,15 @@ message ConnectedDeviceInfo{
     FirmwareStatus fw_status = 6;
     string latest_version = 7; //[char[32]] The release the server would serve; empty when it does not say
 }
+//Why a device left - carried by NotificationConnectedChanged (300) when connected=false.
+//PRESENCE is the signal: here means "this is a disconnect and here is what the server
+//knows about it", absent means the server has nothing to say. That is why these are not
+//loose fields on the notification, where an empty string could mean either.
+//Mirrors the online API's DeviceDisconnected. SERVER-filled. Added in FW4.4
+message DeviceDisconnectInfo{
+    string reason = 1; //"io error", a websocket close code as text, ...
+    string description = 2; //Free-text detail for reason. Often empty
+}
 message BatteryState{
     uint32 level = 1; //0-100
     bool charger_connected = 2;
@@ -483,6 +493,7 @@ enum SlideDiagChannel{
     SLIDE_DIAG_CHANNEL_HALL = 0;
     SLIDE_DIAG_CHANNEL_REGULATOR = 1;
     SLIDE_DIAG_CHANNEL_HSP = 2; //script playback events + clock mapping. Added in FW4.4
+    SLIDE_DIAG_CHANNEL_SENSOR = 3; //MEMS strip raw capture (S01), one record per strip sweep (settings mems_poll_ms). Builds without the strip refuse Start with ESP_ERR_NOT_SUPPORTED; field_mask is ignored. Record format v2 (2026-10-08) = 72 bytes little-endian: uint32 time_ms (SensorState.timestamp_ms scale) | int16 force[16] per PHYSICAL cell (0 = I2C base address): raw minus the tare baseline with mems_inverted applied, BEFORE the auto-zero, so auto-zero/hysteresis/position methods can be re-run offline from the capture + settings 2013 + baselines 810; raw ADC = force + baseline (inverted: baseline - force); absent cells 0 | int16 zero[16] per PHYSICAL cell: the auto-zero offset the firmware subtracted this sweep (its working value = force - zero; 0 when the auto-zero is off) - separates the mount's relaxation from the hand | uint16 bits = the firmware's pressed cells, LOGICAL order | uint8 flags: bit0 contact, bit1 inverted applied, bit2 reversed on | uint8 count = cells on the strip. Added 2026-10-07 - WORK IN PROGRESS like the rest of the MEMS surface
 }
 //Curated slide tuning profiles (RequestSlideProfileGet/Set). Definitions
 //live in firmware (hdy_slide_profiles.c); DIAG_TUNING_GUIDE.md mirrors them.
@@ -536,14 +547,18 @@ enum SensorNotificationMode{
 message SensorRawData{
     bytes ports = 1; //Raw expander input bytes: device 0 port 0, device 0 port 1, device 1 port 0, ...
 }
-//Absolute positions [mm] above position 0 (the strip ends); 0 when no contact
+//Absolute positions [mm] above position 0 (the strip ends); 0 when no contact.
+//On a single-line strip (ResponseCapabilitiesGet.sensor_sides = 1) side_a mirrors
+//master and side_b is always 0.
 //Added in FW4.3
 message SensorPositionAbs{
     float master = 1; //Combined per the configured master rule (top/bottom/avg)
     float side_a = 2;
     float side_b = 3;
 }
-//Relative positions 0..1 of the side span (0 = bottom, 1 = top/fold); 0 when no contact
+//Relative positions 0..1 of the side span (0 = bottom, 1 = top/fold); 0 when no contact.
+//On a single-line strip (ResponseCapabilitiesGet.sensor_sides = 1) side_a mirrors
+//master and side_b is always 0.
 //Added in FW4.3
 message SensorPositionRel{
     float master = 1; //Combined per the configured master rule (top/bottom/avg)
@@ -558,14 +573,132 @@ message SensorPositionRel{
 //Added in FW4.3
 message SensorState{
     SensorRawData raw = 1;
-    uint64 bits = 2; //Bit i = sensor i occluded (1 = beam blocked); bit 0 = strip start. Valid bit count = "sensors" in ResponseCapabilitiesGet
+    uint64 bits = 2; //Bit i = sensor i occluded (IR: beam blocked; MEMS: cell pressed, held through the release hysteresis); bit 0 = strip start. Valid bit count = "sensors" in ResponseCapabilitiesGet
     SensorPositionAbs position_abs = 3;
     SensorPositionRel position_rel = 4;
-    bool contact_side_a = 5;
+    bool contact_side_a = 5; //Single-line strips (sensor_sides = 1): the strip's contact; contact_side_b is then always false
     bool contact_side_b = 6;
     uint32 timestamp_ms = 7; //Device time of the reading [ms]
     bool sleeping = 8; //IR power save active: emitters unpowered, positions frozen at the pre-sleep state; the strip is only checked for change periodically. A transition sends one NotificationSensorUpdate. Always included. Added in FW4.3
+    SensorForce force = 9; //MEMS builds only (S01 ribcage). Added in FW4.4 - WORK IN PROGRESS, not finalized
 }
+/////////////////////////////////////////////////////////////////////////////
+//MEMS force strip (ZSFS1001, S01 ribcage) - WORK IN PROGRESS.
+//NOT FINALIZED: everything from here to the end of the MEMS section (and the
+//MEMS requests 810-818 in messages.proto) may still change or be removed.
+//Nothing here is a committed API yet. Added in FW4.4; public since 2026-10-08
+/////////////////////////////////////////////////////////////////////////////
+//How the MEMS backend reduces the per-cell force vector to the ONE position
+//SensorState reports (position_abs/position_rel master = side A). Values match
+//the firmware's hdySensorMethod_t. EVERY method is computed every sweep and
+//published in SensorForce.candidate_rel, so a client can compare them live;
+//settings mems_method (2014) picks the one that feeds the position fields.
+//All methods share one mapping from a cell coordinate x (x = h means "at cell
+//h"): rel = (x+1)/count, mm = (offset_um + x*pitch_um)/1000 - so HIGHEST
+//reproduces the IR numbers and switching methods never shifts a reading by a
+//fraction of a pitch. Added 2026-10-06
+enum MemsPositionMethod{
+    MEMS_POSITION_HIGHEST = 0; //Highest pressed cell: insertion depth, the IR semantics. Default
+    MEMS_POSITION_HIGHEST_INTERP = 1; //Highest pressed cell plus the next cell's force / release_threshold, clamped to one cell: sub-pitch depth, continuous through a cell press or release
+    MEMS_POSITION_CENTROID = 2; //Force-weighted mean of the pressed cells: grip location
+    MEMS_POSITION_PEAK = 3; //The cell carrying the most force
+}
+//Per-sensor force from the last sweep of the MEMS backend - a part of
+//SensorState (subscribe with RequestSensorNotificationSet.force).
+message SensorForce{
+    repeated sint32 force = 1; //Baseline-corrected force code per cell in LOGICAL order (0 = position-0 end, follows the reversed setting); 0 for absent cells. A light touch is a few hundred codes, a firm press ~2000. Negative = strain the other way or baseline drift (tare with 812)
+    uint32 present_mask = 2; //Bit i = LOGICAL cell i answered at init - lines up with force[] (the PHYSICAL mask is ResponseMemsStatusGet.present_mask). LOGICAL since 2026-10-06, was physical
+    sint32 peak = 3; //Highest force this sweep ...
+    uint32 peak_index = 4; //... and the logical cell carrying it
+    uint32 threshold = 5; //Press threshold: a cell at or above it becomes pressed (settings mems_threshold)
+    uint32 release_threshold = 6; //A pressed cell stays pressed until it drops BELOW this (= threshold * mems_release_pct / 100): the hysteresis behind bits/contact/positions. Added 2026-10-06
+    sint32 total = 7; //Sum of the positive cells this sweep: a squeeze is a total, a touch is a peak. Added 2026-10-06
+    MemsPositionMethod method = 8; //The method feeding SensorState's position fields (settings mems_method). Added 2026-10-06
+    repeated float candidate_rel = 9; //Relative position 0..1 per method, indexed by MemsPositionMethod (4 entries), all from this sweep. Hold their last value while contact is false, exactly like position_rel. Added 2026-10-06
+}
+//Sampling configuration of one MEMS sensor
+message MemsSensorConfig{
+    uint32 rate_sps = 1; //Output data rate: 1000, 2000, 4000 or 8000 samples/s
+    bool lpf_enabled = 2; //On-chip low-pass filter
+    uint32 lpf_cutoff = 3; //Datasheet LPF_CF_SEL code 0-7: 114, 10, 21 (default), 46, 76, 170, 211, 272 Hz at 1000 sps; the cutoff scales with the rate
+    bool fifo_enabled = 4; //FIFO buffering on. Only a FIFO test (MEMS_TEST_FIFO) turns it on, and it restores the previous config afterwards
+}
+//One sensor slot on the strip
+message MemsSensorInfo{
+    uint32 index = 1; //PHYSICAL index: 0 = the sensor at the I2C base address (connector end)
+    uint32 i2c_address = 2;
+    bool present = 3; //Answered at init or at the last reset
+    uint32 chip_id = 4; //0 when not present
+    uint32 version = 5;
+    sint32 baseline = 6; //Zero-force raw code captured by the last tare
+    MemsSensorConfig config = 7; //Applied sampling configuration
+}
+//One fresh reading of one sensor
+message MemsReading{
+    uint32 index = 1; //PHYSICAL index
+    bool ok = 2; //False = the read failed; raw/force are then 0
+    sint32 raw = 3; //Raw DATA_ADC code
+    sint32 force = 4; //raw - baseline
+}
+//Outcome of a per-sensor operation (tare, reset, config set)
+message MemsSensorResult{
+    uint32 index = 1; //PHYSICAL index
+    bool ok = 2; //False = the operation failed on this sensor
+    sint32 baseline = 3; //Baseline after the operation (every operation ends with a tare)
+}
+//Die temperature of one sensor
+message MemsTemperature{
+    uint32 index = 1; //PHYSICAL index
+    bool ok = 2;
+    float temp_c = 3; //Die temperature [C], accuracy +-4 C
+}
+enum MemsTestType{
+    MEMS_TEST_BENCH = 0; //Back-to-back DATA_ADC sweeps: the most the bus delivers in polling mode
+    MEMS_TEST_FIFO = 1; //Stream through the on-chip FIFOs at rate_sps: delivered rate, bus cost, dropped samples
+}
+enum MemsTestState{
+    MEMS_TEST_STATE_IDLE = 0; //No test since boot
+    MEMS_TEST_STATE_RUNNING = 1; //Sensing is paused: positions/force freeze until the test ends
+    MEMS_TEST_STATE_DONE = 2; //Results valid
+    MEMS_TEST_STATE_FAILED = 3; //See MemsTestResult.error
+}
+//Per-sensor statistics of a MEMS test
+message MemsTestSensorStats{
+    uint32 index = 1; //PHYSICAL index
+    uint32 errors = 2; //Failed I2C transfers
+    uint32 reads = 3; //BENCH: DATA_ADC reads. FIFO: FIFO drains
+    uint32 read_min_us = 4; //BENCH only: per-read time; the minimum is the uncontended cost
+    uint32 read_avg_us = 5; //BENCH only
+    uint32 read_max_us = 6; //BENCH only
+    uint32 samples = 7; //FIFO only: samples delivered
+    uint32 samples_per_s = 8; //FIFO only: delivered rate. The chip clocks run 1.5-2% slow, each differently - count samples, never timestamp by the nominal rate
+    uint32 full_events = 9; //FIFO only: drains that found the FIFO full (= samples were dropped)
+    sint32 mean_vs_adc = 10; //FIFO only: FIFO mean minus a DATA_ADC read right after the run. Healthy data = a few codes
+}
+//Result (or progress) of the last MEMS test. Fields not used by the test type stay 0.
+message MemsTestResult{
+    MemsTestState state = 1;
+    MemsTestType type = 2;
+    uint32 sensor_mask = 3; //PHYSICAL sensors tested
+    uint32 sweeps = 4; //BENCH: sweeps run
+    uint32 duration_ms = 5; //FIFO: requested duration
+    uint32 rate_sps = 6; //FIFO: data rate
+    uint32 elapsed_ms = 7; //Measured run time (0 while running)
+    uint32 errors = 8; //Failed I2C transfers, all sensors
+    string error = 9; //Why the test FAILED
+    uint32 sweep_min_us = 10; //BENCH: time per sweep of all selected sensors
+    uint32 sweep_avg_us = 11; //BENCH
+    uint32 sweep_max_us = 12; //BENCH
+    uint32 reads_per_s = 13; //BENCH: DATA_ADC reads per second, all sensors
+    uint32 samples_per_s = 14; //FIFO: samples delivered per second, all sensors
+    uint32 bus_percent = 15; //FIFO: share of the run spent in FIFO reads (the 400 kHz bus tops out near 16000 samples/s)
+    uint32 bus_us_per_sample = 16; //FIFO
+    uint32 drains = 17; //FIFO: FIFO reads, all sensors
+    uint32 max_drain_words = 18; //FIFO: most samples in one drain (32 = full)
+    uint32 full_events = 19; //FIFO: drains that found a FIFO full, all sensors
+    repeated MemsTestSensorStats sensors = 20; //One per tested sensor
+}
+//End of the MEMS section (WORK IN PROGRESS)
 //A device currently connected to the server. NB! Server only - never built or
 //parsed by the FW. Shared by ResponseDeviceListGet (302) and
 //NotificationDeviceListChanged (301).

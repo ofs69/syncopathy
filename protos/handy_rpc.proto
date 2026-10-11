@@ -1,4 +1,4 @@
-// Auto-generated on 2026-09-16 11:04:00
+// Auto-generated on 2026-10-10 12:08:16
 syntax = "proto3";
 package hdy_rpc;
 import "notifications.proto";
@@ -39,6 +39,7 @@ message Notification{
         NotificationSensorUpdate notification_sensor_update = 800; //Added in FW4.3
         NotificationSlideDiagData notification_slide_diag_data = 844; //Added in FW4.4 - diag capture stream chunk (see RequestSlideDiagStream)
         NotificationSpeedStats notification_speed_stats = 851; //Added in FW4.4 - one per averaging window (see RequestSpeedStatsSet)
+        NotificationSliderEndReached notification_slider_end_reached = 857; //Added in FW4.4 - RequestSliderEndMove arrived at the end
         NotificationHspThresholdReached notification_hsp_threshold_reached = 860;
         NotificationHspStateChanged notification_hsp_state_changed = 861;
         NotificationHspLooping notification_hsp_looping = 862;
@@ -104,6 +105,16 @@ message Request {
         RequestSensorNotificationSet request_sensor_notification_set = 800; //Added in FW4.3
         RequestSensorStateGet request_sensor_state_get = 801; //Added in FW4.3
         RequestSensorNotificationGet request_sensor_notification_get = 802; //Added in FW4.3
+        //MEMS force strip 810-818 - WORK IN PROGRESS, NOT FINALIZED: may change or be removed (see messages.proto)
+        RequestMemsStatusGet request_mems_status_get = 810; //Added in FW4.4 - work in progress
+        RequestMemsRead request_mems_read = 811; //Added in FW4.4 - work in progress
+        RequestMemsTare request_mems_tare = 812; //Added in FW4.4 - work in progress
+        RequestMemsTempGet request_mems_temp_get = 813; //Added in FW4.4 - work in progress
+        RequestMemsReset request_mems_reset = 814; //Added in FW4.4 - work in progress
+        RequestMemsRegister request_mems_register = 815; //Added in FW4.4 - work in progress
+        RequestMemsConfigSet request_mems_config_set = 816; //Added in FW4.4 - work in progress
+        RequestMemsTestStart request_mems_test_start = 817; //Added in FW4.4 - work in progress
+        RequestMemsTestResultGet request_mems_test_result_get = 818; //Added in FW4.4 - work in progress
         //SLIDE - 840
         RequestSliderStrokeGet request_slider_stroke_get = 840;
         RequestSliderStrokeSet request_slider_stroke_set = 841;
@@ -120,6 +131,7 @@ message Request {
         RequestSlideSnapshotGet request_slide_snapshot_get = 853; //Added in FW4.4
         RequestSlideProfileTuningGet request_slide_profile_tuning_get = 855; //Added in FW4.4
         RequestSlideMaintResultGet request_slide_maint_result_get = 856; //Added in FW4.4 - last maintenance test results (582/583)
+        RequestSliderEndMove request_slider_end_move = 857; //Added in FW4.4 - park the carriage at a physical end in any mode (stops what runs, keeps the mode)
         //HSP - 860
         RequestHspSetup request_hsp_setup = 860;
         RequestHspAdd request_hsp_add = 861;
@@ -197,6 +209,16 @@ message Response {
         ResponseSensorNotificationSet response_sensor_notification_set = 800; //Added in FW4.3
         ResponseSensorStateGet response_sensor_state_get = 801; //Added in FW4.3
         ResponseSensorNotificationGet response_sensor_notification_get = 802; //Added in FW4.3
+        //MEMS force strip 810-818 - WORK IN PROGRESS, NOT FINALIZED: may change or be removed (see messages.proto)
+        ResponseMemsStatusGet response_mems_status_get = 810; //Added in FW4.4 - work in progress
+        ResponseMemsRead response_mems_read = 811; //Added in FW4.4 - work in progress
+        ResponseMemsTare response_mems_tare = 812; //Added in FW4.4 - work in progress
+        ResponseMemsTempGet response_mems_temp_get = 813; //Added in FW4.4 - work in progress
+        ResponseMemsReset response_mems_reset = 814; //Added in FW4.4 - work in progress
+        ResponseMemsRegister response_mems_register = 815; //Added in FW4.4 - work in progress
+        ResponseMemsConfigSet response_mems_config_set = 816; //Added in FW4.4 - work in progress
+        ResponseMemsTestStart response_mems_test_start = 817; //Added in FW4.4 - work in progress
+        ResponseMemsTestResultGet response_mems_test_result_get = 818; //Added in FW4.4 - work in progress
         //Slide - 840
         ResponseSliderStrokeGet response_slider_stroke_get = 840;
         ResponseSliderStrokeSet response_slider_stroke_set = 841;

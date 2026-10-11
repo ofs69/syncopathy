@@ -66,14 +66,23 @@ const ResponseConnectedGet$json = {
   '1': 'ResponseConnectedGet',
   '2': [
     {'1': 'connected', '3': 1, '4': 1, '5': 8, '10': 'connected'},
-    {'1': 'session_id', '3': 2, '4': 1, '5': 13, '10': 'sessionId'},
+    {'1': 'session_id', '3': 2, '4': 1, '5': 9, '10': 'sessionId'},
+    {
+      '1': 'info',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.ConnectedDeviceInfo',
+      '10': 'info'
+    },
   ],
 };
 
 /// Descriptor for `ResponseConnectedGet`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List responseConnectedGetDescriptor = $convert.base64Decode(
     'ChRSZXNwb25zZUNvbm5lY3RlZEdldBIcCgljb25uZWN0ZWQYASABKAhSCWNvbm5lY3RlZBIdCg'
-    'pzZXNzaW9uX2lkGAIgASgNUglzZXNzaW9uSWQ=');
+    'pzZXNzaW9uX2lkGAIgASgJUglzZXNzaW9uSWQSMAoEaW5mbxgDIAEoCzIcLmhkeV9ycGMuQ29u'
+    'bmVjdGVkRGV2aWNlSW5mb1IEaW5mbw==');
 
 @$core.Deprecated('Use requestFwStatusGetDescriptor instead')
 const RequestFwStatusGet$json = {
@@ -541,6 +550,8 @@ const ResponseCapabilitiesGet$json = {
       '5': 8,
       '10': 'batteryTemperatureMeasure'
     },
+    {'1': 'sensor_force', '3': 20, '4': 1, '5': 8, '10': 'sensorForce'},
+    {'1': 'sensor_sides', '3': 21, '4': 1, '5': 13, '10': 'sensorSides'},
   ],
 };
 
@@ -559,7 +570,8 @@ final $typed_data.Uint8List responseCapabilitiesGetDescriptor = $convert.base64D
     'ZmZlcl9zaXplGBAgASgNUgx3c0J1ZmZlclNpemUSGAoHc2Vuc29ycxgRIAEoDVIHc2Vuc29ycx'
     'IuChN1c2Jfdm9sdGFnZV9tZWFzdXJlGBIgASgIUhF1c2JWb2x0YWdlTWVhc3VyZRI+ChtiYXR0'
     'ZXJ5X3RlbXBlcmF0dXJlX21lYXN1cmUYEyABKAhSGWJhdHRlcnlUZW1wZXJhdHVyZU1lYXN1cm'
-    'U=');
+    'USIQoMc2Vuc29yX2ZvcmNlGBQgASgIUgtzZW5zb3JGb3JjZRIhCgxzZW5zb3Jfc2lkZXMYFSAB'
+    'KA1SC3NlbnNvclNpZGVz');
 
 @$core.Deprecated('Use requestSessionIdsGetDescriptor instead')
 const RequestSessionIdsGet$json = {
@@ -957,6 +969,7 @@ const RequestSensorNotificationSet$json = {
       '6': '.hdy_rpc.SensorNotificationMode',
       '10': 'mode'
     },
+    {'1': 'force', '3': 8, '4': 1, '5': 8, '10': 'force'},
   ],
 };
 
@@ -966,7 +979,8 @@ final $typed_data.Uint8List requestSensorNotificationSetDescriptor = $convert.ba
     'QSEAoDcmF3GAIgASgIUgNyYXcSEgoEYml0cxgDIAEoCFIEYml0cxIhCgxwb3NpdGlvbl9hYnMY'
     'BCABKAhSC3Bvc2l0aW9uQWJzEiEKDHBvc2l0aW9uX3JlbBgFIAEoCFILcG9zaXRpb25SZWwSJg'
     'oPbWluX2ludGVydmFsX21zGAYgASgNUg1taW5JbnRlcnZhbE1zEjMKBG1vZGUYByABKA4yHy5o'
-    'ZHlfcnBjLlNlbnNvck5vdGlmaWNhdGlvbk1vZGVSBG1vZGU=');
+    'ZHlfcnBjLlNlbnNvck5vdGlmaWNhdGlvbk1vZGVSBG1vZGUSFAoFZm9yY2UYCCABKAhSBWZvcm'
+    'Nl');
 
 @$core.Deprecated('Use responseSensorNotificationSetDescriptor instead')
 const ResponseSensorNotificationSet$json = {
@@ -986,6 +1000,7 @@ const ResponseSensorNotificationSet$json = {
       '6': '.hdy_rpc.SensorNotificationMode',
       '10': 'mode'
     },
+    {'1': 'force', '3': 8, '4': 1, '5': 8, '10': 'force'},
   ],
 };
 
@@ -995,7 +1010,8 @@ final $typed_data.Uint8List responseSensorNotificationSetDescriptor = $convert.b
     'VkEhAKA3JhdxgCIAEoCFIDcmF3EhIKBGJpdHMYAyABKAhSBGJpdHMSIQoMcG9zaXRpb25fYWJz'
     'GAQgASgIUgtwb3NpdGlvbkFicxIhCgxwb3NpdGlvbl9yZWwYBSABKAhSC3Bvc2l0aW9uUmVsEi'
     'YKD21pbl9pbnRlcnZhbF9tcxgGIAEoDVINbWluSW50ZXJ2YWxNcxIzCgRtb2RlGAcgASgOMh8u'
-    'aGR5X3JwYy5TZW5zb3JOb3RpZmljYXRpb25Nb2RlUgRtb2Rl');
+    'aGR5X3JwYy5TZW5zb3JOb3RpZmljYXRpb25Nb2RlUgRtb2RlEhQKBWZvcmNlGAggASgIUgVmb3'
+    'JjZQ==');
 
 @$core.Deprecated('Use requestSensorStateGetDescriptor instead')
 const RequestSensorStateGet$json = {
@@ -1054,6 +1070,7 @@ const ResponseSensorNotificationGet$json = {
       '6': '.hdy_rpc.SensorNotificationMode',
       '10': 'mode'
     },
+    {'1': 'force', '3': 8, '4': 1, '5': 8, '10': 'force'},
   ],
 };
 
@@ -1063,7 +1080,330 @@ final $typed_data.Uint8List responseSensorNotificationGetDescriptor = $convert.b
     'VkEhAKA3JhdxgCIAEoCFIDcmF3EhIKBGJpdHMYAyABKAhSBGJpdHMSIQoMcG9zaXRpb25fYWJz'
     'GAQgASgIUgtwb3NpdGlvbkFicxIhCgxwb3NpdGlvbl9yZWwYBSABKAhSC3Bvc2l0aW9uUmVsEi'
     'YKD21pbl9pbnRlcnZhbF9tcxgGIAEoDVINbWluSW50ZXJ2YWxNcxIzCgRtb2RlGAcgASgOMh8u'
-    'aGR5X3JwYy5TZW5zb3JOb3RpZmljYXRpb25Nb2RlUgRtb2Rl');
+    'aGR5X3JwYy5TZW5zb3JOb3RpZmljYXRpb25Nb2RlUgRtb2RlEhQKBWZvcmNlGAggASgIUgVmb3'
+    'JjZQ==');
+
+@$core.Deprecated('Use requestMemsStatusGetDescriptor instead')
+const RequestMemsStatusGet$json = {
+  '1': 'RequestMemsStatusGet',
+};
+
+/// Descriptor for `RequestMemsStatusGet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestMemsStatusGetDescriptor =
+    $convert.base64Decode('ChRSZXF1ZXN0TWVtc1N0YXR1c0dldA==');
+
+@$core.Deprecated('Use responseMemsStatusGetDescriptor instead')
+const ResponseMemsStatusGet$json = {
+  '1': 'ResponseMemsStatusGet',
+  '2': [
+    {'1': 'count', '3': 1, '4': 1, '5': 13, '10': 'count'},
+    {'1': 'present_mask', '3': 2, '4': 1, '5': 13, '10': 'presentMask'},
+    {'1': 'base_address', '3': 3, '4': 1, '5': 13, '10': 'baseAddress'},
+    {'1': 'reversed', '3': 4, '4': 1, '5': 8, '10': 'reversed'},
+    {'1': 'threshold', '3': 5, '4': 1, '5': 13, '10': 'threshold'},
+    {'1': 'poll_ms', '3': 6, '4': 1, '5': 13, '10': 'pollMs'},
+    {'1': 'read_failures', '3': 7, '4': 1, '5': 13, '10': 'readFailures'},
+    {'1': 'test_running', '3': 8, '4': 1, '5': 8, '10': 'testRunning'},
+    {
+      '1': 'sensors',
+      '3': 9,
+      '4': 3,
+      '5': 11,
+      '6': '.hdy_rpc.MemsSensorInfo',
+      '10': 'sensors'
+    },
+    {'1': 'inverted', '3': 10, '4': 1, '5': 8, '10': 'inverted'},
+  ],
+};
+
+/// Descriptor for `ResponseMemsStatusGet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseMemsStatusGetDescriptor = $convert.base64Decode(
+    'ChVSZXNwb25zZU1lbXNTdGF0dXNHZXQSFAoFY291bnQYASABKA1SBWNvdW50EiEKDHByZXNlbn'
+    'RfbWFzaxgCIAEoDVILcHJlc2VudE1hc2sSIQoMYmFzZV9hZGRyZXNzGAMgASgNUgtiYXNlQWRk'
+    'cmVzcxIaCghyZXZlcnNlZBgEIAEoCFIIcmV2ZXJzZWQSHAoJdGhyZXNob2xkGAUgASgNUgl0aH'
+    'Jlc2hvbGQSFwoHcG9sbF9tcxgGIAEoDVIGcG9sbE1zEiMKDXJlYWRfZmFpbHVyZXMYByABKA1S'
+    'DHJlYWRGYWlsdXJlcxIhCgx0ZXN0X3J1bm5pbmcYCCABKAhSC3Rlc3RSdW5uaW5nEjEKB3Nlbn'
+    'NvcnMYCSADKAsyFy5oZHlfcnBjLk1lbXNTZW5zb3JJbmZvUgdzZW5zb3JzEhoKCGludmVydGVk'
+    'GAogASgIUghpbnZlcnRlZA==');
+
+@$core.Deprecated('Use requestMemsReadDescriptor instead')
+const RequestMemsRead$json = {
+  '1': 'RequestMemsRead',
+  '2': [
+    {'1': 'sensor_mask', '3': 1, '4': 1, '5': 13, '10': 'sensorMask'},
+  ],
+};
+
+/// Descriptor for `RequestMemsRead`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestMemsReadDescriptor = $convert.base64Decode(
+    'Cg9SZXF1ZXN0TWVtc1JlYWQSHwoLc2Vuc29yX21hc2sYASABKA1SCnNlbnNvck1hc2s=');
+
+@$core.Deprecated('Use responseMemsReadDescriptor instead')
+const ResponseMemsRead$json = {
+  '1': 'ResponseMemsRead',
+  '2': [
+    {'1': 'timestamp_ms', '3': 1, '4': 1, '5': 13, '10': 'timestampMs'},
+    {
+      '1': 'readings',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.hdy_rpc.MemsReading',
+      '10': 'readings'
+    },
+  ],
+};
+
+/// Descriptor for `ResponseMemsRead`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseMemsReadDescriptor = $convert.base64Decode(
+    'ChBSZXNwb25zZU1lbXNSZWFkEiEKDHRpbWVzdGFtcF9tcxgBIAEoDVILdGltZXN0YW1wTXMSMA'
+    'oIcmVhZGluZ3MYAiADKAsyFC5oZHlfcnBjLk1lbXNSZWFkaW5nUghyZWFkaW5ncw==');
+
+@$core.Deprecated('Use requestMemsTareDescriptor instead')
+const RequestMemsTare$json = {
+  '1': 'RequestMemsTare',
+  '2': [
+    {'1': 'sensor_mask', '3': 1, '4': 1, '5': 13, '10': 'sensorMask'},
+  ],
+};
+
+/// Descriptor for `RequestMemsTare`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestMemsTareDescriptor = $convert.base64Decode(
+    'Cg9SZXF1ZXN0TWVtc1RhcmUSHwoLc2Vuc29yX21hc2sYASABKA1SCnNlbnNvck1hc2s=');
+
+@$core.Deprecated('Use responseMemsTareDescriptor instead')
+const ResponseMemsTare$json = {
+  '1': 'ResponseMemsTare',
+  '2': [
+    {
+      '1': 'results',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.hdy_rpc.MemsSensorResult',
+      '10': 'results'
+    },
+  ],
+};
+
+/// Descriptor for `ResponseMemsTare`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseMemsTareDescriptor = $convert.base64Decode(
+    'ChBSZXNwb25zZU1lbXNUYXJlEjMKB3Jlc3VsdHMYASADKAsyGS5oZHlfcnBjLk1lbXNTZW5zb3'
+    'JSZXN1bHRSB3Jlc3VsdHM=');
+
+@$core.Deprecated('Use requestMemsTempGetDescriptor instead')
+const RequestMemsTempGet$json = {
+  '1': 'RequestMemsTempGet',
+  '2': [
+    {'1': 'sensor_mask', '3': 1, '4': 1, '5': 13, '10': 'sensorMask'},
+  ],
+};
+
+/// Descriptor for `RequestMemsTempGet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestMemsTempGetDescriptor = $convert.base64Decode(
+    'ChJSZXF1ZXN0TWVtc1RlbXBHZXQSHwoLc2Vuc29yX21hc2sYASABKA1SCnNlbnNvck1hc2s=');
+
+@$core.Deprecated('Use responseMemsTempGetDescriptor instead')
+const ResponseMemsTempGet$json = {
+  '1': 'ResponseMemsTempGet',
+  '2': [
+    {
+      '1': 'temperatures',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.hdy_rpc.MemsTemperature',
+      '10': 'temperatures'
+    },
+  ],
+};
+
+/// Descriptor for `ResponseMemsTempGet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseMemsTempGetDescriptor = $convert.base64Decode(
+    'ChNSZXNwb25zZU1lbXNUZW1wR2V0EjwKDHRlbXBlcmF0dXJlcxgBIAMoCzIYLmhkeV9ycGMuTW'
+    'Vtc1RlbXBlcmF0dXJlUgx0ZW1wZXJhdHVyZXM=');
+
+@$core.Deprecated('Use requestMemsResetDescriptor instead')
+const RequestMemsReset$json = {
+  '1': 'RequestMemsReset',
+  '2': [
+    {'1': 'sensor_mask', '3': 1, '4': 1, '5': 13, '10': 'sensorMask'},
+  ],
+};
+
+/// Descriptor for `RequestMemsReset`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestMemsResetDescriptor = $convert.base64Decode(
+    'ChBSZXF1ZXN0TWVtc1Jlc2V0Eh8KC3NlbnNvcl9tYXNrGAEgASgNUgpzZW5zb3JNYXNr');
+
+@$core.Deprecated('Use responseMemsResetDescriptor instead')
+const ResponseMemsReset$json = {
+  '1': 'ResponseMemsReset',
+  '2': [
+    {'1': 'present_mask', '3': 1, '4': 1, '5': 13, '10': 'presentMask'},
+    {
+      '1': 'results',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.hdy_rpc.MemsSensorResult',
+      '10': 'results'
+    },
+  ],
+};
+
+/// Descriptor for `ResponseMemsReset`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseMemsResetDescriptor = $convert.base64Decode(
+    'ChFSZXNwb25zZU1lbXNSZXNldBIhCgxwcmVzZW50X21hc2sYASABKA1SC3ByZXNlbnRNYXNrEj'
+    'MKB3Jlc3VsdHMYAiADKAsyGS5oZHlfcnBjLk1lbXNTZW5zb3JSZXN1bHRSB3Jlc3VsdHM=');
+
+@$core.Deprecated('Use requestMemsRegisterDescriptor instead')
+const RequestMemsRegister$json = {
+  '1': 'RequestMemsRegister',
+  '2': [
+    {'1': 'index', '3': 1, '4': 1, '5': 13, '10': 'index'},
+    {'1': 'reg', '3': 2, '4': 1, '5': 13, '10': 'reg'},
+    {'1': 'write', '3': 3, '4': 1, '5': 8, '10': 'write'},
+    {'1': 'value', '3': 4, '4': 1, '5': 13, '10': 'value'},
+  ],
+};
+
+/// Descriptor for `RequestMemsRegister`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestMemsRegisterDescriptor = $convert.base64Decode(
+    'ChNSZXF1ZXN0TWVtc1JlZ2lzdGVyEhQKBWluZGV4GAEgASgNUgVpbmRleBIQCgNyZWcYAiABKA'
+    '1SA3JlZxIUCgV3cml0ZRgDIAEoCFIFd3JpdGUSFAoFdmFsdWUYBCABKA1SBXZhbHVl');
+
+@$core.Deprecated('Use responseMemsRegisterDescriptor instead')
+const ResponseMemsRegister$json = {
+  '1': 'ResponseMemsRegister',
+  '2': [
+    {'1': 'index', '3': 1, '4': 1, '5': 13, '10': 'index'},
+    {'1': 'reg', '3': 2, '4': 1, '5': 13, '10': 'reg'},
+    {'1': 'value', '3': 3, '4': 1, '5': 13, '10': 'value'},
+  ],
+};
+
+/// Descriptor for `ResponseMemsRegister`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseMemsRegisterDescriptor = $convert.base64Decode(
+    'ChRSZXNwb25zZU1lbXNSZWdpc3RlchIUCgVpbmRleBgBIAEoDVIFaW5kZXgSEAoDcmVnGAIgAS'
+    'gNUgNyZWcSFAoFdmFsdWUYAyABKA1SBXZhbHVl');
+
+@$core.Deprecated('Use requestMemsConfigSetDescriptor instead')
+const RequestMemsConfigSet$json = {
+  '1': 'RequestMemsConfigSet',
+  '2': [
+    {'1': 'sensor_mask', '3': 1, '4': 1, '5': 13, '10': 'sensorMask'},
+    {'1': 'has_rate_sps', '3': 2, '4': 1, '5': 8, '10': 'hasRateSps'},
+    {'1': 'rate_sps', '3': 3, '4': 1, '5': 13, '10': 'rateSps'},
+    {'1': 'has_lpf_enabled', '3': 4, '4': 1, '5': 8, '10': 'hasLpfEnabled'},
+    {'1': 'lpf_enabled', '3': 5, '4': 1, '5': 8, '10': 'lpfEnabled'},
+    {'1': 'has_lpf_cutoff', '3': 6, '4': 1, '5': 8, '10': 'hasLpfCutoff'},
+    {'1': 'lpf_cutoff', '3': 7, '4': 1, '5': 13, '10': 'lpfCutoff'},
+  ],
+};
+
+/// Descriptor for `RequestMemsConfigSet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestMemsConfigSetDescriptor = $convert.base64Decode(
+    'ChRSZXF1ZXN0TWVtc0NvbmZpZ1NldBIfCgtzZW5zb3JfbWFzaxgBIAEoDVIKc2Vuc29yTWFzax'
+    'IgCgxoYXNfcmF0ZV9zcHMYAiABKAhSCmhhc1JhdGVTcHMSGQoIcmF0ZV9zcHMYAyABKA1SB3Jh'
+    'dGVTcHMSJgoPaGFzX2xwZl9lbmFibGVkGAQgASgIUg1oYXNMcGZFbmFibGVkEh8KC2xwZl9lbm'
+    'FibGVkGAUgASgIUgpscGZFbmFibGVkEiQKDmhhc19scGZfY3V0b2ZmGAYgASgIUgxoYXNMcGZD'
+    'dXRvZmYSHQoKbHBmX2N1dG9mZhgHIAEoDVIJbHBmQ3V0b2Zm');
+
+@$core.Deprecated('Use responseMemsConfigSetDescriptor instead')
+const ResponseMemsConfigSet$json = {
+  '1': 'ResponseMemsConfigSet',
+  '2': [
+    {
+      '1': 'results',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.hdy_rpc.MemsSensorResult',
+      '10': 'results'
+    },
+  ],
+};
+
+/// Descriptor for `ResponseMemsConfigSet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseMemsConfigSetDescriptor = $convert.base64Decode(
+    'ChVSZXNwb25zZU1lbXNDb25maWdTZXQSMwoHcmVzdWx0cxgBIAMoCzIZLmhkeV9ycGMuTWVtc1'
+    'NlbnNvclJlc3VsdFIHcmVzdWx0cw==');
+
+@$core.Deprecated('Use requestMemsTestStartDescriptor instead')
+const RequestMemsTestStart$json = {
+  '1': 'RequestMemsTestStart',
+  '2': [
+    {
+      '1': 'type',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.hdy_rpc.MemsTestType',
+      '10': 'type'
+    },
+    {'1': 'sensor_mask', '3': 2, '4': 1, '5': 13, '10': 'sensorMask'},
+    {'1': 'sweeps', '3': 3, '4': 1, '5': 13, '10': 'sweeps'},
+    {'1': 'duration_ms', '3': 4, '4': 1, '5': 13, '10': 'durationMs'},
+    {'1': 'rate_sps', '3': 5, '4': 1, '5': 13, '10': 'rateSps'},
+  ],
+};
+
+/// Descriptor for `RequestMemsTestStart`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestMemsTestStartDescriptor = $convert.base64Decode(
+    'ChRSZXF1ZXN0TWVtc1Rlc3RTdGFydBIpCgR0eXBlGAEgASgOMhUuaGR5X3JwYy5NZW1zVGVzdF'
+    'R5cGVSBHR5cGUSHwoLc2Vuc29yX21hc2sYAiABKA1SCnNlbnNvck1hc2sSFgoGc3dlZXBzGAMg'
+    'ASgNUgZzd2VlcHMSHwoLZHVyYXRpb25fbXMYBCABKA1SCmR1cmF0aW9uTXMSGQoIcmF0ZV9zcH'
+    'MYBSABKA1SB3JhdGVTcHM=');
+
+@$core.Deprecated('Use responseMemsTestStartDescriptor instead')
+const ResponseMemsTestStart$json = {
+  '1': 'ResponseMemsTestStart',
+  '2': [
+    {
+      '1': 'result',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.MemsTestResult',
+      '10': 'result'
+    },
+  ],
+};
+
+/// Descriptor for `ResponseMemsTestStart`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseMemsTestStartDescriptor = $convert.base64Decode(
+    'ChVSZXNwb25zZU1lbXNUZXN0U3RhcnQSLwoGcmVzdWx0GAEgASgLMhcuaGR5X3JwYy5NZW1zVG'
+    'VzdFJlc3VsdFIGcmVzdWx0');
+
+@$core.Deprecated('Use requestMemsTestResultGetDescriptor instead')
+const RequestMemsTestResultGet$json = {
+  '1': 'RequestMemsTestResultGet',
+};
+
+/// Descriptor for `RequestMemsTestResultGet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestMemsTestResultGetDescriptor =
+    $convert.base64Decode('ChhSZXF1ZXN0TWVtc1Rlc3RSZXN1bHRHZXQ=');
+
+@$core.Deprecated('Use responseMemsTestResultGetDescriptor instead')
+const ResponseMemsTestResultGet$json = {
+  '1': 'ResponseMemsTestResultGet',
+  '2': [
+    {
+      '1': 'result',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.MemsTestResult',
+      '10': 'result'
+    },
+  ],
+};
+
+/// Descriptor for `ResponseMemsTestResultGet`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List responseMemsTestResultGetDescriptor =
+    $convert.base64Decode(
+        'ChlSZXNwb25zZU1lbXNUZXN0UmVzdWx0R2V0Ei8KBnJlc3VsdBgBIAEoCzIXLmhkeV9ycGMuTW'
+        'Vtc1Rlc3RSZXN1bHRSBnJlc3VsdA==');
 
 @$core.Deprecated('Use requestSliderStrokeGetDescriptor instead')
 const RequestSliderStrokeGet$json = {
@@ -3127,3 +3467,15 @@ final $typed_data.Uint8List responseSlideMaintResultGetDescriptor = $convert.bas
     '9ycGMuU2xpZGVNYWludFVuaWZvcm1pdHlSZXN1bHRSCnVuaWZvcm1pdHkSPgoJbWF4X3NwZWVk'
     'GAIgASgLMiEuaGR5X3JwYy5TbGlkZU1haW50TWF4U3BlZWRSZXN1bHRSCG1heFNwZWVkEhgKB3'
     'J1bm5pbmcYAyABKAhSB3J1bm5pbmc=');
+
+@$core.Deprecated('Use requestSliderEndMoveDescriptor instead')
+const RequestSliderEndMove$json = {
+  '1': 'RequestSliderEndMove',
+  '2': [
+    {'1': 'top', '3': 1, '4': 1, '5': 8, '10': 'top'},
+  ],
+};
+
+/// Descriptor for `RequestSliderEndMove`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestSliderEndMoveDescriptor = $convert
+    .base64Decode('ChRSZXF1ZXN0U2xpZGVyRW5kTW92ZRIQCgN0b3AYASABKAhSA3RvcA==');

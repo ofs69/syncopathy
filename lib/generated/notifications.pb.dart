@@ -26,25 +26,24 @@ export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 /// learns the current state instead of discovering it by polling
 /// RequestConnectedGet (301).
 /// This is the socket's counterpart to the online API's device_status /
-/// device_connected / device_disconnected SSE events, and carries the same facts.
+/// device_connected / device_disconnected SSE events, and carries the same facts
+/// under the same names.
+/// Which fields apply is answered by PRESENCE, never by an empty value: info is
+/// there on a connect, disconnect is there on a disconnect.
 class NotificationConnectedChanged extends $pb.GeneratedMessage {
   factory NotificationConnectedChanged({
     $core.bool? connected,
-    $core.int? sessionId,
-    $0.ConnectedDeviceInfo? info,
-    $core.String? sessionUlid,
-    $core.String? reason,
-    $core.String? description,
+    $core.String? sessionId,
     $fixnum.Int64? timestamp,
+    $0.ConnectedDeviceInfo? info,
+    $0.DeviceDisconnectInfo? disconnect,
   }) {
     final result = create();
     if (connected != null) result.connected = connected;
     if (sessionId != null) result.sessionId = sessionId;
-    if (info != null) result.info = info;
-    if (sessionUlid != null) result.sessionUlid = sessionUlid;
-    if (reason != null) result.reason = reason;
-    if (description != null) result.description = description;
     if (timestamp != null) result.timestamp = timestamp;
+    if (info != null) result.info = info;
+    if (disconnect != null) result.disconnect = disconnect;
     return result;
   }
 
@@ -62,15 +61,14 @@ class NotificationConnectedChanged extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'connected')
-    ..aI(2, _omitFieldNames ? '' : 'sessionId', fieldType: $pb.PbFieldType.OU3)
-    ..aOM<$0.ConnectedDeviceInfo>(3, _omitFieldNames ? '' : 'info',
-        subBuilder: $0.ConnectedDeviceInfo.create)
-    ..aOS(4, _omitFieldNames ? '' : 'sessionUlid')
-    ..aOS(5, _omitFieldNames ? '' : 'reason')
-    ..aOS(6, _omitFieldNames ? '' : 'description')
+    ..aOS(2, _omitFieldNames ? '' : 'sessionId')
     ..a<$fixnum.Int64>(
-        7, _omitFieldNames ? '' : 'timestamp', $pb.PbFieldType.OU6,
+        3, _omitFieldNames ? '' : 'timestamp', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOM<$0.ConnectedDeviceInfo>(4, _omitFieldNames ? '' : 'info',
+        subBuilder: $0.ConnectedDeviceInfo.create)
+    ..aOM<$0.DeviceDisconnectInfo>(5, _omitFieldNames ? '' : 'disconnect',
+        subBuilder: $0.DeviceDisconnectInfo.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -104,69 +102,54 @@ class NotificationConnectedChanged extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearConnected() => $_clearField(1);
 
+  /// Everything below is SERVER-filled. Added in FW4.4
   @$pb.TagNumber(2)
-  $core.int get sessionId => $_getIZ(1);
+  $core.String get sessionId => $_getSZ(1);
   @$pb.TagNumber(2)
-  set sessionId($core.int value) => $_setUnsignedInt32(1, value);
+  set sessionId($core.String value) => $_setString(1, value);
   @$pb.TagNumber(2)
   $core.bool hasSessionId() => $_has(1);
   @$pb.TagNumber(2)
   void clearSessionId() => $_clearField(2);
 
-  /// Everything below is SERVER-filled. Added in FW4.4
+  /// the online API serves as DeviceInfo.session_id - one session, one
+  /// id, both surfaces. New on every device->server join. ULIDs are
+  /// lexically time-ordered, so a disconnect naming an OLDER session
+  /// (one that raced a newer connect) can be recognised and dropped.
+  /// Empty when the server does not set it
   @$pb.TagNumber(3)
-  $0.ConnectedDeviceInfo get info => $_getN(2);
+  $fixnum.Int64 get timestamp => $_getI64(2);
   @$pb.TagNumber(3)
-  set info($0.ConnectedDeviceInfo value) => $_setField(3, value);
+  set timestamp($fixnum.Int64 value) => $_setInt64(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasInfo() => $_has(2);
+  $core.bool hasTimestamp() => $_has(2);
   @$pb.TagNumber(3)
-  void clearInfo() => $_clearField(3);
-  @$pb.TagNumber(3)
-  $0.ConnectedDeviceInfo ensureInfo() => $_ensure(2);
+  void clearTimestamp() => $_clearField(3);
 
-  /// disconnect and while the server has not learned it yet
+  /// connect and disconnect alike. 0 = not set.
+  /// NB! server time, not the device clock - do not mix the two
   @$pb.TagNumber(4)
-  $core.String get sessionUlid => $_getSZ(3);
+  $0.ConnectedDeviceInfo get info => $_getN(3);
   @$pb.TagNumber(4)
-  set sessionUlid($core.String value) => $_setString(3, value);
+  set info($0.ConnectedDeviceInfo value) => $_setField(4, value);
   @$pb.TagNumber(4)
-  $core.bool hasSessionUlid() => $_has(3);
+  $core.bool hasInfo() => $_has(3);
   @$pb.TagNumber(4)
-  void clearSessionUlid() => $_clearField(4);
+  void clearInfo() => $_clearField(4);
+  @$pb.TagNumber(4)
+  $0.ConnectedDeviceInfo ensureInfo() => $_ensure(3);
 
-  /// online API serves as DeviceInfo.session_id. Two things this buys:
-  /// ULIDs are lexically time-ordered, so a disconnect for an OLDER
-  /// session (one that raced a newer connect) can be recognised and
-  /// dropped; and a socket client and an SSE client can tell they are
-  /// watching one session. Empty when the server does not set it
+  /// the server has not learned it yet
   @$pb.TagNumber(5)
-  $core.String get reason => $_getSZ(4);
+  $0.DeviceDisconnectInfo get disconnect => $_getN(4);
   @$pb.TagNumber(5)
-  set reason($core.String value) => $_setString(4, value);
+  set disconnect($0.DeviceDisconnectInfo value) => $_setField(5, value);
   @$pb.TagNumber(5)
-  $core.bool hasReason() => $_has(4);
+  $core.bool hasDisconnect() => $_has(4);
   @$pb.TagNumber(5)
-  void clearReason() => $_clearField(5);
-
-  /// as text, ...). Empty on connect, and when the server does not say
-  @$pb.TagNumber(6)
-  $core.String get description => $_getSZ(5);
-  @$pb.TagNumber(6)
-  set description($core.String value) => $_setString(5, value);
-  @$pb.TagNumber(6)
-  $core.bool hasDescription() => $_has(5);
-  @$pb.TagNumber(6)
-  void clearDescription() => $_clearField(6);
-
-  @$pb.TagNumber(7)
-  $fixnum.Int64 get timestamp => $_getI64(6);
-  @$pb.TagNumber(7)
-  set timestamp($fixnum.Int64 value) => $_setInt64(6, value);
-  @$pb.TagNumber(7)
-  $core.bool hasTimestamp() => $_has(6);
-  @$pb.TagNumber(7)
-  void clearTimestamp() => $_clearField(7);
+  void clearDisconnect() => $_clearField(5);
+  @$pb.TagNumber(5)
+  $0.DeviceDisconnectInfo ensureDisconnect() => $_ensure(4);
 }
 
 /// 601 - wifi
@@ -1950,6 +1933,78 @@ class NotificationSpeedStats extends $pb.GeneratedMessage {
   void clearStats() => $_clearField(1);
   @$pb.TagNumber(1)
   $0.SpeedStats ensureStats() => $_ensure(0);
+}
+
+/// 857 - The carriage reached the physical end requested by RequestSliderEndMove
+/// (contact detected). Not sent when another motion command cancelled the move.
+/// Added in FW4.4
+class NotificationSliderEndReached extends $pb.GeneratedMessage {
+  factory NotificationSliderEndReached({
+    $core.bool? top,
+    $core.double? position,
+  }) {
+    final result = create();
+    if (top != null) result.top = top;
+    if (position != null) result.position = position;
+    return result;
+  }
+
+  NotificationSliderEndReached._();
+
+  factory NotificationSliderEndReached.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory NotificationSliderEndReached.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'NotificationSliderEndReached',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'top')
+    ..aD(2, _omitFieldNames ? '' : 'position', fieldType: $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationSliderEndReached clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NotificationSliderEndReached copyWith(
+          void Function(NotificationSliderEndReached) updates) =>
+      super.copyWith(
+              (message) => updates(message as NotificationSliderEndReached))
+          as NotificationSliderEndReached;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static NotificationSliderEndReached create() =>
+      NotificationSliderEndReached._();
+  @$core.override
+  NotificationSliderEndReached createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static NotificationSliderEndReached getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<NotificationSliderEndReached>(create);
+  static NotificationSliderEndReached? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get top => $_getBF(0);
+  @$pb.TagNumber(1)
+  set top($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTop() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTop() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.double get position => $_getN(1);
+  @$pb.TagNumber(2)
+  set position($core.double value) => $_setFloat(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasPosition() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPosition() => $_clearField(2);
 }
 
 /// 844 - One chunk of a diag capture stream (see RequestSlideDiagStream in

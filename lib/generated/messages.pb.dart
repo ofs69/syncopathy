@@ -157,14 +157,24 @@ class RequestConnectedGet extends $pb.GeneratedMessage {
   static RequestConnectedGet? _defaultInstance;
 }
 
+/// The PULL counterpart of NotificationConnectedChanged (300): the same presence
+/// STATE, on demand. A client that missed the push - or that wants to re-verify
+/// after a suspend, a heartbeat miss or a reconnect - asks for it here instead of
+/// tearing the socket down and rebuilding it to be told again.
+/// NB! State only. The transition detail on 300 (disconnect, timestamp) is
+/// deliberately NOT mirrored here: those describe an EVENT that happened, and a
+/// client asking "is a device attached right now" cannot tell a current fact from
+/// a historical one. Why the last device left is 300's to say, not this one's.
 class ResponseConnectedGet extends $pb.GeneratedMessage {
   factory ResponseConnectedGet({
     $core.bool? connected,
-    $core.int? sessionId,
+    $core.String? sessionId,
+    $0.ConnectedDeviceInfo? info,
   }) {
     final result = create();
     if (connected != null) result.connected = connected;
     if (sessionId != null) result.sessionId = sessionId;
+    if (info != null) result.info = info;
     return result;
   }
 
@@ -182,7 +192,9 @@ class ResponseConnectedGet extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
       createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'connected')
-    ..aI(2, _omitFieldNames ? '' : 'sessionId', fieldType: $pb.PbFieldType.OU3)
+    ..aOS(2, _omitFieldNames ? '' : 'sessionId')
+    ..aOM<$0.ConnectedDeviceInfo>(3, _omitFieldNames ? '' : 'info',
+        subBuilder: $0.ConnectedDeviceInfo.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -213,14 +225,29 @@ class ResponseConnectedGet extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearConnected() => $_clearField(1);
 
+  /// Both SERVER-filled, and carrying exactly what 300 puts in the fields of the
+  /// same name. Added in FW4.4
   @$pb.TagNumber(2)
-  $core.int get sessionId => $_getIZ(1);
+  $core.String get sessionId => $_getSZ(1);
   @$pb.TagNumber(2)
-  set sessionId($core.int value) => $_setUnsignedInt32(1, value);
+  set sessionId($core.String value) => $_setString(1, value);
   @$pb.TagNumber(2)
   $core.bool hasSessionId() => $_has(1);
   @$pb.TagNumber(2)
   void clearSessionId() => $_clearField(2);
+
+  /// carries and the online API serves as DeviceInfo.session_id. Empty
+  /// while no device is attached
+  @$pb.TagNumber(3)
+  $0.ConnectedDeviceInfo get info => $_getN(2);
+  @$pb.TagNumber(3)
+  set info($0.ConnectedDeviceInfo value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasInfo() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearInfo() => $_clearField(3);
+  @$pb.TagNumber(3)
+  $0.ConnectedDeviceInfo ensureInfo() => $_ensure(2);
 }
 
 /// 304 - Added in FW4.4 - The server's firmware verdict for the connected device.
@@ -1874,6 +1901,8 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
     $core.int? sensors,
     $core.bool? usbVoltageMeasure,
     $core.bool? batteryTemperatureMeasure,
+    $core.bool? sensorForce,
+    $core.int? sensorSides,
   }) {
     final result = create();
     if (vulvaOriented != null) result.vulvaOriented = vulvaOriented;
@@ -1896,6 +1925,8 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
     if (usbVoltageMeasure != null) result.usbVoltageMeasure = usbVoltageMeasure;
     if (batteryTemperatureMeasure != null)
       result.batteryTemperatureMeasure = batteryTemperatureMeasure;
+    if (sensorForce != null) result.sensorForce = sensorForce;
+    if (sensorSides != null) result.sensorSides = sensorSides;
     return result;
   }
 
@@ -1937,6 +1968,9 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
     ..aI(17, _omitFieldNames ? '' : 'sensors', fieldType: $pb.PbFieldType.OU3)
     ..aOB(18, _omitFieldNames ? '' : 'usbVoltageMeasure')
     ..aOB(19, _omitFieldNames ? '' : 'batteryTemperatureMeasure')
+    ..aOB(20, _omitFieldNames ? '' : 'sensorForce')
+    ..aI(21, _omitFieldNames ? '' : 'sensorSides',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2129,6 +2163,24 @@ class ResponseCapabilitiesGet extends $pb.GeneratedMessage {
   $core.bool hasBatteryTemperatureMeasure() => $_has(18);
   @$pb.TagNumber(19)
   void clearBatteryTemperatureMeasure() => $_clearField(19);
+
+  @$pb.TagNumber(20)
+  $core.bool get sensorForce => $_getBF(19);
+  @$pb.TagNumber(20)
+  set sensorForce($core.bool value) => $_setBool(19, value);
+  @$pb.TagNumber(20)
+  $core.bool hasSensorForce() => $_has(19);
+  @$pb.TagNumber(20)
+  void clearSensorForce() => $_clearField(20);
+
+  @$pb.TagNumber(21)
+  $core.int get sensorSides => $_getIZ(20);
+  @$pb.TagNumber(21)
+  set sensorSides($core.int value) => $_setUnsignedInt32(20, value);
+  @$pb.TagNumber(21)
+  $core.bool hasSensorSides() => $_has(20);
+  @$pb.TagNumber(21)
+  void clearSensorSides() => $_clearField(21);
 }
 
 ///
@@ -3645,6 +3697,7 @@ class RequestSensorNotificationSet extends $pb.GeneratedMessage {
     $core.bool? positionRel,
     $core.int? minIntervalMs,
     $0.SensorNotificationMode? mode,
+    $core.bool? force,
   }) {
     final result = create();
     if (enabled != null) result.enabled = enabled;
@@ -3654,6 +3707,7 @@ class RequestSensorNotificationSet extends $pb.GeneratedMessage {
     if (positionRel != null) result.positionRel = positionRel;
     if (minIntervalMs != null) result.minIntervalMs = minIntervalMs;
     if (mode != null) result.mode = mode;
+    if (force != null) result.force = force;
     return result;
   }
 
@@ -3679,6 +3733,7 @@ class RequestSensorNotificationSet extends $pb.GeneratedMessage {
         fieldType: $pb.PbFieldType.OU3)
     ..aE<$0.SensorNotificationMode>(7, _omitFieldNames ? '' : 'mode',
         enumValues: $0.SensorNotificationMode.values)
+    ..aOB(8, _omitFieldNames ? '' : 'force')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3770,6 +3825,15 @@ class RequestSensorNotificationSet extends $pb.GeneratedMessage {
   $core.bool hasMode() => $_has(6);
   @$pb.TagNumber(7)
   void clearMode() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.bool get force => $_getBF(7);
+  @$pb.TagNumber(8)
+  set force($core.bool value) => $_setBool(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasForce() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearForce() => $_clearField(8);
 }
 
 /// Echoes the configuration that is now active
@@ -3783,6 +3847,7 @@ class ResponseSensorNotificationSet extends $pb.GeneratedMessage {
     $core.bool? positionRel,
     $core.int? minIntervalMs,
     $0.SensorNotificationMode? mode,
+    $core.bool? force,
   }) {
     final result = create();
     if (enabled != null) result.enabled = enabled;
@@ -3792,6 +3857,7 @@ class ResponseSensorNotificationSet extends $pb.GeneratedMessage {
     if (positionRel != null) result.positionRel = positionRel;
     if (minIntervalMs != null) result.minIntervalMs = minIntervalMs;
     if (mode != null) result.mode = mode;
+    if (force != null) result.force = force;
     return result;
   }
 
@@ -3817,6 +3883,7 @@ class ResponseSensorNotificationSet extends $pb.GeneratedMessage {
         fieldType: $pb.PbFieldType.OU3)
     ..aE<$0.SensorNotificationMode>(7, _omitFieldNames ? '' : 'mode',
         enumValues: $0.SensorNotificationMode.values)
+    ..aOB(8, _omitFieldNames ? '' : 'force')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3903,6 +3970,15 @@ class ResponseSensorNotificationSet extends $pb.GeneratedMessage {
   $core.bool hasMode() => $_has(6);
   @$pb.TagNumber(7)
   void clearMode() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.bool get force => $_getBF(7);
+  @$pb.TagNumber(8)
+  set force($core.bool value) => $_setBool(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasForce() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearForce() => $_clearField(8);
 }
 
 /// 801
@@ -4065,6 +4141,7 @@ class ResponseSensorNotificationGet extends $pb.GeneratedMessage {
     $core.bool? positionRel,
     $core.int? minIntervalMs,
     $0.SensorNotificationMode? mode,
+    $core.bool? force,
   }) {
     final result = create();
     if (enabled != null) result.enabled = enabled;
@@ -4074,6 +4151,7 @@ class ResponseSensorNotificationGet extends $pb.GeneratedMessage {
     if (positionRel != null) result.positionRel = positionRel;
     if (minIntervalMs != null) result.minIntervalMs = minIntervalMs;
     if (mode != null) result.mode = mode;
+    if (force != null) result.force = force;
     return result;
   }
 
@@ -4099,6 +4177,7 @@ class ResponseSensorNotificationGet extends $pb.GeneratedMessage {
         fieldType: $pb.PbFieldType.OU3)
     ..aE<$0.SensorNotificationMode>(7, _omitFieldNames ? '' : 'mode',
         enumValues: $0.SensorNotificationMode.values)
+    ..aOB(8, _omitFieldNames ? '' : 'force')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4185,8 +4264,1288 @@ class ResponseSensorNotificationGet extends $pb.GeneratedMessage {
   $core.bool hasMode() => $_has(6);
   @$pb.TagNumber(7)
   void clearMode() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.bool get force => $_getBF(7);
+  @$pb.TagNumber(8)
+  set force($core.bool value) => $_setBool(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasForce() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearForce() => $_clearField(8);
 }
 
+/// ///////////////////////////////////////////////////////////////////////////
+/// 810-818 MEMS force strip (ZSFS1001, S01 ribcage) - WORK IN PROGRESS.
+/// NOT FINALIZED: ids, fields and behaviour may still change or be removed.
+/// Nothing here is a committed API yet (public since 2026-10-08). Types live
+/// in constants.proto.
+///
+/// - Builds without the MEMS backend answer ERROR_FUNCTION_NOT_SUPPORTED.
+/// - Sensor indexes are PHYSICAL: 0 = the sensor at the I2C base address (the
+///   connector end). SensorForce in the sensor stream is LOGICAL order instead.
+/// - sensor_mask: bit i = physical sensor i; 0 = every present sensor. Absent
+///   sensors in a mask are skipped (reset is the exception: it re-probes them).
+/// - While a test runs (817), every request here except 810 and 818 is rejected
+///   with ESP_ERR_INVALID_STATE (259).
+/// Added in FW4.4
+/// ///////////////////////////////////////////////////////////////////////////
+/// 810 - Strip and per-sensor status (no I2C traffic). Allowed during a test.
+class RequestMemsStatusGet extends $pb.GeneratedMessage {
+  factory RequestMemsStatusGet() => create();
+
+  RequestMemsStatusGet._();
+
+  factory RequestMemsStatusGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestMemsStatusGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestMemsStatusGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsStatusGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsStatusGet copyWith(void Function(RequestMemsStatusGet) updates) =>
+      super.copyWith((message) => updates(message as RequestMemsStatusGet))
+          as RequestMemsStatusGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsStatusGet create() => RequestMemsStatusGet._();
+  @$core.override
+  RequestMemsStatusGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsStatusGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestMemsStatusGet>(create);
+  static RequestMemsStatusGet? _defaultInstance;
+}
+
+class ResponseMemsStatusGet extends $pb.GeneratedMessage {
+  factory ResponseMemsStatusGet({
+    $core.int? count,
+    $core.int? presentMask,
+    $core.int? baseAddress,
+    $core.bool? reversed,
+    $core.int? threshold,
+    $core.int? pollMs,
+    $core.int? readFailures,
+    $core.bool? testRunning,
+    $core.Iterable<$0.MemsSensorInfo>? sensors,
+    $core.bool? inverted,
+  }) {
+    final result = create();
+    if (count != null) result.count = count;
+    if (presentMask != null) result.presentMask = presentMask;
+    if (baseAddress != null) result.baseAddress = baseAddress;
+    if (reversed != null) result.reversed = reversed;
+    if (threshold != null) result.threshold = threshold;
+    if (pollMs != null) result.pollMs = pollMs;
+    if (readFailures != null) result.readFailures = readFailures;
+    if (testRunning != null) result.testRunning = testRunning;
+    if (sensors != null) result.sensors.addAll(sensors);
+    if (inverted != null) result.inverted = inverted;
+    return result;
+  }
+
+  ResponseMemsStatusGet._();
+
+  factory ResponseMemsStatusGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseMemsStatusGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseMemsStatusGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'count', fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'presentMask',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'baseAddress',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aOB(4, _omitFieldNames ? '' : 'reversed')
+    ..aI(5, _omitFieldNames ? '' : 'threshold', fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'pollMs', fieldType: $pb.PbFieldType.OU3)
+    ..aI(7, _omitFieldNames ? '' : 'readFailures',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aOB(8, _omitFieldNames ? '' : 'testRunning')
+    ..pPM<$0.MemsSensorInfo>(9, _omitFieldNames ? '' : 'sensors',
+        subBuilder: $0.MemsSensorInfo.create)
+    ..aOB(10, _omitFieldNames ? '' : 'inverted')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsStatusGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsStatusGet copyWith(
+          void Function(ResponseMemsStatusGet) updates) =>
+      super.copyWith((message) => updates(message as ResponseMemsStatusGet))
+          as ResponseMemsStatusGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsStatusGet create() => ResponseMemsStatusGet._();
+  @$core.override
+  ResponseMemsStatusGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsStatusGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseMemsStatusGet>(create);
+  static ResponseMemsStatusGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get count => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set count($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasCount() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCount() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get presentMask => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set presentMask($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasPresentMask() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPresentMask() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get baseAddress => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set baseAddress($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasBaseAddress() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearBaseAddress() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get reversed => $_getBF(3);
+  @$pb.TagNumber(4)
+  set reversed($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasReversed() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearReversed() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get threshold => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set threshold($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasThreshold() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearThreshold() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get pollMs => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set pollMs($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasPollMs() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearPollMs() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.int get readFailures => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set readFailures($core.int value) => $_setUnsignedInt32(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasReadFailures() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearReadFailures() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.bool get testRunning => $_getBF(7);
+  @$pb.TagNumber(8)
+  set testRunning($core.bool value) => $_setBool(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasTestRunning() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearTestRunning() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $pb.PbList<$0.MemsSensorInfo> get sensors => $_getList(8);
+
+  @$pb.TagNumber(10)
+  $core.bool get inverted => $_getBF(9);
+  @$pb.TagNumber(10)
+  set inverted($core.bool value) => $_setBool(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasInverted() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearInverted() => $_clearField(10);
+}
+
+/// 811 - Fresh read of the selected sensors (raw + force)
+class RequestMemsRead extends $pb.GeneratedMessage {
+  factory RequestMemsRead({
+    $core.int? sensorMask,
+  }) {
+    final result = create();
+    if (sensorMask != null) result.sensorMask = sensorMask;
+    return result;
+  }
+
+  RequestMemsRead._();
+
+  factory RequestMemsRead.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestMemsRead.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestMemsRead',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'sensorMask', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsRead clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsRead copyWith(void Function(RequestMemsRead) updates) =>
+      super.copyWith((message) => updates(message as RequestMemsRead))
+          as RequestMemsRead;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsRead create() => RequestMemsRead._();
+  @$core.override
+  RequestMemsRead createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsRead getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestMemsRead>(create);
+  static RequestMemsRead? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get sensorMask => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set sensorMask($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSensorMask() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSensorMask() => $_clearField(1);
+}
+
+class ResponseMemsRead extends $pb.GeneratedMessage {
+  factory ResponseMemsRead({
+    $core.int? timestampMs,
+    $core.Iterable<$0.MemsReading>? readings,
+  }) {
+    final result = create();
+    if (timestampMs != null) result.timestampMs = timestampMs;
+    if (readings != null) result.readings.addAll(readings);
+    return result;
+  }
+
+  ResponseMemsRead._();
+
+  factory ResponseMemsRead.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseMemsRead.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseMemsRead',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'timestampMs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..pPM<$0.MemsReading>(2, _omitFieldNames ? '' : 'readings',
+        subBuilder: $0.MemsReading.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsRead clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsRead copyWith(void Function(ResponseMemsRead) updates) =>
+      super.copyWith((message) => updates(message as ResponseMemsRead))
+          as ResponseMemsRead;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsRead create() => ResponseMemsRead._();
+  @$core.override
+  ResponseMemsRead createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsRead getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseMemsRead>(create);
+  static ResponseMemsRead? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get timestampMs => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set timestampMs($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTimestampMs() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTimestampMs() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$0.MemsReading> get readings => $_getList(1);
+}
+
+/// 812 - Re-zero the selected sensors. Press nothing while it runs.
+class RequestMemsTare extends $pb.GeneratedMessage {
+  factory RequestMemsTare({
+    $core.int? sensorMask,
+  }) {
+    final result = create();
+    if (sensorMask != null) result.sensorMask = sensorMask;
+    return result;
+  }
+
+  RequestMemsTare._();
+
+  factory RequestMemsTare.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestMemsTare.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestMemsTare',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'sensorMask', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsTare clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsTare copyWith(void Function(RequestMemsTare) updates) =>
+      super.copyWith((message) => updates(message as RequestMemsTare))
+          as RequestMemsTare;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsTare create() => RequestMemsTare._();
+  @$core.override
+  RequestMemsTare createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsTare getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestMemsTare>(create);
+  static RequestMemsTare? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get sensorMask => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set sensorMask($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSensorMask() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSensorMask() => $_clearField(1);
+}
+
+class ResponseMemsTare extends $pb.GeneratedMessage {
+  factory ResponseMemsTare({
+    $core.Iterable<$0.MemsSensorResult>? results,
+  }) {
+    final result = create();
+    if (results != null) result.results.addAll(results);
+    return result;
+  }
+
+  ResponseMemsTare._();
+
+  factory ResponseMemsTare.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseMemsTare.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseMemsTare',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..pPM<$0.MemsSensorResult>(1, _omitFieldNames ? '' : 'results',
+        subBuilder: $0.MemsSensorResult.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsTare clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsTare copyWith(void Function(ResponseMemsTare) updates) =>
+      super.copyWith((message) => updates(message as ResponseMemsTare))
+          as ResponseMemsTare;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsTare create() => ResponseMemsTare._();
+  @$core.override
+  ResponseMemsTare createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsTare getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseMemsTare>(create);
+  static ResponseMemsTare? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$0.MemsSensorResult> get results => $_getList(0);
+}
+
+/// 813 - Die temperature of the selected sensors (~60 ms)
+class RequestMemsTempGet extends $pb.GeneratedMessage {
+  factory RequestMemsTempGet({
+    $core.int? sensorMask,
+  }) {
+    final result = create();
+    if (sensorMask != null) result.sensorMask = sensorMask;
+    return result;
+  }
+
+  RequestMemsTempGet._();
+
+  factory RequestMemsTempGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestMemsTempGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestMemsTempGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'sensorMask', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsTempGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsTempGet copyWith(void Function(RequestMemsTempGet) updates) =>
+      super.copyWith((message) => updates(message as RequestMemsTempGet))
+          as RequestMemsTempGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsTempGet create() => RequestMemsTempGet._();
+  @$core.override
+  RequestMemsTempGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsTempGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestMemsTempGet>(create);
+  static RequestMemsTempGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get sensorMask => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set sensorMask($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSensorMask() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSensorMask() => $_clearField(1);
+}
+
+class ResponseMemsTempGet extends $pb.GeneratedMessage {
+  factory ResponseMemsTempGet({
+    $core.Iterable<$0.MemsTemperature>? temperatures,
+  }) {
+    final result = create();
+    if (temperatures != null) result.temperatures.addAll(temperatures);
+    return result;
+  }
+
+  ResponseMemsTempGet._();
+
+  factory ResponseMemsTempGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseMemsTempGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseMemsTempGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..pPM<$0.MemsTemperature>(1, _omitFieldNames ? '' : 'temperatures',
+        subBuilder: $0.MemsTemperature.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsTempGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsTempGet copyWith(void Function(ResponseMemsTempGet) updates) =>
+      super.copyWith((message) => updates(message as ResponseMemsTempGet))
+          as ResponseMemsTempGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsTempGet create() => ResponseMemsTempGet._();
+  @$core.override
+  ResponseMemsTempGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsTempGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseMemsTempGet>(create);
+  static ResponseMemsTempGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$0.MemsTemperature> get temperatures => $_getList(0);
+}
+
+/// 814 - Soft reset + re-init (default config) + tare. Absent sensors in the
+/// mask are re-probed, so a re-seated strip can come back without a reboot.
+/// Press nothing while it runs.
+class RequestMemsReset extends $pb.GeneratedMessage {
+  factory RequestMemsReset({
+    $core.int? sensorMask,
+  }) {
+    final result = create();
+    if (sensorMask != null) result.sensorMask = sensorMask;
+    return result;
+  }
+
+  RequestMemsReset._();
+
+  factory RequestMemsReset.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestMemsReset.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestMemsReset',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'sensorMask', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsReset clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsReset copyWith(void Function(RequestMemsReset) updates) =>
+      super.copyWith((message) => updates(message as RequestMemsReset))
+          as RequestMemsReset;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsReset create() => RequestMemsReset._();
+  @$core.override
+  RequestMemsReset createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsReset getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestMemsReset>(create);
+  static RequestMemsReset? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get sensorMask => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set sensorMask($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSensorMask() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSensorMask() => $_clearField(1);
+}
+
+class ResponseMemsReset extends $pb.GeneratedMessage {
+  factory ResponseMemsReset({
+    $core.int? presentMask,
+    $core.Iterable<$0.MemsSensorResult>? results,
+  }) {
+    final result = create();
+    if (presentMask != null) result.presentMask = presentMask;
+    if (results != null) result.results.addAll(results);
+    return result;
+  }
+
+  ResponseMemsReset._();
+
+  factory ResponseMemsReset.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseMemsReset.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseMemsReset',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'presentMask',
+        fieldType: $pb.PbFieldType.OU3)
+    ..pPM<$0.MemsSensorResult>(2, _omitFieldNames ? '' : 'results',
+        subBuilder: $0.MemsSensorResult.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsReset clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsReset copyWith(void Function(ResponseMemsReset) updates) =>
+      super.copyWith((message) => updates(message as ResponseMemsReset))
+          as ResponseMemsReset;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsReset create() => ResponseMemsReset._();
+  @$core.override
+  ResponseMemsReset createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsReset getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseMemsReset>(create);
+  static ResponseMemsReset? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get presentMask => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set presentMask($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPresentMask() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPresentMask() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$0.MemsSensorResult> get results => $_getList(1);
+}
+
+/// 815 - Raw register access: read, or write then read back. Bench/debug use -
+/// a bad write can stop a sensor until a reset (814).
+class RequestMemsRegister extends $pb.GeneratedMessage {
+  factory RequestMemsRegister({
+    $core.int? index,
+    $core.int? reg,
+    $core.bool? write,
+    $core.int? value,
+  }) {
+    final result = create();
+    if (index != null) result.index = index;
+    if (reg != null) result.reg = reg;
+    if (write != null) result.write = write;
+    if (value != null) result.value = value;
+    return result;
+  }
+
+  RequestMemsRegister._();
+
+  factory RequestMemsRegister.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestMemsRegister.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestMemsRegister',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'index', fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'reg', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(3, _omitFieldNames ? '' : 'write')
+    ..aI(4, _omitFieldNames ? '' : 'value', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsRegister clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsRegister copyWith(void Function(RequestMemsRegister) updates) =>
+      super.copyWith((message) => updates(message as RequestMemsRegister))
+          as RequestMemsRegister;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsRegister create() => RequestMemsRegister._();
+  @$core.override
+  RequestMemsRegister createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsRegister getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestMemsRegister>(create);
+  static RequestMemsRegister? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get index => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set index($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasIndex() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearIndex() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get reg => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set reg($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasReg() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearReg() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get write => $_getBF(2);
+  @$pb.TagNumber(3)
+  set write($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasWrite() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearWrite() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get value => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set value($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasValue() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearValue() => $_clearField(4);
+}
+
+class ResponseMemsRegister extends $pb.GeneratedMessage {
+  factory ResponseMemsRegister({
+    $core.int? index,
+    $core.int? reg,
+    $core.int? value,
+  }) {
+    final result = create();
+    if (index != null) result.index = index;
+    if (reg != null) result.reg = reg;
+    if (value != null) result.value = value;
+    return result;
+  }
+
+  ResponseMemsRegister._();
+
+  factory ResponseMemsRegister.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseMemsRegister.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseMemsRegister',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'index', fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'reg', fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'value', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsRegister clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsRegister copyWith(void Function(ResponseMemsRegister) updates) =>
+      super.copyWith((message) => updates(message as ResponseMemsRegister))
+          as ResponseMemsRegister;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsRegister create() => ResponseMemsRegister._();
+  @$core.override
+  ResponseMemsRegister createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsRegister getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseMemsRegister>(create);
+  static ResponseMemsRegister? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get index => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set index($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasIndex() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearIndex() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get reg => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set reg($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasReg() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearReg() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get value => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set value($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasValue() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearValue() => $_clearField(3);
+}
+
+/// 816 - Change the sampling configuration of the selected sensors (partial
+/// update via has_ flags), then tare them (press nothing). RAM only: a reboot or
+/// a reset (814) returns to the default (1000 sps, LPF on, cutoff code 2 = 21 Hz).
+/// Read the applied config back with 810.
+class RequestMemsConfigSet extends $pb.GeneratedMessage {
+  factory RequestMemsConfigSet({
+    $core.int? sensorMask,
+    $core.bool? hasRateSps,
+    $core.int? rateSps_3,
+    $core.bool? hasLpfEnabled,
+    $core.bool? lpfEnabled_5,
+    $core.bool? hasLpfCutoff,
+    $core.int? lpfCutoff_7,
+  }) {
+    final result = create();
+    if (sensorMask != null) result.sensorMask = sensorMask;
+    if (hasRateSps != null) result.hasRateSps = hasRateSps;
+    if (rateSps_3 != null) result.rateSps_3 = rateSps_3;
+    if (hasLpfEnabled != null) result.hasLpfEnabled = hasLpfEnabled;
+    if (lpfEnabled_5 != null) result.lpfEnabled_5 = lpfEnabled_5;
+    if (hasLpfCutoff != null) result.hasLpfCutoff = hasLpfCutoff;
+    if (lpfCutoff_7 != null) result.lpfCutoff_7 = lpfCutoff_7;
+    return result;
+  }
+
+  RequestMemsConfigSet._();
+
+  factory RequestMemsConfigSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestMemsConfigSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestMemsConfigSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'sensorMask', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(2, _omitFieldNames ? '' : 'hasRateSps')
+    ..aI(3, _omitFieldNames ? '' : 'rateSps', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(4, _omitFieldNames ? '' : 'hasLpfEnabled')
+    ..aOB(5, _omitFieldNames ? '' : 'lpfEnabled')
+    ..aOB(6, _omitFieldNames ? '' : 'hasLpfCutoff')
+    ..aI(7, _omitFieldNames ? '' : 'lpfCutoff', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsConfigSet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsConfigSet copyWith(void Function(RequestMemsConfigSet) updates) =>
+      super.copyWith((message) => updates(message as RequestMemsConfigSet))
+          as RequestMemsConfigSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsConfigSet create() => RequestMemsConfigSet._();
+  @$core.override
+  RequestMemsConfigSet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsConfigSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestMemsConfigSet>(create);
+  static RequestMemsConfigSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get sensorMask => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set sensorMask($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSensorMask() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSensorMask() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get hasRateSps => $_getBF(1);
+  @$pb.TagNumber(2)
+  set hasRateSps($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasHasRateSps() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearHasRateSps() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get rateSps_3 => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set rateSps_3($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasRateSps_3() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearRateSps_3() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get hasLpfEnabled => $_getBF(3);
+  @$pb.TagNumber(4)
+  set hasLpfEnabled($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasHasLpfEnabled() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearHasLpfEnabled() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get lpfEnabled_5 => $_getBF(4);
+  @$pb.TagNumber(5)
+  set lpfEnabled_5($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasLpfEnabled_5() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearLpfEnabled_5() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.bool get hasLpfCutoff => $_getBF(5);
+  @$pb.TagNumber(6)
+  set hasLpfCutoff($core.bool value) => $_setBool(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasHasLpfCutoff() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearHasLpfCutoff() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.int get lpfCutoff_7 => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set lpfCutoff_7($core.int value) => $_setUnsignedInt32(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasLpfCutoff_7() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearLpfCutoff_7() => $_clearField(7);
+}
+
+class ResponseMemsConfigSet extends $pb.GeneratedMessage {
+  factory ResponseMemsConfigSet({
+    $core.Iterable<$0.MemsSensorResult>? results,
+  }) {
+    final result = create();
+    if (results != null) result.results.addAll(results);
+    return result;
+  }
+
+  ResponseMemsConfigSet._();
+
+  factory ResponseMemsConfigSet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseMemsConfigSet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseMemsConfigSet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..pPM<$0.MemsSensorResult>(1, _omitFieldNames ? '' : 'results',
+        subBuilder: $0.MemsSensorResult.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsConfigSet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsConfigSet copyWith(
+          void Function(ResponseMemsConfigSet) updates) =>
+      super.copyWith((message) => updates(message as ResponseMemsConfigSet))
+          as ResponseMemsConfigSet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsConfigSet create() => ResponseMemsConfigSet._();
+  @$core.override
+  ResponseMemsConfigSet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsConfigSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseMemsConfigSet>(create);
+  static ResponseMemsConfigSet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$0.MemsSensorResult> get results => $_getList(0);
+}
+
+/// 817 - Start a test in the background. Sensing (positions, force, contact)
+/// pauses until it ends; poll 818 for the result. One test at a time.
+class RequestMemsTestStart extends $pb.GeneratedMessage {
+  factory RequestMemsTestStart({
+    $0.MemsTestType? type,
+    $core.int? sensorMask,
+    $core.int? sweeps,
+    $core.int? durationMs,
+    $core.int? rateSps,
+  }) {
+    final result = create();
+    if (type != null) result.type = type;
+    if (sensorMask != null) result.sensorMask = sensorMask;
+    if (sweeps != null) result.sweeps = sweeps;
+    if (durationMs != null) result.durationMs = durationMs;
+    if (rateSps != null) result.rateSps = rateSps;
+    return result;
+  }
+
+  RequestMemsTestStart._();
+
+  factory RequestMemsTestStart.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestMemsTestStart.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestMemsTestStart',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aE<$0.MemsTestType>(1, _omitFieldNames ? '' : 'type',
+        enumValues: $0.MemsTestType.values)
+    ..aI(2, _omitFieldNames ? '' : 'sensorMask', fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'sweeps', fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'durationMs', fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'rateSps', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsTestStart clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsTestStart copyWith(void Function(RequestMemsTestStart) updates) =>
+      super.copyWith((message) => updates(message as RequestMemsTestStart))
+          as RequestMemsTestStart;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsTestStart create() => RequestMemsTestStart._();
+  @$core.override
+  RequestMemsTestStart createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsTestStart getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestMemsTestStart>(create);
+  static RequestMemsTestStart? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.MemsTestType get type => $_getN(0);
+  @$pb.TagNumber(1)
+  set type($0.MemsTestType value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasType() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearType() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get sensorMask => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set sensorMask($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSensorMask() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSensorMask() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get sweeps => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set sweeps($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasSweeps() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearSweeps() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get durationMs => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set durationMs($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasDurationMs() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDurationMs() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get rateSps => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set rateSps($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasRateSps() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearRateSps() => $_clearField(5);
+}
+
+class ResponseMemsTestStart extends $pb.GeneratedMessage {
+  factory ResponseMemsTestStart({
+    $0.MemsTestResult? result,
+  }) {
+    final result$ = create();
+    if (result != null) result$.result = result;
+    return result$;
+  }
+
+  ResponseMemsTestStart._();
+
+  factory ResponseMemsTestStart.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseMemsTestStart.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseMemsTestStart',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<$0.MemsTestResult>(1, _omitFieldNames ? '' : 'result',
+        subBuilder: $0.MemsTestResult.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsTestStart clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsTestStart copyWith(
+          void Function(ResponseMemsTestStart) updates) =>
+      super.copyWith((message) => updates(message as ResponseMemsTestStart))
+          as ResponseMemsTestStart;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsTestStart create() => ResponseMemsTestStart._();
+  @$core.override
+  ResponseMemsTestStart createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsTestStart getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseMemsTestStart>(create);
+  static ResponseMemsTestStart? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.MemsTestResult get result => $_getN(0);
+  @$pb.TagNumber(1)
+  set result($0.MemsTestResult value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasResult() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearResult() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $0.MemsTestResult ensureResult() => $_ensure(0);
+}
+
+/// 818 - Result of the running or last test. Allowed during a test.
+class RequestMemsTestResultGet extends $pb.GeneratedMessage {
+  factory RequestMemsTestResultGet() => create();
+
+  RequestMemsTestResultGet._();
+
+  factory RequestMemsTestResultGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestMemsTestResultGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestMemsTestResultGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsTestResultGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestMemsTestResultGet copyWith(
+          void Function(RequestMemsTestResultGet) updates) =>
+      super.copyWith((message) => updates(message as RequestMemsTestResultGet))
+          as RequestMemsTestResultGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsTestResultGet create() => RequestMemsTestResultGet._();
+  @$core.override
+  RequestMemsTestResultGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestMemsTestResultGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestMemsTestResultGet>(create);
+  static RequestMemsTestResultGet? _defaultInstance;
+}
+
+class ResponseMemsTestResultGet extends $pb.GeneratedMessage {
+  factory ResponseMemsTestResultGet({
+    $0.MemsTestResult? result,
+  }) {
+    final result$ = create();
+    if (result != null) result$.result = result;
+    return result$;
+  }
+
+  ResponseMemsTestResultGet._();
+
+  factory ResponseMemsTestResultGet.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ResponseMemsTestResultGet.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ResponseMemsTestResultGet',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOM<$0.MemsTestResult>(1, _omitFieldNames ? '' : 'result',
+        subBuilder: $0.MemsTestResult.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsTestResultGet clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ResponseMemsTestResultGet copyWith(
+          void Function(ResponseMemsTestResultGet) updates) =>
+      super.copyWith((message) => updates(message as ResponseMemsTestResultGet))
+          as ResponseMemsTestResultGet;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsTestResultGet create() => ResponseMemsTestResultGet._();
+  @$core.override
+  ResponseMemsTestResultGet createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ResponseMemsTestResultGet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ResponseMemsTestResultGet>(create);
+  static ResponseMemsTestResultGet? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.MemsTestResult get result => $_getN(0);
+  @$pb.TagNumber(1)
+  set result($0.MemsTestResult value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasResult() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearResult() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $0.MemsTestResult ensureResult() => $_ensure(0);
+}
+
+/// End of 810-818 (WORK IN PROGRESS)
 /// /////////////////////// Slider /////////////////////////
 /// 840
 class RequestSliderStrokeGet extends $pb.GeneratedMessage {
@@ -11774,6 +13133,71 @@ class ResponseSlideMaintResultGet extends $pb.GeneratedMessage {
   $core.bool hasRunning() => $_has(2);
   @$pb.TagNumber(3)
   void clearRunning() => $_clearField(3);
+}
+
+/// 857 - Park the carriage at a PHYSICAL end (absolute bottom/top), e.g. so the
+/// user can adjust the sleeve. Accepted in any motion mode (HAMP, HSP, HRPP, HDSP,
+/// HVP, idle) and it does NOT change the mode: whatever is running is STOPPED first
+/// (the mode and its settings stay; HSP/HRPP have to be played again), then the
+/// slide crawls to the end at a fixed low speed with the end guard off for this
+/// move only, and stops on contact (the position frame is kept - the contact is
+/// intended). Blank response; completion = NotificationSliderEndReached. Any later
+/// motion command cancels the move (then no notification). To continue, the app
+/// starts the mode's activity again (hamp start, hsp play, hrpp start, ...).
+/// Refused (ERROR_WRONG_MODE) in maintenance, OTA and disabled mode.
+/// Added in FW4.4
+class RequestSliderEndMove extends $pb.GeneratedMessage {
+  factory RequestSliderEndMove({
+    $core.bool? top,
+  }) {
+    final result = create();
+    if (top != null) result.top = top;
+    return result;
+  }
+
+  RequestSliderEndMove._();
+
+  factory RequestSliderEndMove.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestSliderEndMove.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestSliderEndMove',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'top')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSliderEndMove clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestSliderEndMove copyWith(void Function(RequestSliderEndMove) updates) =>
+      super.copyWith((message) => updates(message as RequestSliderEndMove))
+          as RequestSliderEndMove;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RequestSliderEndMove create() => RequestSliderEndMove._();
+  @$core.override
+  RequestSliderEndMove createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static RequestSliderEndMove getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestSliderEndMove>(create);
+  static RequestSliderEndMove? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get top => $_getBF(0);
+  @$pb.TagNumber(1)
+  set top($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTop() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTop() => $_clearField(1);
 }
 
 const $core.bool _omitFieldNames =

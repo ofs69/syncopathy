@@ -1348,6 +1348,77 @@ class ConnectedDeviceInfo extends $pb.GeneratedMessage {
   void clearLatestVersion() => $_clearField(7);
 }
 
+/// Why a device left - carried by NotificationConnectedChanged (300) when connected=false.
+/// PRESENCE is the signal: here means "this is a disconnect and here is what the server
+/// knows about it", absent means the server has nothing to say. That is why these are not
+/// loose fields on the notification, where an empty string could mean either.
+/// Mirrors the online API's DeviceDisconnected. SERVER-filled. Added in FW4.4
+class DeviceDisconnectInfo extends $pb.GeneratedMessage {
+  factory DeviceDisconnectInfo({
+    $core.String? reason,
+    $core.String? description,
+  }) {
+    final result = create();
+    if (reason != null) result.reason = reason;
+    if (description != null) result.description = description;
+    return result;
+  }
+
+  DeviceDisconnectInfo._();
+
+  factory DeviceDisconnectInfo.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DeviceDisconnectInfo.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'DeviceDisconnectInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'reason')
+    ..aOS(2, _omitFieldNames ? '' : 'description')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DeviceDisconnectInfo clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DeviceDisconnectInfo copyWith(void Function(DeviceDisconnectInfo) updates) =>
+      super.copyWith((message) => updates(message as DeviceDisconnectInfo))
+          as DeviceDisconnectInfo;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DeviceDisconnectInfo create() => DeviceDisconnectInfo._();
+  @$core.override
+  DeviceDisconnectInfo createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static DeviceDisconnectInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DeviceDisconnectInfo>(create);
+  static DeviceDisconnectInfo? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get reason => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set reason($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasReason() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearReason() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get description => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set description($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasDescription() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearDescription() => $_clearField(2);
+}
+
 class BatteryState extends $pb.GeneratedMessage {
   factory BatteryState({
     $core.int? level,
@@ -1692,7 +1763,9 @@ class SensorRawData extends $pb.GeneratedMessage {
   void clearPorts() => $_clearField(1);
 }
 
-/// Absolute positions [mm] above position 0 (the strip ends); 0 when no contact
+/// Absolute positions [mm] above position 0 (the strip ends); 0 when no contact.
+/// On a single-line strip (ResponseCapabilitiesGet.sensor_sides = 1) side_a mirrors
+/// master and side_b is always 0.
 /// Added in FW4.3
 class SensorPositionAbs extends $pb.GeneratedMessage {
   factory SensorPositionAbs({
@@ -1772,7 +1845,9 @@ class SensorPositionAbs extends $pb.GeneratedMessage {
   void clearSideB() => $_clearField(3);
 }
 
-/// Relative positions 0..1 of the side span (0 = bottom, 1 = top/fold); 0 when no contact
+/// Relative positions 0..1 of the side span (0 = bottom, 1 = top/fold); 0 when no contact.
+/// On a single-line strip (ResponseCapabilitiesGet.sensor_sides = 1) side_a mirrors
+/// master and side_b is always 0.
 /// Added in FW4.3
 class SensorPositionRel extends $pb.GeneratedMessage {
   factory SensorPositionRel({
@@ -1868,6 +1943,7 @@ class SensorState extends $pb.GeneratedMessage {
     $core.bool? contactSideB,
     $core.int? timestampMs,
     $core.bool? sleeping,
+    SensorForce? force,
   }) {
     final result = create();
     if (raw != null) result.raw = raw;
@@ -1878,6 +1954,7 @@ class SensorState extends $pb.GeneratedMessage {
     if (contactSideB != null) result.contactSideB = contactSideB;
     if (timestampMs != null) result.timestampMs = timestampMs;
     if (sleeping != null) result.sleeping = sleeping;
+    if (force != null) result.force = force;
     return result;
   }
 
@@ -1907,6 +1984,8 @@ class SensorState extends $pb.GeneratedMessage {
     ..aI(7, _omitFieldNames ? '' : 'timestampMs',
         fieldType: $pb.PbFieldType.OU3)
     ..aOB(8, _omitFieldNames ? '' : 'sleeping')
+    ..aOM<SensorForce>(9, _omitFieldNames ? '' : 'force',
+        subBuilder: SensorForce.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2005,8 +2084,1086 @@ class SensorState extends $pb.GeneratedMessage {
   $core.bool hasSleeping() => $_has(7);
   @$pb.TagNumber(8)
   void clearSleeping() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  SensorForce get force => $_getN(8);
+  @$pb.TagNumber(9)
+  set force(SensorForce value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasForce() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearForce() => $_clearField(9);
+  @$pb.TagNumber(9)
+  SensorForce ensureForce() => $_ensure(8);
 }
 
+/// Per-sensor force from the last sweep of the MEMS backend - a part of
+/// SensorState (subscribe with RequestSensorNotificationSet.force).
+class SensorForce extends $pb.GeneratedMessage {
+  factory SensorForce({
+    $core.Iterable<$core.int>? force,
+    $core.int? presentMask,
+    $core.int? peak,
+    $core.int? peakIndex,
+    $core.int? threshold,
+    $core.int? releaseThreshold,
+    $core.int? total,
+    MemsPositionMethod? method,
+    $core.Iterable<$core.double>? candidateRel,
+  }) {
+    final result = create();
+    if (force != null) result.force.addAll(force);
+    if (presentMask != null) result.presentMask = presentMask;
+    if (peak != null) result.peak = peak;
+    if (peakIndex != null) result.peakIndex = peakIndex;
+    if (threshold != null) result.threshold = threshold;
+    if (releaseThreshold != null) result.releaseThreshold = releaseThreshold;
+    if (total != null) result.total = total;
+    if (method != null) result.method = method;
+    if (candidateRel != null) result.candidateRel.addAll(candidateRel);
+    return result;
+  }
+
+  SensorForce._();
+
+  factory SensorForce.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SensorForce.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SensorForce',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..p<$core.int>(1, _omitFieldNames ? '' : 'force', $pb.PbFieldType.KS3)
+    ..aI(2, _omitFieldNames ? '' : 'presentMask',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'peak', fieldType: $pb.PbFieldType.OS3)
+    ..aI(4, _omitFieldNames ? '' : 'peakIndex', fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'threshold', fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'releaseThreshold',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(7, _omitFieldNames ? '' : 'total', fieldType: $pb.PbFieldType.OS3)
+    ..aE<MemsPositionMethod>(8, _omitFieldNames ? '' : 'method',
+        enumValues: MemsPositionMethod.values)
+    ..p<$core.double>(
+        9, _omitFieldNames ? '' : 'candidateRel', $pb.PbFieldType.KF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SensorForce clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SensorForce copyWith(void Function(SensorForce) updates) =>
+      super.copyWith((message) => updates(message as SensorForce))
+          as SensorForce;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SensorForce create() => SensorForce._();
+  @$core.override
+  SensorForce createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SensorForce getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SensorForce>(create);
+  static SensorForce? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.int> get force => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $core.int get presentMask => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set presentMask($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasPresentMask() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPresentMask() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get peak => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set peak($core.int value) => $_setSignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasPeak() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearPeak() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get peakIndex => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set peakIndex($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasPeakIndex() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearPeakIndex() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get threshold => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set threshold($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasThreshold() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearThreshold() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get releaseThreshold => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set releaseThreshold($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasReleaseThreshold() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearReleaseThreshold() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.int get total => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set total($core.int value) => $_setSignedInt32(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasTotal() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearTotal() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  MemsPositionMethod get method => $_getN(7);
+  @$pb.TagNumber(8)
+  set method(MemsPositionMethod value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasMethod() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearMethod() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $pb.PbList<$core.double> get candidateRel => $_getList(8);
+}
+
+/// Sampling configuration of one MEMS sensor
+class MemsSensorConfig extends $pb.GeneratedMessage {
+  factory MemsSensorConfig({
+    $core.int? rateSps,
+    $core.bool? lpfEnabled,
+    $core.int? lpfCutoff,
+    $core.bool? fifoEnabled,
+  }) {
+    final result = create();
+    if (rateSps != null) result.rateSps = rateSps;
+    if (lpfEnabled != null) result.lpfEnabled = lpfEnabled;
+    if (lpfCutoff != null) result.lpfCutoff = lpfCutoff;
+    if (fifoEnabled != null) result.fifoEnabled = fifoEnabled;
+    return result;
+  }
+
+  MemsSensorConfig._();
+
+  factory MemsSensorConfig.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MemsSensorConfig.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MemsSensorConfig',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'rateSps', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(2, _omitFieldNames ? '' : 'lpfEnabled')
+    ..aI(3, _omitFieldNames ? '' : 'lpfCutoff', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(4, _omitFieldNames ? '' : 'fifoEnabled')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsSensorConfig clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsSensorConfig copyWith(void Function(MemsSensorConfig) updates) =>
+      super.copyWith((message) => updates(message as MemsSensorConfig))
+          as MemsSensorConfig;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MemsSensorConfig create() => MemsSensorConfig._();
+  @$core.override
+  MemsSensorConfig createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MemsSensorConfig getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MemsSensorConfig>(create);
+  static MemsSensorConfig? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get rateSps => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set rateSps($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasRateSps() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRateSps() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get lpfEnabled => $_getBF(1);
+  @$pb.TagNumber(2)
+  set lpfEnabled($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasLpfEnabled() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearLpfEnabled() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get lpfCutoff => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set lpfCutoff($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasLpfCutoff() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearLpfCutoff() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get fifoEnabled => $_getBF(3);
+  @$pb.TagNumber(4)
+  set fifoEnabled($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasFifoEnabled() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearFifoEnabled() => $_clearField(4);
+}
+
+/// One sensor slot on the strip
+class MemsSensorInfo extends $pb.GeneratedMessage {
+  factory MemsSensorInfo({
+    $core.int? index,
+    $core.int? i2cAddress,
+    $core.bool? present,
+    $core.int? chipId,
+    $core.int? version,
+    $core.int? baseline,
+    MemsSensorConfig? config,
+  }) {
+    final result = create();
+    if (index != null) result.index = index;
+    if (i2cAddress != null) result.i2cAddress = i2cAddress;
+    if (present != null) result.present = present;
+    if (chipId != null) result.chipId = chipId;
+    if (version != null) result.version = version;
+    if (baseline != null) result.baseline = baseline;
+    if (config != null) result.config = config;
+    return result;
+  }
+
+  MemsSensorInfo._();
+
+  factory MemsSensorInfo.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MemsSensorInfo.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MemsSensorInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'index', fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'i2cAddress', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(3, _omitFieldNames ? '' : 'present')
+    ..aI(4, _omitFieldNames ? '' : 'chipId', fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'version', fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'baseline', fieldType: $pb.PbFieldType.OS3)
+    ..aOM<MemsSensorConfig>(7, _omitFieldNames ? '' : 'config',
+        subBuilder: MemsSensorConfig.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsSensorInfo clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsSensorInfo copyWith(void Function(MemsSensorInfo) updates) =>
+      super.copyWith((message) => updates(message as MemsSensorInfo))
+          as MemsSensorInfo;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MemsSensorInfo create() => MemsSensorInfo._();
+  @$core.override
+  MemsSensorInfo createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MemsSensorInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MemsSensorInfo>(create);
+  static MemsSensorInfo? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get index => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set index($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasIndex() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearIndex() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get i2cAddress => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set i2cAddress($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasI2cAddress() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearI2cAddress() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get present => $_getBF(2);
+  @$pb.TagNumber(3)
+  set present($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasPresent() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearPresent() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get chipId => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set chipId($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasChipId() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearChipId() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get version => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set version($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasVersion() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearVersion() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get baseline => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set baseline($core.int value) => $_setSignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasBaseline() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearBaseline() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  MemsSensorConfig get config => $_getN(6);
+  @$pb.TagNumber(7)
+  set config(MemsSensorConfig value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasConfig() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearConfig() => $_clearField(7);
+  @$pb.TagNumber(7)
+  MemsSensorConfig ensureConfig() => $_ensure(6);
+}
+
+/// One fresh reading of one sensor
+class MemsReading extends $pb.GeneratedMessage {
+  factory MemsReading({
+    $core.int? index,
+    $core.bool? ok,
+    $core.int? raw,
+    $core.int? force,
+  }) {
+    final result = create();
+    if (index != null) result.index = index;
+    if (ok != null) result.ok = ok;
+    if (raw != null) result.raw = raw;
+    if (force != null) result.force = force;
+    return result;
+  }
+
+  MemsReading._();
+
+  factory MemsReading.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MemsReading.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MemsReading',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'index', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(2, _omitFieldNames ? '' : 'ok')
+    ..aI(3, _omitFieldNames ? '' : 'raw', fieldType: $pb.PbFieldType.OS3)
+    ..aI(4, _omitFieldNames ? '' : 'force', fieldType: $pb.PbFieldType.OS3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsReading clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsReading copyWith(void Function(MemsReading) updates) =>
+      super.copyWith((message) => updates(message as MemsReading))
+          as MemsReading;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MemsReading create() => MemsReading._();
+  @$core.override
+  MemsReading createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MemsReading getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MemsReading>(create);
+  static MemsReading? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get index => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set index($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasIndex() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearIndex() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get ok => $_getBF(1);
+  @$pb.TagNumber(2)
+  set ok($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasOk() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearOk() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get raw => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set raw($core.int value) => $_setSignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasRaw() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearRaw() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get force => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set force($core.int value) => $_setSignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasForce() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearForce() => $_clearField(4);
+}
+
+/// Outcome of a per-sensor operation (tare, reset, config set)
+class MemsSensorResult extends $pb.GeneratedMessage {
+  factory MemsSensorResult({
+    $core.int? index,
+    $core.bool? ok,
+    $core.int? baseline,
+  }) {
+    final result = create();
+    if (index != null) result.index = index;
+    if (ok != null) result.ok = ok;
+    if (baseline != null) result.baseline = baseline;
+    return result;
+  }
+
+  MemsSensorResult._();
+
+  factory MemsSensorResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MemsSensorResult.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MemsSensorResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'index', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(2, _omitFieldNames ? '' : 'ok')
+    ..aI(3, _omitFieldNames ? '' : 'baseline', fieldType: $pb.PbFieldType.OS3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsSensorResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsSensorResult copyWith(void Function(MemsSensorResult) updates) =>
+      super.copyWith((message) => updates(message as MemsSensorResult))
+          as MemsSensorResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MemsSensorResult create() => MemsSensorResult._();
+  @$core.override
+  MemsSensorResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MemsSensorResult getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MemsSensorResult>(create);
+  static MemsSensorResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get index => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set index($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasIndex() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearIndex() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get ok => $_getBF(1);
+  @$pb.TagNumber(2)
+  set ok($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasOk() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearOk() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get baseline => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set baseline($core.int value) => $_setSignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasBaseline() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearBaseline() => $_clearField(3);
+}
+
+/// Die temperature of one sensor
+class MemsTemperature extends $pb.GeneratedMessage {
+  factory MemsTemperature({
+    $core.int? index,
+    $core.bool? ok,
+    $core.double? tempC,
+  }) {
+    final result = create();
+    if (index != null) result.index = index;
+    if (ok != null) result.ok = ok;
+    if (tempC != null) result.tempC = tempC;
+    return result;
+  }
+
+  MemsTemperature._();
+
+  factory MemsTemperature.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MemsTemperature.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MemsTemperature',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'index', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(2, _omitFieldNames ? '' : 'ok')
+    ..aD(3, _omitFieldNames ? '' : 'tempC', fieldType: $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsTemperature clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsTemperature copyWith(void Function(MemsTemperature) updates) =>
+      super.copyWith((message) => updates(message as MemsTemperature))
+          as MemsTemperature;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MemsTemperature create() => MemsTemperature._();
+  @$core.override
+  MemsTemperature createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MemsTemperature getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MemsTemperature>(create);
+  static MemsTemperature? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get index => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set index($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasIndex() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearIndex() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get ok => $_getBF(1);
+  @$pb.TagNumber(2)
+  set ok($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasOk() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearOk() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get tempC => $_getN(2);
+  @$pb.TagNumber(3)
+  set tempC($core.double value) => $_setFloat(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasTempC() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearTempC() => $_clearField(3);
+}
+
+/// Per-sensor statistics of a MEMS test
+class MemsTestSensorStats extends $pb.GeneratedMessage {
+  factory MemsTestSensorStats({
+    $core.int? index,
+    $core.int? errors,
+    $core.int? reads,
+    $core.int? readMinUs,
+    $core.int? readAvgUs,
+    $core.int? readMaxUs,
+    $core.int? samples,
+    $core.int? samplesPerS,
+    $core.int? fullEvents,
+    $core.int? meanVsAdc,
+  }) {
+    final result = create();
+    if (index != null) result.index = index;
+    if (errors != null) result.errors = errors;
+    if (reads != null) result.reads = reads;
+    if (readMinUs != null) result.readMinUs = readMinUs;
+    if (readAvgUs != null) result.readAvgUs = readAvgUs;
+    if (readMaxUs != null) result.readMaxUs = readMaxUs;
+    if (samples != null) result.samples = samples;
+    if (samplesPerS != null) result.samplesPerS = samplesPerS;
+    if (fullEvents != null) result.fullEvents = fullEvents;
+    if (meanVsAdc != null) result.meanVsAdc = meanVsAdc;
+    return result;
+  }
+
+  MemsTestSensorStats._();
+
+  factory MemsTestSensorStats.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MemsTestSensorStats.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MemsTestSensorStats',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'index', fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'errors', fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'reads', fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'readMinUs', fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'readAvgUs', fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'readMaxUs', fieldType: $pb.PbFieldType.OU3)
+    ..aI(7, _omitFieldNames ? '' : 'samples', fieldType: $pb.PbFieldType.OU3)
+    ..aI(8, _omitFieldNames ? '' : 'samplesPerS',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(9, _omitFieldNames ? '' : 'fullEvents', fieldType: $pb.PbFieldType.OU3)
+    ..aI(10, _omitFieldNames ? '' : 'meanVsAdc', fieldType: $pb.PbFieldType.OS3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsTestSensorStats clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsTestSensorStats copyWith(void Function(MemsTestSensorStats) updates) =>
+      super.copyWith((message) => updates(message as MemsTestSensorStats))
+          as MemsTestSensorStats;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MemsTestSensorStats create() => MemsTestSensorStats._();
+  @$core.override
+  MemsTestSensorStats createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MemsTestSensorStats getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MemsTestSensorStats>(create);
+  static MemsTestSensorStats? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get index => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set index($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasIndex() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearIndex() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get errors => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set errors($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasErrors() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearErrors() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get reads => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set reads($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasReads() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearReads() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get readMinUs => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set readMinUs($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasReadMinUs() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearReadMinUs() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get readAvgUs => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set readAvgUs($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasReadAvgUs() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearReadAvgUs() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get readMaxUs => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set readMaxUs($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasReadMaxUs() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearReadMaxUs() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.int get samples => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set samples($core.int value) => $_setUnsignedInt32(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasSamples() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearSamples() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.int get samplesPerS => $_getIZ(7);
+  @$pb.TagNumber(8)
+  set samplesPerS($core.int value) => $_setUnsignedInt32(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasSamplesPerS() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearSamplesPerS() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.int get fullEvents => $_getIZ(8);
+  @$pb.TagNumber(9)
+  set fullEvents($core.int value) => $_setUnsignedInt32(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasFullEvents() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearFullEvents() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.int get meanVsAdc => $_getIZ(9);
+  @$pb.TagNumber(10)
+  set meanVsAdc($core.int value) => $_setSignedInt32(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasMeanVsAdc() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearMeanVsAdc() => $_clearField(10);
+}
+
+/// Result (or progress) of the last MEMS test. Fields not used by the test type stay 0.
+class MemsTestResult extends $pb.GeneratedMessage {
+  factory MemsTestResult({
+    MemsTestState? state,
+    MemsTestType? type,
+    $core.int? sensorMask,
+    $core.int? sweeps,
+    $core.int? durationMs,
+    $core.int? rateSps,
+    $core.int? elapsedMs,
+    $core.int? errors,
+    $core.String? error,
+    $core.int? sweepMinUs,
+    $core.int? sweepAvgUs,
+    $core.int? sweepMaxUs,
+    $core.int? readsPerS,
+    $core.int? samplesPerS,
+    $core.int? busPercent,
+    $core.int? busUsPerSample,
+    $core.int? drains,
+    $core.int? maxDrainWords,
+    $core.int? fullEvents,
+    $core.Iterable<MemsTestSensorStats>? sensors,
+  }) {
+    final result = create();
+    if (state != null) result.state = state;
+    if (type != null) result.type = type;
+    if (sensorMask != null) result.sensorMask = sensorMask;
+    if (sweeps != null) result.sweeps = sweeps;
+    if (durationMs != null) result.durationMs = durationMs;
+    if (rateSps != null) result.rateSps = rateSps;
+    if (elapsedMs != null) result.elapsedMs = elapsedMs;
+    if (errors != null) result.errors = errors;
+    if (error != null) result.error = error;
+    if (sweepMinUs != null) result.sweepMinUs = sweepMinUs;
+    if (sweepAvgUs != null) result.sweepAvgUs = sweepAvgUs;
+    if (sweepMaxUs != null) result.sweepMaxUs = sweepMaxUs;
+    if (readsPerS != null) result.readsPerS = readsPerS;
+    if (samplesPerS != null) result.samplesPerS = samplesPerS;
+    if (busPercent != null) result.busPercent = busPercent;
+    if (busUsPerSample != null) result.busUsPerSample = busUsPerSample;
+    if (drains != null) result.drains = drains;
+    if (maxDrainWords != null) result.maxDrainWords = maxDrainWords;
+    if (fullEvents != null) result.fullEvents = fullEvents;
+    if (sensors != null) result.sensors.addAll(sensors);
+    return result;
+  }
+
+  MemsTestResult._();
+
+  factory MemsTestResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MemsTestResult.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MemsTestResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'hdy_rpc'),
+      createEmptyInstance: create)
+    ..aE<MemsTestState>(1, _omitFieldNames ? '' : 'state',
+        enumValues: MemsTestState.values)
+    ..aE<MemsTestType>(2, _omitFieldNames ? '' : 'type',
+        enumValues: MemsTestType.values)
+    ..aI(3, _omitFieldNames ? '' : 'sensorMask', fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'sweeps', fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'durationMs', fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'rateSps', fieldType: $pb.PbFieldType.OU3)
+    ..aI(7, _omitFieldNames ? '' : 'elapsedMs', fieldType: $pb.PbFieldType.OU3)
+    ..aI(8, _omitFieldNames ? '' : 'errors', fieldType: $pb.PbFieldType.OU3)
+    ..aOS(9, _omitFieldNames ? '' : 'error')
+    ..aI(10, _omitFieldNames ? '' : 'sweepMinUs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(11, _omitFieldNames ? '' : 'sweepAvgUs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(12, _omitFieldNames ? '' : 'sweepMaxUs',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(13, _omitFieldNames ? '' : 'readsPerS', fieldType: $pb.PbFieldType.OU3)
+    ..aI(14, _omitFieldNames ? '' : 'samplesPerS',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(15, _omitFieldNames ? '' : 'busPercent',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(16, _omitFieldNames ? '' : 'busUsPerSample',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(17, _omitFieldNames ? '' : 'drains', fieldType: $pb.PbFieldType.OU3)
+    ..aI(18, _omitFieldNames ? '' : 'maxDrainWords',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(19, _omitFieldNames ? '' : 'fullEvents',
+        fieldType: $pb.PbFieldType.OU3)
+    ..pPM<MemsTestSensorStats>(20, _omitFieldNames ? '' : 'sensors',
+        subBuilder: MemsTestSensorStats.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsTestResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MemsTestResult copyWith(void Function(MemsTestResult) updates) =>
+      super.copyWith((message) => updates(message as MemsTestResult))
+          as MemsTestResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MemsTestResult create() => MemsTestResult._();
+  @$core.override
+  MemsTestResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MemsTestResult getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MemsTestResult>(create);
+  static MemsTestResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  MemsTestState get state => $_getN(0);
+  @$pb.TagNumber(1)
+  set state(MemsTestState value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasState() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearState() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  MemsTestType get type => $_getN(1);
+  @$pb.TagNumber(2)
+  set type(MemsTestType value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasType() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearType() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get sensorMask => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set sensorMask($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasSensorMask() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearSensorMask() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get sweeps => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set sweeps($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasSweeps() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearSweeps() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get durationMs => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set durationMs($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasDurationMs() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearDurationMs() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get rateSps => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set rateSps($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasRateSps() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearRateSps() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.int get elapsedMs => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set elapsedMs($core.int value) => $_setUnsignedInt32(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasElapsedMs() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearElapsedMs() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.int get errors => $_getIZ(7);
+  @$pb.TagNumber(8)
+  set errors($core.int value) => $_setUnsignedInt32(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasErrors() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearErrors() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.String get error => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set error($core.String value) => $_setString(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasError() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearError() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.int get sweepMinUs => $_getIZ(9);
+  @$pb.TagNumber(10)
+  set sweepMinUs($core.int value) => $_setUnsignedInt32(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasSweepMinUs() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearSweepMinUs() => $_clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.int get sweepAvgUs => $_getIZ(10);
+  @$pb.TagNumber(11)
+  set sweepAvgUs($core.int value) => $_setUnsignedInt32(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasSweepAvgUs() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearSweepAvgUs() => $_clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.int get sweepMaxUs => $_getIZ(11);
+  @$pb.TagNumber(12)
+  set sweepMaxUs($core.int value) => $_setUnsignedInt32(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasSweepMaxUs() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearSweepMaxUs() => $_clearField(12);
+
+  @$pb.TagNumber(13)
+  $core.int get readsPerS => $_getIZ(12);
+  @$pb.TagNumber(13)
+  set readsPerS($core.int value) => $_setUnsignedInt32(12, value);
+  @$pb.TagNumber(13)
+  $core.bool hasReadsPerS() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearReadsPerS() => $_clearField(13);
+
+  @$pb.TagNumber(14)
+  $core.int get samplesPerS => $_getIZ(13);
+  @$pb.TagNumber(14)
+  set samplesPerS($core.int value) => $_setUnsignedInt32(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasSamplesPerS() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearSamplesPerS() => $_clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.int get busPercent => $_getIZ(14);
+  @$pb.TagNumber(15)
+  set busPercent($core.int value) => $_setUnsignedInt32(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasBusPercent() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearBusPercent() => $_clearField(15);
+
+  @$pb.TagNumber(16)
+  $core.int get busUsPerSample => $_getIZ(15);
+  @$pb.TagNumber(16)
+  set busUsPerSample($core.int value) => $_setUnsignedInt32(15, value);
+  @$pb.TagNumber(16)
+  $core.bool hasBusUsPerSample() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearBusUsPerSample() => $_clearField(16);
+
+  @$pb.TagNumber(17)
+  $core.int get drains => $_getIZ(16);
+  @$pb.TagNumber(17)
+  set drains($core.int value) => $_setUnsignedInt32(16, value);
+  @$pb.TagNumber(17)
+  $core.bool hasDrains() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearDrains() => $_clearField(17);
+
+  @$pb.TagNumber(18)
+  $core.int get maxDrainWords => $_getIZ(17);
+  @$pb.TagNumber(18)
+  set maxDrainWords($core.int value) => $_setUnsignedInt32(17, value);
+  @$pb.TagNumber(18)
+  $core.bool hasMaxDrainWords() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearMaxDrainWords() => $_clearField(18);
+
+  @$pb.TagNumber(19)
+  $core.int get fullEvents => $_getIZ(18);
+  @$pb.TagNumber(19)
+  set fullEvents($core.int value) => $_setUnsignedInt32(18, value);
+  @$pb.TagNumber(19)
+  $core.bool hasFullEvents() => $_has(18);
+  @$pb.TagNumber(19)
+  void clearFullEvents() => $_clearField(19);
+
+  @$pb.TagNumber(20)
+  $pb.PbList<MemsTestSensorStats> get sensors => $_getList(19);
+}
+
+/// End of the MEMS section (WORK IN PROGRESS)
 /// A device currently connected to the server. NB! Server only - never built or
 /// parsed by the FW. Shared by ResponseDeviceListGet (302) and
 /// NotificationDeviceListChanged (301).

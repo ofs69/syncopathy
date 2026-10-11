@@ -20,29 +20,34 @@ const NotificationConnectedChanged$json = {
   '1': 'NotificationConnectedChanged',
   '2': [
     {'1': 'connected', '3': 1, '4': 1, '5': 8, '10': 'connected'},
-    {'1': 'session_id', '3': 2, '4': 1, '5': 13, '10': 'sessionId'},
+    {'1': 'session_id', '3': 2, '4': 1, '5': 9, '10': 'sessionId'},
+    {'1': 'timestamp', '3': 3, '4': 1, '5': 4, '10': 'timestamp'},
     {
       '1': 'info',
-      '3': 3,
+      '3': 4,
       '4': 1,
       '5': 11,
       '6': '.hdy_rpc.ConnectedDeviceInfo',
       '10': 'info'
     },
-    {'1': 'session_ulid', '3': 4, '4': 1, '5': 9, '10': 'sessionUlid'},
-    {'1': 'reason', '3': 5, '4': 1, '5': 9, '10': 'reason'},
-    {'1': 'description', '3': 6, '4': 1, '5': 9, '10': 'description'},
-    {'1': 'timestamp', '3': 7, '4': 1, '5': 4, '10': 'timestamp'},
+    {
+      '1': 'disconnect',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.hdy_rpc.DeviceDisconnectInfo',
+      '10': 'disconnect'
+    },
   ],
 };
 
 /// Descriptor for `NotificationConnectedChanged`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List notificationConnectedChangedDescriptor = $convert.base64Decode(
     'ChxOb3RpZmljYXRpb25Db25uZWN0ZWRDaGFuZ2VkEhwKCWNvbm5lY3RlZBgBIAEoCFIJY29ubm'
-    'VjdGVkEh0KCnNlc3Npb25faWQYAiABKA1SCXNlc3Npb25JZBIwCgRpbmZvGAMgASgLMhwuaGR5'
-    'X3JwYy5Db25uZWN0ZWREZXZpY2VJbmZvUgRpbmZvEiEKDHNlc3Npb25fdWxpZBgEIAEoCVILc2'
-    'Vzc2lvblVsaWQSFgoGcmVhc29uGAUgASgJUgZyZWFzb24SIAoLZGVzY3JpcHRpb24YBiABKAlS'
-    'C2Rlc2NyaXB0aW9uEhwKCXRpbWVzdGFtcBgHIAEoBFIJdGltZXN0YW1w');
+    'VjdGVkEh0KCnNlc3Npb25faWQYAiABKAlSCXNlc3Npb25JZBIcCgl0aW1lc3RhbXAYAyABKARS'
+    'CXRpbWVzdGFtcBIwCgRpbmZvGAQgASgLMhwuaGR5X3JwYy5Db25uZWN0ZWREZXZpY2VJbmZvUg'
+    'RpbmZvEj0KCmRpc2Nvbm5lY3QYBSABKAsyHS5oZHlfcnBjLkRldmljZURpc2Nvbm5lY3RJbmZv'
+    'UgpkaXNjb25uZWN0');
 
 @$core.Deprecated('Use notificationWifiStatusChangedDescriptor instead')
 const NotificationWifiStatusChanged$json = {
@@ -595,6 +600,21 @@ final $typed_data.Uint8List notificationSpeedStatsDescriptor =
     $convert.base64Decode(
         'ChZOb3RpZmljYXRpb25TcGVlZFN0YXRzEikKBXN0YXRzGAEgASgLMhMuaGR5X3JwYy5TcGVlZF'
         'N0YXRzUgVzdGF0cw==');
+
+@$core.Deprecated('Use notificationSliderEndReachedDescriptor instead')
+const NotificationSliderEndReached$json = {
+  '1': 'NotificationSliderEndReached',
+  '2': [
+    {'1': 'top', '3': 1, '4': 1, '5': 8, '10': 'top'},
+    {'1': 'position', '3': 2, '4': 1, '5': 2, '10': 'position'},
+  ],
+};
+
+/// Descriptor for `NotificationSliderEndReached`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List notificationSliderEndReachedDescriptor =
+    $convert.base64Decode(
+        'ChxOb3RpZmljYXRpb25TbGlkZXJFbmRSZWFjaGVkEhAKA3RvcBgBIAEoCFIDdG9wEhoKCHBvc2'
+        'l0aW9uGAIgASgCUghwb3NpdGlvbg==');
 
 @$core.Deprecated('Use notificationSlideDiagDataDescriptor instead')
 const NotificationSlideDiagData$json = {
