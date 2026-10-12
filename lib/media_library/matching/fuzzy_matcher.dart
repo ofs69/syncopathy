@@ -457,8 +457,7 @@ class FuzzyMatcher {
     if (shared.isEmpty) {
       evidence = 'no title words in common';
     } else if (distinctive.isEmpty) {
-      evidence =
-          'shares only common words: ${_list(shared)}';
+      evidence = 'shares only common words: ${_list(shared)}';
     } else {
       evidence =
           'shares ${_list(distinctive)}'
@@ -837,7 +836,8 @@ int levenshteinDistance(String a, String b) {
   for (var i = 0; i < a.length; i++) {
     current[0] = i + 1;
     for (var j = 0; j < b.length; j++) {
-      final substitution = previous[j] + (a.codeUnitAt(i) == b.codeUnitAt(j) ? 0 : 1);
+      final substitution =
+          previous[j] + (a.codeUnitAt(i) == b.codeUnitAt(j) ? 0 : 1);
       final insertion = current[j] + 1;
       final deletion = previous[j + 1] + 1;
       current[j + 1] = math.min(substitution, math.min(insertion, deletion));

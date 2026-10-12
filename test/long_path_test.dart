@@ -12,10 +12,7 @@ void main() {
 
   group('toExtendedLengthPath', () {
     test('leaves paths untouched off Windows', () {
-      expect(
-        toExtendedLengthPath('/home/user/media'),
-        '/home/user/media',
-      );
+      expect(toExtendedLengthPath('/home/user/media'), '/home/user/media');
     }, skip: Platform.isWindows ? 'POSIX-only behaviour' : null);
 
     test('prefixes a drive-absolute path', () {
@@ -64,9 +61,9 @@ void main() {
       Directory(deep).createSync(recursive: true);
       File(p.join(deep, 'clip.mp4')).writeAsStringSync('x');
 
-      final listed = await Directory(toExtendedLengthPath(deep))
-          .list(recursive: false, followLinks: false)
-          .toList();
+      final listed = await Directory(
+        toExtendedLengthPath(deep),
+      ).list(recursive: false, followLinks: false).toList();
 
       expect(listed, hasLength(1));
       expect(p.basename(listed.single.path), 'clip.mp4');

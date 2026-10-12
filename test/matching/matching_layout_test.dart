@@ -37,32 +37,36 @@ MatchingSessionModel _reviewSession() {
     FunscriptMatchingSettings(),
     MatchRulesStore(),
   );
-  final proposals = FuzzyMatcher([
-    MediaSnapshot(
-      fileHash: 'm1',
-      basename: _long,
-      directoryLabel: 'A Very Long Folder Name Indeed',
-      durationSeconds: 2400,
-      width: 5400,
-      height: 2700,
-    ),
-    MediaSnapshot(
-      fileHash: 'm2',
-      basename: '$_long Take Two',
-      directoryLabel: 'Another Rather Long Folder Name',
-      durationSeconds: 60,
-    ),
-  ]).proposeAll([
-    FunscriptSnapshot(
-      funscriptHash: 's1',
-      basename: '$_long.funscript',
-      directoryLabel: 'A Very Long Folder Name Indeed',
-      metadataTitle: 'An Extremely Long Scene Title That Keeps Going',
-      performers: const ['Jane Doe', 'Someone Else', 'A Third Performer'],
-      lastActionSeconds: 2350,
-    ),
-    FunscriptSnapshot(funscriptHash: 's2', basename: 'Nothing Matches This'),
-  ]);
+  final proposals =
+      FuzzyMatcher([
+        MediaSnapshot(
+          fileHash: 'm1',
+          basename: _long,
+          directoryLabel: 'A Very Long Folder Name Indeed',
+          durationSeconds: 2400,
+          width: 5400,
+          height: 2700,
+        ),
+        MediaSnapshot(
+          fileHash: 'm2',
+          basename: '$_long Take Two',
+          directoryLabel: 'Another Rather Long Folder Name',
+          durationSeconds: 60,
+        ),
+      ]).proposeAll([
+        FunscriptSnapshot(
+          funscriptHash: 's1',
+          basename: '$_long.funscript',
+          directoryLabel: 'A Very Long Folder Name Indeed',
+          metadataTitle: 'An Extremely Long Scene Title That Keeps Going',
+          performers: const ['Jane Doe', 'Someone Else', 'A Third Performer'],
+          lastActionSeconds: 2350,
+        ),
+        FunscriptSnapshot(
+          funscriptHash: 's2',
+          basename: 'Nothing Matches This',
+        ),
+      ]);
   session.draft.value = MatchDraft(proposals);
   session.phase.value = MatchSessionPhase.reviewing;
   session.selectedScriptHash.value = 's1';

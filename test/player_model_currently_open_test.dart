@@ -66,25 +66,28 @@ void main() {
     expect(model.currentlyOpen.value?.funscript.filePath, 'a.funscript');
   });
 
-  test('follows the session onto new media, script instance unchanged', () async {
-    final script = _script('shared.funscript');
-    model.simpleModeFunscript.value = script;
-    session.currentMedia.value = _media('a');
-    await Future<void>.delayed(Duration.zero);
-    expect(model.currentlyOpen.value?.media.name, 'a');
+  test(
+    'follows the session onto new media, script instance unchanged',
+    () async {
+      final script = _script('shared.funscript');
+      model.simpleModeFunscript.value = script;
+      session.currentMedia.value = _media('a');
+      await Future<void>.delayed(Duration.zero);
+      expect(model.currentlyOpen.value?.media.name, 'a');
 
-    // The regression: the same script instance stays put, so the funscript
-    // signal never notifies. Only the media moved.
-    session.currentMedia.value = _media('b');
-    await Future<void>.delayed(Duration.zero);
+      // The regression: the same script instance stays put, so the funscript
+      // signal never notifies. Only the media moved.
+      session.currentMedia.value = _media('b');
+      await Future<void>.delayed(Duration.zero);
 
-    expect(
-      model.currentlyOpen.value?.media.name,
-      'b',
-      reason: 'currentlyOpen kept the media it was first built with',
-    );
-    expect(model.currentlyOpen.value?.funscript, same(script));
-  });
+      expect(
+        model.currentlyOpen.value?.media.name,
+        'b',
+        reason: 'currentlyOpen kept the media it was first built with',
+      );
+      expect(model.currentlyOpen.value?.funscript, same(script));
+    },
+  );
 
   test('clears when the session closes its media', () async {
     model.simpleModeFunscript.value = _script('a.funscript');

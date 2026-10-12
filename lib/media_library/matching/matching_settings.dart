@@ -77,7 +77,6 @@ class FunscriptMatchingSettings {
     requireDistinctiveEvidence: requireDistinctiveEvidence.value,
   );
 
-
   Future<void> load() async {
     try {
       final stored = await KVStore.get(_key);

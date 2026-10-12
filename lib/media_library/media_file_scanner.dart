@@ -13,7 +13,11 @@ class MediaScanListing {
   final List<File> funscriptFiles;
   final List<String> skippedPaths;
 
-  const MediaScanListing(this.mediaFiles, this.funscriptFiles, this.skippedPaths);
+  const MediaScanListing(
+    this.mediaFiles,
+    this.funscriptFiles,
+    this.skippedPaths,
+  );
 }
 
 /// Walks the configured search paths and splits what it finds into media and

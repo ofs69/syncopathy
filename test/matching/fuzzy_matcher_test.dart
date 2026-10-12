@@ -66,18 +66,21 @@ void main() {
       expect(_topName(proposal), 'Alpha Beta Gamma');
     });
 
-    test('a script with only release noise between it and the media matches', () {
-      final matcher = FuzzyMatcher(
-        _library(['Sierra.Tango.Uniform.2160p.VR180.MKX200.h265-CREW']),
-      );
+    test(
+      'a script with only release noise between it and the media matches',
+      () {
+        final matcher = FuzzyMatcher(
+          _library(['Sierra.Tango.Uniform.2160p.VR180.MKX200.h265-CREW']),
+        );
 
-      final proposal = matcher.proposeFor(_script('Sierra Tango Uniform'));
+        final proposal = matcher.proposeFor(_script('Sierra Tango Uniform'));
 
-      expect(
-        _topName(proposal),
-        'Sierra.Tango.Uniform.2160p.VR180.MKX200.h265-CREW',
-      );
-    });
+        expect(
+          _topName(proposal),
+          'Sierra.Tango.Uniform.2160p.VR180.MKX200.h265-CREW',
+        );
+      },
+    );
 
     test('camelCase on one side and separators on the other still match', () {
       final matcher = FuzzyMatcher(_library(['victor_whiskey_xray']));
@@ -208,10 +211,7 @@ void main() {
         'c5',
       ]);
       for (var i = 1; i < candidates.length; i++) {
-        expect(
-          candidates[i].score,
-          lessThanOrEqualTo(candidates[i - 1].score),
-        );
+        expect(candidates[i].score, lessThanOrEqualTo(candidates[i - 1].score));
       }
     });
 
@@ -378,9 +378,9 @@ void main() {
         .value;
 
     test('a shared word the whole library uses is not distinctive', () {
-      final best = FuzzyMatcher(boilerplate())
-          .proposeFor(_script('Studio Productions 2023 Chapter7 Rooftop'))
-          .best!;
+      final best = FuzzyMatcher(
+        boilerplate(),
+      ).proposeFor(_script('Studio Productions 2023 Chapter7 Rooftop')).best!;
 
       expect(best.media.basename, 'Studio Productions 2023 Chapter7');
       // Only "chapter7" actually points at this entry; the rest is the
@@ -392,9 +392,9 @@ void main() {
     test('the same overlap counts for more when the words are rare', () {
       // Identical set arithmetic on both sides -- three shared words out of
       // four and three -- so anything that separates them is rarity alone.
-      final common = FuzzyMatcher(boilerplate())
-          .proposeFor(_script('Studio Productions 2023 Chapter7 Rooftop'))
-          .best!;
+      final common = FuzzyMatcher(
+        boilerplate(),
+      ).proposeFor(_script('Studio Productions 2023 Chapter7 Rooftop')).best!;
 
       final rare = FuzzyMatcher([
         for (var i = 1; i <= 20; i++)
@@ -410,9 +410,9 @@ void main() {
     test('a script whose real video is absent is flagged, not asserted', () {
       // The right answer is simply not in the library. Something still comes
       // top, which is exactly what makes this the dangerous case.
-      final best = FuzzyMatcher(boilerplate())
-          .proposeFor(_script('Studio Productions 2023 Rooftop Interview'))
-          .best;
+      final best = FuzzyMatcher(
+        boilerplate(),
+      ).proposeFor(_script('Studio Productions 2023 Rooftop Interview')).best;
 
       expect(best, isNotNull);
       expect(best!.distinctiveTokens, isEmpty);
@@ -448,25 +448,29 @@ void main() {
       // Resolutions and headset names look rare to a matcher that has never
       // seen them before, and rarity is what it trusts most. Nothing about
       // this pair beyond the tags matches, so nothing should come back.
-      final proposal =
-          FuzzyMatcher([
-            _media('Zebracorn Waltzing 5400x2700 oculusrift 180 LR'),
-            ..._library(const []),
-          ]).proposeFor(
-            _script('Quartzite Fandango 5400x2700 oculusrift 180 LR'),
-          );
+      final proposal = FuzzyMatcher([
+        _media('Zebracorn Waltzing 5400x2700 oculusrift 180 LR'),
+        ..._library(const []),
+      ]).proposeFor(_script('Quartzite Fandango 5400x2700 oculusrift 180 LR'));
 
       expect(proposal.candidates, isEmpty);
     });
 
     test('release tags do not stop a real title from matching', () {
-      final best = FuzzyMatcher([
-        _media('Zebracorn Waltzing 5400x2700 oculusrift 180 LR'),
-        ..._library(const []),
-      ]).proposeFor(_script('Zebracorn Waltzing 7680x3840 oculusquest2 MKX200'))
-          .best!;
+      final best =
+          FuzzyMatcher([
+                _media('Zebracorn Waltzing 5400x2700 oculusrift 180 LR'),
+                ..._library(const []),
+              ])
+              .proposeFor(
+                _script('Zebracorn Waltzing 7680x3840 oculusquest2 MKX200'),
+              )
+              .best!;
 
-      expect(best.media.basename, 'Zebracorn Waltzing 5400x2700 oculusrift 180 LR');
+      expect(
+        best.media.basename,
+        'Zebracorn Waltzing 5400x2700 oculusrift 180 LR',
+      );
       expect(best.score, greaterThan(_separationThreshold));
     });
 
@@ -475,9 +479,7 @@ void main() {
       // funscript brought this pair together.
       final best = FuzzyMatcher([
         _media('Zebracorn Waltzing'),
-      ]).proposeFor(
-        _script('untitled 0042', title: 'Zebracorn Waltzing'),
-      ).best;
+      ]).proposeFor(_script('untitled 0042', title: 'Zebracorn Waltzing')).best;
 
       expect(best, isNotNull);
       expect(best!.sharedTokens, isEmpty);
@@ -496,11 +498,14 @@ void main() {
     });
 
     test('corroboration removes the name-only caution', () {
-      final best = FuzzyMatcher([
-        _media('Zebracorn Waltzing', folder: 'clips', duration: 1200),
-      ]).proposeFor(
-        _script('Zebracorn Waltzing', folder: 'clips', duration: 1195),
-      ).best!;
+      final best =
+          FuzzyMatcher([
+                _media('Zebracorn Waltzing', folder: 'clips', duration: 1200),
+              ])
+              .proposeFor(
+                _script('Zebracorn Waltzing', folder: 'clips', duration: 1195),
+              )
+              .best!;
 
       expect(best.cautions, isEmpty);
     });

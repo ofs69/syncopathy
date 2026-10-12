@@ -4,10 +4,7 @@ import 'package:syncopathy/player/hsp_stream_guard.dart';
 void main() {
   test('a report naming our stream is acted on', () {
     final guard = HspStreamGuard();
-    expect(
-      guard.inspect(ours: 3, reported: 3),
-      HspStreamVerdict.current,
-    );
+    expect(guard.inspect(ours: 3, reported: 3), HspStreamVerdict.current);
   });
 
   test('a mismatch is ignored while a setup could still be in flight', () {

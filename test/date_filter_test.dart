@@ -17,17 +17,11 @@ void main() {
     final now = DateTime(2026, 3, 12, 22, 30); // a Thursday
 
     test('today starts at midnight', () {
-      expect(
-        DateFilterPeriod.today.startFrom(now),
-        DateTime(2026, 3, 12),
-      );
+      expect(DateFilterPeriod.today.startFrom(now), DateTime(2026, 3, 12));
     });
 
     test('this week starts on Monday', () {
-      expect(
-        DateFilterPeriod.thisWeek.startFrom(now),
-        DateTime(2026, 3, 9),
-      );
+      expect(DateFilterPeriod.thisWeek.startFrom(now), DateTime(2026, 3, 9));
     });
 
     test('a Monday is already the start of its week', () {
@@ -43,14 +37,8 @@ void main() {
     });
 
     test('rolling windows include today as their last day', () {
-      expect(
-        DateFilterPeriod.last7Days.startFrom(now),
-        DateTime(2026, 3, 6),
-      );
-      expect(
-        DateFilterPeriod.last30Days.startFrom(now),
-        DateTime(2026, 2, 11),
-      );
+      expect(DateFilterPeriod.last7Days.startFrom(now), DateTime(2026, 3, 6));
+      expect(DateFilterPeriod.last30Days.startFrom(now), DateTime(2026, 2, 11));
       expect(
         DateFilterPeriod.last90Days.startFrom(now),
         DateTime(2025, 12, 13),
@@ -92,15 +80,18 @@ void main() {
   });
 
   group('mutual exclusion', () {
-    test('picking a window clears a fixed date and drops the "on" operator', () {
-      final filter = dateFilter()..selectDate(DateTime(2024, 5, 6));
-      expect(filter.operator.value, FilterOperator.equals);
+    test(
+      'picking a window clears a fixed date and drops the "on" operator',
+      () {
+        final filter = dateFilter()..selectDate(DateTime(2024, 5, 6));
+        expect(filter.operator.value, FilterOperator.equals);
 
-      filter.selectPeriod(DateFilterPeriod.thisMonth);
+        filter.selectPeriod(DateFilterPeriod.thisMonth);
 
-      expect(filter.value.value, isNull);
-      expect(filter.operator.value, FilterOperator.greaterEqual);
-    });
+        expect(filter.value.value, isNull);
+        expect(filter.operator.value, FilterOperator.greaterEqual);
+      },
+    );
 
     test('picking a window keeps an operator that already fits', () {
       final filter = dateFilter()..operator.value = FilterOperator.lesser;

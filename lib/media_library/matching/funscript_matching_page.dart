@@ -345,8 +345,7 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
               SizedBox(width: _listWidth(constraints.maxWidth), child: list),
               _ListDivider(
                 onDrag: (delta) => setState(() {
-                  _listWidthOverride =
-                      _listWidth(constraints.maxWidth) + delta;
+                  _listWidthOverride = _listWidth(constraints.maxWidth) + delta;
                 }),
               ),
               Expanded(child: detail),
@@ -511,9 +510,7 @@ class _FunscriptMatchingPageState extends State<FunscriptMatchingPage> {
                     const SizedBox(width: 8),
                     FilledButton.icon(
                       icon: const Icon(Icons.check, size: 18),
-                      label: Text(
-                        accepted == 0 ? 'Apply' : 'Apply $accepted',
-                      ),
+                      label: Text(accepted == 0 ? 'Apply' : 'Apply $accepted'),
                       onPressed: busy || (accepted == 0 && rejected == 0)
                           ? null
                           : _apply,
@@ -561,9 +558,7 @@ class _ReviewListState extends State<_ReviewList> {
   /// down arrow walks the selection straight out of the viewport.
   void _revealSelected(List<MatchProposal> visible, String? selected) {
     if (!_scroll.hasClients || selected == null) return;
-    final index = visible.indexWhere(
-      (p) => p.script.funscriptHash == selected,
-    );
+    final index = visible.indexWhere((p) => p.script.funscriptHash == selected);
     if (index < 0) return;
 
     final top = index * _rowExtent;
@@ -857,32 +852,38 @@ class _DecisionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final (IconData icon, Color color, String tooltip) =
-        switch (decision?.kind) {
-          MatchDecisionKind.accept => (
-            Icons.check_circle,
-            scheme.primary,
-            'Will be linked on Apply',
-          ),
-          MatchDecisionKind.reject => (
-            Icons.block,
-            scheme.onSurfaceVariant,
-            'No match — remembered so it is not suggested again',
-          ),
-          MatchDecisionKind.skip => (
-            Icons.schedule,
-            scheme.onSurfaceVariant,
-            'Skipped for now',
-          ),
-          MatchDecisionKind.error => (
-            Icons.error_outline,
-            scheme.error,
-            decision?.error ?? 'That decision could not be recorded',
-          ),
-          null => (Icons.circle_outlined, scheme.outlineVariant, 'Undecided'),
-        };
+    final (
+      IconData icon,
+      Color color,
+      String tooltip,
+    ) = switch (decision?.kind) {
+      MatchDecisionKind.accept => (
+        Icons.check_circle,
+        scheme.primary,
+        'Will be linked on Apply',
+      ),
+      MatchDecisionKind.reject => (
+        Icons.block,
+        scheme.onSurfaceVariant,
+        'No match — remembered so it is not suggested again',
+      ),
+      MatchDecisionKind.skip => (
+        Icons.schedule,
+        scheme.onSurfaceVariant,
+        'Skipped for now',
+      ),
+      MatchDecisionKind.error => (
+        Icons.error_outline,
+        scheme.error,
+        decision?.error ?? 'That decision could not be recorded',
+      ),
+      null => (Icons.circle_outlined, scheme.outlineVariant, 'Undecided'),
+    };
 
-    return Tooltip(message: tooltip, child: Icon(icon, size: 18, color: color));
+    return Tooltip(
+      message: tooltip,
+      child: Icon(icon, size: 18, color: color),
+    );
   }
 }
 
@@ -1174,9 +1175,7 @@ class _DecisionBanner extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
       child: Row(
         children: [
-          Expanded(
-            child: Text(summary, style: theme.textTheme.bodyMedium),
-          ),
+          Expanded(child: Text(summary, style: theme.textTheme.bodyMedium)),
           TextButton(onPressed: onClear, child: const Text('Undo')),
         ],
       ),
@@ -1352,7 +1351,12 @@ class _HighlightedName extends StatelessWidget {
     final theme = Theme.of(context);
     final base = style ?? theme.textTheme.bodyMedium;
     if (shared.isEmpty) {
-      return Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: base);
+      return Text(
+        name,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: base,
+      );
     }
 
     final dim = base?.copyWith(color: theme.colorScheme.onSurfaceVariant);
@@ -1389,11 +1393,9 @@ class _HighlightedName extends StatelessWidget {
 
   /// Splits into word and separator runs, keeping both so the name renders
   /// exactly as it is on disk.
-  static List<String> _split(String name) =>
-      RegExp(r'[A-Za-z0-9]+|[^A-Za-z0-9]+')
-          .allMatches(name)
-          .map((m) => m.group(0)!)
-          .toList();
+  static List<String> _split(String name) => RegExp(
+    r'[A-Za-z0-9]+|[^A-Za-z0-9]+',
+  ).allMatches(name).map((m) => m.group(0)!).toList();
 }
 
 enum _Emphasis { distinctive, common, none }

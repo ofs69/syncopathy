@@ -289,10 +289,7 @@ class _DeleteMediaDialogState extends State<DeleteMediaDialog> {
               const SizedBox(height: 4),
             ],
             if (widget.summary != null) ...[
-              Text(
-                widget.summary!,
-                style: const TextStyle(fontSize: 12),
-              ),
+              Text(widget.summary!, style: const TextStyle(fontSize: 12)),
               const SizedBox(height: 4),
             ],
             Text(

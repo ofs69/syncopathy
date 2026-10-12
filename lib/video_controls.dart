@@ -179,37 +179,36 @@ class _VideoControlsState extends State<VideoControls> {
     return SignalBuilder(
       builder: (context) {
         final name = session.sessionName;
-        final (icon, color, label, detail) =
-            switch ((
-              session.connected.value,
-              session.buffering.value,
-              session.paused.value,
-            )) {
-              (false, _, _) => (
-                Icons.link_off,
-                Theme.of(context).colorScheme.error,
-                'Disconnected',
-                '$name is not sending its clock — the device is stopped.',
-              ),
-              (true, true, _) => (
-                Icons.hourglass_top,
-                Colors.amber,
-                'Buffering',
-                '$name is buffering — the device is held.',
-              ),
-              (true, false, true) => (
-                Icons.pause_circle_outline,
-                Colors.white70,
-                'Paused',
-                '$name is paused.',
-              ),
-              (true, false, false) => (
-                Icons.play_circle_outline,
-                Colors.lightGreenAccent,
-                'Playing',
-                'Following $name, driving the device.',
-              ),
-            };
+        final (icon, color, label, detail) = switch ((
+          session.connected.value,
+          session.buffering.value,
+          session.paused.value,
+        )) {
+          (false, _, _) => (
+            Icons.link_off,
+            Theme.of(context).colorScheme.error,
+            'Disconnected',
+            '$name is not sending its clock — the device is stopped.',
+          ),
+          (true, true, _) => (
+            Icons.hourglass_top,
+            Colors.amber,
+            'Buffering',
+            '$name is buffering — the device is held.',
+          ),
+          (true, false, true) => (
+            Icons.pause_circle_outline,
+            Colors.white70,
+            'Paused',
+            '$name is paused.',
+          ),
+          (true, false, false) => (
+            Icons.play_circle_outline,
+            Colors.lightGreenAccent,
+            'Playing',
+            'Following $name, driving the device.',
+          ),
+        };
 
         return Tooltip(
           message: detail,

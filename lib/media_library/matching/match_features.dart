@@ -216,9 +216,8 @@ class MatchProposal {
 
   /// How far the top candidate is ahead of the runner-up, or `null` when there
   /// is only one.
-  double? get leadOverRunnerUp => candidates.length < 2
-      ? null
-      : candidates[0].score - candidates[1].score;
+  double? get leadOverRunnerUp =>
+      candidates.length < 2 ? null : candidates[0].score - candidates[1].score;
 
   /// Whether the top two are close enough that the ranking is not really
   /// choosing between them.

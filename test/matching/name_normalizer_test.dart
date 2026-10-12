@@ -20,12 +20,15 @@ void main() {
       expect(vr.stem, plain.stem);
     });
 
-    test('a title made only of noise words survives as empty, not as noise', () {
-      final name = normalizeName('1080p.x264');
+    test(
+      'a title made only of noise words survives as empty, not as noise',
+      () {
+        final name = normalizeName('1080p.x264');
 
-      expect(name.tokens, isEmpty);
-      expect(name.isEmpty, isTrue);
-    });
+        expect(name.tokens, isEmpty);
+        expect(name.isEmpty, isTrue);
+      },
+    );
   });
 
   group('separator and case folding', () {
@@ -115,21 +118,31 @@ void main() {
   });
 
   group('funscript axis suffixes', () {
-    test('a companion axis normalizes to the same stem as its stroke script', () {
-      final stroke = normalizeName('Alpha Beta', stripAxis: true);
+    test(
+      'a companion axis normalizes to the same stem as its stroke script',
+      () {
+        final stroke = normalizeName('Alpha Beta', stripAxis: true);
 
-      expect(normalizeName('Alpha Beta.twist', stripAxis: true).stem,
-          stroke.stem);
-      expect(normalizeName('Alpha Beta_R1', stripAxis: true).stem, stroke.stem);
-      expect(normalizeName('Alpha Beta.L0', stripAxis: true).stem, stroke.stem);
-    });
+        expect(
+          normalizeName('Alpha Beta.twist', stripAxis: true).stem,
+          stroke.stem,
+        );
+        expect(
+          normalizeName('Alpha Beta_R1', stripAxis: true).stem,
+          stroke.stem,
+        );
+        expect(
+          normalizeName('Alpha Beta.L0', stripAxis: true).stem,
+          stroke.stem,
+        );
+      },
+    );
 
     test('an unrecognized suffix is left alone', () {
       // `part2` is a real part of the name, not an axis.
-      expect(
-        normalizeName('Alpha Beta.part2', stripAxis: true).ordinals,
-        {OrdinalKind.part: 2},
-      );
+      expect(normalizeName('Alpha Beta.part2', stripAxis: true).ordinals, {
+        OrdinalKind.part: 2,
+      });
     });
 
     test('media names never have an axis stripped', () {

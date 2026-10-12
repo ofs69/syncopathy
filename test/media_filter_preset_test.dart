@@ -73,10 +73,9 @@ void main() {
       date.selectPeriod(DateFilterPeriod.thisMonth);
 
       final json = MediaFilterSnapshot.capture(
-        MediaFilter()
-          ..replaceGroups([
-            FilterGroup(FilterGroupOperator.and, [date]),
-          ]),
+        MediaFilter()..replaceGroups([
+          FilterGroup(FilterGroupOperator.and, [date]),
+        ]),
       ).toJson();
       final restored = MediaFilter();
       MediaFilterSnapshot.fromJson(json).applyTo(restored);
@@ -93,10 +92,9 @@ void main() {
       final date = availableFilters['Date Added']!() as DateFilter
         ..selectDate(DateTime(2024, 5, 6));
       final captured = MediaFilterSnapshot.capture(
-        MediaFilter()
-          ..replaceGroups([
-            FilterGroup(FilterGroupOperator.and, [date]),
-          ]),
+        MediaFilter()..replaceGroups([
+          FilterGroup(FilterGroupOperator.and, [date]),
+        ]),
       ).toJson();
 
       final filters = (captured['groups'] as List).single['filters'] as List;
@@ -201,13 +199,13 @@ void main() {
     });
 
     test('metadata selections compare equal regardless of order', () {
-      MediaFilter withAuthors(Set<String> authors) => MediaFilter()
-        ..replaceGroups([
-          FilterGroup(FilterGroupOperator.and, [
-            availableFilters['Metadata']!() as MetadataFilter
-              ..selectedAuthors.value = authors,
-          ]),
-        ]);
+      MediaFilter withAuthors(Set<String> authors) =>
+          MediaFilter()..replaceGroups([
+            FilterGroup(FilterGroupOperator.and, [
+              availableFilters['Metadata']!() as MetadataFilter
+                ..selectedAuthors.value = authors,
+            ]),
+          ]);
 
       expect(
         jsonEncode(

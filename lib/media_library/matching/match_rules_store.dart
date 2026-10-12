@@ -45,7 +45,9 @@ class MatchRulesStore {
     }
   }
 
-  Future<void> reject(Iterable<(String funscriptHash, String mediaHash)> pairs) {
+  Future<void> reject(
+    Iterable<(String funscriptHash, String mediaHash)> pairs,
+  ) {
     for (final (funscriptHash, mediaHash) in pairs) {
       _rejected.add(matchPairKey(funscriptHash, mediaHash));
     }
