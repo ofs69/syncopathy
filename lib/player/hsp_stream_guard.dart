@@ -6,7 +6,7 @@ enum HspStreamVerdict {
   /// The report predates a setup that has not been echoed back yet. Ignore it.
   stale,
 
-  /// The device has settled on a stream we never established. Set it up again.
+  /// The device is on a stream we did not establish. Set it up again.
   resync,
 }
 
@@ -17,27 +17,36 @@ enum HspStreamVerdict {
 /// drive the device from the wrong timeline. Ignoring it is right — but only for
 /// as long as the disagreement is the echo of a setup still in flight.
 ///
-/// The two cases look identical in a single report and are told apart by how
-/// long they last. A setup in flight is resolved by the next report or two; a
-/// device left on a stream from an earlier run never resolves at all. Left
-/// unbounded, that second case wedges the backend: every handler returns early,
-/// including the ones that would have issued the setup that fixes it, so the
-/// only way out is an unrelated code path that happens to call `hspSetup` —
-/// switching Home Mode off, in practice.
+/// The transport is ordered, so the two cases are told apart by whether our
+/// setup has been echoed yet. Until it has, reports answering commands sent
+/// before it still name the previous stream, and those are [stale]. Once the
+/// device has reported our stream, nothing older can arrive any more: a report
+/// naming another stream after that means the device left ours on its own, and
+/// it gets a fresh setup at once.
 ///
-/// So a mismatch is ignored [resyncAfterMismatches] times and then treated as
-/// divergence. The cost of waiting is a fraction of a second of device reports;
-/// the cost of not waiting is re-establishing the stream on every setup, which
-/// would never let one settle.
+/// It has to be at once, because the device that left is usually also falling
+/// silent. An HDSP command — the Home Mode park, which auto-home fires on the
+/// brief pause mpv reports while switching videos — takes the Handy out of HSP
+/// and back to stream 0, and a stopped Handy reports nothing unless asked.
+/// Waiting for a count of mismatching reports therefore waited forever: it saw
+/// the answers to the last commands sent, then silence, while every handler
+/// returned early on the mismatch, including the ones that would have set the
+/// stream up again. The Handy stayed still until Home Mode was toggled.
+///
+/// While a setup is in flight, a mismatch is still ignored only
+/// [resyncAfterMismatches] times, for a setup that never arrives.
 class HspStreamGuard {
   HspStreamGuard({this.resyncAfterMismatches = 3})
     : assert(resyncAfterMismatches > 0);
 
-  /// Consecutive mismatching reports tolerated before the stream counts as
-  /// diverged rather than as an echo of a setup in flight.
+  /// Consecutive mismatching reports tolerated while a setup is in flight,
+  /// before it counts as lost rather than slow.
   final int resyncAfterMismatches;
 
   int _mismatches = 0;
+
+  /// Whether a setup has been sent and the device has not reported it back yet.
+  bool _awaitingEcho = false;
 
   /// Consecutive mismatching reports seen since the last agreement or [reset].
   int get mismatches => _mismatches;
@@ -47,18 +56,22 @@ class HspStreamGuard {
   HspStreamVerdict inspect({required int ours, required int reported}) {
     if (reported == ours) {
       _mismatches = 0;
+      _awaitingEcho = false;
       return HspStreamVerdict.current;
     }
+    if (!_awaitingEcho) return HspStreamVerdict.resync;
     _mismatches += 1;
     return _mismatches >= resyncAfterMismatches
         ? HspStreamVerdict.resync
         : HspStreamVerdict.stale;
   }
 
-  /// Forgets the mismatches so far.
+  /// Opens the echo window for a setup that has just been sent.
   ///
-  /// Called when a setup actually reaches the device: that is the point the
-  /// echo window starts, and counting reports from before it would spend the
-  /// budget on a disagreement that has already been addressed.
-  void reset() => _mismatches = 0;
+  /// Called when a setup actually reaches the transport: reports from before it
+  /// are the ones to tolerate, and only until the device reports it back.
+  void reset() {
+    _mismatches = 0;
+    _awaitingEcho = true;
+  }
 }

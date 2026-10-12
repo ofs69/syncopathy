@@ -8,23 +8,24 @@ void main() {
   });
 
   test('a mismatch is ignored while a setup could still be in flight', () {
-    final guard = HspStreamGuard(resyncAfterMismatches: 3);
+    final guard = HspStreamGuard(resyncAfterMismatches: 3)..reset();
     expect(guard.inspect(ours: 4, reported: 3), HspStreamVerdict.stale);
     expect(guard.inspect(ours: 4, reported: 3), HspStreamVerdict.stale);
   });
 
   test('the echo resolving clears the mismatches', () {
-    final guard = HspStreamGuard(resyncAfterMismatches: 3);
+    final guard = HspStreamGuard(resyncAfterMismatches: 3)..reset();
     guard.inspect(ours: 4, reported: 3);
     guard.inspect(ours: 4, reported: 3);
     expect(guard.inspect(ours: 4, reported: 4), HspStreamVerdict.current);
     expect(guard.mismatches, 0);
-    // The budget is spent per disagreement, not per session.
+    // The budget is spent per setup, not per session.
+    guard.reset();
     expect(guard.inspect(ours: 5, reported: 4), HspStreamVerdict.stale);
   });
 
-  test('a mismatch that will not resolve asks for a fresh setup', () {
-    final guard = HspStreamGuard(resyncAfterMismatches: 3);
+  test('a setup that is never echoed asks for a fresh one', () {
+    final guard = HspStreamGuard(resyncAfterMismatches: 3)..reset();
     expect(guard.inspect(ours: 1, reported: 9), HspStreamVerdict.stale);
     expect(guard.inspect(ours: 1, reported: 9), HspStreamVerdict.stale);
     expect(guard.inspect(ours: 1, reported: 9), HspStreamVerdict.resync);
@@ -37,15 +38,10 @@ void main() {
   // other path that re-established the stream.
   test('a device on a stream from an earlier run recovers on its own', () {
     final guard = HspStreamGuard(resyncAfterMismatches: 3);
-    // Our counter restarted at zero with the backend; the device kept 7.
+    // Our counter restarted at zero with the backend; the device kept 7. No
+    // setup of ours is in flight, so nothing explains the mismatch.
     var ours = 0;
-    var verdict = guard.inspect(ours: ours, reported: 7);
-    var reports = 1;
-    while (verdict != HspStreamVerdict.resync) {
-      verdict = guard.inspect(ours: ours, reported: 7);
-      reports += 1;
-      expect(reports, lessThan(10), reason: 'never asked for a resync');
-    }
+    expect(guard.inspect(ours: ours, reported: 7), HspStreamVerdict.resync);
 
     // hspSetup: the stream id advances and the echo window restarts.
     ours += 1;
@@ -56,6 +52,34 @@ void main() {
     // Then it adopts ours, and playback proceeds without anyone touching a
     // setting.
     expect(guard.inspect(ours: ours, reported: ours), HspStreamVerdict.current);
+  });
+
+  // The regression that brought the guard back: switching videos with
+  // auto-home on. mpv reports a brief pause, auto-home parks the Handy with an
+  // HDSP command, and that drops it out of HSP onto stream 0. The answers to
+  // the last two commands name stream 0, then the stopped Handy goes silent.
+  // Counting to three never got there, every handler stayed gated on the
+  // mismatch, and only toggling Home Mode set the stream up again.
+  test('a device that leaves our echoed stream is resynced at once', () {
+    final guard = HspStreamGuard(resyncAfterMismatches: 3)..reset();
+    // Our setup of stream 2 is echoed; playback runs on it.
+    expect(guard.inspect(ours: 2, reported: 2), HspStreamVerdict.current);
+    expect(guard.inspect(ours: 2, reported: 2), HspStreamVerdict.current);
+
+    // Then the park: the very next report names stream 0, and it is the first
+    // of only two before silence. It alone must be enough.
+    expect(guard.inspect(ours: 2, reported: 0), HspStreamVerdict.resync);
+  });
+
+  test('reports from before a resync are tolerated until its echo', () {
+    final guard = HspStreamGuard(resyncAfterMismatches: 3)..reset();
+    guard.inspect(ours: 2, reported: 2);
+    expect(guard.inspect(ours: 2, reported: 0), HspStreamVerdict.resync);
+
+    // hspSetup for stream 3: answers to commands sent before it still say 0.
+    guard.reset();
+    expect(guard.inspect(ours: 3, reported: 0), HspStreamVerdict.stale);
+    expect(guard.inspect(ours: 3, reported: 3), HspStreamVerdict.current);
   });
 
   test('a setup that never reached the device leaves the id alone', () {
