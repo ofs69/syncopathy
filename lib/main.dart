@@ -200,6 +200,14 @@ void main(List<String> args) async {
             '(e.g. no, auto, auto-copy, vaapi). Useful for diagnosing GPU '
             'driver problems.',
         valueHelp: 'mode',
+      )
+      ..addOption(
+        'data-dir',
+        help:
+            'Keep the database, thumbnails, logs and mpv config in this '
+            'directory instead of the application support directory. Use it '
+            'to debug against a throwaway library.',
+        valueHelp: 'path',
       );
     final results = parser.parse(args);
 
@@ -208,6 +216,8 @@ void main(List<String> args) async {
     // Must land before any settings are read, since the effective hwdec value
     // is derived from it.
     hwdecOverride = results['hwdec'] as String?;
+    // Must land before platform init opens the database.
+    dataDirOverride = results['data-dir'] as String?;
   } else {
     // Web always runs in simple mode.
     isSimple = true;

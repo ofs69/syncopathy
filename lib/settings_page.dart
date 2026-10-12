@@ -13,7 +13,6 @@ import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/media_library/delete_media_dialog.dart';
 import 'package:syncopathy/media_library/media_manager.dart';
 import 'package:syncopathy/logging.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:syncopathy/media_library/thumbnail_generator.dart';
 import 'package:syncopathy/model/home_target.dart';
 import 'package:syncopathy/model/media_library_settings_model.dart';
@@ -420,7 +419,7 @@ class _SettingsPageState extends State<SettingsPage> {
           trailing: const Icon(Icons.folder_open),
           onTap: () async {
             try {
-              final directory = await getApplicationSupportDirectory();
+              final directory = await appDataDirectory();
               PlatformUtils.openFileExplorer(directory.path);
             } catch (e) {
               final message = 'Error opening app data directory: $e';

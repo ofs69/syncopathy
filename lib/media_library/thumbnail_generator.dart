@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:pool/pool.dart';
 import 'package:syncopathy/helper/constants.dart';
 import 'package:syncopathy/logging.dart';
@@ -88,7 +87,7 @@ class ThumbnailGenerator extends TaskQueue<ThumbnailRequest, Uint8List> {
 
   Future<File?> _getThumbnailFile(String? fileHash) async {
     if (fileHash == null || fileHash.length < 4) return null;
-    final appDataPath = await getApplicationSupportDirectory();
+    final appDataPath = await appDataDirectory();
     final thumbDir = Directory(p.join(appDataPath.path, 'thumbnails'));
 
     // Sharding: use first 2 characters then next 2 characters

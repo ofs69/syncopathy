@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';
 import 'package:syncopathy/persistence/objectbox.dart';
@@ -10,7 +9,7 @@ import 'package:window_manager/window_manager.dart';
 
 class PlatformInit {
   static Future<void> initPlatform(bool simpleMode) async {
-    final appSupportDir = await getApplicationSupportDirectory();
+    final appSupportDir = await appDataDirectory();
     Logger.addSink(RollingFileSink(directory: appSupportDir));
 
     // Give mpv its own config directory under our app support folder so the
