@@ -12,6 +12,18 @@ class MediaKitPlayerImpl extends MediaKitVideoPlayer {
   ReadonlySignal<bool> get paused => _paused;
   final Signal<bool> _paused = signal(false);
 
+  @override
+  Future<double?> queryDuration() async {
+    final platform = player.platform;
+    if (platform is! NativePlayer) return null;
+    try {
+      // Empty while the file is still opening.
+      return double.tryParse(await platform.getProperty('duration'));
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Last value written to mpv, so the reactive re-apply below can skip writes
   /// that would change nothing.
   String _appliedHwdec;

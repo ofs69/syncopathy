@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
@@ -165,29 +166,55 @@ abstract class MediaKitVideoPlayer extends VideoPlayer {
       return PlaylistModel(entries);
     });
 
-    final durationSignal = player.stream.duration
-        .map((d) => d.inMilliseconds / 1000.0)
-        .toSyncSignal(player.state.duration.inMilliseconds / 1000.0);
+    // Every duration event is written, not just a change. Moving to the next
+    // playlist entry resets the duration to null below, and media_kit never
+    // reports mpv's "unavailable" in between, so a next file of the same length
+    // arrives as the value already seen — a deduplicating signal would swallow
+    // it and leave the duration null for as long as the file plays.
+    _setDuration(player.state.duration);
+    _durationSubscription = player.stream.duration.listen(_setDuration);
 
     String lastDurationFile = "";
     effectAdd([
       effect(() {
         final path = loadedPath.value;
-        if (path != lastDurationFile) {
-          _duration.value = null;
-        }
+        if (path == lastDurationFile) return;
         lastDurationFile = path;
-      }),
-      effect(() {
-        final newDuration = durationSignal.value;
-        _duration.value = newDuration < 0.1 ? null : newDuration;
+        // Never let the next file borrow the previous file's length.
+        _duration.value = null;
+        // The event carrying the new length can land before the playlist
+        // reports the new entry - prefetching makes that common - and then
+        // nothing follows to undo the reset. mpv already knows the length by
+        // then, so ask it rather than wait for an event that has been and gone.
+        untracked(() => _recoverDuration(path));
       }),
     ]);
   }
 
+  StreamSubscription<Duration>? _durationSubscription;
+
+  void _setDuration(Duration d) {
+    final seconds = d.inMilliseconds / 1000.0;
+    _duration.value = seconds < 0.1 ? null : seconds;
+  }
+
+  Future<void> _recoverDuration(String path) async {
+    final seconds = await queryDuration();
+    if (seconds == null || seconds < 0.1) return;
+    // The player moved on while mpv answered, or the event got there first.
+    if (loadedPath.value != path || _duration.value != null) return;
+    _duration.value = seconds;
+  }
+
+  /// The open file's length in seconds as the player reports it right now, or
+  /// null when it does not know yet or cannot be asked.
+  @protected
+  Future<double?> queryDuration() async => null;
+
   @override
   void dispose() async {
     super.dispose();
+    await _durationSubscription?.cancel();
     _smoothVideoSignals.dispose();
     await player.dispose();
   }
