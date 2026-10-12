@@ -45,9 +45,13 @@ class Throttler {
     });
   }
 
-  void dispose() {
+  /// Drops the pending trailing call and ends the cooldown, so the next [run]
+  /// executes at once.
+  void cancel() {
     _timer?.cancel();
     _pendingAction = null;
     _isThrottled = false;
   }
+
+  void dispose() => cancel();
 }

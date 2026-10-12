@@ -30,7 +30,13 @@ class Debouncer {
     });
   }
 
-  void dispose() {
+  /// Drops a pending trailing call, so a value it captured cannot be acted on
+  /// after it stopped being true.
+  void cancel() {
     _timer?.cancel();
+    _timer = null;
+    _isWaiting = false;
   }
+
+  void dispose() => cancel();
 }

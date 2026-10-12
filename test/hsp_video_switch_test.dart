@@ -109,6 +109,13 @@ String? _unhealthy(_Rig rig, List<FunscriptAction> expected, int positionMs) {
   if (foreign.isNotEmpty) {
     return 'device holds points from another script: ${foreign.first.at}';
   }
+  // One start per stream: a second play yanks the device clock back. A stale
+  // flip of the playing flag used to send one while the first was in flight.
+  final lastSetup = d.log.lastIndexWhere((l) => l.contains('-> setup('));
+  final plays = d.log.skip(lastSetup).where((l) => l.contains('-> play('));
+  if (plays.length > 1) {
+    return 'duplicate play: ${plays.length} plays on one stream';
+  }
   if (positionMs < d.points.first.at || positionMs > d.points.last.at) {
     return 'playhead $positionMs outside device buffer ${d.points.first.at}..${d.points.last.at}';
   }
@@ -155,6 +162,7 @@ void main() {
       rig.run(async, 8000);
       final failure = _unhealthy(rig, scriptB, rig.timesource.currentRawMs);
       expect(failure, isNull, reason: rig.device.log.skip(60).join('\n'));
+
       rig.backend.dispose();
       async.flushTimers();
     });
@@ -221,43 +229,36 @@ void main() {
     return failure;
   }
 
-  test(
-    'the device picks up the new script after every video switch',
-    () {
-      const runs = 2000;
-      final failures = <int, String>{};
-      for (var seed = 0; seed < runs; seed++) {
-        final failure = switchVideos(seed);
-        if (failure != null) failures[seed] = failure;
-      }
-      // One trace per kind of failure: the kinds have different causes.
-      final firstByKind = <String, int>{};
-      for (final MapEntry(:key, :value) in failures.entries) {
-        firstByKind.putIfAbsent(
-          value.split(':').first.replaceAll(RegExp(r'\d+'), 'N'),
-          () => key,
-        );
-      }
-      for (final MapEntry(key: kind, value: seed) in firstByKind.entries) {
-        final count = failures.values
-            .where(
-              (f) => f.split(':').first.replaceAll(RegExp(r'\d+'), 'N') == kind,
-            )
-            .length;
-        final trace = <String>[];
-        switchVideos(seed, trace: trace);
-        final from = trace.indexWhere((l) => l.contains('switch to B'));
-        // ignore: avoid_print
-        print(
-          '=== $count/$runs: $kind  (seed $seed: ${failures[seed]})\n'
-          '${trace.skip(max(0, from - 5)).take(90).join('\n')}',
-        );
-      }
-      expect(failures, isEmpty);
-    },
-    skip:
-        'Known failure: a throttled eager-buffer call captures the previous '
-        "script's actions and runs after the switch, adding its points to the "
-        'new stream (~2% of switches).',
-  );
+  test('the device picks up the new script after every video switch', () {
+    const runs = 2000;
+    final failures = <int, String>{};
+    for (var seed = 0; seed < runs; seed++) {
+      final failure = switchVideos(seed);
+      if (failure != null) failures[seed] = failure;
+    }
+    // One trace per kind of failure: the kinds have different causes.
+    final firstByKind = <String, int>{};
+    for (final MapEntry(:key, :value) in failures.entries) {
+      firstByKind.putIfAbsent(
+        value.split(':').first.replaceAll(RegExp(r'\d+'), 'N'),
+        () => key,
+      );
+    }
+    for (final MapEntry(key: kind, value: seed) in firstByKind.entries) {
+      final count = failures.values
+          .where(
+            (f) => f.split(':').first.replaceAll(RegExp(r'\d+'), 'N') == kind,
+          )
+          .length;
+      final trace = <String>[];
+      switchVideos(seed, trace: trace);
+      final from = trace.indexWhere((l) => l.contains('switch to B'));
+      // ignore: avoid_print
+      print(
+        '=== $count/$runs: $kind  (seed $seed: ${failures[seed]})\n'
+        '${trace.skip(max(0, from - 5)).take(90).join('\n')}',
+      );
+    }
+    expect(failures, isEmpty);
+  });
 }

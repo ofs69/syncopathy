@@ -347,7 +347,11 @@ mixin HandyNativeHspMixin
         HandyHspCommandDelegation {
   final _internalActionBuffer = InternalActionBuffer();
   bool _internalHandyPlaying = false;
-  final _internalHandyPlayStateDebouncer = Debouncer(milliseconds: 200);
+  // Longer than a command takes to come back. A play queued behind an add can
+  // take ~600ms to be answered over BLE, and until then the answers to commands
+  // sent before it still say Stopped; a shorter window took that for a device
+  // that ignored the play, and sent it again.
+  final _internalHandyPlayStateDebouncer = Debouncer(milliseconds: 1000);
   final _eagerBufferThrottle = Throttler(milliseconds: 1000);
 
   // eager buffer limit 30 seconds
@@ -478,8 +482,6 @@ mixin HandyNativeHspMixin
     if (hspState == null) return;
     final playerPlaying = !timesource.paused.value;
 
-    _reconcileInternalPlayingState(hspState);
-
     if (kDebugMode) {
       if (_lastState != hspState.playState) {
         debugPrint("hspStateChange: ${hspState.playState.toString()}");
@@ -509,6 +511,10 @@ mixin HandyNativeHspMixin
         hspSetup();
         return;
     }
+
+    // Only a report about our own stream says anything about what the device
+    // is doing for us.
+    _reconcileInternalPlayingState(hspState);
 
     final currentTimeMs = timesource.currentRawMs;
 
@@ -549,19 +555,23 @@ mixin HandyNativeHspMixin
   }
 
   /// Fallback that nudges [_internalHandyPlaying] back toward what the device
-  /// actually reports, on a 200ms debounce, whenever the two disagree. Ideally
+  /// actually reports, on a 1s debounce, whenever the two disagree. Ideally
   /// this never fires; it guards against our optimistic local flag drifting from
   /// the device's real play state.
+  ///
+  /// The flip acts on the device's latest report when it fires, not on the one
+  /// that scheduled it, and a report that agrees in the meantime calls it off.
+  /// A report goes stale within one command: the state effect re-runs on a
+  /// pause or a Home Mode change with the last report it saw, which still says
+  /// "playing" after a stop has been sent, and the flip it scheduled used to
+  /// fire later - after the device had confirmed the stop - and mark it
+  /// playing. The next hspPlay was then suppressed as redundant.
   void _reconcileInternalPlayingState(HspStateAdapter hspState) {
-    final devicePlaying = switch (hspState.playState) {
-      HspStateAdapterPlayState.hspStateNotInitialized => false,
-      HspStateAdapterPlayState.hspStatePlaying => true,
-      HspStateAdapterPlayState.hspStateStopped => false,
-      HspStateAdapterPlayState.hspStatePaused => false,
-      // I think it only turns starving when pauseWhenStarving is turned on
-      HspStateAdapterPlayState.hspStateStarving => false,
-    };
-    if (devicePlaying == _internalHandyPlaying) return;
+    final devicePlaying = _reportsPlaying(hspState);
+    if (devicePlaying == _internalHandyPlaying) {
+      _internalHandyPlayStateDebouncer.cancel();
+      return;
+    }
 
     if (kDebugMode) {
       debugPrint(
@@ -569,16 +579,28 @@ mixin HandyNativeHspMixin
       );
     }
     _internalHandyPlayStateDebouncer.run(() {
-      if (_internalHandyPlaying != devicePlaying) {
-        if (kDebugMode) {
-          debugPrint("DEBOUNCER SET _internalHandyPlaying=$devicePlaying");
-        }
-        // Ideally this case never happens
-        _internalHandyPlaying = devicePlaying;
-        _hspStateChange(hspState);
+      final latest = hspStateAdapter.value;
+      if (latest == null || latest.streamId != _currentStreamId) return;
+      final playing = _reportsPlaying(latest);
+      if (_internalHandyPlaying == playing) return;
+      if (kDebugMode) {
+        debugPrint("DEBOUNCER SET _internalHandyPlaying=$playing");
       }
+      // Ideally this case never happens
+      _internalHandyPlaying = playing;
+      _hspStateChange(latest);
     });
   }
+
+  static bool _reportsPlaying(HspStateAdapter state) =>
+      switch (state.playState) {
+        HspStateAdapterPlayState.hspStateNotInitialized => false,
+        HspStateAdapterPlayState.hspStatePlaying => true,
+        HspStateAdapterPlayState.hspStateStopped => false,
+        HspStateAdapterPlayState.hspStatePaused => false,
+        // I think it only turns starving when pauseWhenStarving is turned on
+        HspStateAdapterPlayState.hspStateStarving => false,
+      };
 
   void _seeking(bool isSeeking) {
     final currentTime = timesource.currentRawMs;
@@ -662,19 +684,28 @@ mixin HandyNativeHspMixin
       return;
     }
 
-    _eagerBufferThrottle.run(
-      () => _eagerBufferAhead(state, actions, currentTime),
-    );
+    _eagerBufferThrottle.run(_eagerBufferAhead);
   }
 
   /// Buffers the next [ActionBuffer] ahead of the playhead, unless the device is
   /// near its point ceiling or we already have [_eagerBufferLimitMs] buffered.
-  void _eagerBufferAhead(
-    HspStateAdapter state,
-    List<FunscriptAction> actions,
-    int currentTime,
-  ) {
+  ///
+  /// Reads the state, script and playhead when it runs rather than taking them
+  /// from the caller: the throttle runs a suppressed call on its trailing edge,
+  /// up to a second later, and by then a video switch may have replaced the
+  /// script. Capturing them sent the previous script's next buffer to the new
+  /// stream, and recorded it as buffered, so the device played the old script
+  /// in the middle of the new one until something re-bootstrapped it.
+  void _eagerBufferAhead() {
+    final state = hspStateAdapter.value;
+    final actions = currentActions.value;
+    if (state == null || actions == null) return;
     if (_internalActionBuffer.isEmpty) return;
+    // The device buffer belongs to the script it was bootstrapped from; a
+    // different one waits for its own bootstrap.
+    if (!identical(actions, _bufferedActionsReference)) return;
+    if (state.streamId != _currentStreamId) return;
+    final currentTime = timesource.currentRawMs;
     if (kDebugMode) debugPrint("EAGER BUFFER");
     final bufferId = _internalActionBuffer.lastBufferId + 1;
     final actionBuffer = ActionBuffer.fromActions(bufferId, actions);
@@ -787,6 +818,9 @@ mixin HandyNativeHspMixin
 
   void _resetInternalState(bool flush) {
     _internalActionBuffer.reset();
+    // A buffering call still waiting on the throttle was meant for the buffer
+    // being thrown away.
+    _eagerBufferThrottle.cancel();
     if (!flush) _internalHandyPlaying = false;
     _bufferedActionsReference = null;
     _syncTimer?.cancel();
@@ -879,6 +913,10 @@ mixin HandyNativeHspMixin
     if (actions == null) return;
     final hspState = hspStateAdapter.value;
     if (hspState == null) return;
+    // A threshold on a stream we have since replaced, or for a buffer built
+    // from a script that has since changed, is not ours to feed.
+    if (hspState.streamId != _currentStreamId) return;
+    if (!identical(actions, _bufferedActionsReference)) return;
 
     // Get the next buffer and buffer it
     var bufferId =
