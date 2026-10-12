@@ -177,14 +177,14 @@ class HereSpherePlaybackSession extends PlaybackSession {
   void applyEvent(HereSphereEvent event) {
     switch (event.kind) {
       case HereSphereEventKind.open:
-        _openMedia(id: event.id, resource: null, title: event.title);
+        _openMedia(id: event.id, resource: null);
         if (event.time != null) {
           _applyPosition(event.time!);
         }
         paused.value = true;
       case HereSphereEventKind.play:
         if (currentMedia.value == null) {
-          _openMedia(id: event.id, resource: null, title: event.title);
+          _openMedia(id: event.id, resource: null);
         }
         if (event.time != null) {
           _applyPosition(event.time!);
@@ -211,7 +211,7 @@ class HereSpherePlaybackSession extends PlaybackSession {
   void applySnapshot(HereSphereSnapshot snapshot) {
     final resource = snapshot.resource;
     if (resource != null && resource != loadedPath.value) {
-      _openMedia(id: null, resource: resource, title: null);
+      _openMedia(id: null, resource: resource);
     }
 
     final reportedDuration = snapshot.duration;
@@ -252,16 +252,13 @@ class HereSpherePlaybackSession extends PlaybackSession {
     _lastAdvanceAt = null;
   }
 
-  void _openMedia({String? id, String? resource, String? title}) {
+  void _openMedia({String? id, String? resource}) {
     final media = _resolve(id, resource);
     final previous = currentMedia.value;
     if (media == null) {
       // Streaming something the library does not know. There is no script to
       // drive from, so the session stays disconnected rather than pretending.
-      Logger.warning(
-        'HereSphere opened media Syncopathy could not resolve'
-        '${title != null ? ' ("$title")' : ''}',
-      );
+      Logger.warning('HereSphere opened media Syncopathy could not resolve');
       batch(() {
         currentMedia.value = null;
         loadedPath.value = resource ?? '';
@@ -276,7 +273,7 @@ class HereSpherePlaybackSession extends PlaybackSession {
       return;
     }
 
-    Logger.info('HereSphere opened "${media.name}"');
+    Logger.info('HereSphere opened library entry ${media.id}');
     batch(() {
       currentMedia.value = media;
       loadedPath.value = resource ?? media.mediaPath;

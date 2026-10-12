@@ -379,7 +379,8 @@ class HereSphereServer {
       _noteClientAddress(request, segments[1]);
       await _route(request, segments[1], segments.sublist(2));
     } catch (e, st) {
-      Logger.error('HereSphere request failed: ${request.uri.path}', e, st);
+      // Not the path: it names the media and carries the client's token.
+      Logger.error('HereSphere ${request.method} request failed', e, st);
       try {
         await _writeStatus(response, HttpStatus.internalServerError);
       } catch (_) {

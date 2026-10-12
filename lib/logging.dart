@@ -17,11 +17,34 @@ class LogEntry {
 
   @override
   String toString() {
-    final errStr = error != null ? '\nError: $error' : '';
+    final errStr = error != null ? '\nError: ${redactPaths('$error')}' : '';
+    // Stack traces name source files, not the user's, so they stay intact.
     final stackStr = stackTrace != null ? '\nStacktrace: $stackTrace' : '';
-    return '[${level.name.toUpperCase()}] ${timestamp.toIso8601String().substring(11, 23)}: $message$errStr$stackStr';
+    return '[${level.name.toUpperCase()}] ${timestamp.toIso8601String().substring(11, 23)}: ${redactPaths(message)}$errStr$stackStr';
   }
 }
+
+// A quoted absolute path, e.g. the `path = '...'` in a FileSystemException.
+final _quotedPath = RegExp(
+  r'''(['"])(?:[A-Za-z]:[\\/]|\\\\|file:/|/)[^'"\n]*\1''',
+);
+
+// An unquoted one. A path may contain spaces, so there is no reliable end to
+// it: everything up to the next quote or the end of the line goes, which can
+// take some trailing text with it - the safe way to be wrong.
+final _barePath = RegExp(
+  r'''(?:(?<![A-Za-z])[A-Za-z]:[\\/]|\\\\[^\s\\]|file:/|(?<![\w.])/(?:home|Users|mnt|media|run|Volumes|tmp|var|srv|opt|data)/)[^'"\n]*''',
+);
+
+/// Replaces absolute file paths in [text] with `<path>`.
+///
+/// The user's library — folder names, file names, titles in them — never
+/// belongs in a log. Applied to every entry's message and error, so an
+/// exception that carries a path (a `FileSystemException`, a failed funscript
+/// load) cannot leak one either.
+String redactPaths(String text) => text
+    .replaceAllMapped(_quotedPath, (m) => '${m[1]}<path>${m[1]}')
+    .replaceAll(_barePath, '<path>');
 
 abstract class LogSink {
   void log(LogEntry entry);
@@ -74,7 +97,7 @@ class RollingFileSink extends LogSink {
         flush: true,
       );
     } catch (e) {
-      debugPrint('Error writing to log file: $e');
+      debugPrint('Error writing to log file: ${redactPaths('$e')}');
     }
   }
 
@@ -97,7 +120,7 @@ class RollingFileSink extends LogSink {
         await currentFile.rename(path.join(directory.path, '$fileName.1'));
       }
     } catch (e) {
-      debugPrint('Error rolling log files: $e');
+      debugPrint('Error rolling log files: ${redactPaths('$e')}');
     }
   }
 }

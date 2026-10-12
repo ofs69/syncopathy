@@ -118,7 +118,7 @@ class MediaFileScanner {
             }
           }
         } catch (e, st) {
-          Logger.error('Failed to list directory: $dirPath', e, st);
+          Logger.error('Failed to list a directory', e, st);
           skippedPaths.add(dirPath);
         }
       }

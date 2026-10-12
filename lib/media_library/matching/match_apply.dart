@@ -277,7 +277,7 @@ class MatchApplier {
       if (!await file.exists()) return false;
       return await fastFileHash(file) == hash;
     } catch (e, st) {
-      Logger.error('Failed to revalidate $path', e, st);
+      Logger.error('Failed to revalidate a matched funscript', e, st);
       return false;
     }
   }

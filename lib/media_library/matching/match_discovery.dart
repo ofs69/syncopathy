@@ -397,7 +397,7 @@ class MatchDiscovery {
           final hash = await fastFileHash(file, cacheService: cacheService);
           return (file, hash);
         } catch (e, st) {
-          Logger.error('Failed to hash funscript: ${file.path}', e, st);
+          Logger.error('Failed to hash a funscript', e, st);
           return (file, null);
         } finally {
           processed++;
@@ -572,7 +572,7 @@ class MatchDiscovery {
     } catch (e, st) {
       // A script that will not parse is not a match problem; skip it rather
       // than fail the whole pass.
-      Logger.error('Failed to read funscript: ${file.path}', e, st);
+      Logger.error('Failed to read a funscript', e, st);
       return null;
     }
   }
