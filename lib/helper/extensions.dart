@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /*
   Extension method because withOpacity is deprecated and IDGAF about precision

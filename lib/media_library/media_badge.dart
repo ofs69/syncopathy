@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:syncopathy/helper/extensions.dart';
 import 'package:syncopathy/persistence/entities/media_file.dart';

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' show RangeValues;
+import 'package:material_ui/material_ui.dart' show RangeValues;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:syncopathy/funscript_algo.dart';
 import 'package:syncopathy/model/json/funscript_json.dart';

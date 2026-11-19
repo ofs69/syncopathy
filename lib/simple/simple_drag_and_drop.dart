@@ -1,6 +1,6 @@
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:syncopathy/notification_feed.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/extensions.dart';

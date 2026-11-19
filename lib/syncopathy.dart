@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,14 +27,29 @@ class Syncopathy extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // AlertManager is provided (and registered in getIt) from main.dart.
+    final type = ThemeData(brightness: Brightness.dark).textTheme;
     return MaterialApp(
       title: 'Syncopathy',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: GoogleFonts.roboto().fontFamily,
-        textTheme: GoogleFonts.robotoTextTheme(
-          ThemeData(brightness: Brightness.dark).textTheme,
+        textTheme: TextTheme(
+          displayLarge: GoogleFonts.roboto(textStyle: type.displayLarge),
+          displayMedium: GoogleFonts.roboto(textStyle: type.displayMedium),
+          displaySmall: GoogleFonts.roboto(textStyle: type.displaySmall),
+          headlineLarge: GoogleFonts.roboto(textStyle: type.headlineLarge),
+          headlineMedium: GoogleFonts.roboto(textStyle: type.headlineMedium),
+          headlineSmall: GoogleFonts.roboto(textStyle: type.headlineSmall),
+          titleLarge: GoogleFonts.roboto(textStyle: type.titleLarge),
+          titleMedium: GoogleFonts.roboto(textStyle: type.titleMedium),
+          titleSmall: GoogleFonts.roboto(textStyle: type.titleSmall),
+          bodyLarge: GoogleFonts.roboto(textStyle: type.bodyLarge),
+          bodyMedium: GoogleFonts.roboto(textStyle: type.bodyMedium),
+          bodySmall: GoogleFonts.roboto(textStyle: type.bodySmall),
+          labelLarge: GoogleFonts.roboto(textStyle: type.labelLarge),
+          labelMedium: GoogleFonts.roboto(textStyle: type.labelMedium),
+          labelSmall: GoogleFonts.roboto(textStyle: type.labelSmall),
         ),
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blueAccent,

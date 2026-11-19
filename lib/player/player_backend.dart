@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/effect_dispose_mixin.dart';
 import 'package:syncopathy/model/battery_model.dart';

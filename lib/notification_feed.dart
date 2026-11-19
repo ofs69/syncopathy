@@ -1,6 +1,6 @@
 import 'package:google_fonts/google_fonts.dart';
 import 'package:signals/signals_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/logging.dart';

@@ -4,7 +4,7 @@ import 'package:buttplug/client/client_device_command.dart';
 import 'package:buttplug/connectors/websocket_connector.dart';
 import 'package:buttplug/messages/messages.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/logging.dart';

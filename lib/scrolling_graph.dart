@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/buffer_list.dart';
 import 'package:syncopathy/funscript_algo.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:syncopathy/helper/platform_utils.dart';
@@ -35,20 +35,30 @@ class _HelpPageState extends State<HelpPage> {
         builder: (context, snapshot) {
           if (!snapshot.hasData) return CircularProgressIndicator();
           if (snapshot.hasError) return Text("No help file");
+          final theme = Theme.of(context);
+          final type = theme.textTheme.apply(fontSizeDelta: 4.0);
           return Center(
             child: FractionallySizedBox(
               widthFactor: isPortrait ? 1.0 : 0.5,
-              child: Markdown(
-                data: snapshot.data!,
-                padding: EdgeInsets.all(24.0),
-                selectable: true,
-                styleSheet: MarkdownStyleSheet.fromTheme(
-                  Theme.of(context).copyWith(
-                    textTheme: Theme.of(
-                      context,
-                    ).textTheme.apply(fontSizeFactor: 1.0, fontSizeDelta: 4.0),
+              child: SelectionArea(
+                child: Markdown(
+                  data: snapshot.data!,
+                  padding: const EdgeInsets.all(24),
+                  styleSheet: MarkdownStyleSheet(
+                    p: type.bodyMedium,
+                    h1: type.headlineSmall,
+                    h1Padding: const EdgeInsets.only(top: 24),
+                    h2: type.titleLarge,
+                    h3: type.titleMedium,
+                    h4: type.bodyLarge,
+                    listBullet: type.bodyMedium,
+                    code: type.bodyMedium?.apply(
+                      fontFamily: 'monospace',
+                      fontSizeFactor: 0.85,
+                      backgroundColor: theme.cardTheme.color,
+                    ),
                   ),
-                ).copyWith(h1Padding: EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 0.0)),
+                ),
               ),
             ),
           );

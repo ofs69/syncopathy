@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/focus_numeric_input.dart';
 import 'package:syncopathy/media_library/matching/matching_session_model.dart';

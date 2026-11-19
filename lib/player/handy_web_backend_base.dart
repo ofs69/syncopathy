@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/helper/debouncer.dart';
 import 'package:syncopathy/model/json/handy_native_web_backend_settings.dart';
