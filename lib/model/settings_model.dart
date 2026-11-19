@@ -53,7 +53,7 @@ class SettingsModel {
   final Signal<int> homeMoveDurationMs = signal(
     HomeTarget.defaultMoveDurationMs,
   );
-  final Signal<HwdecMode> hwdecMode = signal(HwdecMode.autoCopy);
+  final Signal<HwdecMode> hwdecMode = signal(HwdecMode.recommended);
   final MapSignal<String, ShortcutBinding> customShortcuts = mapSignal({});
 
   /// Experimental: serve the media library to HereSphere over the local

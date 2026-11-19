@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/model/json/settings.dart';
@@ -19,16 +20,34 @@ void main() {
   });
 
   group('persistence', () {
-    test('defaults to the most compatible mode', () {
-      expect(Settings().hwdecMode, HwdecMode.autoCopy);
-    });
+    for (final (platform, expected) in [
+      (TargetPlatform.windows, HwdecMode.autoSafe),
+      (TargetPlatform.linux, HwdecMode.autoCopy),
+      (TargetPlatform.macOS, HwdecMode.autoCopy),
+    ]) {
+      test(
+        'uses the platform default for missing settings on ${platform.name}',
+        () {
+          debugDefaultTargetPlatformOverride = platform;
+          addTearDown(() => debugDefaultTargetPlatformOverride = null);
+          expect(Settings().hwdecMode, expected);
+          expect(SettingsModel().effectiveHwdec.value, expected.mpvValue);
+          final json = Settings(offsetMs: 123).toJson()..remove('hwdecMode');
+          final restored = Settings.fromJson(json);
+          expect(restored.hwdecMode, expected);
+          expect(restored.offsetMs, 123);
+          json['hwdecMode'] = 'autoCopy';
+          expect(Settings.fromJson(json).hwdecMode, HwdecMode.autoCopy);
+        },
+      );
+    }
 
     test('round-trips through json', () {
       final json = (Settings()..hwdecMode = HwdecMode.autoSafe).toJson();
       expect(Settings.fromJson(json).hwdecMode, HwdecMode.autoSafe);
     });
 
-    test('falls back to the default for an unknown stored value', () {
+    test('falls back to copy-back for an unknown stored value', () {
       final json = Settings().toJson()..['hwdecMode'] = 'aRemovedMode';
       expect(Settings.fromJson(json).hwdecMode, HwdecMode.autoCopy);
     });
@@ -39,7 +58,7 @@ void main() {
       hwdecOverride = null;
       final settings = SettingsModel();
 
-      expect(settings.effectiveHwdec.value, 'auto-copy');
+      expect(settings.effectiveHwdec.value, HwdecMode.recommended.mpvValue);
 
       settings.hwdecMode.value = HwdecMode.none;
       expect(settings.effectiveHwdec.value, 'no');

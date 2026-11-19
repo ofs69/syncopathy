@@ -76,7 +76,7 @@ class Settings {
     this.autoHomeOnPause = false,
     this.homeMoveDurationMs = HomeTarget.defaultMoveDurationMs,
     this.funscriptGraphEnabled = true,
-    this.hwdecMode = HwdecMode.autoCopy,
+    HwdecMode? hwdecMode,
     Map<String, ShortcutBinding> customShortcuts = const {},
     this.hereSphereEnabled = false,
     this.hereSpherePort = 9678,
@@ -89,7 +89,8 @@ class Settings {
     this.hereSphereDecorateThumbnails = true,
     this.hereSphereUsername = 'syncopathy',
     this.hereSpherePasswordHash = '',
-  }) : mediaPaths = List.of(mediaPaths),
+  }) : hwdecMode = hwdecMode ?? HwdecMode.recommended,
+       mediaPaths = List.of(mediaPaths),
        customShortcuts = Map.of(customShortcuts);
 
   factory Settings.fromJson(Map<String, dynamic> json) {

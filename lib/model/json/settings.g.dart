@@ -36,13 +36,11 @@ Settings _$SettingsFromJson(Map<String, dynamic> json) => Settings(
       (json['homeMoveDurationMs'] as num?)?.toInt() ??
       HomeTarget.defaultMoveDurationMs,
   funscriptGraphEnabled: json['funscriptGraphEnabled'] as bool? ?? true,
-  hwdecMode:
-      $enumDecodeNullable(
-        _$HwdecModeEnumMap,
-        json['hwdecMode'],
-        unknownValue: HwdecMode.autoCopy,
-      ) ??
-      HwdecMode.autoCopy,
+  hwdecMode: $enumDecodeNullable(
+    _$HwdecModeEnumMap,
+    json['hwdecMode'],
+    unknownValue: HwdecMode.autoCopy,
+  ),
   customShortcuts:
       (json['customShortcuts'] as Map<String, dynamic>?)?.map(
         (k, e) =>

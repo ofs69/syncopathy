@@ -40,7 +40,7 @@ flutter build windows --release --dart-define-from-file=config.json
 
 ## Notes
 
-- **media_kit** is a [custom fork](https://github.com/ofs69/media-kit) — `flutter pub get` fetches it from Git automatically.
+- **media_kit** uses a [custom fork](https://github.com/ofs69/media-kit). For local development, `pubspec_overrides.yaml` can point the Dart packages and platform libraries at a sibling `../media-kit` checkout. Run `flutter pub get` after changing those paths.
 - **ObjectBox** is native-only; the web build uses LocalStorage instead.
 - **Protobuf** — only regenerate when `.proto` files under `protos/` actually change:
   ```bash

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Hardware decoding modes offered in settings, mapped to mpv `--hwdec` values.
 ///
 /// Deliberately a curated subset of what mpv accepts. The value is handed
@@ -6,13 +8,10 @@
 /// specific decoder for diagnosis can pass `--hwdec=<value>` on the command
 /// line, which bypasses this enum entirely.
 enum HwdecMode {
-  /// Decode on the GPU, copy frames back to system memory. The long-standing
-  /// default, and the most compatible with the texture pipeline.
+  /// Decode on the GPU and copy frames back to system memory.
   autoCopy('auto-copy'),
 
-  /// Keep decoded frames in GPU memory, restricted to the decoders mpv
-  /// whitelists as safe. Preferred over plain `auto`, which will also try
-  /// methods known to misbehave.
+  /// Let mpv select a supported hardware decoder, preferring GPU interop.
   autoSafe('auto-safe'),
 
   /// No hardware decoding at all.
@@ -23,11 +22,19 @@ enum HwdecMode {
 
   const HwdecMode(this.mpvValue);
 
-  String toDisplayString() => switch (this) {
-    HwdecMode.autoCopy => 'Automatic, copy back (Recommended)',
-    HwdecMode.autoSafe => 'Automatic, keep on GPU',
-    HwdecMode.none => 'Software decoding',
-  };
+  static HwdecMode get recommended =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.windows
+      ? autoSafe
+      : autoCopy;
+
+  String toDisplayString() {
+    final label = switch (this) {
+      HwdecMode.autoCopy => 'Automatic, copy back',
+      HwdecMode.autoSafe => 'Automatic, keep on GPU',
+      HwdecMode.none => 'Software decoding',
+    };
+    return this == recommended ? '$label (Recommended)' : label;
+  }
 
   String get description => switch (this) {
     HwdecMode.autoCopy =>

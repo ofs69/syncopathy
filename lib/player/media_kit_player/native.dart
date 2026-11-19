@@ -1,8 +1,12 @@
+import 'dart:io';
+
+import 'package:flutter/widgets.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
 import 'package:signals/signals_flutter.dart';
 import 'package:syncopathy/ioc.dart';
 import 'package:syncopathy/player/media_kit_player/media_kit_video_player.dart';
+import 'package:syncopathy/player/media_kit_player/viewport_video_texture.dart';
 
 /// One-time initialization of the playback engine, before any player is built.
 void initPlaybackEngine() => MediaKit.ensureInitialized();
@@ -27,6 +31,25 @@ class MediaKitPlayerImpl extends MediaKitVideoPlayer {
   /// Last value written to mpv, so the reactive re-apply below can skip writes
   /// that would change nothing.
   String _appliedHwdec;
+
+  @override
+  Widget? buildVideoSurface() {
+    final surface = super.buildVideoSurface();
+    if (surface == null || !Platform.isWindows) return surface;
+    return SignalBuilder(
+      builder: (context) {
+        final width = videoWidth.value;
+        final height = videoHeight.value;
+        return ViewportVideoTexture(
+          source: width == null || height == null
+              ? null
+              : Size(width.toDouble(), height.toDouble()),
+          resize: (w, h) => controller!.setSize(width: w, height: h),
+          child: surface,
+        );
+      },
+    );
+  }
 
   MediaKitPlayerImpl({
     required super.embeddedPlayer,
@@ -62,6 +85,9 @@ class MediaKitPlayerImpl extends MediaKitVideoPlayer {
             configuration: VideoControllerConfiguration(
               vo: 'libmpv',
               hwdec: _appliedHwdec,
+              // Wait for the Windows viewport before allocating an 8K texture.
+              width: Platform.isWindows ? 1 : null,
+              height: Platform.isWindows ? 1 : null,
             ),
           )
         : null;
